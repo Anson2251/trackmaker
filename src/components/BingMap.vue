@@ -4,7 +4,7 @@
 import { ref, onMounted } from "vue";
 import { getGeolocation } from "@/script/geoLocation";
 import bingmaps from "@/script/map";
-import { bingmaps_key } from "@/script/credentials";
+import { bingMapsKey } from "@/script/credentials";
 
 function setupMapNumber(): number{
     let id = (window as any).bingMapCount || 0;
@@ -17,13 +17,12 @@ const bingMapID = ref(`bing-map-${setupMapNumber()}`)
 const container = ref<HTMLElement | null>(null);
 
 let map;
-
 onMounted(() => {
     container.value = document.getElementById(bingMapID.value);
     if (container.value) {
         getGeolocation()
             .then((location) => {
-                map = bingmaps.getMap(container.value!, bingmaps_key, location, Microsoft.Maps.MapTypeId.road);
+                map = bingmaps.getMap(container.value!, bingMapsKey, location, Microsoft.Maps.MapTypeId.aerial);
             })
     }
 });
