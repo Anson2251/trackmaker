@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import BingMap from './components/BingMap.vue';
 </script>
 
 <template>
