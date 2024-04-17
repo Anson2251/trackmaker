@@ -1,8 +1,10 @@
-<script setup lang="ts">
-/// <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
+<reference path="../../node_modules/@types/bingmaps/index.d.ts" />
 
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getGeolocation } from "@/script/utils";
+import { getGeolocation } from "@/script/geoLocation";
+import bingmaps from "@/script/map";
+import { bingmaps_key } from "@/script/credentials";
 
 function setupMapNumber(): number{
     let id = (window as any).bingMapCount || 0;
@@ -13,20 +15,16 @@ function setupMapNumber(): number{
 
 const bingMapID = ref(`bing-map-${setupMapNumber()}`)
 const container = ref<HTMLElement | null>(null);
-const position = getGeolocation();
-console.log(position)
-const centre = new Microsoft.Maps.Location(position.latitude, position.longitude);
+
+let map;
 
 onMounted(() => {
     container.value = document.getElementById(bingMapID.value);
     if (container.value) {
-        const map = new Microsoft.Maps.Map(container.value, {
-            credentials: "",
-            center: centre,
-            mapTypeId: Microsoft.Maps.MapTypeId.aerial,
-            zoom: 10
-        });
-        console.log("mounted", container.value);
+        getGeolocation()
+            .then((location) => {
+                map = bingmaps.getMap(container.value!, bingmaps_key, location, Microsoft.Maps.MapTypeId.road);
+            })
     }
 });
 </script>

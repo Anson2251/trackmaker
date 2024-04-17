@@ -10,7 +10,7 @@ import BingMap from '../components/BingMap.vue'
 
 <style>
 .map-layout {
-	width: 300px;
-	height: 250px;
+	width: 100%;
+	height: 100%;
 }
 </style>

@@ -1,5 +1,10 @@
-export async function getGeolocation(): Promise<{ latitude: number; longitude: number; }> {
-    const promise: Promise<{latitude: number, longitude: number}> =  new Promise((resolve, reject) => {
+export interface Location {
+    latitude: number,
+    longitude: number
+}
+
+export function getGeolocation(): Promise<Location> {
+    return new Promise((resolve, reject) => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) =>  {
                 const location = {
@@ -14,8 +19,6 @@ export async function getGeolocation(): Promise<{ latitude: number; longitude: n
             reject("Geolocation is not supported by this browser.");
         }
     });
-
-    return await promise;
 }
 
 export function supportGeolocation(): boolean {

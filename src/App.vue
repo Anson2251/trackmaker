@@ -1,32 +1,31 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import BingMap from './components/BingMap.vue';
 </script>
 
 <template>
-	<RouterLink to="/">Home</RouterLink>
 	<nav>
+		<RouterLink to="/">Home</RouterLink>
 		<RouterLink to="/about">About</RouterLink>
 	</nav>
-	<RouterView />
+
+	<div class="main-layout">
+		<RouterView />
+	</div>
 </template>
 
 <style scoped>
-header {
-	line-height: 1.5;
-	max-height: 100vh;
-}
-
-.logo {
-	display: block;
-	margin: 0 auto 2rem;
+.main-layout {
+	grid-column: 1;
+	grid-row: 2;
 }
 
 nav {
-	width: 100%;
 	font-size: 12px;
 	text-align: center;
-	margin-top: 2rem;
+
+	grid-column: 1;
+	grid-row: 1;
 }
 
 nav a.router-link-exact-active {
@@ -48,22 +47,6 @@ nav a:first-of-type {
 }
 
 @media (min-width: 1024px) {
-	header {
-		display: flex;
-		place-items: center;
-		padding-right: calc(var(--section-gap) / 2);
-	}
-
-	.logo {
-		margin: 0 2rem 0 0;
-	}
-
-	header .wrapper {
-		display: flex;
-		place-items: flex-start;
-		flex-wrap: wrap;
-	}
-
 	nav {
 		text-align: left;
 		margin-left: -1rem;
