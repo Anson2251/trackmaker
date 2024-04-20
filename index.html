@@ -13,7 +13,7 @@
 			margin: 0;
 			height: 100%;
 		}
-		#splash {
+		#splash, #timeout {
 			position: absolute;
 			top: 40%;
 			width: 100%;
@@ -23,7 +23,6 @@
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 			margin: 0;
 			padding: 0;
-			animation: breathingLight 2s infinite;
 		}
 
 		@keyframes breathingLight {
@@ -49,7 +48,12 @@
 		<strong>It seems the browser you are using does not support JavaScript (or it has been disabled)</strong>
 	</noscript>
 	<div id="app"></div>
-	<div id="splash">Loading TRACKMAKER ...</div>
+	<div id="splash" style="animation: breathingLight 2s infinite;">Loading TRACKMAKER ...</div>
+	<div id="timeout" style="color: red; display: none;">
+		Loading Bing Maps <b style="font-weight: bold;">Timeout</b>
+        <br>Please <u>check the Internet connection
+        </u> and <u>refresh the page</u>
+	</div>
 	<script type="module" src="/src/main.ts"></script>
 </body>
 
