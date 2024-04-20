@@ -1,6 +1,7 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <h1>Track maker</h1>
+    <p>A simple tool for tracking and sharing your routes</p>
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { getGeolocation } from "@/script/geoLocation";
 import bingmaps from "@/script/map";
 import { bingMapsKey } from "@/script/credentials";
@@ -22,7 +22,7 @@ let type = Microsoft.Maps.MapTypeId.road;
 let map: Microsoft.Maps.Map | null = null;
 onMounted(() => {
     container.value = document.getElementById(bingMapID.value)!;
-    map = bingmaps.getMap(container.value!, bingMapsKey, location, type)
+    map = bingmaps.getMap(container.value, bingMapsKey, location, type)
 
     getGeolocation()
         .then((l) => {
