@@ -21,38 +21,45 @@ export namespace bingmaps {
     export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null> {
         // <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol'></script>
         return new Promise((resolve, reject) => {
-            if (window.Microsoft !== undefined) resolve(null);
-            let loaded = false;
-            const bingMapURL = scriptURL || "https://www.bing.com/api/maps/mapcontrol";
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = bingMapURL;
-            script.async = false;
-            script.onload = () => {
-                loaded = true;
+            if ((window as any).LoadedBingMapScripts) resolve(null);
+            (window as any).LoadedBingMapScripts = false;
+            const callbackName = "onBingMapLoad";
+
+            if(!document.getElementById("bingMapScript")){ // if the script is not already loaded (not inserted into the document head)
+                const bingMapURL = scriptURL || `https://www.bing.com/api/maps/mapcontrol?callback=${callbackName}`; 
+                // set the callback name to remove the loading status
+                const script = document.createElement('script'); // load script
+                script.type = 'text/javascript';
+                script.src = bingMapURL;
+                script.async = true;
+                script.id = "bingMapScript";
+                document.head.appendChild(script);
             }
-            document.head.appendChild(script);
+
             let timer = 0;
-            const waitImport = setInterval(() => {
+            const waitReady = setInterval(() => { // in case of timeout
                 timer += 100;
-                if (loaded
-                    && window.Microsoft
-                    && window.Microsoft.Maps
-                    && window.Microsoft.Maps.Map
-                    && window.Microsoft.Maps.Location
-                    && window.Microsoft.Maps.MapTypeId
-                    && document.readyState === "complete"
-                ) {
-                    clearInterval(waitImport);
-                    resolve(null);
-                }
                 if (timer >= timeout) {
-                    clearInterval(waitImport);
+                    clearInterval(waitReady);
                     reject("Loading bing map timeout");
                 }
+                if((window as any).LoadedBingMapScripts) {
+                    clearInterval(waitReady);
+                    resolve(null);
+                }
             }, 100);
+
+            if(!(window as any)[callbackName]){
+                (window as any)[callbackName] = () => { // success to load the script
+                    clearInterval(waitReady);
+                    (window as any).LoadedBingMapScripts = true;
+                    (window as any)[callbackName] = null;
+                    resolve(null);
+                }
+            }
         })
     }
+    (window as any).initMapScript = initMapScript;
 }
 
 export default bingmaps;
