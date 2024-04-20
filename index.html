@@ -1,19 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<link rel="icon" href="/favicon.svg">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="stylesheet" href="/src/assets/noscript.css">
-		<title>TRACKMAKER</title>
-	</head>
-	<body>
-		<noscript>
-			<h1>SORRY</h1>
-			<h2>Trackmaker requires <u>JavaScript</u></h2>
-			<strong>It seems the browser you are using does not support JavaScript (or it has been disabled)</strong>
-		</noscript>
-		<div id="app"></div>
-		<script type="module" src="/src/main.ts"></script>
-	</body>
+
+<head>
+	<meta charset="UTF-8">
+	<link rel="icon" href="/favicon.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/src/assets/noscript.css">
+	<title>TRACKMAKER</title>
+	<style>
+		html, body {
+			padding: 0;
+			margin: 0;
+			height: 100%;
+		}
+		#splash {
+			position: absolute;
+			top: 40%;
+			width: 100%;
+			text-align: center;
+			color: #888;
+			font-size: 1em;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			margin: 0;
+			padding: 0;
+			animation: breathingLight 2s infinite;
+		}
+
+		@keyframes breathingLight {
+			0% {
+				opacity: 1;
+			}
+
+			50% {
+				opacity: 0.5;
+			}
+
+			100% {
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<noscript>
+		<h1>SORRY</h1>
+		<h2>Trackmaker requires <u>JavaScript</u></h2>
+		<strong>It seems the browser you are using does not support JavaScript (or it has been disabled)</strong>
+	</noscript>
+	<div id="app"></div>
+	<div id="splash">Loading TRACKMAKER ...</div>
+	<script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

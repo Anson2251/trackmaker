@@ -1,6 +1,6 @@
 import './assets/main.css'
 
-import { createApp } from 'vue'
+import { createApp, onMounted } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
@@ -15,4 +15,5 @@ bingmaps.initMapScript().then(() => {
     app.use(router)
 
     app.mount('#app')
+    document.getElementById("splash")?.remove()
 })
