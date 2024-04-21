@@ -23,7 +23,7 @@ let map: Microsoft.Maps.Map | null = null;
 onMounted(() => {
     container.value = document.getElementById(bingMapID.value)!;
     map = bingmaps.getMap(container.value, bingMapsKey, location, type)
-
+    
     getGeolocation()
         .then((l) => {
             location.latitude = l.latitude;

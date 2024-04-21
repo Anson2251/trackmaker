@@ -1,16 +1,20 @@
+<script setup>
+import { ref } from "vue";
+
+import { NH1, NP, NConfigProvider } from "naive-ui";
+import { useOsTheme, darkTheme } from 'naive-ui';
+let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
+</script>
+
 <template>
-  <div class="about">
-    <h1>Track maker</h1>
-    <p>A simple tool for tracking and sharing your routes</p>
-  </div>
+  <n-config-provider :theme="darkTheme">
+
+      <n-h1>Track maker</n-h1>
+      <n-p>A simple tool for tracking and sharing your routes</n-p>
+
+  </n-config-provider>
 </template>
 
 <style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
+
 </style>
