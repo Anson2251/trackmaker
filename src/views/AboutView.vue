@@ -7,7 +7,7 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 </script>
 
 <template>
-  <n-config-provider :theme="darkTheme">
+  <n-config-provider :theme="theme">
 
       <n-h1>Track maker</n-h1>
       <n-p>A simple tool for tracking and sharing your routes</n-p>
