@@ -33,6 +33,7 @@ export class bingMaps {
         this.addEventHandler('viewchangeend', () => { // synchronize zoom and centre from map
             this.zoom =  this.map.getZoom()
             this.viewCentre = this.map.getCenter();
+            this.onMapViewChanged(); // should be optimized because it is only use to call the other event handler, not the one to synchronize the map view
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
             this.map.setView({ zoom: Math.round(this.zoom), center: this.viewCentre })
@@ -219,8 +220,8 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
         const location = map.getViewCentre();
 
         if (!e.ctrlKey) { // move the map
-            location.latitude = (location.latitude - e.deltaY / factor) % 90; // limit latitude to -90 to 90
-            location.longitude = (location.longitude + e.deltaX / factor) % 180; // limit longitude to -180 to 180
+            location.latitude = Math.max(-90, Math.min(90, (location.latitude - e.deltaY / factor))); // limit latitude to -90 to 90
+            location.longitude = (location.longitude + e.deltaX / factor + 180) % 360 - 180; // limit longitude to -180 to 180
             onMove(location, zoom);
         } else { // scale the map
             const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 0), 20); // limit zoom to 0-20 inclusive
