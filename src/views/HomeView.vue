@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BingMap from '../components/BingMap.vue'
+import BingMap from '../components/BingMap/BingMap.vue'
 </script>
 
 <template>

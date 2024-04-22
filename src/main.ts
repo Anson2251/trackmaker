@@ -6,9 +6,9 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-import bingmaps from './script/map'
+import { initMapScript as initBingMaps } from './components/BingMap/map'
 
-bingmaps.initMapScript().then(() => {
+initBingMaps().then(() => {
     const app = createApp(App)
 
     app.use(createPinia())
