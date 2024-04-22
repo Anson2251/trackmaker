@@ -31,17 +31,18 @@ export class bingMaps {
         this.centrePinID = this.pushPinLayer.add(this.viewCentre, { title: "You are here" });
 
         this.addEventHandler('viewchangeend', () => { // synchronize zoom and centre from map
-            this.zoom = this.map.getZoom()
+            this.zoom =  this.map.getZoom()
             this.viewCentre = this.map.getCenter();
-            this.onMapViewChanged();
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
-            this.map.setView({ zoom: this.zoom, center: this.viewCentre })
+            this.map.setView({ zoom: Math.round(this.zoom), center: this.viewCentre })
         }, false);
 
         if(customizedTouchpadBehavior) {
             useCustomizedTouchpadBehavior(container.getAttribute("id")!, this, (location, newZoom) => {
                 this.setView({ zoom: newZoom, center: location });
+                this.zoom = newZoom;
+                this.viewCentre = location;
             });
         }
     }
@@ -215,7 +216,7 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
 
         const zoom = map.getZoom();
         const factor = 5000 / zoomFactor[Math.round(zoom)];
-        const location = map.getCentre();
+        const location = map.getViewCentre();
 
         if (!e.ctrlKey) { // move the map
             location.latitude = (location.latitude - e.deltaY / factor) % 90; // limit latitude to -90 to 90
@@ -223,7 +224,8 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
             onMove(location, zoom);
         } else { // scale the map
             const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 0), 20); // limit zoom to 0-20 inclusive
-            onMove(location, Math.round(newZoom));
+            console.log(newZoom, "raw")
+            onMove(location, newZoom);
         }
     }, { passive: false })
 
