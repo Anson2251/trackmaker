@@ -224,7 +224,6 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
             onMove(location, zoom);
         } else { // scale the map
             const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 0), 20); // limit zoom to 0-20 inclusive
-            console.log(newZoom, "raw")
             onMove(location, newZoom);
         }
     }, { passive: false })
