@@ -58,15 +58,15 @@ export namespace inputDevicePreferences {
         let usingTouchpad = false;
         switch (browserEngine) {
             case "Blink": { //chrome
-                usingTouchpad = Math.abs(e.wheelDeltaY) < 120 
+                usingTouchpad = Math.abs(e.wheelDeltaY) < 120 && e.deltaX !== 0
                 break;
             }
             case "WebKit": { // safari
-                usingTouchpad = Math.abs(e.wheelDeltaY) % 12 !== 0
+                usingTouchpad = Math.abs(e.wheelDeltaY) % 12 !== 0 && e.deltaX !== 0
                 break;
             }
             case "Gecko": { // firefox
-                usingTouchpad = Math.abs(e.wheelDeltaY) % 48 !== 0
+                usingTouchpad = Math.abs(e.wheelDeltaY) % 48 !== 0 && e.deltaX !== 0
             }
         }
         return usingTouchpad;

@@ -4,7 +4,7 @@ import bingMapsPushPins from "./pushPin";
 import inputDevicePreferences from "@/script/inputDevicePreferences";
 
 export class bingMaps {
-    private zoom: number = 0;
+    private zoom: number = 5;
     private viewCentre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
     private centre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
     private credentials: string = bingMapsKey;
@@ -15,20 +15,45 @@ export class bingMaps {
     pushPinLayer: bingMapsPushPins;
 
     private centrePinID: number;
-    constructor(container: HTMLElement, centre?: Microsoft.Maps.Location, type?: Microsoft.Maps.MapTypeId, zoom: number = 0, credentials?: string, customizedTouchpadBehavior: boolean = false) {
+    constructor(
+        container: HTMLElement,
+        options: {
+            centre?: Microsoft.Maps.Location,
+            type?: Microsoft.Maps.MapTypeId,
+            zoom?: number,
+            credentials?: string,
+            customizedTouchpadBehavior?: boolean,
+            liteMode?: boolean,
+            enableInertia?: boolean,
+            showDashboard?: boolean,
+            forceHidpi?: boolean // only for liteMode
+        }
+    ) {
         this.container = container;
-        this.mapType = type || this.mapType;
-        this.centre = centre || this.centre;
-        this.zoom = zoom || this.zoom;
+        this.mapType = options.type || this.mapType;
+        this.centre = options.centre || this.centre;
+        this.viewCentre = this.centre.clone();
+        this.zoom = options.zoom || this.zoom;
+
+        if(options.liteMode && window.devicePixelRatio > 1 && options.forceHidpi) {
+            if(container.id){
+                this.enableLiteForceHiDPI(container.id);
+            } else {
+                console.warn("The forceHidpi option is only available when the container has an id");
+            }
+        }
 
         this.map = new Microsoft.Maps.Map(container, {
-            credentials: credentials || this.credentials,
-            center: centre,
-            mapTypeId: this.mapType,
-            zoom: this.zoom
+            credentials: options.credentials || this.credentials,
+            center: this.viewCentre,
+            zoom: this.zoom,
+            enableInertia: options.enableInertia === undefined ? true : options.enableInertia,
+            liteMode: options.liteMode === undefined ? false : options.liteMode,
+            showDashboard: options.showDashboard === undefined ? true : options.showDashboard,
+            supportedMapTypes: [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale]
         });
 
-        this.map.setOptions({ liteMode: true })
+        this.map.setMapType(this.mapType);
 
         this.pushPinLayer = new bingMapsPushPins(this.map);
         this.centrePinID = this.pushPinLayer.add(this.viewCentre, { title: "You are here" });
@@ -42,7 +67,8 @@ export class bingMaps {
             this.map.setView({ zoom: this.zoom, center: this.viewCentre })
         }, false);
 
-        if (customizedTouchpadBehavior) {
+        //this.addEventHandler()
+        if (options.customizedTouchpadBehavior === undefined ? true : options.customizedTouchpadBehavior) {
             useCustomizedTouchpadBehavior(container.getAttribute("id")!, this, (location, newZoom) => {
                 this.setView({ center: location, zoom: newZoom })
             });
@@ -62,11 +88,11 @@ export class bingMaps {
         return this.mapType;
     }
 
-    setCentre(centre: Microsoft.Maps.Location) {
-        this.centre = centre;
+    setCentre(centre: Microsoft.Maps.Location, updateMapView: boolean = true) {
+        this.centre = centre.clone();
         this.pushPinLayer.remove(this.centrePinID);
         this.centrePinID = this.pushPinLayer.add(this.centre, { title: "You are here" });
-        this.map.setView({ center: this.centre })
+        if (updateMapView) this.map.setView({ center: this.centre })
     }
 
     getCentre() {
@@ -74,7 +100,7 @@ export class bingMaps {
     }
 
     setViewCentre(viewCentre: Microsoft.Maps.Location, updateMapView: boolean = true) {
-        this.viewCentre = viewCentre;
+        this.viewCentre = viewCentre.clone();
         if (updateMapView) {
             this.onMapViewChanged();
         }
@@ -106,6 +132,10 @@ export class bingMaps {
         this.setViewCentre(view.center || this.viewCentre, false);
 
         this.onMapViewChanged();
+    }
+
+    gotoCentre() {
+        this.setViewCentre(this.centre);
     }
 
     addEventHandler(type: string, handler: (map: bingMaps) => void, native: false): number
@@ -148,6 +178,24 @@ export class bingMaps {
     private verifyZoom(zoom: number): boolean {
         return zoom >= 0 && zoom <= 20;
     }
+
+    private enableLiteForceHiDPI(containerID: string): string {
+        const styleElement = document.createElement("style");
+        styleElement.id = `${containerID}-force-hidpi-style-support`;
+        styleElement.innerHTML = `
+            #${containerID} > div {
+                transform: scale(${1 / window.devicePixelRatio}) !important;
+                transform-origin: top left !important;
+                width: ${window.devicePixelRatio * 100}% !important;
+                height: ${window.devicePixelRatio * 100}% !important;
+            }
+            #${containerID} * {
+                border-radius: ${8 * window.devicePixelRatio}px !important;
+            }
+        `;
+        document.head.appendChild(styleElement);
+        return styleElement.id;
+    }
 }
 
 /**
@@ -165,7 +213,7 @@ export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null
         (window as any).LoadedBingMapScripts = false;
         const callbackName = "onBingMapLoad";
         const mkt = "zh-CN"
-        
+
 
         if (!document.getElementById("bingMapScript")) { // if the script is not already loaded (not inserted into the document head)
             const bingMapURL = scriptURL || `https://www.bing.com/api/maps/mapcontrol?callback=${callbackName}&setMkt=${mkt}`;
@@ -212,58 +260,27 @@ export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null
 export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps, onMove: (location: Microsoft.Maps.Location, zoom: number) => void) {
     const container = document.getElementById(containerID);
     if (container === null) return;
-
-    const useTouchpad = (() => (inputDevicePreferences.device === "touchpad"));
-    let scaleFreeze = false;
     map.getMap().setOptions({ disableScrollWheelZoom: true });
 
-    let touchpadCount = 0;
-    let mouseCount = 0;
-    let touchpad = true;
     // translate factor for each zoom level
     const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
     const behaviour = (e: WheelEvent) => {
         inputDevicePreferences.updateDeivceType(e);
         e.preventDefault();
 
-        
-        if(useTouchpad() || e.ctrlKey) touchpadCount += 1;
-        else mouseCount += 1;
-        if (touchpadCount > 5) {
-            touchpadCount = 0;
-            mouseCount = 0;
-            touchpad = true;
-        }
-        if (mouseCount > 5) {
-            touchpadCount = 0;
-            mouseCount = 0;
-            touchpad = false;
+        const zoom = map.getZoom();
+        const factor = 5000 / zoomFactor[Math.round(zoom)];
+        const location = map.getViewCentre();
+
+        if (!e.ctrlKey) { // move the map
+            location.latitude = Math.max(-90, Math.min(90, (location.latitude - e.deltaY / factor))); // limit latitude to -90 to 90
+            location.longitude = (location.longitude + e.deltaX / factor + 180) % 360 - 180; // limit longitude to -180 to 180
+            onMove(location, zoom);
+        } else { // scale the map
+            const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 3), 20); // limit zoom to 3-20 inclusive
+            onMove(location, newZoom);
         }
 
-        if (touchpad) {
-            const zoom = map.getZoom();
-            const factor = 5000 / zoomFactor[Math.round(zoom)];
-            const location = map.getViewCentre();
-
-            if (!e.ctrlKey) { // move the map
-                location.latitude = Math.max(-90, Math.min(90, (location.latitude - e.deltaY / factor))); // limit latitude to -90 to 90
-                location.longitude = (location.longitude + e.deltaX / factor + 180) % 360 - 180; // limit longitude to -180 to 180
-                onMove(location, zoom);
-            } else { // scale the map
-                const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 3), 20); // limit zoom to 3-20 inclusive
-                onMove(location, newZoom);
-            }
-        } else if(!e.ctrlKey) {
-            if (!scaleFreeze) {
-                const zoom = map.getZoom();
-                const location = map.getViewCentre();
-                const newZoom = Math.min(Math.max(zoom + (e.deltaY > 0 ? 1 : -1), 3), 20); // limit zoom to 3-20 inclusive
-                onMove(location, newZoom);
-
-                scaleFreeze = true;
-                setTimeout(() => { scaleFreeze = false; }, 50);
-            }
-        }
     }
     container.addEventListener("wheel", behaviour, { passive: false })
 }
