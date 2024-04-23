@@ -28,23 +28,23 @@ export class bingMaps {
             zoom: this.zoom
         });
 
+        this.map.setOptions({ liteMode: true })
+
         this.pushPinLayer = new bingMapsPushPins(this.map);
         this.centrePinID = this.pushPinLayer.add(this.viewCentre, { title: "You are here" });
 
         this.addEventHandler('viewchangeend', () => { // synchronize zoom and centre from map
-            this.zoom = this.map.getZoom()
+            this.zoom = this.map.getZoom();
             this.viewCentre = this.map.getCenter();
             this.onMapViewChanged(); // should be optimized because it is only use to call the other event handler, not the one to synchronize the map view
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
-            this.map.setView({ zoom: Math.round(this.zoom), center: this.viewCentre })
+            this.map.setView({ zoom: this.zoom, center: this.viewCentre })
         }, false);
 
         if (customizedTouchpadBehavior) {
             useCustomizedTouchpadBehavior(container.getAttribute("id")!, this, (location, newZoom) => {
-                this.setView({ zoom: newZoom, center: location });
-                this.zoom = newZoom;
-                this.viewCentre = location;
+                this.setView({ center: location, zoom: newZoom })
             });
         }
     }
@@ -164,9 +164,11 @@ export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null
         if ((window as any).LoadedBingMapScripts) resolve(null);
         (window as any).LoadedBingMapScripts = false;
         const callbackName = "onBingMapLoad";
+        const mkt = "zh-CN"
+        
 
         if (!document.getElementById("bingMapScript")) { // if the script is not already loaded (not inserted into the document head)
-            const bingMapURL = scriptURL || `https://www.bing.com/api/maps/mapcontrol?callback=${callbackName}`;
+            const bingMapURL = scriptURL || `https://www.bing.com/api/maps/mapcontrol?callback=${callbackName}&setMkt=${mkt}`;
             // set the callback name to remove the loading status
             const script = document.createElement('script'); // load script
             script.type = 'text/javascript';
@@ -213,13 +215,32 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
 
     const useTouchpad = (() => (inputDevicePreferences.device === "touchpad"));
     let scaleFreeze = false;
+    map.getMap().setOptions({ disableScrollWheelZoom: true });
+
+    let touchpadCount = 0;
+    let mouseCount = 0;
+    let touchpad = true;
     // translate factor for each zoom level
-    const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.18, 0.15, 0.1, 0.05, 0.025, 0.01]
+    const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
     const behaviour = (e: WheelEvent) => {
         inputDevicePreferences.updateDeivceType(e);
         e.preventDefault();
 
-        if (useTouchpad()) {
+        
+        if(useTouchpad() || e.ctrlKey) touchpadCount += 1;
+        else mouseCount += 1;
+        if (touchpadCount > 5) {
+            touchpadCount = 0;
+            mouseCount = 0;
+            touchpad = true;
+        }
+        if (mouseCount > 5) {
+            touchpadCount = 0;
+            mouseCount = 0;
+            touchpad = false;
+        }
+
+        if (touchpad) {
             const zoom = map.getZoom();
             const factor = 5000 / zoomFactor[Math.round(zoom)];
             const location = map.getViewCentre();
@@ -229,14 +250,14 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
                 location.longitude = (location.longitude + e.deltaX / factor + 180) % 360 - 180; // limit longitude to -180 to 180
                 onMove(location, zoom);
             } else { // scale the map
-                const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 0), 20); // limit zoom to 0-20 inclusive
+                const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, 3), 20); // limit zoom to 3-20 inclusive
                 onMove(location, newZoom);
             }
-        } else {
+        } else if(!e.ctrlKey) {
             if (!scaleFreeze) {
                 const zoom = map.getZoom();
                 const location = map.getViewCentre();
-                const newZoom = Math.min(Math.max(zoom + (e.deltaY > 0 ? 1 : -1), 0), 20); // limit zoom to 0-20 inclusive
+                const newZoom = Math.min(Math.max(zoom + (e.deltaY > 0 ? 1 : -1), 3), 20); // limit zoom to 3-20 inclusive
                 onMove(location, newZoom);
 
                 scaleFreeze = true;
@@ -244,13 +265,7 @@ export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps
             }
         }
     }
-
-    const preventScale = (e: Event) => { // prevent default behavior of touchpad interaction
-        e.preventDefault();
-    }
-
     container.addEventListener("wheel", behaviour, { passive: false })
-    document.querySelector(`#${containerID} > .MicrosoftMap`)?.addEventListener("wheel", preventScale)
 }
 
 export default bingMaps;
