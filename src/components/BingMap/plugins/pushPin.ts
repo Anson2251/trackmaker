@@ -1,9 +1,14 @@
-/// <reference path="../../../node_modules/@types/bingmaps/index.d.ts" />
+/// <reference path="../../../../node_modules/@types/bingmaps/index.d.ts" />
 
-export class bingMapsPushPins {
-    private map: Microsoft.Maps.Map;
+import bingMapPlugin from "./base";
+import bingMaps from "../map";
+
+export class bingMapsPushPins extends bingMapPlugin {
+    map: bingMaps;
+    space = "pushPinLayer";
     readonly pushPins: {id: number, pin: Microsoft.Maps.Pushpin}[] = [];
-    constructor(parentMap: Microsoft.Maps.Map){
+    constructor(parentMap: bingMaps){
+        super(parentMap);
         this.map = parentMap;
     }
     
@@ -11,14 +16,14 @@ export class bingMapsPushPins {
         const id = this.pushPins.length > 0 ? this.pushPins[this.pushPins.length - 1].id + 1 : 0;
         const pin = new Microsoft.Maps.Pushpin(location, options);
 
-        this.map.entities.push(pin);
+        this.map.map.entities.push(pin);
         this.pushPins.push({id: id, pin: pin});
         return id;
     }
     remove(id: number){
         const index = this.pushPins.findIndex((pin) => pin.id === id);
         if(index !== -1){
-            this.map.entities.remove(this.pushPins[index].pin);
+            this.map.map.entities.remove(this.pushPins[index].pin);
             this.pushPins.splice(index, 1);
         }
     }

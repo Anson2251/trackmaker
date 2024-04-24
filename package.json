@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@types/bingmaps": "^0.0.1",
-    "bingmaps": "^2.0.3",
     "pinia": "^2.1.7",
     "prcoords": "^1.0.5",
     "ua-parser-js": "^1.0.37",

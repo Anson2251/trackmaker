@@ -2,9 +2,9 @@
 
 <script lang="ts">
 import { NButton, NSwitch } from "naive-ui";
-import { NConfigProvider, darkTheme } from "naive-ui"
-import { Icon } from '@vicons/utils'
-import { Add, Remove } from "@vicons/ionicons5"
+import { NConfigProvider, darkTheme } from "naive-ui";
+import { Icon } from '@vicons/utils';
+import { Add, Remove } from "@vicons/ionicons5";
 import { ref, watch, onMounted } from "vue";
 import { 
     getGeoLocationPresent, 
@@ -14,6 +14,8 @@ import {
     isUpdateServiceUpdating 
 } from "@/script/geoLocation";
 import bingMaps from "./map";
+import bingMapsPushPins from "./plugins/pushPin";
+import { bingMapsDrawing } from "./plugins/drawingMap";
 
 function setupMapNumber(): number {
     let id = (window as any).bingMapCount || 0;
@@ -25,9 +27,18 @@ function setupMapNumber(): number {
 let iconSize = ref(24);
 let zoom = ref(10);
 
-const bingMapID = ref(`bing-map-${setupMapNumber()}`)
+const bingMapID = ref(`bing-map-${setupMapNumber()}`);
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(true);
+let map: bingMaps | null = null;
+
+function zoomIn(){
+    if(map) map.zoomIn();
+}
+
+function zoomOut(){
+    if(map) map.zoomOut();
+}
 
 export default {
     components: {
@@ -42,8 +53,6 @@ export default {
         startUpdatingService();
 
         onMounted(async () => {
-            let map: bingMaps | null = null;
-
             let pauseZoomSync = false;
             let pausePositionSync = false;
 
@@ -63,7 +72,7 @@ export default {
 
             watch(viewCentre, () => {
                 if (map && !pausePositionSync) {
-                    (map as bingMaps).getMap().setView({ center: viewCentre.value })
+                    (map as bingMaps).map.setView({ center: viewCentre.value })
                     pausePositionSync = true;
                     setTimeout(() => pausePositionSync = false, 10)
                 }
@@ -74,7 +83,7 @@ export default {
             }, { deep: true })
 
             container.value = document.getElementById(bingMapID.value)!;
-            map = new bingMaps(container.value, {
+            const mapOptions = {
                 centre: centre.value,
                 type: type,
                 zoom: zoom.value,
@@ -82,9 +91,10 @@ export default {
                 customizedTouchpadBehavior: true,
                 enableInertia: true,
                 showDashboard: false,
-                liteMode: true,
-                forceHidpi: true
-            });
+                liteMode: false,
+            }
+            const mapPlugins = [bingMapsPushPins, bingMapsDrawing];
+            map = new bingMaps(container.value, mapOptions, mapPlugins);
             (window as any).map = map;
 
             map.addEventHandler("viewchangeend", (newMap) => {
@@ -94,8 +104,8 @@ export default {
                 setTimeout(() => pausePositionSync = false, 50)
 
                 zoom.value = newMap.getZoom()
-                viewCentre.value.latitude = newMap.getMap().getCenter().latitude;
-                viewCentre.value.longitude = newMap.getMap().getCenter().longitude;
+                viewCentre.value.latitude = newMap.map.getCenter().latitude;
+                viewCentre.value.longitude = newMap.map.getCenter().longitude;
             }, false)
 
             const initCentre = setInterval(() => {
@@ -118,6 +128,8 @@ export default {
 
             zoom,
             geoLocationKeepCentre,
+            zoomIn,
+            zoomOut
         };
     }
 }
@@ -130,12 +142,12 @@ export default {
         <n-config-provider :theme="darkTheme">
             <div class="nav-toolbox">
 
-                <n-button strong secondary circle type="primary" @click="() => zoom++">
+                <n-button strong secondary circle type="primary" @click="() => zoomIn()">
                     <Icon :size="iconSize">
                         <add />
                     </Icon>
                 </n-button>
-                <n-button strong secondary circle type="primary" @click="() => zoom--">
+                <n-button strong secondary circle type="primary" @click="() => zoomOut()">
                     <Icon :size="iconSize">
                         <remove />
                     </Icon>
