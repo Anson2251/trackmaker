@@ -14,6 +14,11 @@ import { initBingMapsDrawingModule } from './components/BingMap/plugins/drawingM
 
 const modules: moduleItem[] = [
     {
+        name: "trackmaker",
+        moduleInit: () => new Promise(resolve => resolve()),
+        dependencies: ["bingMaps", "bingMapsDrawing"]
+    },
+    {
         name: "bingMaps",
         moduleInit: initBingMaps
     },
@@ -24,7 +29,7 @@ const modules: moduleItem[] = [
     }
 ]
 
-loadModules(modules, 2000).then(() => {
+loadModules(modules, "trackmaker", 5000).then(() => {
     const app = createApp(App);
 
     app.use(createPinia());

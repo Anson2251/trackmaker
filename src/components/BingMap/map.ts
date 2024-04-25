@@ -111,7 +111,7 @@ export class bingMaps {
     }
 
     loadPlugins(plugins:  (typeof bingMapPlugin)[]){
-        let success = false;
+        let success = true;
         plugins.forEach((plugin) => {
             const mountSuccess = (new plugin(this)).mount()
             if(!mountSuccess) console.log("Failed to mount plugin " + plugin);
@@ -236,11 +236,11 @@ export class bingMaps {
  * @param [timeout=10000] - The maximum time in milliseconds to wait for the script to load. Defaults to 10000.
  * @return A promise that resolves when the Bing Maps script is loaded, or rejects if the timeout is reached.
  */
-export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null> {
+export function initMapScript(timeout = 10000, scriptURL?: string): Promise<void> {
     // <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol'></script>
     return new Promise((resolve, reject) => {
-        if ((window as any).LoadedBingMapScripts) resolve(null);
-        (window as any).LoadedBingMapScripts = false;
+        if ((window as any).LoadedBingMapScripts) resolve();
+        else (window as any).LoadedBingMapScripts = false;
         const callbackName = "onBingMapLoad";
         const mkt = "zh-CN"
 
@@ -265,7 +265,7 @@ export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null
             }
             if ((window as any).LoadedBingMapScripts) {
                 clearInterval(waitReady);
-                resolve(null);
+                resolve();
             }
         }, 100);
 
@@ -274,7 +274,7 @@ export function initMapScript(scriptURL?: string, timeout = 10000): Promise<null
                 clearInterval(waitReady);
                 (window as any).LoadedBingMapScripts = true;
                 (window as any)[callbackName] = null;
-                resolve(null);
+                resolve();
             }
         }
     })

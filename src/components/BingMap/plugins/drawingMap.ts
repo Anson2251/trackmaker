@@ -1,6 +1,5 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 import bingMapPlugin from "./base";
-import type { MyBingMapOptions } from "../map";
 import bingMaps from "../map";
 
 export class bingMapsDrawing extends bingMapPlugin{
@@ -16,10 +15,11 @@ export class bingMapsDrawing extends bingMapPlugin{
     }
 }
 
-export function initBingMapsDrawingModule(timeout: number = 1000): Promise<null>{
+export function initBingMapsDrawingModule(timeout: number = 1000): Promise<void>{
     return new Promise((resolve, reject) => {
-        if ((window as any).LoadedBingMapDrawingModule) resolve(null);
-        (window as any).LoadedBingMapDrawingModule = false;
+        if ((window as any).LoadedBingMapDrawingModule) resolve();
+        else (window as any).LoadedBingMapDrawingModule = false;
+
         if(!(window as any).LoadedBingMapScripts) reject("Bing map script has not been loaded yet");
 
         Microsoft.Maps.loadModule('Microsoft.Maps.DrawingTools', () => (window as any).LoadedBingMapDrawingModule = true);
@@ -28,7 +28,7 @@ export function initBingMapsDrawingModule(timeout: number = 1000): Promise<null>
         const waiter = setInterval(() => {
             if((window as any).LoadedBingMapDrawingModule){
                 clearInterval(waiter);
-                resolve(null);
+                resolve();
             }
             if(timer > timeout) reject(new Error("Loading Bing Maps Drawing Module timeout"));
             timer += 10;
