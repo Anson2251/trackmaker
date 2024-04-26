@@ -7,7 +7,7 @@ export class bingMapsDrawing extends bingMapPlugin{
     space = "drawingTools";
     constructor(parentMap: bingMaps){
         super(parentMap);
-
+        if(!this.map.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
         if(!(window as any).LoadedBingMapDrawingModule) throw new Error("Bing Map Drawing Module has not been loaded yet");
         this.tools = new Microsoft.Maps.DrawingTools(parentMap.map);
             this.tools.showDrawingManager(function (manager) {

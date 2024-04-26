@@ -7,34 +7,13 @@ import App from './App.vue'
 import router from './router'
 
 import { loadModules } from './script/loadModules'
-import type { moduleItem } from './script/loadModules'
+import { modules } from './config'
 
-import { initMapScript as initBingMaps } from './components/BingMap/map'
-import { initBingMapsDrawingModule } from './components/BingMap/plugins/drawingMap'
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
 
-const modules: moduleItem[] = [
-    {
-        name: "trackmaker",
-        moduleInit: () => new Promise(resolve => resolve()),
-        dependencies: ["bingMaps", "bingMapsDrawing"]
-    },
-    {
-        name: "bingMaps",
-        moduleInit: initBingMaps
-    },
-    {
-        name: "bingMapsDrawing",
-        moduleInit: initBingMapsDrawingModule,
-        dependencies: ["bingMaps"]
-    }
-]
-
-loadModules(modules, "trackmaker", 5000).then(() => {
-    const app = createApp(App);
-
-    app.use(createPinia());
-    app.use(router);
-
+loadModules(modules, "trackmaker", 30000).then(() => {
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {
