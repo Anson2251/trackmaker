@@ -5,13 +5,13 @@ import { NButton, NSwitch } from "naive-ui";
 import { NConfigProvider, darkTheme } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
-import { ref, watch, onMounted } from "vue";
-import { 
-    getGeoLocationPresent, 
-    startUpdatingService, 
-    addChangeListener, 
-    isUpdateServiceExist, 
-    isUpdateServiceUpdating 
+import { ref, watch, onMounted, defineProps } from "vue";
+import {
+    getGeoLocationPresent,
+    startUpdatingService,
+    addChangeListener,
+    isUpdateServiceExist,
+    isUpdateServiceUpdating
 } from "@/script/geoLocation";
 import bingMaps from "./map";
 import bingMapsPushPins from "./plugins/pushPin";
@@ -25,19 +25,19 @@ function setupMapNumber(): number {
 }
 
 let iconSize = ref(24);
-let zoom = ref(10);
+let zoomValue = ref(10);
 
 const bingMapID = ref(`bing-map-${setupMapNumber()}`);
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(true);
 let map: bingMaps | null = null;
 
-function zoomIn(){
-    if(map) map.zoomIn();
+function zoomIn() {
+    if (map) map.zoomIn();
 }
 
-function zoomOut(){
-    if(map) map.zoomOut();
+function zoomOut() {
+    if (map) map.zoomOut();
 }
 
 export default {
@@ -49,24 +49,56 @@ export default {
         NSwitch,
         NConfigProvider,
     },
-    setup() {
+    props: {
+        centre: {
+            type: Object,
+            default: () => ({
+                latitude: 0,
+                longitude: 0
+            })
+        },
+        viewCentre: {
+            type: Object,
+            default: () => ({
+                latitude: 0,
+                longitude: 0
+            })
+        },
+        mapType: String,
+        zoom: Number,
+        liteMode: Boolean,
+        customizedTouchpadBehavior: Boolean,
+        enableInertia: Boolean,
+        showDashboard: Boolean
+    },
+    setup(props) {
         startUpdatingService();
 
         onMounted(async () => {
             let pauseZoomSync = false;
             let pausePositionSync = false;
 
-            let viewCentre = ref(new Microsoft.Maps.Location(0, 0));
-            let centre = ref(new Microsoft.Maps.Location(0, 0));
-            let type = Microsoft.Maps.MapTypeId.road;
+            let viewCentre = props.viewCentre ? ref(new Microsoft.Maps.Location(props.viewCentre.latitude, props.viewCentre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
+            let centre = props.centre ? ref(new Microsoft.Maps.Location(props.centre.latitude, props.centre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
+            let type = props.mapType as (Microsoft.Maps.MapTypeId | undefined) || Microsoft.Maps.MapTypeId.road;
+
+            watch(props, () => {
+                centre.value.latitude = props.centre.latitude;
+                centre.value.longitude = props.centre.longitude;
+
+                zoomValue.value = props.zoom || 10;
+                viewCentre.value.latitude = props.viewCentre.latitude;
+                viewCentre.value.longitude = props.viewCentre.longitude;
+                if ((props.mapType as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId)
+            }, { deep: true })
 
             watch(geoLocationKeepCentre, () => {
-                if(map && geoLocationKeepCentre) map.setView({ center: centre.value });
+                if (map && geoLocationKeepCentre) map.setView({ center: centre.value });
             })
 
-            watch(zoom, () => {
+            watch(zoomValue, () => {
                 if (map && !pauseZoomSync) {
-                    (map as bingMaps).setZoom(Math.round(zoom.value));
+                    (map as bingMaps).setZoom(Math.round(zoomValue.value));
                 }
             })
 
@@ -79,21 +111,22 @@ export default {
             }, { deep: true })
 
             watch(centre, () => {
-                if (map) map.setCentre(centre.value, geoLocationKeepCentre.value);
+                map?.setCentre(centre.value, geoLocationKeepCentre.value);
             }, { deep: true })
 
             container.value = document.getElementById(bingMapID.value)!;
             const mapOptions = {
                 centre: centre.value,
                 type: type,
-                zoom: zoom.value,
+                zoom: zoomValue.value,
                 credentials: "",
-                customizedTouchpadBehavior: true,
-                enableInertia: true,
-                showDashboard: false,
-                liteMode: false,
+                customizedTouchpadBehavior: props.customizedTouchpadBehavior || true,
+                enableInertia: props.enableInertia || false,
+                showDashboard: props.showDashboard || false,
+                liteMode: props.liteMode || false,
             }
             const mapPlugins = [bingMapsPushPins, bingMapsDrawing];
+
             map = new bingMaps(container.value, mapOptions, mapPlugins);
             (window as any).map = map;
 
@@ -103,7 +136,7 @@ export default {
                 setTimeout(() => pauseZoomSync = false, 50)
                 setTimeout(() => pausePositionSync = false, 50)
 
-                zoom.value = newMap.getZoom()
+                zoomValue.value = newMap.getZoom()
                 viewCentre.value.latitude = newMap.map.getCenter().latitude;
                 viewCentre.value.longitude = newMap.map.getCenter().longitude;
             }, false)
@@ -116,7 +149,9 @@ export default {
                 }
             });
 
+            // geolocation update
             addChangeListener((newLocation) => {
+                map?.setCentre(new Microsoft.Maps.Location(newLocation.latitude, newLocation.longitude), geoLocationKeepCentre.value);
                 centre.value = new Microsoft.Maps.Location(newLocation.latitude, newLocation.longitude);
             })
         });
@@ -126,7 +161,7 @@ export default {
             iconSize,
             darkTheme,
 
-            zoom,
+            zoomValue,
             geoLocationKeepCentre,
             zoomIn,
             zoomOut

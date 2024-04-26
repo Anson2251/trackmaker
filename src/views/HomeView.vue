@@ -1,10 +1,24 @@
-<script setup lang="ts">
+<reference path="../../node_modules/@types/bingmaps/index.d.ts" />
+
+<script lang="ts">
 import BingMap from '../components/BingMap/BingMap.vue'
+/// <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
+
+export default {
+	components: {
+		BingMap
+	},
+	setup() {
+		return {
+			Microsoft
+		}
+	}
+}
 </script>
 
 <template>
 	<div class="map-layout">
-		<BingMap />
+		<BingMap :type="Microsoft.Maps.MapTypeId.road" :lite-mode="true"/>
 	</div>
 </template>
 

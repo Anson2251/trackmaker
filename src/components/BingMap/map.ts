@@ -57,7 +57,8 @@ export class bingMaps {
             showDashboard: options.showDashboard === undefined ? true : options.showDashboard,
             supportedMapTypes: [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale],
             maxZoom: this.maxZoom,
-            minZoom: this.minZoom
+            minZoom: this.minZoom,
+            enableClickableLogo: false
         });
 
         this.map.setMapType(this.mapType);
