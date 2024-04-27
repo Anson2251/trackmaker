@@ -1,4 +1,4 @@
-/// <reference path="../../../../node_modules/@types/bingmaps/index.d.ts" />
+/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.d.ts" />
 
 import bingMapPlugin from "./base";
 import bingMaps from "../map";
