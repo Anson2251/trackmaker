@@ -83,6 +83,8 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 	border-radius: 8px;
 	background-color: rgba(128, 128, 128, 0.1);
 	border: 1px solid rgba(128, 128, 128, 0.3);
+	user-select: text;
+	cursor: text;
 }
 
 .n-card {
@@ -125,5 +127,10 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 .credit-list a {
 	text-decoration: none;
 	color: var(--color-text);
+	cursor: grab;
+}
+
+.credit-list a *{
+	cursor: grab;
 }
 </style>
