@@ -1,4 +1,6 @@
-![trackmaker logo](/public/favicon.svg)
+<center>
+<img src="/public/favicon.svg" width=128 height=128/></center>
+
 # Track Maker
 
 A simple tool for tracking and sharing your routes.
