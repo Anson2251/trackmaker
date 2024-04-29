@@ -21,3 +21,12 @@ A simple tool for tracking and sharing your routes.
 - [ ] Export routes
 - [ ] Import routes
 - [ ] Share routes
+
+## Notice
+
+### About the Bing Maps key
+My Bing Maps Key exists in the code (`/src/config.ts > bingMapsKey`). If you need to build the page yourself, remember to replace the key with your own key. It's free to apply for a basic key on [Bing Maps Dev Centre](https://www.bingmapsportal.com/). I have setup the rules to protect the key, so **DO NOT** use it!
+
+---
+
+LAST UPDATE Apr. 19 2024
