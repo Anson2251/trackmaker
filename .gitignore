@@ -32,3 +32,4 @@ coverage
 
 # for the credential key of the bing map
 *credentials*
+.vite
