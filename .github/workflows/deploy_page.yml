@@ -27,5 +27,5 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
-          branch: demo/gh-pages  # Replace with the branch you want to deploy to
-          folder: dist  # Replace with the output folder of your build command
+          branch: gh-pages-demo  # Replace with the branch you want to deploy to
+          folder: /  # Replace with the output folder of your build command
