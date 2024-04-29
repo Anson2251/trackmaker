@@ -19,6 +19,9 @@ export const modules: moduleItem[] = [
 	}
 ];
 
+// this is my bing map key. the protection is done by setting the rule
+export const bingMapsKey = "ApQS8aEOCXGXowNxCet_rovSYUOUQTWVZbNqpY0ZnJIutHKo2D5U3RwC53z8moTE";
+
 export type CreditItem = {
 	id: string
 	name: string
