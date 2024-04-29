@@ -28,4 +28,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
           branch: gh-pages-demo  # Replace with the branch you want to deploy to
-          folder: /  # Replace with the output folder of your build command
+          folder: ""  # Replace with the output folder of your build command
