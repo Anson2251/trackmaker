@@ -15,7 +15,7 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 			<template #default>
 				<div class="project-card">
 					<div class="logo">
-						<n-image width="100" src="/favicon.svg" preview-disabled />
+						<n-image width="100" src="/trackmaker/favicon.svg" preview-disabled />
 					</div>
 					<n-h1>Track Maker</n-h1>
 					<p>A simple tool for tracking and sharing your routes</p>
