@@ -17,7 +17,7 @@ A simple tool for tracking and sharing your routes.
 - [x] Integrate the drawing module
 - [ ] Record and track the route
 - [ ] Edit routes
-- [ ] History record of the drawing actions for the use of redo and undo
+- [x] History record of the drawing actions for the use of redo and undo
 - [ ] Export routes
 - [ ] Import routes
 - [ ] Share routes
