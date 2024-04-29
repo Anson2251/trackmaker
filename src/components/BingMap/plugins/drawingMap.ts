@@ -20,7 +20,7 @@ export class bingMapsDrawing extends bingMapPlugin {
             Microsoft.Maps.Events.addHandler(this.manager, "drawingEnded", () => this.onChange())
             Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange())
         });
-        (window as any).manager = this;
+
         this.mountKeyShortcuts();
     }
 
@@ -51,7 +51,6 @@ export class bingMapsDrawing extends bingMapPlugin {
                     if (action === "undo") depth += 1;
                     else actionDepth += 1;
                     if (depth === actionDepth) {
-                        console.log("corresponding action: ", this.history[i], i);
                         return this.history[i];
                     }
                 }
@@ -114,8 +113,6 @@ export class bingMapsDrawing extends bingMapPlugin {
                 return [];
             })());
 
-            console.log(undoAction)
-
             if (undoAction.length === 0) {
                 console.warn("No action to redo");
                 return;
@@ -142,7 +139,6 @@ export class bingMapsDrawing extends bingMapPlugin {
                 this.undo();
             }
             if (e.key === "Escape") {
-                console.log("stop drawing");
                 this.stopDrawing();
             }
         })
