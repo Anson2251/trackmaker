@@ -1,7 +1,9 @@
-<center>
-<img src="/public/favicon.svg" width=128 height=128/></center>
+<div style="text-align: center">
+<img src="/public/favicon.svg" width=128 height=128/>
 
 # Track Maker
+
+</div>
 
 A simple tool for tracking and sharing your routes.
 
