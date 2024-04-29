@@ -28,7 +28,7 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 				Credits
 			</template>
 			<template #default>
-				<n-p>Trackmaker could not be built without the following projects:</n-p>
+				<n-p>Track Maker could not be built without the following projects:</n-p>
 				<n-divider />
 				<n-collapse :accordion="true" class="credit-list" :trigger-areas='["main", "arrow"]'>
 					<n-collapse-item v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))" :key="credit.id" :title=credit.name :name=credit.id>
