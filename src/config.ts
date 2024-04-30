@@ -1,6 +1,7 @@
 import type { moduleItem } from "./script/loadModules"
 import { initMapScript as initBingMaps } from './components/BingMap/map'
 import { initBingMapsDrawingModule } from './components/BingMap/plugins/drawingMap'
+import { initbingMapsGeojsonModule } from "./components/BingMap/plugins/geojson";
 
 export const modules: moduleItem[] = [
 	{
@@ -12,10 +13,15 @@ export const modules: moduleItem[] = [
 		name: "bingMaps",
 		moduleInit: initBingMaps
 	},
+  {
+    name: "bingMapsGeojson",
+    moduleInit: initbingMapsGeojsonModule,
+    dependencies: ["bingMaps"]
+  },
 	{
 		name: "bingMapsDrawing",
 		moduleInit: initBingMapsDrawingModule,
-		dependencies: ["bingMaps"]
+		dependencies: ["bingMaps", "bingMapsGeojson"]
 	}
 ];
 

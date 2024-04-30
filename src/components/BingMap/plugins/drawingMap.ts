@@ -1,11 +1,15 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 import bingMapPlugin from "./base";
 import bingMaps from "../map";
+import localforage from "localforage";
+
+import bingMapsGeojson from "@/components/BingMap/plugins/geojson";
 
 import BrowserPlatform from "@/script/browser-platform";
 const isMac = BrowserPlatform.os === "Mac OS";
 
 type HistoryPiece = { type: string, data: any };
+type SavingDraft = {name: string, item: string};
 
 export class bingMapsDrawing extends bingMapPlugin {
     private tools: Microsoft.Maps.DrawingTools | undefined;
@@ -13,6 +17,9 @@ export class bingMapsDrawing extends bingMapPlugin {
     history: (HistoryPiece[])[] = [];
     manager: Microsoft.Maps.DrawingManager | undefined;
     previousPrimitives: Microsoft.Maps.IPrimitive[] = [];
+    geojson: bingMapsGeojson;
+    drafts: SavingDraft[] = [];
+
     constructor(parentMap: bingMaps) {
         super(parentMap);
         if (!this.map.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
@@ -23,13 +30,9 @@ export class bingMapsDrawing extends bingMapPlugin {
             Microsoft.Maps.Events.addHandler(this.manager, "drawingEnded", () => this.onChange())
             Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange())
         });
-        this.mountKeyShortcuts();
-    }
 
-    private PrimitiveOnEdit(e: Microsoft.Maps.IPrimitive) {
-        if (!this.manager) return;
-        console.log((e as any).entity)
-        //const className = e.entity
+        this.geojson = new bingMapsGeojson(this.map);
+        this.mountKeyShortcuts();
     }
 
     private onChange() {
@@ -158,6 +161,30 @@ export class bingMapsDrawing extends bingMapPlugin {
     stopDrawing() {
         this.tools?.finish()
     }
+
+    async save() {
+        const draftName = prompt("Enter draft name");
+        if(!draftName) Promise.reject("No draft name provided");
+
+        const item = this.geojson.write(this.manager!.getPrimitives(), true);
+        const previousItems = await localforage.getItem("drafts") as SavingDraft[];
+        previousItems.push({ name: draftName!, item: item });
+
+        await localforage.setItem("drafts", previousItems)
+        return previousItems;
+    }
+
+    async load() {
+        const previousItems = await localforage.getItem("drafts") as SavingDraft[];
+
+        const draftName = prompt("Enter draft name");
+        if(!draftName) Promise.reject("No draft name provided");
+
+        const draft = previousItems.find((draft) => draft.name === draftName); 
+        if(!draft) Promise.reject("No draft found");
+
+        return this.geojson.read(draft!.item);
+    }
 }
 
 export function initBingMapsDrawingModule(timeout: number = 1000): Promise<void> {
@@ -185,3 +212,5 @@ function diff<T>(list1: T[], list2: Iterable<T>): T[] {
     const list2Set = new Set(list2);
     return list1.filter(x => !list2Set.has(x));
 }
+
+export default bingMapsDrawing;
