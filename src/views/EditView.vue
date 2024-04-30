@@ -3,6 +3,7 @@
 <script lang="ts">
 import BingMap from '../components/BingMap/BingMap.vue'
 import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
+import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
 import { bingMapsDrawing } from '@/components/BingMap/plugins/drawingMap';
 
 export default {
@@ -13,6 +14,7 @@ export default {
 		const plugins = [
 			bingMapsDrawing,
 			bingMapsPushPins,
+			bingMapCustomizedTouchpadBehavior
 		]
 		return {
 			plugins,

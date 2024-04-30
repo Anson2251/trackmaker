@@ -2,7 +2,6 @@
 // import { bingMapsKey } from "@/script/credentials";
 import { bingMapsKey } from "@/config";
 import bingMapPlugin from "./plugins/base";
-import inputDevicePreferences from "@/script/inputDevicePreferences";
 
 export interface MyBingMapOptions {
     centre?: Microsoft.Maps.Location,
@@ -76,15 +75,7 @@ export class bingMaps {
             this.map.setView({ zoom: this.zoom, center: this.viewCentre })
         }, false);
 
-        const loadPluginsSuccess = this.loadPlugins(plugins);
-        if(!loadPluginsSuccess) console.warn("Failed to load certain plugins for bing map");
-
-        //this.addEventHandler()
-        if (options.customizedTouchpadBehavior === undefined ? true : options.customizedTouchpadBehavior) {
-            useCustomizedTouchpadBehavior(container.getAttribute("id")!, this, (location, newZoom) => {
-                this.setView({ center: location, zoom: newZoom })
-            });
-        }
+        this.loadPlugins(plugins);
     }
 
     setCentre(centre: Microsoft.Maps.Location, updateMapView: boolean = true) {
@@ -114,11 +105,17 @@ export class bingMaps {
 
     loadPlugins(plugins:  (typeof bingMapPlugin)[]){
         let success = true;
+        const status: boolean[] = [];
         plugins.forEach((plugin) => {
             const mountSuccess = (new plugin(this)).mount()
+            status.push(mountSuccess);
             if(!mountSuccess) console.log("Failed to mount plugin " + plugin);
             success = success && mountSuccess;
         }); // mount plugins
+        if(!success) {
+            console.warn("Failed to load certain plugins for bing map");
+            console.table(plugins.map((p, i) => new Object({Plugin: p.name, Status: status[i]})), ["Plugin", "Status"]);
+        }
         return success;
     }
 
@@ -282,39 +279,5 @@ export function initMapScript(timeout = 10000, scriptURL?: string): Promise<void
     })
 }
 
-/**
- * Attaches customized touchpad behavior to a specified container element.
- *
- * @param containerID - The ID of the container element.
- * @param map - The bingMaps object representing the map.
- * @param onMove - The callback function to be called when the map is moved.
- */
-export function useCustomizedTouchpadBehavior(containerID: string, map: bingMaps, onMove: (location: Microsoft.Maps.Location, zoom: number) => void) {
-    const container = document.getElementById(containerID);
-    if (container === null) return;
-    map.map.setOptions({ disableScrollWheelZoom: true });
-
-    // translate factor for each zoom level
-    const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
-    const behaviour = (e: WheelEvent) => {
-        inputDevicePreferences.updateDeivceType(e);
-        e.preventDefault();
-
-        const zoom = map.getZoom();
-        const factor = 5000 / zoomFactor[Math.round(zoom)];
-        const location = map.getViewCentre();
-
-        if (!e.ctrlKey) { // move the map
-            location.latitude = Math.max(-90, Math.min(90, (location.latitude - e.deltaY / factor))); // limit latitude to -90 to 90
-            location.longitude = (location.longitude + e.deltaX / factor + 180) % 360 - 180; // limit longitude to -180 to 180
-            onMove(location, zoom);
-        } else { // scale the map
-            const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, map.getZoomRange().min), map.getZoomRange().max); // limit zoom to 3-20 inclusive
-            onMove(location, newZoom);
-        }
-
-    }
-    container.addEventListener("wheel", behaviour, { passive: false })
-}
 
 export default bingMaps;
