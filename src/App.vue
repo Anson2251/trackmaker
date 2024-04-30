@@ -43,6 +43,17 @@ export default {
 					h(
 						RouterLink,
 						{
+							to: "/edit",
+						},
+						{ default: () => 'Edit' }
+					),
+				key: 'edit',
+			},
+			{
+				label: () =>
+					h(
+						RouterLink,
+						{
 							to: "/about",
 						},
 						{ default: () => 'About' }

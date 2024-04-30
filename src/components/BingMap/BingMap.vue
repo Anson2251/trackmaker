@@ -5,7 +5,7 @@ import { NButton, NSwitch } from "naive-ui";
 import { NConfigProvider, darkTheme } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
-import { ref, watch, onMounted, defineProps } from "vue";
+import { ref, watch, onMounted } from "vue";
 import {
     getGeoLocationPresent,
     startUpdatingService,
@@ -13,9 +13,9 @@ import {
     isUpdateServiceExist,
     isUpdateServiceUpdating
 } from "@/script/geoLocation";
+
 import bingMaps from "./map";
-import bingMapsPushPins from "./plugins/pushPin";
-import { bingMapsDrawing } from "./plugins/drawingMap";
+import bingMapPlugin from "./plugins/base";
 
 function setupMapNumber(): number {
     let id = (window as any).bingMapCount || 0;
@@ -50,6 +50,10 @@ export default {
         NConfigProvider,
     },
     props: {
+        plugin: {
+            type: Array<typeof bingMapPlugin>,
+            default: () => []
+        },
         centre: {
             type: Object,
             default: () => ({
@@ -125,7 +129,7 @@ export default {
                 showDashboard: props.showDashboard || false,
                 liteMode: props.liteMode || false,
             }
-            const mapPlugins = [bingMapsPushPins, bingMapsDrawing];
+            const mapPlugins = props.plugin || [];
 
             map = new bingMaps(container.value, mapOptions, mapPlugins);
             (window as any).map = map;
@@ -187,7 +191,7 @@ export default {
                         <remove />
                     </Icon>
                 </n-button>
-                <n-switch v-model:value="geoLocationKeepCentre" />
+                <n-switch v-model:value="geoLocationKeepCentre" size="small"/>
             </div>
         </n-config-provider>
     </div>
