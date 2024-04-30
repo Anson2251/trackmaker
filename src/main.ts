@@ -17,7 +17,7 @@ loadModules(modules, "trackmaker", 30000).then(() => {
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {
-    console.log(e);
+    console.error(e);
     document.getElementById("splash")?.remove();
     document.getElementById("timeout")!.style.display = "block"
 });

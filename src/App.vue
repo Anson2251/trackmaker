@@ -105,6 +105,8 @@ export default {
 
 	margin: 2em;
 	margin-top: 1em;
+
+	overflow: auto;
 }
 
 .nav-bar {
