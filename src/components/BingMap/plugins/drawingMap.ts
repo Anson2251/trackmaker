@@ -2,7 +2,10 @@
 import bingMapPlugin from "./base";
 import bingMaps from "../map";
 
-type HistoryPiece = { type: string, data: any }
+import BrowserPlatform from "@/script/browser-platform";
+const isMac = BrowserPlatform.os === "Mac OS";
+
+type HistoryPiece = { type: string, data: any };
 
 export class bingMapsDrawing extends bingMapPlugin {
     private tools: Microsoft.Maps.DrawingTools | undefined;
@@ -20,8 +23,13 @@ export class bingMapsDrawing extends bingMapPlugin {
             Microsoft.Maps.Events.addHandler(this.manager, "drawingEnded", () => this.onChange())
             Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange())
         });
-
         this.mountKeyShortcuts();
+    }
+
+    private PrimitiveOnEdit(e: Microsoft.Maps.IPrimitive) {
+        if (!this.manager) return;
+        console.log((e as any).entity)
+        //const className = e.entity
     }
 
     private onChange() {
@@ -37,6 +45,7 @@ export class bingMapsDrawing extends bingMapPlugin {
             { type: "delete", data: removedPrimitive },
         ]
         this.history.push(action);
+        console.log(this.manager.getPrimitives(), this.map.map.entities.getPrimitives())
 
         this.previousPrimitives = this.manager.getPrimitives();
     }
@@ -135,9 +144,11 @@ export class bingMapsDrawing extends bingMapPlugin {
 
     private mountKeyShortcuts() {
         document.addEventListener("keydown", (e) => {
-            if (e.key === "z" && e.ctrlKey) {
-                this.undo();
-            }
+            const isUndo = (e.key === "z" && !e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));
+            const isRedo = (e.key === "z" && e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));
+
+            if (isUndo) this.undo();
+            if (isRedo) this.redo();
             if (e.key === "Escape") {
                 this.stopDrawing();
             }
