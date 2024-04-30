@@ -35,9 +35,12 @@ A simple tool to track and share your routes.
 
 This project is still under development. Many features are being implemented.
 
+This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (at branch `gh-page-demo`) is for experimental use only. It may not be up to date with the code in this repository.
+
 ### About the Bing Maps key
 
-My Bing Maps key exists in the code (`/src/config.ts > bingMapsKey`). If you need to build the page yourself, remember to replace it with your own key. It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/). I have set up the rules to protect the key, so **DO NOT** use it!
+My Bing Maps key exists in the code (`/src/config.ts > bingMapsKey`). If you need to build the page yourself, remember to replace it with your own key. It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/).
+**DO NOT** use the key provided in the code.
 
 ---
 
