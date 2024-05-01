@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
 import HomeView from '@/views/HomeView.vue';
 import EditView from '@/views/EditView.vue';
 import AboutView from '@/views/AboutView.vue';
@@ -26,7 +27,8 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView,
-      // if lazy load is needed, switch to () => import
+
+      // use () => import() to lazy load this page
     }
   ]
 })
