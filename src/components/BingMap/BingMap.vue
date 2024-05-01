@@ -5,7 +5,7 @@ import { NButton, NSwitch } from "naive-ui";
 import { NConfigProvider, darkTheme } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, defineEmits } from "vue";
 import {
     getGeoLocationPresent,
     startUpdatingService,
@@ -75,7 +75,10 @@ export default {
         enableInertia: Boolean,
         showDashboard: Boolean
     },
-    setup(props) {
+    emits: ["ready"],
+    setup(props, {emit}) {
+        //const emit = defineEmits(["ready"])
+
         startUpdatingService();
 
         onMounted(async () => {
@@ -84,7 +87,7 @@ export default {
 
             let viewCentre = props.viewCentre ? ref(new Microsoft.Maps.Location(props.viewCentre.latitude, props.viewCentre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
             let centre = props.centre ? ref(new Microsoft.Maps.Location(props.centre.latitude, props.centre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
-            let type = props.mapType as (Microsoft.Maps.MapTypeId | undefined) || Microsoft.Maps.MapTypeId.road;
+            let type = props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined) || Microsoft.Maps.MapTypeId.road;
 
             watch(props, () => {
                 centre.value.latitude = props.centre.latitude;
@@ -93,7 +96,7 @@ export default {
                 zoomValue.value = props.zoom || 10;
                 viewCentre.value.latitude = props.viewCentre.latitude;
                 viewCentre.value.longitude = props.viewCentre.longitude;
-                if ((props.mapType as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId)
+                if ((props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId)
             }, { deep: true })
 
             watch(geoLocationKeepCentre, () => {
@@ -132,7 +135,7 @@ export default {
             const mapPlugins = props.plugin || [];
 
             map = new bingMaps(container.value, mapOptions, mapPlugins);
-            (window as any).map = map;
+            (window as any).map = map; // for debug use
 
             map.addEventHandler("viewchangeend", (newMap) => {
                 pauseZoomSync = true;
@@ -152,6 +155,8 @@ export default {
                     clearInterval(initCentre);
                 }
             });
+
+            emit("ready", map);
 
             // geolocation update
             addChangeListener((newLocation) => {

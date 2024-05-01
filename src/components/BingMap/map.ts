@@ -12,36 +12,36 @@ export interface MyBingMapOptions {
     liteMode?: boolean,
     enableInertia?: boolean,
     showDashboard?: boolean,
-    forceHidpi?: boolean // only for liteMode
+    forceHidpi?: boolean,
     maxZoom?: number,
-    minZoom?: number
+    minZoom?: number,
 }
 
 export class bingMaps {
     private zoom: number = 5;
     private viewCentre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
     private centre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
-    private credentials: string = bingMapsKey;
-    private mapType: Microsoft.Maps.MapTypeId = Microsoft.Maps.MapTypeId.road;
+    private credentials: string;
+    private mapType: Microsoft.Maps.MapTypeId;
     container: HTMLElement;
     map: Microsoft.Maps.Map;
     private eventHandlers: { id: number, type: string, handler: (eventArg?: any) => void }[] = [];
     private maxZoom: number = 20;
     private minZoom: number = 3;
-    //pushPinLayer: bingMapsPushPins;
     private centrePinID: number | undefined;
     plugins: any = {};
-    constructor( container: HTMLElement, options: MyBingMapOptions, plugins: (typeof bingMapPlugin)[] = [] ) {
+    constructor(container: HTMLElement, options: MyBingMapOptions, plugins: (typeof bingMapPlugin)[] = []) {
         this.container = container;
-        this.mapType = options.type || this.mapType;
+        this.mapType = options.type || Microsoft.Maps.MapTypeId.road;
         this.centre = options.centre || this.centre;
         this.viewCentre = this.centre.clone();
         this.zoom = options.zoom || this.zoom;
         this.maxZoom = options.maxZoom || this.maxZoom;
         this.minZoom = options.minZoom || this.minZoom;
+        this.credentials = options.credentials || bingMapsKey;
 
-        if(options.liteMode && window.devicePixelRatio > 1 && options.forceHidpi) {
-            if(container.id){
+        if (options.liteMode && window.devicePixelRatio > 1 && options.forceHidpi) {
+            if (container.id) {
                 this.enableLiteForceHiDPI(container.id);
             } else {
                 console.warn("The forceHidpi option is only available when the container has an id");
@@ -49,12 +49,12 @@ export class bingMaps {
         }
 
         this.map = new Microsoft.Maps.Map(container, {
-            credentials: options.credentials || this.credentials,
+            credentials: this.credentials,
             center: this.viewCentre,
             zoom: this.zoom,
-            enableInertia: options.enableInertia === undefined ? true : options.enableInertia,
-            liteMode: options.liteMode === undefined ? false : options.liteMode,
-            showDashboard: options.showDashboard === undefined ? true : options.showDashboard,
+            enableInertia: (options.enableInertia === undefined ? true : options.enableInertia),
+            liteMode: (options.liteMode === undefined ? false : options.liteMode),
+            showDashboard: (options.showDashboard === undefined ? true : options.showDashboard),
             supportedMapTypes: [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale],
             maxZoom: this.maxZoom,
             minZoom: this.minZoom,
@@ -62,7 +62,7 @@ export class bingMaps {
         });
 
         this.map.setMapType(this.mapType);
-        if(this.plugins.pushPinLayer){
+        if (this.plugins.pushPinLayer) {
             this.centrePinID = this.plugins.pushPinLayer.add(this.viewCentre, { title: "You are here" });
         }
 
@@ -81,7 +81,7 @@ export class bingMaps {
     setCentre(centre: Microsoft.Maps.Location, updateMapView: boolean = true) {
         this.centre = centre.clone();
 
-        if(this.plugins.pushPinLayer){
+        if (this.plugins.pushPinLayer) {
             this.plugins.pushPinLayer.remove(this.centrePinID);
             this.centrePinID = this.plugins.pushPinLayer.add(this.centre, { title: "You are here" });
         }
@@ -103,32 +103,29 @@ export class bingMaps {
         return this.viewCentre;
     }
 
-    loadPlugins(plugins:  (typeof bingMapPlugin)[]){
+    loadPlugins(plugins: (typeof bingMapPlugin)[]) {
         let success = true;
         const status: boolean[] = [];
         plugins.forEach((plugin) => {
             const mountSuccess = (new plugin(this)).mount()
             status.push(mountSuccess);
-            if(!mountSuccess) console.log("Failed to mount plugin " + plugin);
+            if (!mountSuccess) console.log("Failed to mount plugin " + plugin);
             success = success && mountSuccess;
         }); // mount plugins
-        if(!success) {
+        if (!success) {
             console.warn("Failed to load certain plugins for bing map");
-            console.table(plugins.map((p, i) => new Object({Plugin: p.name, Status: status[i]})), ["Plugin", "Status"]);
+            console.table(plugins.map((p, i) => new Object({ Plugin: p.name, Status: status[i] })), ["Plugin", "Status"]);
         }
         return success;
     }
 
     setZoom(zoom: number, updateMapView: boolean = true) {
         if (!this.verifyZoom(zoom)) {
-            console.warn("Invalid zoom value. Must be between 0 and 15 inclusive");
-            zoom = 15;
+            console.warn(`Invalid zoom value. Must be between ${this.minZoom} and ${this.maxZoom} inclusive`);
             return false;
         }
         this.zoom = zoom;
-        if (updateMapView) {
-            this.onMapViewChanged();
-        }
+        if (updateMapView) this.onMapViewChanged();
         return true;
     }
 
@@ -149,7 +146,7 @@ export class bingMaps {
 
     zoomIn() {
         const valid = this.verifyZoom(this.zoom + 1);
-        if(valid){
+        if (valid) {
             this.zoom += 1;
             this.onMapViewChanged();
         }
@@ -157,14 +154,14 @@ export class bingMaps {
 
     zoomOut() {
         const valid = this.verifyZoom(this.zoom - 1);
-        if(valid){
+        if (valid) {
             this.zoom -= 1;
             this.onMapViewChanged();
         }
     }
 
-    getZoomRange(){
-        return {min: this.minZoom, max: this.maxZoom};
+    getZoomRange() {
+        return { min: this.minZoom, max: this.maxZoom };
     }
 
     addEventHandler(type: string, handler: (map: bingMaps) => void, native: false): number
@@ -235,48 +232,45 @@ export class bingMaps {
  * @param [timeout=10000] - The maximum time in milliseconds to wait for the script to load. Defaults to 10000.
  * @return A promise that resolves when the Bing Maps script is loaded, or rejects if the timeout is reached.
  */
-export function initMapScript(timeout = 10000, scriptURL?: string): Promise<void> {
-    // <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol'></script>
-    return new Promise((resolve, reject) => {
-        if ((window as any).LoadedBingMapScripts) resolve();
-        else (window as any).LoadedBingMapScripts = false;
-        const callbackName = "onBingMapLoad";
-        const mkt = "zh-CN"
+export async function initMapScript(timeout = 10000, scriptURL = "https://www.bing.com/api/maps/mapcontrol"): Promise<void> {
+    if ((window as any).LoadedBingMapScripts) return Promise.resolve();
+    else (window as any).LoadedBingMapScripts = false;
 
+    const callbackName = "onBingMapLoad";
+    const scriptElementID = "bingMapScript";
+    scriptURL = `${scriptURL}${scriptElementID.includes("?") ? "&" : "?"}callback=${callbackName}`;
 
-        if (!document.getElementById("bingMapScript")) { // if the script is not already loaded (not inserted into the document head)
-            const bingMapURL = scriptURL || `https://www.bing.com/api/maps/mapcontrol?callback=${callbackName}&setMkt=${mkt}`;
-            // set the callback name to remove the loading status
-            const script = document.createElement('script'); // load script
-            script.type = 'text/javascript';
-            script.src = bingMapURL;
-            script.async = true;
-            script.id = "bingMapScript";
-            document.head.appendChild(script);
+    const loadScript = new Promise<void>((resolve) => {
+        // if the script is not already loaded (not inserted into the document head)
+        if (!document.getElementById(scriptElementID)) {
+            document.head.appendChild(createBingMapsScriptElement(scriptURL, scriptElementID));
         }
 
-        let timer = 0;
-        const waitReady = setInterval(() => { // in case of timeout
-            timer += 100;
-            if (timer >= timeout) {
-                clearInterval(waitReady);
-                reject("Loading bing map timeout");
-            }
-            if ((window as any).LoadedBingMapScripts) {
-                clearInterval(waitReady);
-                resolve();
-            }
-        }, 100);
-
-        if (!(window as any)[callbackName]) {
+        // set the callback name which will be called by bing maps script
+        if (!(window as any)[callbackName]) { // skip it the function is already defined
             (window as any)[callbackName] = () => { // success to load the script
-                clearInterval(waitReady);
                 (window as any).LoadedBingMapScripts = true;
                 (window as any)[callbackName] = null;
                 resolve();
             }
         }
-    })
+    });
+
+    const loadingTimeout = new Promise<void>((_, reject) => {
+        setTimeout((() => reject("Loading bing map timeout")), timeout);
+    });
+
+    return Promise.race([loadScript, loadingTimeout]);
+}
+
+function createBingMapsScriptElement(scriptURL: string, scriptElementID: string): HTMLScriptElement {
+    // <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol'></script>
+    const script = document.createElement('script'); // load script
+    script.type = 'text/javascript';
+    script.src = scriptURL;
+    script.async = true;
+    script.id = scriptElementID;
+    return script;
 }
 
 
