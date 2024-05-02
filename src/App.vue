@@ -1,28 +1,17 @@
 <script lang="ts">
 import { RouterView, RouterLink } from 'vue-router';
 import { h, ref } from "vue";
-// import SplashScreen from './components/SplashScreen.vue';
-// import { modules } from '@/config';
-// import { loadModules } from '@/script/loadModules';
 
-import { NMenu, NConfigProvider } from "naive-ui";
-import type { MenuOption } from 'naive-ui';
-
-import { useOsTheme, darkTheme } from 'naive-ui';
+import { NMenu, type MenuOption } from "naive-ui";
+import { useOsTheme, darkTheme, NConfigProvider } from 'naive-ui';
 
 let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
-//let showSplash = ref(true);
 
 export default {
 	components: {
-		//SplashScreen,
 		NMenu,
 		NConfigProvider,
 		RouterView
-	},
-
-	beforeCreate() {
-		//await loadModules(modules, "trackmaker", 30000);
 	},
 
 	setup() {
@@ -62,40 +51,21 @@ export default {
 			},
 		]
 
-		// loadModules(modules, "trackmaker", 30000).then(() => {
-		// 	showSplash.value = false;
-		// });
-
 		return {
 			theme,
-			//showSplash,
 			menuOptions
 		};
 	},
-	// methods: {
-	// 	initModules() {
-	// 		try {
-	// 			console.log('Modules loaded successfully');
-	// 			showSplash.value = false;
-	// 		} catch (error) {
-	// 			console.error('Error loading modules:', error);
-	// 		}
-	// 	}
-	// }
 }
 </script>
 
 <template>
-	<!-- <SplashScreen v-if="showSplash" />
-	<div v-else> -->
-		<n-config-provider :theme="theme">
-			<n-menu :options="menuOptions" mode="horizontal" class="nav-bar" default-value="home" />
-		</n-config-provider>
-
+	<n-config-provider :theme="theme" :abstract="true" :inline-theme-disabled="true">
+		<n-menu :options="menuOptions" mode="horizontal" class="nav-bar" default-value="home" />
 		<div class="main-layout">
 			<RouterView />
 		</div>
-	<!-- </div> -->
+	</n-config-provider>
 </template>
 
 <style scoped>

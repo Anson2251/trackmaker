@@ -2,17 +2,16 @@
 
 <script lang="ts">
 import { NButton, NSwitch } from "naive-ui";
-import { NConfigProvider, darkTheme } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
-import { ref, watch, onMounted, defineEmits } from "vue";
+import { ref, watch, onMounted } from "vue";
 import {
     getGeoLocationPresent,
     startUpdatingService,
     addChangeListener,
     isUpdateServiceExist,
     isUpdateServiceUpdating
-} from "@/script/geoLocation";
+} from "@/utils/geoLocation";
 
 import bingMaps from "./map";
 import bingMapPlugin from "./plugins/base";
@@ -47,7 +46,6 @@ export default {
         Icon,
         NButton,
         NSwitch,
-        NConfigProvider,
     },
     props: {
         plugin: {
@@ -76,7 +74,7 @@ export default {
         showDashboard: Boolean
     },
     emits: ["ready"],
-    setup(props, {emit}) {
+    setup(props, { emit }) {
         //const emit = defineEmits(["ready"])
 
         startUpdatingService();
@@ -146,7 +144,7 @@ export default {
                 zoomValue.value = newMap.getZoom()
                 viewCentre.value.latitude = newMap.map.getCenter().latitude;
                 viewCentre.value.longitude = newMap.map.getCenter().longitude;
-            }, false)
+            }, false);
 
             const initCentre = setInterval(() => {
                 if (isUpdateServiceExist() && !isUpdateServiceUpdating()) {
@@ -168,8 +166,7 @@ export default {
         return {
             bingMapID,
             iconSize,
-            darkTheme,
-
+            
             zoomValue,
             geoLocationKeepCentre,
             zoomIn,
@@ -183,22 +180,20 @@ export default {
     <div class="container">
         <div :id="bingMapID" class="bing-map-container">
         </div>
-        <n-config-provider :theme="darkTheme">
-            <div class="nav-toolbox">
+        <div class="nav-toolbox">
 
-                <n-button strong secondary circle type="primary" @click="() => zoomIn()">
-                    <Icon :size="iconSize">
-                        <add />
-                    </Icon>
-                </n-button>
-                <n-button strong secondary circle type="primary" @click="() => zoomOut()">
-                    <Icon :size="iconSize">
-                        <remove />
-                    </Icon>
-                </n-button>
-                <n-switch v-model:value="geoLocationKeepCentre" size="small"/>
-            </div>
-        </n-config-provider>
+            <n-button strong secondary circle type="primary" @click="() => zoomIn()">
+                <Icon :size="iconSize">
+                    <add />
+                </Icon>
+            </n-button>
+            <n-button strong secondary circle type="primary" @click="() => zoomOut()">
+                <Icon :size="iconSize">
+                    <remove />
+                </Icon>
+            </n-button>
+            <n-switch v-model:value="geoLocationKeepCentre" size="small" />
+        </div>
     </div>
 </template>
 

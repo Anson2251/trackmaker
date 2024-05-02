@@ -1,18 +1,10 @@
-
-
 <script setup>
-import { ref } from "vue";
-
-import { NH1, NP, NDivider, NConfigProvider, NImage, NCard, NCollapse, NCollapseItem, NIcon } from "naive-ui";
-import { useOsTheme, darkTheme } from 'naive-ui';
+import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon } from "naive-ui";
 import { LogoGithub, Link } from "@vicons/ionicons5"
 import { credits } from "@/config";
-let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
-
 </script>
 
 <template>
-	<n-config-provider :theme="theme">
 		<n-card hoverable>
 			<template #default>
 				<div class="project-card">
@@ -55,8 +47,6 @@ let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 				</n-collapse>
 			</template>
 		</n-card>
-
-	</n-config-provider>
 </template>
 
 <style scoped>

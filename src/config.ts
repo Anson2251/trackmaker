@@ -1,4 +1,4 @@
-import type { moduleItem } from "./script/loadModules"
+import type { moduleItem } from "./utils/loadModules"
 import { initMapScript as initBingMaps } from './components/BingMap/map'
 import { initBingMapsDrawingModule } from './components/BingMap/plugins/drawingMap'
 import { initbingMapsGeojsonModule } from "./components/BingMap/plugins/geojson";
