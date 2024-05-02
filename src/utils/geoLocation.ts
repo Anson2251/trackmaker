@@ -1,4 +1,4 @@
-import * as prcoords from "prcoords/js/PRCoords.js";
+import gcoord from "gcoord";
 
 export interface Location {
     latitude: number,
@@ -65,8 +65,9 @@ export function stopUpdatingService(id: number) {
 }
 
 export function convertCoordinates(location: Location): Location {
-    const converted = prcoords.wgs_gcj({ lat: location.latitude, lon: location.longitude }, true)
-    return { latitude: converted.lat, longitude: converted.lon }
+    // todo, left a setting to user to enable this feature.
+    const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
+    return { longitude: converted[0], latitude: converted[1] }
 }
 
 export function supportGeolocation(): boolean {
