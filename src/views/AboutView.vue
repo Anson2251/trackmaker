@@ -1,52 +1,59 @@
 <script setup>
 import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
-import { LogoGithub, Link } from "@vicons/ionicons5"
+import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5"
 import { credits } from "@/config";
 </script>
 
 <template>
-		<n-card hoverable>
-			<template #default>
-				<div class="project-card">
-					<div class="logo">
-						<n-image width="100" src="/trackmaker/favicon.svg" preview-disabled />
-					</div>
-					<n-h1>Track Maker</n-h1>
-					<p>A simple tool for tracking and sharing your routes</p>
+	<n-card hoverable>
+		<template #default>
+			<div class="project-card">
+				<div class="logo">
+					<n-image width="100" src="/trackmaker/favicon.svg" preview-disabled />
 				</div>
-			</template>
-		</n-card>
+				<n-h1>Track Maker</n-h1>
+				<p>A simple tool for tracking and sharing your routes</p>
+			</div>
+		</template>
+	</n-card>
 
-		<n-card hoverable>
-			<template #header>
-				Credits
-			</template>
-			<template #default>
-				<n-p>Track Maker could not be built without the following projects:</n-p>
-				<n-divider />
-				<n-collapse :accordion="true" class="credit-list" :trigger-areas='["main", "arrow"]'>
-					<n-collapse-item v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))" :key="credit.id" :title=credit.name :name=credit.id>
-						<template #default>
-							<div>{{ credit.description }}</div>
-							<n-divider v-if="credit.license"/>
-							<div class="license" v-if="credit.license">
-								<n-p>License:</n-p>
-								<n-element tag="pre">{{ credit.license.trim().split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
-							</div>		
-						</template>
-						<template #header-extra>
-							<!-- <n-icon size=24><logo-github /></n-icon> -->
-							<a :href=credit.url>
-								<n-icon size=24>
-									<logo-github v-if="credit.url.includes('github')" />
-									<Link v-else />
+	<n-card hoverable>
+		<template #header>
+			Credits
+		</template>
+		<template #default>
+			<n-p>Without the following (open source) projects, Track Maker could not be built:</n-p>
+			<n-divider />
+			<n-collapse :accordion="true" class="credit-list" :trigger-areas='["main", "arrow"]'>
+				<n-collapse-item v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))" :key="credit.id"
+					:title=credit.name :name=credit.id>
+					<template #default>
+						<div>{{ credit.description }}</div>
+						<n-divider v-if="credit.license" />
+						<div class="license" v-if="credit.license">
+							<n-p>License:</n-p>
+							<n-element tag="pre">{{ credit.license.trim().split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
+						</div>
+					</template>
+					<template #header-extra>
+						<div class="link-icon-list">
+							<a :href=credit.homepage v-if="!!credit.homepage">
+								<n-icon size=20 class="link-icon"> <!-- homepage -->
+									<Link />
 								</n-icon>
 							</a>
-						</template>
-					</n-collapse-item>
-				</n-collapse>
-			</template>
-		</n-card>
+							<a :href=credit.url >
+								<n-icon size=24 class="link-icon"> <!-- url -->
+									<logo-github v-if="credit.url.includes('github')" />
+									<DocumentTextOutline v-else />
+								</n-icon>
+							</a>
+						</div>
+					</template>
+				</n-collapse-item>
+			</n-collapse>
+		</template>
+	</n-card>
 </template>
 
 <style scoped>
@@ -55,13 +62,15 @@ import { credits } from "@/config";
 	grid-template-columns: auto;
 	grid-template-rows: 2em auto;
 }
-.license > p {
+
+.license>p {
 	grid-row: 1 / 1;
 	grid-column: 1 / 1;
 
 	font-weight: bold;
 }
-.license > pre {
+
+.license>pre {
 	grid-row: 2 / 2;
 	grid-column: 1 / 1;
 
@@ -84,7 +93,7 @@ import { credits } from "@/config";
 	transition: .3s;
 }
 
-.license > pre:hover {
+.license>pre:hover {
 	filter: brightness(1);
 	box-shadow: var(--box-shadow2);
 }
@@ -126,13 +135,30 @@ import { credits } from "@/config";
 	grid-row: 1;
 }
 
-.credit-list a {
+.credit-list .link-icon-list {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.link-icon-list > a {
 	text-decoration: none;
 	color: var(--color-text);
 	cursor: grab;
 }
 
-.credit-list a *{
+.credit-list .link-icon-list .link-icon {
+
+	display: block;
+	width: 32px;
+	height: 32px;
+
+	display: grid;
+	justify-items: center;
+	align-items: center;
+}
+
+.credit-list .link-icon-list * {
 	cursor: grab;
 }
 </style>

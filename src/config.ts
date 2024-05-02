@@ -33,6 +33,7 @@ export type CreditItem = {
 	name: string
 	description: string
 	url: string
+  homepage?: string
 	license?: string
 }
 
@@ -42,6 +43,7 @@ export const credits: CreditItem[] = [
 		name: "Bing Maps V8 Web Control",
 		description: "Microsoft's modern web mapping developer kit.",
 		url: "https://learn.microsoft.com/en-us/bingmaps/v8-web-control/",
+    homepage: "https://www.microsoft.com/en-us/maps/bing-maps/web",
 	},
 	{
 		id: "bingmaps-typescript-definitions",
@@ -76,6 +78,7 @@ export const credits: CreditItem[] = [
 		name: "Vue.js",
 		description: "An approachable, performant and versatile framework for building web user interfaces.",
 		url: "https://github.com/vuejs/core",
+    homepage: "https://vuejs.org",
 		license: `
         The MIT License (MIT)
 
@@ -104,6 +107,7 @@ export const credits: CreditItem[] = [
 		name: "Vue Router",
 		description: "Expressive, configurable and convenient routing for Vue.js.",
 		url: "https://github.com/vuejs/router",
+    homepage: "https://router.vuejs.org/",
 		license: `
         The MIT License (MIT)
 
@@ -132,6 +136,7 @@ export const credits: CreditItem[] = [
 		name: "Naive UI",
 		description: "A Vue 3 based UI Components Library",
 		url: "https://github.com/tusen-ai/naive-ui",
+    homepage: "https://www.naiveui.com",
 		license: `
         MIT License
 
@@ -160,6 +165,7 @@ export const credits: CreditItem[] = [
 		name: "UAParser.js",
 		description: "The most comprehensive, compact, & up-to-date JavaScript library to detect user's Browser.",
 		url: "https://github.com/faisalman/ua-parser-js",
+    homepage: "https://uaparser.js.org/",
 		license: `
         GNU AFFERO GENERAL PUBLIC LICENSE
         Version 3, 19 November 2007
@@ -1509,6 +1515,7 @@ Public License instead of this License.  But first, please read
 		name: "localForage",
 		description: "A fast and simple storage library for JavaScript.",
 		url: "https://github.com/localForage/localForage",
+    homepage: "https://localforage.github.io/localForage/",
 		license: `
         Apache License
         Version 2.0, January 2004
