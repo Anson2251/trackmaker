@@ -43,7 +43,6 @@ export function startUpdatingService() {
         geoLocationPresent.longitude = newPosition.longitude
         updateServiceStarted = true;
         updateServiceUpdating = false;
-        console.log(newPosition)
         doCallbacks();
     }
 
