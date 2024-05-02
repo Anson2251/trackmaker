@@ -1,7 +1,7 @@
 <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
 
 <script lang="ts">
-import { NButton, NSwitch } from "naive-ui";
+import { NButton, NSwitch, NElement } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
 import { ref, watch, onMounted } from "vue";
@@ -46,6 +46,7 @@ export default {
         Icon,
         NButton,
         NSwitch,
+        NElement,
     },
     props: {
         plugin: {
@@ -166,7 +167,7 @@ export default {
         return {
             bingMapID,
             iconSize,
-            
+
             zoomValue,
             geoLocationKeepCentre,
             zoomIn,
@@ -177,11 +178,10 @@ export default {
 </script>
 
 <template>
-    <div class="container">
+    <n-element class="container">
         <div :id="bingMapID" class="bing-map-container">
         </div>
-        <div class="nav-toolbox">
-
+        <div tag="div" class="nav-toolbox">
             <n-button strong secondary circle type="primary" @click="() => zoomIn()">
                 <Icon :size="iconSize">
                     <add />
@@ -194,7 +194,7 @@ export default {
             </n-button>
             <n-switch v-model:value="geoLocationKeepCentre" size="small" />
         </div>
-    </div>
+    </n-element>
 </template>
 
 <style scoped>
@@ -208,26 +208,27 @@ export default {
     width: 100%;
     height: 100%;
 
-    border-radius: 8px;
+    border-radius: var(--border-radius);
 }
 
 .bing-map-container * {
-    border-radius: 8px;
+    border-radius: var(--border-radius);
 }
 
 .nav-toolbox {
     position: absolute;
-    top: 1em;
-    right: 1em;
+    top: 8px;
+    right: 8px;
     padding: 4px;
-    border-radius: 32px;
+    border-radius: var(--border-radius);;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
 
-    background: var(--color-background);
+    background-color: var(--modal-color);
+	border: 1px solid var(--card-color);
 }
 
 .nav-toolbox .n-button {

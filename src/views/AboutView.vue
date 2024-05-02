@@ -1,5 +1,5 @@
 <script setup>
-import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon } from "naive-ui";
+import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
 import { LogoGithub, Link } from "@vicons/ionicons5"
 import { credits } from "@/config";
 </script>
@@ -30,8 +30,8 @@ import { credits } from "@/config";
 							<div>{{ credit.description }}</div>
 							<n-divider v-if="credit.license"/>
 							<div class="license" v-if="credit.license">
-								<p>License:</p>
-								<pre>{{ credit.license.trim().split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</pre>
+								<n-p>License:</n-p>
+								<n-element tag="pre">{{ credit.license.trim().split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
 							</div>		
 						</template>
 						<template #header-extra>
@@ -65,18 +65,28 @@ import { credits } from "@/config";
 	grid-row: 2 / 2;
 	grid-column: 1 / 1;
 
-	font-family: monospace;
-	font-size: 12px;
+	font-family: var(--font-family-mono);
+	font-size: var(--font-size-mini);
 	white-space: pre-wrap;
 	overflow: auto;
 	margin: 0;
 	padding: 24px;
 	max-height: 36em;
-	border-radius: 8px;
-	background-color: rgba(128, 128, 128, 0.1);
-	border: 1px solid rgba(128, 128, 128, 0.3);
+	border-radius: var(--border-radius);
+	background-color: var(--modal-color);
+	border: 1px solid var(--border-color);
 	user-select: text;
 	cursor: text;
+
+	filter: brightness(0.9);
+
+	box-shadow: var(--box-shadow1);
+	transition: .3s;
+}
+
+.license > pre:hover {
+	filter: brightness(1);
+	box-shadow: var(--box-shadow2);
 }
 
 .n-card {
