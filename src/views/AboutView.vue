@@ -32,7 +32,7 @@ import { credits } from "@/config";
 						<n-divider v-if="credit.license" />
 						<div class="license" v-if="credit.license">
 							<n-p>License:</n-p>
-							<n-element tag="pre">{{ credit.license.trim().replace(/[\t][*][\t]/, "\n\n").split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
+							<n-element tag="pre">{{ credit.license.trim().replace(/\n([\s]*)\n/, "\n\n").split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
 						</div>
 					</template>
 					<template #header-extra>
