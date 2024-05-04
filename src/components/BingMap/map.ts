@@ -1,7 +1,7 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 // import { bingMapsKey } from "@/script/credentials";
 import { bingMapsKey } from "@/config";
-import bingMapPlugin from "./plugins/base";
+import bingMapsPluginTemplete from "./plugins/base";
 
 export interface MyBingMapOptions {
     centre?: Microsoft.Maps.Location,
@@ -29,8 +29,9 @@ export class bingMaps {
     private maxZoom: number = 20;
     private minZoom: number = 3;
     private centrePinID: number | undefined;
+    liteModeForceHiDpi = false;
     plugins: any = {};
-    constructor(container: HTMLElement, options: MyBingMapOptions, plugins: (typeof bingMapPlugin)[] = []) {
+    constructor(container: HTMLElement, options: MyBingMapOptions, plugins: (typeof bingMapsPluginTemplete)[] = []) {
         this.container = container;
         this.mapType = options.type || Microsoft.Maps.MapTypeId.road;
         this.centre = options.centre || this.centre;
@@ -41,11 +42,11 @@ export class bingMaps {
         this.credentials = options.credentials || bingMapsKey;
 
         if (options.liteMode && window.devicePixelRatio > 1 && options.forceHidpi) {
-            if (container.id) {
-                this.enableLiteForceHiDPI(container.id);
-            } else {
-                console.warn("The forceHidpi option is only available when the container has an id");
-            }
+            if (container.id) this.liteModeForceHiDpi = true;
+            else console.warn("The forceHidpi option is only available when the container has an id");
+        }
+        else {
+            if(options.forceHidpi) console.warn("The forceHidpi option is only available in lite mode and when the screen has a devicePixelRatio > 1");
         }
 
         this.map = new Microsoft.Maps.Map(container, {
@@ -103,13 +104,20 @@ export class bingMaps {
         return this.viewCentre;
     }
 
-    loadPlugins(plugins: (typeof bingMapPlugin)[]) {
+    loadPlugins(plugins: (typeof bingMapsPluginTemplete)[]) {
         let success = true;
         const status: boolean[] = [];
         plugins.forEach((plugin) => {
-            const mountSuccess = (new plugin(this)).mount()
+            const mountSuccess = (() => {
+                try {
+                    return (new plugin(this)).mount()
+                }
+                catch (e) {
+                    console.error(`Fail to initialize plugin: ${plugin.name}`, e);
+                    return false;
+                }
+            })();
             status.push(mountSuccess);
-            if (!mountSuccess) console.log("Failed to mount plugin " + plugin);
             success = success && mountSuccess;
         }); // mount plugins
         if (!success) {
@@ -203,24 +211,6 @@ export class bingMaps {
 
     private verifyZoom(zoom: number): boolean {
         return zoom >= this.minZoom && zoom <= this.maxZoom;
-    }
-
-    private enableLiteForceHiDPI(containerID: string): string {
-        const styleElement = document.createElement("style");
-        styleElement.id = `${containerID}-force-hidpi-style-support`;
-        styleElement.innerHTML = `
-            #${containerID} > div {
-                transform: scale(${1 / window.devicePixelRatio}) !important;
-                transform-origin: top left !important;
-                width: ${window.devicePixelRatio * 100}% !important;
-                height: ${window.devicePixelRatio * 100}% !important;
-            }
-            #${containerID} * {
-                border-radius: ${8 * window.devicePixelRatio}px !important;
-            }
-        `;
-        document.head.appendChild(styleElement);
-        return styleElement.id;
     }
 }
 

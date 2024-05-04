@@ -2,23 +2,20 @@
 
 import bingMaps from "../map";
 
-export class bingMapPlugin {
-    map: bingMaps;
+export class bingMapsPlugin {
+    host: bingMaps;
     space: string | undefined;
     constructor(parentMap: bingMaps){
-        this.map = parentMap;
+        this.host = parentMap;
     }
 
-    mount(){
-        if(!this.space) return false;
-        (this.map as any).plugins[this.space] = this;
-        return true;
-    }
+    mount(): boolean { 
+        throw new Error("Mount method not implemented.");
+     }
 
-    unmount(){
-        (this.map as any).plugins[this.space!] = null;
-        return true;
+    unmount(): boolean {
+        throw new Error("Unmount method not implemented.");
     }
 }
 
-export default bingMapPlugin;
+export default bingMapsPlugin;

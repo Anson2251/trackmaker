@@ -14,9 +14,10 @@ import {
 } from "@/utils/geoLocation";
 
 import bingMaps from "./map";
-import bingMapPlugin from "./plugins/base";
+import bingMapsPlugin from "./plugins/base";
 
 function setupMapNumber(): number {
+    console.log((window as any).bingMapCount);
     let id = (window as any).bingMapCount || 0;
     id += 1;
     (window as any).bingMapCount = id;
@@ -26,7 +27,7 @@ function setupMapNumber(): number {
 let iconSize = ref(24);
 let zoomValue = ref(10);
 
-const bingMapID = ref(`bing-map-${setupMapNumber()}`);
+const bingMapID = ref("");
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(true);
 let map: bingMaps | null = null;
@@ -50,7 +51,7 @@ export default {
     },
     props: {
         plugin: {
-            type: Array<typeof bingMapPlugin>,
+            type: Array<typeof bingMapsPlugin>,
             default: () => []
         },
         centre: {
@@ -70,12 +71,14 @@ export default {
         mapType: String,
         zoom: Number,
         liteMode: Boolean,
+        forceHidpi: Boolean,
         customizedTouchpadBehavior: Boolean,
         enableInertia: Boolean,
         showDashboard: Boolean
     },
     emits: ["ready"],
     setup(props, { emit }) {
+        bingMapID.value = `bing-map-${setupMapNumber()}`;
         //const emit = defineEmits(["ready"])
 
         startUpdatingService();
@@ -114,6 +117,7 @@ export default {
                     pausePositionSync = true;
                     setTimeout(() => pausePositionSync = false, 10)
                 }
+                if(geoLocationKeepCentre.value) map?.setView({ center: centre.value });
             }, { deep: true })
 
             watch(centre, () => {
@@ -128,13 +132,14 @@ export default {
                 credentials: "",
                 customizedTouchpadBehavior: props.customizedTouchpadBehavior || true,
                 enableInertia: props.enableInertia || false,
+                forceHidpi: props.forceHidpi || false,
                 showDashboard: props.showDashboard || false,
                 liteMode: props.liteMode || false,
             }
             const mapPlugins = props.plugin || [];
 
-            map = new bingMaps(container.value, mapOptions, mapPlugins);
-            (window as any).map = map; // for debug use
+            map = new bingMaps(container.value, mapOptions, mapPlugins as (typeof bingMapsPlugin)[]);
+            //(window as any).map = map; // for debug use
 
             map.addEventHandler("viewchangeend", (newMap) => {
                 pauseZoomSync = true;
@@ -149,9 +154,10 @@ export default {
 
             const initCentre = setInterval(() => {
                 if (isUpdateServiceExist() && !isUpdateServiceUpdating()) {
+                    clearInterval(initCentre);
                     const geoLocation = getGeoLocationPresent();
                     centre.value = new Microsoft.Maps.Location(geoLocation.latitude, geoLocation.longitude);
-                    clearInterval(initCentre);
+                    map?.setView({ center: centre.value })
                 }
             });
 
@@ -205,10 +211,11 @@ export default {
 }
 
 .bing-map-container {
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
 
     border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
 }
 
 .bing-map-container * {
@@ -220,7 +227,7 @@ export default {
     top: 8px;
     right: 8px;
     padding: 4px;
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -228,7 +235,7 @@ export default {
     align-items: center;
 
     background-color: var(--modal-color);
-	border: 1px solid var(--card-color);
+	border: 1px solid var(--border-color);
 }
 
 .nav-toolbox .n-button {
