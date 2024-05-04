@@ -1,17 +1,18 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-import bingMapPlugin from "./base";
+import bingMapsPluginTemplete from "./base";
 import bingMaps from "../map";
-import localforage from "localforage";
+import * as localforage from "localforage";
 
 import bingMapsGeojson from "@/components/BingMap/plugins/geojson";
 
-import BrowserPlatform from "@/script/browser-platform";
+import BrowserPlatform from "@/utils/browser-platform";
 const isMac = BrowserPlatform.os === "Mac OS";
 
-type HistoryPiece = { type: string, data: any };
-type SavingDraft = {name: string, item: string};
+export type HistoryPiece = { type: string, data: any };
+export type SavingDraft = { name: string, item: any };
+export type DraftPiece = { name: string, item: Microsoft.Maps.IPrimitive[] };
 
-export class bingMapsDrawing extends bingMapPlugin {
+export class bingMapsDrawing extends bingMapsPluginTemplete {
     private tools: Microsoft.Maps.DrawingTools | undefined;
     space = "drawingTools";
     history: (HistoryPiece[])[] = [];
@@ -22,7 +23,7 @@ export class bingMapsDrawing extends bingMapPlugin {
 
     constructor(parentMap: bingMaps) {
         super(parentMap);
-        if (!this.map.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
+        if (!this.host.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
         if (!(window as any).LoadedBingMapDrawingModule) throw new Error("Bing Map Drawing Module has not been loaded yet");
         this.tools = new Microsoft.Maps.DrawingTools(parentMap.map);
         this.tools.showDrawingManager((manager) => {
@@ -31,8 +32,30 @@ export class bingMapsDrawing extends bingMapPlugin {
             Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange())
         });
 
-        this.geojson = new bingMapsGeojson(this.map);
+        this.geojson = new bingMapsGeojson(this.host);
         this.mountKeyShortcuts();
+
+        localforage.getItem("drafts").then((drafts) => {
+            console.log("Existing draft: ", drafts);
+        });
+    }
+
+    mount() {
+        this.host.plugins[this.space] = this;
+        return true;
+    }
+
+    unmount(): boolean {
+        try {
+            (this.host as any).plugins[this.space] = null;
+            this.manager?.dispose();
+            this.tools?.dispose();
+        }
+        catch (e) {
+            console.log(e);
+            return false;
+        }
+        return true;
     }
 
     private onChange() {
@@ -48,7 +71,7 @@ export class bingMapsDrawing extends bingMapPlugin {
             { type: "delete", data: removedPrimitive },
         ]
         this.history.push(action);
-        console.log(this.manager.getPrimitives(), this.map.map.entities.getPrimitives())
+        console.log(this.manager.getPrimitives(), this.host.map.entities.getPrimitives())
 
         this.previousPrimitives = this.manager.getPrimitives();
     }
@@ -109,18 +132,18 @@ export class bingMapsDrawing extends bingMapPlugin {
             const undoAction = ((() => {
                 let undoCount = 0;
                 let redoCount = 1;
-                for(let i = this.history.length - 1; i >= 0; i--) {
+                for (let i = this.history.length - 1; i >= 0; i--) {
                     const type = this.history[i][0].type;
-                    if(type === "undo") {
+                    if (type === "undo") {
                         undoCount += 1;
                     }
-                    else if(type === "redo") {
+                    else if (type === "redo") {
                         redoCount += 1;
                     }
-                    if(type !== "redo" && type !== "undo") {
+                    if (type !== "redo" && type !== "undo") {
                         return [];
                     }
-                    if(undoCount === redoCount) return this.history[i];
+                    if (undoCount === redoCount) return this.history[i];
                 }
                 return [];
             })());
@@ -162,28 +185,37 @@ export class bingMapsDrawing extends bingMapPlugin {
         this.tools?.finish()
     }
 
-    async save() {
-        const draftName = prompt("Enter draft name");
-        if(!draftName) Promise.reject("No draft name provided");
+    save = async (name?: string): Promise<SavingDraft[]> => {
+        const draftName = name || prompt("Enter draft name");
+        if (!draftName) return Promise.reject("No draft name provided");
 
-        const item = this.geojson.write(this.manager!.getPrimitives(), true);
-        const previousItems = await localforage.getItem("drafts") as SavingDraft[];
+        console.log(this.geojson)
+        const item = this.geojson.write(this.manager!.getPrimitives(), false);
+        const previousItems = await localforage.getItem("drafts") as SavingDraft[] || [];
         previousItems.push({ name: draftName!, item: item });
 
         await localforage.setItem("drafts", previousItems)
+        console.log(await localforage.getItem("drafts"));
         return previousItems;
     }
 
-    async load() {
+    async load(name?: string): Promise<Microsoft.Maps.IPrimitive[]> {
         const previousItems = await localforage.getItem("drafts") as SavingDraft[];
 
-        const draftName = prompt("Enter draft name");
-        if(!draftName) Promise.reject("No draft name provided");
+        const draftName = name || prompt("Enter draft name");
+        if (!draftName) Promise.reject("No draft name provided");
 
-        const draft = previousItems.find((draft) => draft.name === draftName); 
-        if(!draft) Promise.reject("No draft found");
+        const draft = previousItems.find((draft) => draft.name === draftName);
+        if (!draft) Promise.reject("No draft found");
 
         return this.geojson.read(draft!.item);
+    }
+
+    async loadAll(): Promise<DraftPiece[]> {
+        const items = await localforage.getItem("drafts") as SavingDraft[];
+        const primitives = items.map((draft) => new Object({ name: draft.name, item: this.geojson.read(draft.item) }) as DraftPiece);
+
+        return primitives;
     }
 }
 

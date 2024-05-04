@@ -1,14 +1,24 @@
-import bingMapPlugin from "./base";
+import bingMapsPluginTemplete from "./base";
 import bingMaps from "../map";
 
-export class bingMapsGeojson extends bingMapPlugin{
+export class bingMapsGeojson extends bingMapsPluginTemplete{
     space = "geojson";
-    map: bingMaps;
+    host: bingMaps;
     constructor(parentMaps: bingMaps){
         super(parentMaps);
         if(!(window as any).LoadedBingMapGeojsonModule) throw new Error("Bing Map Geojson Module has not been loaded yet");
 
-        this.map = parentMaps;
+        this.host = parentMaps;
+    }
+
+    mount() {
+        (this.host as any).plugins[this.space] = this;
+        return true;
+    }
+
+    unmount() {
+        (this.host as any).plugins[this.space] = null;
+        return true;
     }
 
     read(geoJson: string | Microsoft.Maps.IGeoJsonObject, styles?: Microsoft.Maps.IStylesOptions | undefined): Microsoft.Maps.IPrimitive[] {

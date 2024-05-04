@@ -1,7 +1,9 @@
 <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
 
 <script lang="ts">
-import BingMap from '../components/BingMap/BingMap.vue'
+import { ref } from 'vue';
+import { useOsTheme } from "naive-ui";
+import BingMap from '../components/BingMap/BingMap.vue';
 import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
 import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
 
@@ -10,13 +12,21 @@ export default {
 		BingMap,
 	},
 	setup() {
+		const mapType = ref(String(
+			useOsTheme().value ===  "dark" 
+			? Microsoft.Maps.MapTypeId.canvasDark 
+			: Microsoft.Maps.MapTypeId.canvasLight
+		))
+
+
 		const plugins = [
 			bingMapsPushPins,
 			bingMapCustomizedTouchpadBehavior
 		]
 		return {
 			plugins,
-			Microsoft
+			Microsoft,
+			mapType,
 		}
 	}
 }
@@ -24,7 +34,7 @@ export default {
 
 <template>
 	<div class="map-layout">
-		<BingMap :type="Microsoft.Maps.MapTypeId.road" :lite-mode="false" :plugin="plugins"/>
+		<BingMap :map-type="mapType" :lite-mode="false" :plugin="plugins"/>
 	</div>
 </template>
 
