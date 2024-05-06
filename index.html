@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<link rel="icon" href="/favicon.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/src/assets/noscript.css">
+	<title>TRACK MAKER</title>
+	<style>
+		html, body {
+			padding: 0;
+			margin: 0;
+			height: 100%;
+		}
+		#splash, #timeout {
+			position: absolute;
+			top: 40%;
+			width: 100%;
+			text-align: center;
+			color: #888;
+			font-size: 1em;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+
+		@keyframes breathingLight {
+			0% {
+				opacity: 1;
+			}
+
+			50% {
+				opacity: 0.5;
+			}
+
+			100% {
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<noscript>
+		<h1>SORRY</h1>
+		<h2>Track Maker requires <u>JavaScript</u></h2>
+		<strong>It seems the browser you are using does not support JavaScript (or it has been disabled)</strong>
+	</noscript>
+	<div id="app"></div>
+	<div id="splash" style="animation: breathingLight 2s infinite;">Loading TRACKMAKER ...</div>
+	<div id="timeout" style="color: red; display: none;">
+		Loading modules <b style="font-weight: bold;">Timeout</b>
+        <br>Please <u>check the Internet connection
+        </u> and <u>refresh the page</u>
+	</div>
+	<script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
