@@ -79,23 +79,14 @@ import { credits } from "@/config";
 	white-space: pre-wrap;
 	overflow: auto;
 	margin: 0;
-	padding: 24px;
-	max-height: 36em;
-	border-radius: var(--border-radius);
-	background-color: var(--modal-color);
-	border: 1px solid var(--border-color);
+	padding: 32px;
+	max-height: 24em;
+
 	user-select: text;
 	cursor: text;
 
-	filter: brightness(0.9);
-
-	box-shadow: var(--box-shadow1);
+	display: block;
 	transition: .3s;
-}
-
-.license>pre:hover {
-	filter: brightness(1);
-	box-shadow: var(--box-shadow2);
 }
 
 .n-card {
