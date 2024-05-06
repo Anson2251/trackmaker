@@ -35,7 +35,7 @@ A simple tool to track and share your routes.
 
 This project is still under development. Many features are being implemented.
 
-This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (at branch `gh-page-demo`) is for experimental use only. It may not be up to date with the code in this repository.
+This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo` branch) is for experimental use only. It is now automatically built with the latest code on the `main` branch. Some features may not work properly.
 
 ### About the Bing Maps key
 
