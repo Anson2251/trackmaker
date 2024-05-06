@@ -21,12 +21,20 @@ export class bingMapsGeojson extends bingMapsPluginTemplete{
         return true;
     }
 
-    read(geoJson: string | Microsoft.Maps.IGeoJsonObject, styles?: Microsoft.Maps.IStylesOptions | undefined): Microsoft.Maps.IPrimitive[] {
+    read = bingMapsGeojson.read
+
+    readFromUrl = bingMapsGeojson.readFromUrl;
+
+    write = bingMapsGeojson.write;
+}
+
+export namespace bingMapsGeojson {
+    export function read(geoJson: string | Microsoft.Maps.IGeoJsonObject, styles?: Microsoft.Maps.IStylesOptions | undefined): Microsoft.Maps.IPrimitive[] {
         const data = Microsoft.Maps.GeoJson.read(geoJson, styles);
         return Array.isArray(data) ? data : [data]
     }
 
-    readFromUrl(url: string, timeout = 10000, jsonpQueryParam?: string | undefined, styles?: Microsoft.Maps.IStylesOptions | undefined) {
+    export function readFromUrl(url: string, timeout = 10000, jsonpQueryParam?: string | undefined, styles?: Microsoft.Maps.IStylesOptions | undefined) {
         return new Promise<Microsoft.Maps.IPrimitive[]>((resolve, reject) => {
             const callback = (data: Microsoft.Maps.IPrimitive[] | Microsoft.Maps.IPrimitive) => {
                 resolve(Array.isArray(data) ? data : [data]);
@@ -36,9 +44,9 @@ export class bingMapsGeojson extends bingMapsPluginTemplete{
         })
     }
 
-    write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify?: true): string
-    write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify?: false): Microsoft.Maps.IGeoJsonObject
-    write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify = true) {
+    export function write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify?: true): string
+    export function write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify?: false): Microsoft.Maps.IGeoJsonObject
+    export function write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify = true) {
         const jsonData = Microsoft.Maps.GeoJson.write(data);
         return stringify ? JSON.stringify(jsonData) : jsonData;
     }
