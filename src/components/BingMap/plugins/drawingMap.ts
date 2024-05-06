@@ -184,39 +184,6 @@ export class bingMapsDrawing extends bingMapsPluginTemplete {
     stopDrawing() {
         this.tools?.finish()
     }
-
-    save = async (name?: string): Promise<SavingDraft[]> => {
-        const draftName = name || prompt("Enter draft name");
-        if (!draftName) return Promise.reject("No draft name provided");
-
-        console.log(this.geojson)
-        const item = this.geojson.write(this.manager!.getPrimitives(), false);
-        const previousItems = await localforage.getItem("drafts") as SavingDraft[] || [];
-        previousItems.push({ name: draftName!, item: item });
-
-        await localforage.setItem("drafts", previousItems)
-        console.log(await localforage.getItem("drafts"));
-        return previousItems;
-    }
-
-    async load(name?: string): Promise<Microsoft.Maps.IPrimitive[]> {
-        const previousItems = await localforage.getItem("drafts") as SavingDraft[];
-
-        const draftName = name || prompt("Enter draft name");
-        if (!draftName) Promise.reject("No draft name provided");
-
-        const draft = previousItems.find((draft) => draft.name === draftName);
-        if (!draft) Promise.reject("No draft found");
-
-        return this.geojson.read(draft!.item);
-    }
-
-    async loadAll(): Promise<DraftPiece[]> {
-        const items = await localforage.getItem("drafts") as SavingDraft[];
-        const primitives = items.map((draft) => new Object({ name: draft.name, item: this.geojson.read(draft.item) }) as DraftPiece);
-
-        return primitives;
-    }
 }
 
 export function initBingMapsDrawingModule(timeout: number = 1000): Promise<void> {
