@@ -6,6 +6,11 @@
 	font-weight: normal;
 	position: relative;
 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+
 	display: grid;
 	grid-template-columns: 100%;
 	grid-template-rows: var(--nav-bar-height) auto;
