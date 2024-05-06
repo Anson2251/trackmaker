@@ -3,7 +3,7 @@ import { RouterView, RouterLink } from 'vue-router';
 import { h, ref } from "vue";
 
 import { NMenu, type MenuOption } from "naive-ui";
-import { useOsTheme, darkTheme, NConfigProvider, NGlobalStyle } from 'naive-ui';
+import { useOsTheme, darkTheme, NConfigProvider, NGlobalStyle, NMessageProvider } from 'naive-ui';
 
 let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 
@@ -12,7 +12,8 @@ export default {
 		NMenu,
 		NConfigProvider,
 		RouterView,
-		NGlobalStyle
+		NGlobalStyle,
+		NMessageProvider
 	},
 
 	setup() {
@@ -62,11 +63,13 @@ export default {
 
 <template>
 	<n-config-provider :theme="theme" :abstract="true" :inline-theme-disabled="true">
-		<n-menu :options="menuOptions" mode="horizontal" class="nav-bar" default-value="home" />
-		<div class="main-layout">
-			<RouterView />
-		</div>
-		<n-global-style/>
+		<n-message-provider :placement="'bottom-right'">
+			<n-menu :options="menuOptions" mode="horizontal" class="nav-bar" default-value="home" />
+			<div class="main-layout">
+				<RouterView />
+			</div>
+			<n-global-style />
+		</n-message-provider>
 	</n-config-provider>
 </template>
 

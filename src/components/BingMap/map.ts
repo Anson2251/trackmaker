@@ -157,7 +157,9 @@ export class bingMaps {
         if (valid) {
             this.zoom += 1;
             this.onMapViewChanged();
+            return true;
         }
+        return false;
     }
 
     zoomOut() {
@@ -165,7 +167,9 @@ export class bingMaps {
         if (valid) {
             this.zoom -= 1;
             this.onMapViewChanged();
+            return true;
         }
+        return false;
     }
 
     getZoomRange() {

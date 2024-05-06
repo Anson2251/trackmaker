@@ -1,7 +1,7 @@
 <reference path="../../node_modules/@types/bingmaps/index.d.ts" />
 
 <script lang="ts">
-import { NButton, NSwitch, NElement } from "naive-ui";
+import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
 import { ref, watch, onMounted } from "vue";
@@ -17,7 +17,6 @@ import bingMaps from "./map";
 import bingMapsPlugin from "./plugins/base";
 
 function setupMapNumber(): number {
-    console.log((window as any).bingMapCount);
     let id = (window as any).bingMapCount || 0;
     id += 1;
     (window as any).bingMapCount = id;
@@ -31,14 +30,6 @@ const bingMapID = ref("");
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(true);
 let map: bingMaps | null = null;
-
-function zoomIn() {
-    if (map) map.zoomIn();
-}
-
-function zoomOut() {
-    if (map) map.zoomOut();
-}
 
 export default {
     components: {
@@ -78,6 +69,21 @@ export default {
     },
     emits: ["ready"],
     setup(props, { emit }) {
+
+        const message = useMessage();
+
+        function zoomIn() {
+            if (map) {
+                if (!map.zoomIn()) message.warning("Already at maximum zoom level", {duration: 1000})
+            }
+        }
+
+        function zoomOut() {
+            if (map) {
+                if (!map.zoomOut()) message.warning("Already at minimum zoom level", {duration: 1000})
+            }
+        }
+
         bingMapID.value = `bing-map-${setupMapNumber()}`;
         //const emit = defineEmits(["ready"])
 
@@ -90,6 +96,8 @@ export default {
             let viewCentre = props.viewCentre ? ref(new Microsoft.Maps.Location(props.viewCentre.latitude, props.viewCentre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
             let centre = props.centre ? ref(new Microsoft.Maps.Location(props.centre.latitude, props.centre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
             let type = props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined) || Microsoft.Maps.MapTypeId.road;
+
+
 
             watch(props, () => {
                 centre.value.latitude = props.centre.latitude;
@@ -117,7 +125,11 @@ export default {
                     pausePositionSync = true;
                     setTimeout(() => pausePositionSync = false, 10)
                 }
-                if(geoLocationKeepCentre.value) map?.setView({ center: centre.value });
+                if (geoLocationKeepCentre.value && map) {
+                    if(map.getViewCentre().latitude !== centre.value.latitude || map.getViewCentre().longitude !== centre.value.longitude){
+                        map.gotoCentre()
+                    }
+                }
             }, { deep: true })
 
             watch(centre, () => {
@@ -177,7 +189,8 @@ export default {
             zoomValue,
             geoLocationKeepCentre,
             zoomIn,
-            zoomOut
+            zoomOut,
+            message
         };
     }
 }
@@ -235,7 +248,7 @@ export default {
     align-items: center;
 
     background-color: var(--modal-color);
-	border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color);
 }
 
 .nav-toolbox .n-button {
