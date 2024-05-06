@@ -135,21 +135,27 @@ export namespace CartoSketch {
             return Promise.resolve(draft);
         }
 
-        export async function newDraft(geojson: any){
+        /**
+         * Creates a new draft from the provided geojson object.
+         *
+         * @param geojson - The geojson object containing the draft information.
+         * @return A Promise that resolves to the new draft object.
+         */
+        export async function createDraft(geojson: any): Promise<GeographicDraft> {
             const type = geojson.geometry.type as string;
             const coord = geojson.geometry.coordinates as GeoJSONPoint | GeoJSONPoint[];
             const title = geojson.properties.title as string;
             const className = geojson.properties.class as string || type;
 
-            if(!(type in ["Polygon", "LineString", "Point"])) return Promise.reject("Invalid or unsupported geometry type");
-            if(!coord) return Promise.reject("No coordinates provided");
-            if(!title) return Promise.reject("No title provided");
-            if(!(className in ["Polygon", "LineString", "Point", "Label"])) return Promise.reject("Invalid or unsupported class name");
-            
+            if (!(type in ["Polygon", "LineString", "Point"])) return Promise.reject("Invalid or unsupported geometry type");
+            if (!coord) return Promise.reject("No coordinates provided");
+            if (!title) return Promise.reject("No title provided");
+            if (!(className in ["Polygon", "LineString", "Point", "Label"])) return Promise.reject("Invalid or unsupported class name");
+
             const newDraft: GeographicDraft = {
                 type: "Feature",
                 geometry: {
-                    type: type as  "Polygon" | "LineString" | "Point",
+                    type: type as "Polygon" | "LineString" | "Point",
                     coordinates: coord,
                 },
                 properties: {
@@ -165,13 +171,35 @@ export namespace CartoSketch {
                 }
             }
 
-            return newDraft;
+            return Promise.resolve(newDraft);
         }
 
         export async function importDraft(name: string, draft: string): Promise<void> {
             if (!name) return Promise.reject("No name provided");
 
-
+            const parsedDraft = JSON.parse(draft);
+            const newDraft: GeographicDraft[] = []
+            if (Array.isArray(parsedDraft.features)) {
+                parsedDraft.features.forEach(async (feature: any) => {
+                    try {
+                        newDraft.push(await createDraft(feature));
+                    }
+                    catch (e) {
+                        console.error(`Fail to import feature, for: ${e}`);
+                        return Promise.reject(`Fail to import feature, for: ${e}`);
+                    }
+                })
+            } else {
+                try {
+                    newDraft.push(await createDraft(parsedDraft));
+                }
+                catch (e) {
+                    console.error(`Fail to import feature, for: ${e}`);
+                    return Promise.reject(`Fail to import feature, for: ${e}`);
+                }
+            }
+            await writeDrafts(name, newDraft);
+            return Promise.resolve();
         }
 
         export async function exportDraft(name: string): Promise<string> {
