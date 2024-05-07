@@ -15,13 +15,13 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'remove'])
 
-function select(id: string){
+function select(id: string) {
     emit('select', id)
 }
 
-function remove(id: string){
+function remove(id: string) {
     const confirmed = confirm(`Are you sure to delete this CartoSketch?\nBoth Route and Drafts will be deleted`);
-    if(confirmed) emit('remove', id);
+    if (confirmed) emit('remove', id);
 }
 
 </script>
@@ -39,10 +39,12 @@ function remove(id: string){
                     <n-icon size="24" v-if="sketch.hasDrafts">
                         <ShapesOutline />
                     </n-icon>
-                    <n-button quaternary round @click.stop="remove(sketch.id)">
-                        <n-icon size="24">
-                            <RemoveCircleOutline/>
-                        </n-icon>
+                    <n-button quaternary circle @click.stop="remove(sketch.id)">
+                        <template #icon>
+                            <n-icon>
+                                <RemoveCircleOutline />
+                            </n-icon>
+                        </template>
                     </n-button>
                 </template>
                 {{ sketch.name }}

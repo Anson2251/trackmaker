@@ -2,32 +2,25 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
 import BingMap from '@/components/BingMap/BingMap.vue'
-import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
-import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
-import bingMapsLiteModeHiDpi from '@/components/BingMap/plugins/liteModeHiDpi';
-import bingMapsDrawing from '@/components/BingMap/plugins/drawingMap';
+import { plugins, type MapWithPlugins } from './bing-map-plugins';
 
-import localforage from 'localforage';
-(window as any).localforage = localforage;
+import { FolderOpen } from '@vicons/ionicons5';
 
-import { /*SaveOutline, AddOutline,*/ FolderOpen } from '@vicons/ionicons5';
-import { NSplit, NIcon, NButton, NCard, NDrawer, NButtonGroup, NDrawerContent, type DrawerPlacement } from 'naive-ui';
-import bingMaps from '@/components/BingMap/map';
-
-import CartoSketchSelector from './CartoSketchSelector.vue';
+import {
+	NSplit,
+	NIcon,
+	NCard,
+	type DrawerPlacement
+} from 'naive-ui';
 
 import CartoSketchRoutes from '@/utils/cartosketch/route';
-
 import CartoSketch from '@/utils/cartosketch';
 import CartoSketchCLI from '@/utils/cartosketch/cli';
-CartoSketchCLI.mountCLI();
 
-interface mapWithPlugin extends bingMaps {
-	plugins: {
-		drawingTools: bingMapsDrawing
-	},
-}
+import SelectorDrawer from './SelectorDrawer.vue';
+CartoSketchCLI.mountCLI();
 
 // let save = () => console.warn("map not ready");
 // let add = () => console.warn("map not ready");
@@ -55,12 +48,6 @@ const props = defineProps({
 const enableLiteMode = ref(props.liteMode);
 const enableForceHighDpi = ref(props.forceHighDpi);
 
-const plugins = [
-	bingMapsDrawing,
-	bingMapsPushPins,
-	bingMapCustomizedTouchpadBehavior,
-	bingMapsLiteModeHiDpi
-]
 
 const toolTipBarItems = [
 	// {
@@ -83,7 +70,7 @@ const toolTipBarItems = [
 	}
 ]
 
-function ready(map: mapWithPlugin) {
+function ready(map: MapWithPlugins) {
 	if (!map.plugins.drawingTools) {
 		console.error("Fail to load the drawing module as the plugin is not ready");
 		return;
@@ -111,38 +98,35 @@ function updateList() {
 updateList();
 
 async function removeCartoSketchFromList(id: string) {
-    await CartoSketch.removeCartoSketch(id);
+	await CartoSketch.removeCartoSketch(id);
 	updateList();
 }
 
 function selectCartoSketchFromList(id: string) {
 	selectedSketchID.value = id;
-    console.log("selected", selectedSketchID.value)
+	console.log("selected", selectedSketchID.value)
 	closeDrawer();
 }
 
-function closeDrawer(){
+function closeDrawer() {
 	activeSelector.value = false;
 }
 
-function openDrawer(){
+function openDrawer() {
 	activeSelector.value = true;
+}
+
+function showAlert(msg: string) {
+	alert(msg);
 }
 </script>
 
 <template>
-	<n-drawer v-model:show="activeSelector" :width="502" :placement="selectorPlacement">
-		<n-drawer-content title="CartoSketch Library">
-			<template #footer>
-				<n-button-group>
-					<n-button type="tertiary">Import</n-button>
-					<n-button @click="newRoute()" type="tertiary">New</n-button>
-					<n-button @click="closeDrawer()" type="tertiary">Close</n-button>
-				</n-button-group>
-			</template>
-			<CartoSketchSelector :list="sketchList" @remove="removeCartoSketchFromList" @select="selectCartoSketchFromList"/>
-		</n-drawer-content>
-	</n-drawer>
+	<SelectorDrawer 
+		:list="sketchList" v-model:active="activeSelector" :placement="selectorPlacement"
+		@new="newRoute" @remove="removeCartoSketchFromList" @select="selectCartoSketchFromList" 
+		@activeStateSync="(state: boolean) => {activeSelector = state}" @import="showAlert('Not implemented')"
+	/>
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :size-default="0.7">
 		<template #1>
 			<div class="map-container">
@@ -167,6 +151,7 @@ function openDrawer(){
 			</div>
 		</template>
 	</n-split>
+
 </template>
 
 <style>
