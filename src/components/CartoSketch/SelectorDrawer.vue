@@ -31,6 +31,7 @@ const buttonGroupItems = [
 		icon: Upload,
 		callback: () => { emit('import') },
 		secondary: true,
+		iconSize: 17,
 		type: "default"
 	},
 	{
@@ -38,6 +39,7 @@ const buttonGroupItems = [
 		icon: AddCircleOutline,
 		callback: () => emit('new'),
 		secondary: true,
+		iconSize: 20,
 		type: "default"
 	},
 	{
@@ -45,6 +47,7 @@ const buttonGroupItems = [
 		icon: CloseCircleOutline,
 		callback: () => { activeSelectorFlag.value = false; },
 		secondary: true,
+		iconSize: 20,
 		type: "error"
 	},
 ]
@@ -74,10 +77,11 @@ const emit = defineEmits(['new', 'activeStateSync', 'remove', 'select', 'import'
 						:secondary="item.secondary" 
 						:key="item.title"
 						:type="(item.type as Type)"
+						:title="item.title"
 						@click="item.callback"
 					>
 						<template #icon>
-							<n-icon>
+							<n-icon :size="item.iconSize">
 								<component :is="item.icon" />
 							</n-icon>
 						</template>
