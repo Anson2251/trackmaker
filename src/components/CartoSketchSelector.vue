@@ -39,7 +39,7 @@ function remove(id: string){
                     <n-icon size="24" v-if="sketch.hasDrafts">
                         <ShapesOutline />
                     </n-icon>
-                    <n-button quaternary round @click="remove(sketch.id)">
+                    <n-button quaternary round @click.stop="remove(sketch.id)">
                         <n-icon size="24">
                             <RemoveCircleOutline/>
                         </n-icon>
