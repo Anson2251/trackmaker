@@ -1,29 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { NList, NListItem, NIcon } from 'naive-ui';
-import { CartoSketch } from '@/utils/cartosketch/index';
 
 import { ShapesOutline } from '@vicons/ionicons5'
 import { Route } from '@vicons/tabler'
 
-const sketchList = ref<CartoSketch.CartoSketchStates[]>([])
-CartoSketch.listCartoSketches().then((list) => {
-    sketchList.value = list;
+import CartoSketch from '@/utils/cartosketch';
+
+const props = defineProps({
+    list: {
+        type: Array<CartoSketch.CartoSketchStates>,
+        default: () => []
+    }
 })
+
 </script>
 
 <template>
     <div class="container">
         <n-list class="select-listview">
-            <n-list-item v-for="sketch in sketchList" :title="sketch.name" :key="sketch.id">
+            <n-list-item v-for="sketch in props.list" :title="sketch.name" :key="sketch.id">
                 <template #suffix>
                     <n-icon size="24" v-if="sketch.hasDrafts">
                         <ShapesOutline />
                     </n-icon>
                     <n-icon sizse="24">
-                        <Route/>
+                        <Route />
                     </n-icon>
                 </template>
+                {{ sketch.name }}
             </n-list-item>
         </n-list>
     </div>

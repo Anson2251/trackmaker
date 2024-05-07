@@ -11,13 +11,17 @@ import bingMapsDrawing from '@/components/BingMap/plugins/drawingMap';
 import localforage from 'localforage';
 (window as any).localforage = localforage;
 
-import { SaveOutline, AddOutline } from '@vicons/ionicons5';
-import { NSplit, NIcon, NCard, NDrawer, NDrawerContent, type DrawerPlacement } from 'naive-ui';
+import { /*SaveOutline, AddOutline,*/ FolderOpen } from '@vicons/ionicons5';
+import { NSplit, NIcon, NButton, NCard, NDrawer, NButtonGroup, NDrawerContent, type DrawerPlacement } from 'naive-ui';
 import bingMaps from '@/components/BingMap/map';
 
-import type { SavingDraft } from '@/components/BingMap/plugins/drawingMap';
-
 import CartoSketchSelector from './CartoSketchSelector.vue';
+
+import CartoSketchRoutes from '@/utils/cartosketch/route';
+
+import CartoSketch from '@/utils/cartosketch';
+import CartoSketchCLI from '@/utils/cartosketch/cli';
+CartoSketchCLI.mountCLI();
 
 interface mapWithPlugin extends bingMaps {
 	plugins: {
@@ -25,9 +29,14 @@ interface mapWithPlugin extends bingMaps {
 	},
 }
 
-let save = () => console.warn("map not ready");
-let add = () => console.warn("map not ready");
+// let save = () => console.warn("map not ready");
+// let add = () => console.warn("map not ready");
 // let load = () => console.warn("map not ready");
+
+const sketchList = ref<CartoSketch.CartoSketchStates[]>([]);
+
+const activeSelector = ref(false);
+const selectorPlacement = ref<DrawerPlacement>("right");
 
 const mapType = ref(Microsoft.Maps.MapTypeId.road);
 
@@ -42,9 +51,6 @@ const props = defineProps({
 	}
 })
 
-
-const draftList = ref<SavingDraft[]>([])
-
 const enableLiteMode = ref(props.liteMode);
 const enableForceHighDpi = ref(props.forceHighDpi);
 
@@ -56,15 +62,23 @@ const plugins = [
 ]
 
 const toolTipBarItems = [
+	// {
+	// 	title: "save",
+	// 	icon: SaveOutline,
+	// 	iconSize: 24,
+	// 	callback: () => save()
+	// },
+	// {
+	// 	title: "add",
+	// 	icon: AddOutline,
+	// 	iconSize: 24,
+	// 	callback: () => add()
+	// },
 	{
-		title: "save",
-		icon: SaveOutline,
-		callback: () => save()
-	},
-	{
-		title: "add",
-		icon: AddOutline,
-		callback: () => add()
+		title: "Open",
+		icon: FolderOpen,
+		iconSize: 20,
+		callback: () => { activeSelector.value = true }
 	}
 ]
 
@@ -75,21 +89,45 @@ function ready(map: mapWithPlugin) {
 	}
 }
 
-const activeSelector = ref(false);
-const selectorPlacement = ref<DrawerPlacement>("right");
+async function newRoute() {
+	const name = prompt("Enter the name of the route");
+	if (name) {
+		try {
+			await CartoSketchRoutes.writeRoute(name, []);
+			updateList()
+		}
+		catch (err) {
+			console.error(err)
+		}
+	}
+}
+
+function updateList() {
+	CartoSketch.listCartoSketches().then((list) => {
+		sketchList.value = list;
+	});
+}
+updateList();
 </script>
 
 <template>
 	<n-drawer v-model:show="activeSelector" :width="502" :placement="selectorPlacement">
 		<n-drawer-content title="CartoSketch Library">
-			<CartoSketchSelector/>
+			<template #footer>
+				<n-button-group>
+					<n-button @click="activeSelector = false" type="tertiary">Import</n-button>
+					<n-button @click="newRoute" type="tertiary">New</n-button>
+					<n-button @click="activeSelector = false" type="tertiary">Close</n-button>
+				</n-button-group>
+			</template>
+			<CartoSketchSelector :list="sketchList" />
 		</n-drawer-content>
 	</n-drawer>
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :size-default="0.7">
 		<template #1>
 			<div class="map-container">
-				<BingMap :type="mapType" :lite-mode="enableLiteMode"
-					:force-hidpi="enableForceHighDpi" :plugin="plugins" @ready="ready" />
+				<BingMap :type="mapType" :lite-mode="enableLiteMode" :force-hidpi="enableForceHighDpi" :plugin="plugins"
+					@ready="ready" />
 			</div>
 		</template>
 		<template #2>
@@ -97,7 +135,7 @@ const selectorPlacement = ref<DrawerPlacement>("right");
 				<n-card content-class="route-edit-tool-tip">
 					<div v-for="(item, index) in toolTipBarItems" :key="index" @click="item.callback"
 						:title="item.title" class="tool-tip-item">
-						<n-icon size="24">
+						<n-icon :size="item.iconSize">
 							<component :is="item.icon" />
 						</n-icon>
 					</div>
