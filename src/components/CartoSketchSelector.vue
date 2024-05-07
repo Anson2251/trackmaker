@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { NList, NListItem, NIcon } from 'naive-ui';
-import CartoSketch from '@/utils/carto-sketch';
+import { CartoSketch } from '@/utils/cartosketch/index';
 
 import { ShapesOutline } from '@vicons/ionicons5'
 import { Route } from '@vicons/tabler'

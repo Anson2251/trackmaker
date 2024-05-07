@@ -1,8 +1,7 @@
 <reference path="../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
 <script setup lang="ts">
-/// <reference path="../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 import BingMap from '@/components/BingMap/BingMap.vue'
 import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
 import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
@@ -105,7 +104,7 @@ const selectorPlacement = ref<DrawerPlacement>("right");
 				</n-card>
 
 				<n-card class="draft-container" title="Components">
-					<EditViewRouteDraftLibrary :draft-list="draftList" />
+					<!--<EditViewRouteDraftLibrary :draft-list="draftList" />-->
 				</n-card>
 			</div>
 		</template>
