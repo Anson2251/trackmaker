@@ -32,9 +32,9 @@ export namespace CartoSketchRoutes {
         const routeIDs = await routeStorage.keys(); // get the list of names of the routes
         const collections: RouteList = [];
 
-        routeIDs.forEach(async (id) => {
+        for (const id of routeIDs) {
             collections.push(await readRoute(id));
-        });
+        }
 
         return Promise.resolve(collections);
     }
@@ -63,7 +63,10 @@ export namespace CartoSketchRoutes {
      * @return A Promise that resolves the ID assigned to the route when the route is written successfully
      */
     export async function writeRoute(name: string, routes: GeographicPoint[]): Promise<string> {
-        if (!name || !routes) return Promise.reject("No name or routes provided");
+        if (!name || !routes) {
+            console.error("No name or routes provided");
+            return Promise.reject("No name or routes provided");
+        }
 
         const newID = createID();
         try {

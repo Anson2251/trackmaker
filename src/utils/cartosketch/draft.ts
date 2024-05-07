@@ -44,9 +44,9 @@ export namespace CartoSketchDrafts {
         const draftIDs = await draftStorage.keys(); // get the list of names of the routes
         const collections: DraftList = [];
 
-        draftIDs.forEach(async (id) => {
+        for (const id of draftIDs) {
             collections.push(await readDraft(id));
-        });
+        }
 
         return Promise.resolve(collections);
     }
@@ -155,7 +155,7 @@ export namespace CartoSketchDrafts {
         else return Promise.reject(`Failed to read draft ${id}`);
     }
 
-    
+
     /**
      * Writes drafts to the draft storage with the given name and drafts.
      *
@@ -178,7 +178,7 @@ export namespace CartoSketchDrafts {
 
         if (previousDrafts) {
             console.log(`A same-ID draft with name ${name} already exists. Merging it with the new draft.`);
-            if(mode === "merge") newDraft.drafts = previousDrafts.drafts.concat(newDraft.drafts);
+            if (mode === "merge") newDraft.drafts = previousDrafts.drafts.concat(newDraft.drafts);
         }
 
         await draftStorage.setItem<GeographicDraft>(name, newDraft)

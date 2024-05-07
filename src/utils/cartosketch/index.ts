@@ -18,7 +18,7 @@ export namespace CartoSketch {
 		const draftList = await CartoSketchDrafts.readDraftList();
 
 		const listState: CartoSketchStates[] = []
-		
+
 		routeList.forEach((route) => {
 			const draftState = !!draftList.find((draft) => draft.id === route.id);
 			listState.push({
@@ -31,3 +31,5 @@ export namespace CartoSketch {
 		return Promise.resolve(listState);
 	}
 }
+
+export default CartoSketch;
