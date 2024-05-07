@@ -82,6 +82,13 @@ export namespace CartoSketchRoutes {
         }
     }
 
+    export async function deleteRoute(id: string): Promise<void>{
+        if (!id) return Promise.reject("No id provided");
+        if (!(await routeStorage.keys()).includes(id)) return Promise.reject(`Route id: ${id} not found`);
+
+        await routeStorage.removeItem(id);
+        return Promise.resolve()
+    }
 }
 
 

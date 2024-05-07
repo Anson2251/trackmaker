@@ -8,6 +8,9 @@ export namespace CartoSketch {
 		hasDrafts: boolean,
 	};
 
+	export const Routes = CartoSketchRoutes;
+	export const Drafts = CartoSketchDrafts;
+
 	/**
 	 * Retrieves a list of CartoSketches with their corresponding draft and route state.
 	 *
@@ -29,6 +32,18 @@ export namespace CartoSketch {
 		})
 
 		return Promise.resolve(listState);
+	}
+
+	export async function removeCartoSketch(id: string) {
+		if (!id) return Promise.reject("No id provided");
+		const IDExist = (await Routes.routeStorage.keys()).includes(id);
+		const draftExist = (await Drafts.draftStorage.keys()).includes(id);
+
+		if(!IDExist) return Promise.reject(`CartoSketch id: ${id} not found`);
+
+		await CartoSketchRoutes.deleteRoute(id);
+		if(draftExist) await CartoSketchDrafts.deleteDraft(id);
+		return Promise.resolve();
 	}
 }
 
