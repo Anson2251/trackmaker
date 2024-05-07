@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { NList, NListItem, NIcon } from 'naive-ui';
+import { NList, NListItem, NIcon, NButton } from 'naive-ui';
 
-import { ShapesOutline } from '@vicons/ionicons5'
+import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5'
 import { Route } from '@vicons/tabler'
 
 import CartoSketch from '@/utils/cartosketch';
@@ -13,19 +13,37 @@ const props = defineProps({
     }
 })
 
+const emit = defineEmits(['select', 'remove'])
+
+function select(id: string){
+    emit('select', id)
+}
+
+function remove(id: string){
+    const confirmed = confirm(`Are you sure to delete this CartoSketch?\nBoth Route and Drafts will be deleted`);
+    if(confirmed) emit('remove', id);
+}
+
 </script>
 
 <template>
     <div class="container">
-        <n-list class="select-listview">
-            <n-list-item v-for="sketch in props.list" :title="sketch.name" :key="sketch.id">
+        <n-list class="select-listview" hoverable>
+            <n-list-item v-for="sketch in props.list" :title="sketch.name" :key="sketch.id" @click="select(sketch.id)">
+                <template #prefix>
+                    <n-icon sizse="24">
+                        <Route />
+                    </n-icon>
+                </template>
                 <template #suffix>
                     <n-icon size="24" v-if="sketch.hasDrafts">
                         <ShapesOutline />
                     </n-icon>
-                    <n-icon sizse="24">
-                        <Route />
-                    </n-icon>
+                    <n-button quaternary round @click="remove(sketch.id)">
+                        <n-icon size="24">
+                            <RemoveCircleOutline/>
+                        </n-icon>
+                    </n-button>
                 </template>
                 {{ sketch.name }}
             </n-list-item>

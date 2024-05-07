@@ -34,6 +34,7 @@ interface mapWithPlugin extends bingMaps {
 // let load = () => console.warn("map not ready");
 
 const sketchList = ref<CartoSketch.CartoSketchStates[]>([]);
+const selectedSketchID = ref<string>("")
 
 const activeSelector = ref(false);
 const selectorPlacement = ref<DrawerPlacement>("right");
@@ -78,7 +79,7 @@ const toolTipBarItems = [
 		title: "Open",
 		icon: FolderOpen,
 		iconSize: 20,
-		callback: () => { activeSelector.value = true }
+		callback: () => openDrawer()
 	}
 ]
 
@@ -108,6 +109,25 @@ function updateList() {
 	});
 }
 updateList();
+
+async function removeCartoSketchFromList(id: string) {
+    await CartoSketch.removeCartoSketch(id);
+	updateList();
+}
+
+function selectCartoSketchFromList(id: string) {
+	selectedSketchID.value = id;
+    console.log("selected", selectedSketchID.value)
+	closeDrawer();
+}
+
+function closeDrawer(){
+	activeSelector.value = false;
+}
+
+function openDrawer(){
+	activeSelector.value = true;
+}
 </script>
 
 <template>
@@ -115,12 +135,12 @@ updateList();
 		<n-drawer-content title="CartoSketch Library">
 			<template #footer>
 				<n-button-group>
-					<n-button @click="activeSelector = false" type="tertiary">Import</n-button>
-					<n-button @click="newRoute" type="tertiary">New</n-button>
-					<n-button @click="activeSelector = false" type="tertiary">Close</n-button>
+					<n-button type="tertiary">Import</n-button>
+					<n-button @click="newRoute()" type="tertiary">New</n-button>
+					<n-button @click="closeDrawer()" type="tertiary">Close</n-button>
 				</n-button-group>
 			</template>
-			<CartoSketchSelector :list="sketchList" />
+			<CartoSketchSelector :list="sketchList" @remove="removeCartoSketchFromList" @select="selectCartoSketchFromList"/>
 		</n-drawer-content>
 	</n-drawer>
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :size-default="0.7">
