@@ -8,8 +8,8 @@ export namespace CartoSketch {
 		hasDrafts: boolean,
 	};
 
-	export const Routes = CartoSketchRoutes;
-	export const Drafts = CartoSketchDrafts;
+	export import Routes = CartoSketchRoutes;
+	export import Drafts = CartoSketchDrafts;
 
 	/**
 	 * Retrieves a list of CartoSketches with their corresponding draft and route state.
@@ -17,8 +17,8 @@ export namespace CartoSketch {
 	 * @return A promise that resolves to an array of objects containing the name of the CartoSketch, whether it has drafts, and whether it has a route.
 	 */
 	export async function listCartoSketches(): Promise<CartoSketchStates[]> {
-		const routeList = await CartoSketchRoutes.readRouteList();
-		const draftList = await CartoSketchDrafts.readDraftList();
+		const routeList = await CartoSketchRoutes.readList();
+		const draftList = await CartoSketchDrafts.getList();
 
 		const listState: CartoSketchStates[] = []
 
@@ -36,13 +36,13 @@ export namespace CartoSketch {
 
 	export async function removeCartoSketch(id: string) {
 		if (!id) return Promise.reject("No id provided");
-		const IDExist = (await Routes.routeStorage.keys()).includes(id);
-		const draftExist = (await Drafts.draftStorage.keys()).includes(id);
+		const IDExist = (await Routes.storage.keys()).includes(id);
+		const draftExist = (await Drafts.storage.keys()).includes(id);
 
 		if(!IDExist) return Promise.reject(`CartoSketch id: ${id} not found`);
 
-		await CartoSketchRoutes.deleteRoute(id);
-		if(draftExist) await CartoSketchDrafts.deleteDraft(id);
+		await CartoSketchRoutes.remove(id);
+		if(draftExist) await CartoSketchDrafts.remove(id);
 		return Promise.resolve();
 	}
 }

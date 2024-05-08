@@ -8,12 +8,16 @@
 	<link rel="stylesheet" href="/src/assets/noscript.css">
 	<title>TRACK MAKER</title>
 	<style>
-		html, body {
+		html,
+		body {
 			padding: 0;
 			margin: 0;
 			height: 100%;
 		}
-		#splash, #timeout {
+
+		#splash,
+		#timeout,
+		#loading-error {
 			position: absolute;
 			top: 40%;
 			width: 100%;
@@ -51,12 +55,16 @@
 	<div id="splash" style="animation: breathingLight 2s infinite;">Loading TRACKMAKER ...</div>
 	<div id="timeout" style="color: red; display: none;">
 		Loading modules <b style="font-weight: bold;">Timeout</b>
-        <br>Please <u>check the Internet connection
-        </u> and <u>refresh the page</u>
+		<br>Please <u>check the Internet connection
+		</u> and <u>refresh the page</u>
 	</div>
 	<div id="loading-error" style="color: red; display: none;">
-		Loading modules <b style="font-weight: bold;">Error</b>
-        <br>Please <u>refresh the page</u>
+		<p>Track Maker crashed, please <u>refresh the page</u>
+		<div>
+			<br><b>Error Message</b>
+			<br>
+			<p id="error-msg"></p>
+		</div>
 	</div>
 	<script type="module" src="/src/main.ts"></script>
 </body>
