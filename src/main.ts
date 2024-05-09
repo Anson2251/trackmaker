@@ -18,6 +18,15 @@ loadModules(modules, "trackmaker", 30000).then(() => {
     document.getElementById("splash")?.remove();
 }).catch((e) => {
     console.error(e);
-    document.getElementById("splash")?.remove();
-    document.getElementById("timeout")!.style.display = "block"
+    const msg = e.toString();
+    console.log(msg);
+    if (String(msg).toLowerCase().includes("timeout")){
+        document.getElementById("splash")?.remove();
+        document.getElementById("timeout")!.style.display = "flex"
+    }
+    else{
+        document.getElementById("splash")?.remove();
+        document.getElementById("error-msg")!.innerHTML = msg
+        document.getElementById("loading-error")!.style.display = "flex"
+    }
 });

@@ -21,12 +21,37 @@
 			position: absolute;
 			top: 40%;
 			width: 100%;
-			text-align: center;
 			color: #888;
 			font-size: 1em;
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 			margin: 0;
 			padding: 0;
+
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		#timeout>p,
+		#loading-error>p{
+			display: block;
+		}
+
+		#error-msg {
+			display: block;
+
+			border-radius: 8px;
+			border: 1px solid red;
+
+			max-width: 32em;
+			max-height: 24em;
+
+			padding: 8px;
+			font-family: monospace;
+		}
+
+		#error-msg:empty {
+			content: "---"
 		}
 
 		@keyframes breathingLight {
@@ -52,17 +77,15 @@
 		<strong>It seems the browser you are using does not support JavaScript (or it has been disabled)</strong>
 	</noscript>
 	<div id="app"></div>
-	<div id="splash" style="animation: breathingLight 2s infinite;">Loading TRACKMAKER ...</div>
+	<div id="splash" style="animation: breathingLight 2s infinite;">Loading Track Maker ...</div>
 	<div id="timeout" style="color: red; display: none;">
-		Loading modules <b style="font-weight: bold;">Timeout</b>
-		<br>Please <u>check the Internet connection
-		</u> and <u>refresh the page</u>
+		<p>Loading modules <b style="font-weight: bold;">Timeout</b></p>
+		<p>Please <u>check the Internet connection</u> and <u>refresh the page</u></p>
 	</div>
 	<div id="loading-error" style="color: red; display: none;">
 		<p>Track Maker crashed, please <u>refresh the page</u>
-		<div>
-			<br><b>Error Message</b>
-			<br>
+		<div style="text-align: center;">
+			<b>Error Message:</b>
 			<p id="error-msg"></p>
 		</div>
 	</div>

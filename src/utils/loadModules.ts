@@ -85,7 +85,7 @@ export async function waitUntilModuleLoaded(library: moduleItem[], moduleName: s
                 resolve();
             } else if (Date.now() - startTime > timeout) {
                 clearInterval(intervalId);
-                reject(new Error(`Timed out waiting for module ${moduleName} to load`));
+                reject(new Error(`Load module ${moduleName} timeout`));
             }
         });
     });
