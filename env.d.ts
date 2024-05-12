@@ -6,3 +6,5 @@ declare module '*.vue' {
     const componentOptions: DefineComponent<{}, {}, any>;
     export default componentOptions;
 }
+
+declare const __BING_MAPS_KEY__: string

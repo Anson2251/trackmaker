@@ -31,5 +31,5 @@ coverage
 *.tsbuildinfo
 
 # for the credential key of the bing map
-*credentials*
+*credential*
 .vite

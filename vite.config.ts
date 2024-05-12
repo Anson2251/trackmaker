@@ -3,10 +3,16 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+console.log(process.env.BING_MAPS_KEY)
+
 // https://vitejs.dev/config/
 export default defineConfig({
+	define: {
+		__BING_MAPS_KEY__: JSON.stringify(process.env.BING_MAPS_KEY),
+	},
 	base: '/trackmaker/',
 	plugins: [
+
 		vue(),
 	],
 	resolve: {
