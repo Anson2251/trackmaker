@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
+import viteCompression from 'vite-plugin-compression';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -69,6 +70,13 @@ export default defineConfig({
 				transformObjectKeys: true,
 				unicodeEscapeSequence: true
 			}
+		}),
+		viteCompression({
+			algorithm: "brotliCompress",
+			compressionOptions: {
+				level: 11,
+			},
+			deleteOriginFile: false
 		})
 	],
 	resolve: {
