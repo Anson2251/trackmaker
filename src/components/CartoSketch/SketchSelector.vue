@@ -2,7 +2,6 @@
 import { NList, NListItem, NIcon, NButton } from 'naive-ui';
 
 import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5'
-import { Route } from '@vicons/tabler'
 
 import CartoSketch from '@/utils/cartosketch';
 
@@ -31,14 +30,13 @@ function remove(id: string) {
         <n-list class="select-listview" hoverable>
             <n-list-item v-for="sketch in props.list" :title="sketch.name" :key="sketch.id" @click="select(sketch.id)">
                 <template #prefix>
-                    <n-icon sizse="24">
-                        <Route />
-                    </n-icon>
+                    <div style="height: 100%; width: 100%; display: flex; justify-items: center;">
+                        <n-icon size="20">
+                            <ShapesOutline />
+                        </n-icon>
+                    </div>
                 </template>
                 <template #suffix>
-                    <n-icon size="24" v-if="sketch.hasDrafts">
-                        <ShapesOutline />
-                    </n-icon>
                     <n-button quaternary circle @click.stop="remove(sketch.id)">
                         <template #icon>
                             <n-icon>

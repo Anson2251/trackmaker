@@ -1,16 +1,16 @@
 import gcoord from "gcoord";
 
-export interface Location {
+export interface GeographicPoint {
     latitude: number,
     longitude: number
 }
 
-const geoLocationPresent: Location = {
+const geoLocationPresent: GeographicPoint = {
     latitude: 0,
     longitude: 0
 };
 
-let onchangeCallback: { id: number, callback: (location: Location) => void }[] = [];
+let onchangeCallback: { id: number, callback: (location: GeographicPoint) => void }[] = [];
 function doCallbacks() {
     onchangeCallback.forEach((item) => item.callback(geoLocationPresent));
 }
@@ -63,7 +63,7 @@ export function stopUpdatingService(id: number) {
     updateServiceStarted = false;
 }
 
-export function convertCoordinates(location: Location): Location {
+export function convertCoordinates(location: GeographicPoint): GeographicPoint {
     // todo, left a setting to user to enable this feature.
     const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
     return { longitude: converted[0], latitude: converted[1] }
@@ -73,7 +73,7 @@ export function supportGeolocation(): boolean {
     return !!navigator.geolocation
 }
 
-export function addChangeListener(callback: (location: Location) => void) {
+export function addChangeListener(callback: (location: GeographicPoint) => void) {
     const id = onchangeCallback.length > 0 ? onchangeCallback[onchangeCallback.length - 1].id + 1 : 0;
     onchangeCallback.push({ id: id, callback: callback });
 }

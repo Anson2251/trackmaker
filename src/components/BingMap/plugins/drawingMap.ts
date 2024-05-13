@@ -1,9 +1,10 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 import bingMapsPluginTemplete from "./base";
 import bingMaps from "../map";
-import * as localforage from "localforage";
 
-import bingMapsGeojson from "@/components/BingMap/plugins/geojson";
+import CartoSketch from "@/utils/cartosketch";
+import CartoSketchRoutes, { type GeographicRoute, type GeographicRouteItem } from "@/utils/cartosketch/route";
+import { type GeographicDraft, type GeographicDraftItem } from "@/utils/cartosketch/draft";
 
 import BrowserPlatform from "@/utils/browser-platform";
 const isMac = BrowserPlatform.os === "Mac OS";
@@ -12,14 +13,16 @@ export type HistoryPiece = { type: string, data: any };
 export type SavingDraft = { name: string, item: any };
 export type DraftPiece = { name: string, item: Microsoft.Maps.IPrimitive[] };
 
+export type PolylineWithName = { name: string, polyline: Microsoft.Maps.Polyline }
+
 export class bingMapsDrawing extends bingMapsPluginTemplete {
     private tools: Microsoft.Maps.DrawingTools | undefined;
     space = "drawingTools";
     history: (HistoryPiece[])[] = [];
     manager: Microsoft.Maps.DrawingManager | undefined;
     previousPrimitives: Microsoft.Maps.IPrimitive[] = [];
-    geojson: bingMapsGeojson;
     drafts: SavingDraft[] = [];
+    handler: {type: string, callback: (drawing: bingMapsDrawing) => void}[] = [];
 
     constructor(parentMap: bingMaps) {
         super(parentMap);
@@ -28,16 +31,12 @@ export class bingMapsDrawing extends bingMapsPluginTemplete {
         this.tools = new Microsoft.Maps.DrawingTools(parentMap.map);
         this.tools.showDrawingManager((manager) => {
             this.manager = manager;
-            Microsoft.Maps.Events.addHandler(this.manager, "drawingEnded", () => this.onChange())
-            Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange())
+            Microsoft.Maps.Events.addHandler(this.manager, "drawingEnded", () => this.onChange());
+            Microsoft.Maps.Events.addHandler(this.manager, "drawingErased", () => this.onChange());
+
         });
 
-        this.geojson = new bingMapsGeojson(this.host);
         this.mountKeyShortcuts();
-
-        localforage.getItem("drafts").then((drafts) => {
-            console.log("Existing draft: ", drafts);
-        });
     }
 
     mount() {
@@ -58,8 +57,20 @@ export class bingMapsDrawing extends bingMapsPluginTemplete {
         return true;
     }
 
+    addHandler(type: string, callback: (drawing: bingMapsDrawing) => void) {
+        this.handler.push({type, callback});
+    }
+
+    private executeHandler(type: string) {
+        this.handler.forEach((i) => {
+            if (i.type === type) i.callback(this);
+        })
+    }
+
     private onChange() {
         if (!this.manager) return;
+
+        this.executeHandler("drawingChanged");
 
         const LatestPrimitives = this.manager.getPrimitives();
         const newPrimitive = diff(LatestPrimitives, this.previousPrimitives);
@@ -71,7 +82,7 @@ export class bingMapsDrawing extends bingMapsPluginTemplete {
             { type: "delete", data: removedPrimitive },
         ]
         this.history.push(action);
-        console.log(this.manager.getPrimitives(), this.host.map.entities.getPrimitives())
+        //console.log(this.manager.getPrimitives(), this.host.map.entities.getPrimitives())
 
         this.previousPrimitives = this.manager.getPrimitives();
     }
@@ -183,6 +194,88 @@ export class bingMapsDrawing extends bingMapsPluginTemplete {
 
     stopDrawing() {
         this.tools?.finish()
+    }
+
+    edit(shape: Microsoft.Maps.IPrimitive) {
+        this.tools?.edit(shape);
+    }
+
+    async loadFromSketch(id: string) {
+        if(!this.manager) {
+            console.warn("map not ready");
+            return;
+        }
+        if (!(await CartoSketch.Routes.exist(id))) {
+            console.error(`CartoSketch with id: ${id} not found`);
+            return;
+        }
+
+        const sketch = await CartoSketch.read(id);
+
+        const routePrimitives = new Array(sketch.routes.length).map((r) => bingMapsDrawing.convert.CartoSketchRoute_BingMapsPolyline(r));
+        const draftPrimitives = bingMapsDrawing.convert.CartoSketchDraftItem_BingMapsPrimitives(sketch.drafts)
+
+        if (routePrimitives.length > 0) this.manager.add(routePrimitives);
+        this.manager.add(draftPrimitives);
+
+        return {
+            routes: routePrimitives.map((r, i) => ({ name: sketch.routes[i].name, polyline: r })) as PolylineWithName[],
+            routesMap: sketch.routes.map((r, i) => ({pid: (routePrimitives[i] as any).id as number, id: r.id})),
+            drafts: draftPrimitives,
+            draftsMap: sketch.drafts.map((d, i) => ({pid: (draftPrimitives[i] as any).id as number, id: d.id})),
+            name: sketch.name,
+            id: id
+        }
+    }
+
+    async saveSketchFromMap(id: string, route: PolylineWithName[], drafts: Microsoft.Maps.IPrimitive[]) {
+        const sketchRoute = bingMapsDrawing.convert.BingMapsPolylines_CartoSketchRoute(id, await CartoSketch.Routes.getName(id), route);
+        const sketchDraft = bingMapsDrawing.convert.BingMapsPrimitives_CartoSketchDraftItem(drafts);
+
+        await CartoSketch.Routes.save(id, sketchRoute.name, sketchRoute.routes);
+        await CartoSketch.Drafts.save(id, sketchDraft);
+    }
+
+    async clear() {
+        this.manager?.clear();
+    }
+}
+
+export namespace bingMapsDrawing {
+    export namespace convert {
+        export function CartoSketchRoute_BingMapsPolyline(route: GeographicRouteItem): Microsoft.Maps.Polyline {
+            return new Microsoft.Maps.Polyline(route.points.map((l) => new Microsoft.Maps.Location(l.latitude, l.longitude)), route.properties);
+        }
+
+        export function BingMapsPolylines_CartoSketchRoute(id: string, name: string, polylines: PolylineWithName[]): GeographicRoute {
+            return CartoSketchRoutes.create(id, name, polylines.map((e) => {
+                return CartoSketchRoutes.createItem(e.name, e.polyline.getLocations().map((p) => ({
+                    latitude: p.latitude, 
+                    longitude: p.longitude
+                })), {
+                    strokeColor: e.polyline.getStrokeColor() as string,
+                    strokeThickness: e.polyline.getStrokeThickness(),
+                    visible: e.polyline.getVisible()
+                });
+            }));
+        }
+
+        export function CartoSketchDraftItem_BingMapsPrimitives(drafts: GeographicDraftItem[]): Microsoft.Maps.IPrimitive[] {
+            if (!Microsoft.Maps.GeoJson) {
+                console.log("Microsoft.Maps.GeoJson is not available");
+                return [];
+            }
+            return drafts.map((item) => (Microsoft.Maps.GeoJson.read(item) as Microsoft.Maps.IPrimitive));
+        }
+
+        export function BingMapsPrimitives_CartoSketchDraftItem(primitives: Microsoft.Maps.IPrimitive[]): GeographicDraftItem[] {
+            if (!Microsoft.Maps.GeoJson) {
+                console.log("Microsoft.Maps.GeoJson is not available");
+                return [];
+            }
+            
+            return primitives.map((p) => Microsoft.Maps.GeoJson.write(p) as GeographicDraftItem);
+        }
     }
 }
 
