@@ -3,6 +3,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+console.log((process.env.BING_MAPS_KEY || "abcdefgtesttestfail").slice(0, 5))
+
 // https://vitejs.dev/config/
 export default defineConfig({
 	define: {
