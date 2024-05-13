@@ -20,11 +20,16 @@ type GeographicPoint = {
 ```
 
 ```typescript
-type GeographicRoute = GeographicPoint[];
+type GeographicRoute = {
+    id: string;
+    name: string,
+    route: GeographicPoint[]
+};
 ```
 
 The points are linked together in the sequence to form a polyline. The first point is the start of the route, the last point is the end of the part.
 
+The unique identifier (field `id`) is used as the primary key in the database.
 
 ## Draft
 
