@@ -1,5 +1,5 @@
 import CartoSketch from ".";
-import { createID } from "./utils";
+import { v4 as uuidV4 } from "uuid";
 
 import CartoSketchDrafts from "./draft";
 import CartoSketchRoutes from "./route";
@@ -10,11 +10,11 @@ export namespace CartoSketchCLI {
     }
 
     export function listCartoSketches() {
-        return CartoSketch.listCartoSketches();
+        return CartoSketch.list();
     }
 
     export function getNewID() {
-        return createID();
+        return uuidV4();
     }
 
     export const draft = CartoSketchDrafts;
