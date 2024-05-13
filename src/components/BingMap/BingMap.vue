@@ -11,7 +11,7 @@ import {
     addChangeListener,
     isUpdateServiceExist,
     isUpdateServiceUpdating
-} from "@/utils/geoLocation";
+} from "@/utils/geolocation";
 
 import bingMaps from "./map";
 import bingMapsPlugin from "./plugins/base";

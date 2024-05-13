@@ -1,4 +1,4 @@
-import inputDevicePreferences from "@/utils/inputDevicePreferences";
+import inputDevicePreferences from "@/utils/input-device-preferences";
 import bingMapsPluginTemplete from "./base";
 import bingMaps from "../map";
 

@@ -1,6 +1,6 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 // import { bingMapsKey } from "@/script/credentials";
-import { bingMapsKey } from "@/config";
+import { bingMapsKey } from "@/configs";
 import bingMapsPluginTemplete from "./plugins/base";
 
 export interface MyBingMapOptions {

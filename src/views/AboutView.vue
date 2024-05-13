@@ -1,7 +1,7 @@
 <script setup>
 import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5"
-import { credits } from "@/config";
+import { credits } from "@/configs";
 </script>
 
 <template>

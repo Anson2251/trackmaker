@@ -6,8 +6,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-import { loadModules } from './utils/loadModules'
-import { modules } from './config'
+import { loadModules } from './utils/load-modules'
+import { modules } from './configs'
 
 const app = createApp(App);
 app.use(createPinia());
