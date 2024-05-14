@@ -1,7 +1,7 @@
-import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
-import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
-import bingMapsLiteModeHiDpi from '@/components/BingMap/plugins/liteModeHiDpi';
-import bingMapsDrawing from '@/components/BingMap/plugins/drawingMap';
+import bingMapsPushPins from '@/components/BingMap/plugins/pushpin';
+import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
+import bingMapsLiteModeHiDpi from '@/components/BingMap/plugins/lite-mode-hidpi';
+import bingMapsDrawing from '@/components/BingMap/plugins/drawingm-map';
 
 export const plugins = [
 	bingMapsDrawing,

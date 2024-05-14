@@ -5,7 +5,7 @@ import { ref, watch } from 'vue';
 
 import BingMap from '@/components/BingMap/BingMap.vue'
 import { plugins, type MapWithPlugins } from './bing-map-plugins';
-import { type PolylineWithName } from '../BingMap/plugins/drawingMap';
+import { type PolylineWithName } from '../BingMap/plugins/drawingm-map';
 
 import {
 	NSplit,

@@ -1,7 +1,7 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
 import bingMaps from "../BingMap/map";
-import bingMapsDrawing from "../BingMap/plugins/drawingMap";
+import bingMapsDrawing from "../BingMap/plugins/drawingm-map";
 
 import { v4 as uuidV4 } from "uuid";
 

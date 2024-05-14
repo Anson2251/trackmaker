@@ -4,8 +4,8 @@
 import { ref } from 'vue';
 import { useOsTheme } from "naive-ui";
 import BingMap from '../components/BingMap/BingMap.vue';
-import bingMapsPushPins from '@/components/BingMap/plugins/pushPin';
-import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customizedTouchpadBehavior';
+import bingMapsPushPins from '@/components/BingMap/plugins/pushpin';
+import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
 
 export default {
 	components: {
