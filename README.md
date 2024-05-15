@@ -22,7 +22,7 @@ A simple tool to track and share your routes.
     - [x] Save the edit (of the shapes on the map)
     - [ ] Widgets for editing and modifying the information of the shapes
     - [ ] Load and place the previous saves on the map
-    - [ ] Manage saved routes (shapes)
+    - [x] Manage saved routes (shapes)
 
 - [x] History of drawing actions for using Redo and Undo
 - [ ] Export routes
