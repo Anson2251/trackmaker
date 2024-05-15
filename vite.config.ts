@@ -5,10 +5,12 @@ import vue from '@vitejs/plugin-vue'
 import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 import viteCompression from 'vite-plugin-compression';
 
+if(!process.env.BING_MAPS_KEY) console.warn("\x1b[33m%s\x1b[0m", "No Bing Maps Key can be found in the environment, please set BING_MAPS_KEY");
+
 // https://vitejs.dev/config/
 export default defineConfig({
 	define: {
-		__BING_MAPS_KEY__: JSON.stringify(process.env.BING_MAPS_KEY),
+		__BING_MAPS_KEY__: JSON.stringify(process.env.BING_MAPS_KEY || ""),
 	},
 	base: '/trackmaker/',
 	plugins: [
