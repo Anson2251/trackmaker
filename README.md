@@ -39,9 +39,10 @@ This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (on the `gh-p
 
 ### About the Bing Maps key
 
-My Bing Maps key exists in the code (`/src/config.ts > bingMapsKey`). If you need to build the page yourself, remember to replace it with your own key. It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/).
-**DO NOT** use the key provided in the code.
+The Bing Maps key is passed to the vite by the environment variable `BING_MAPS_KEY`.
+
+It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/).
 
 ---
 
-LAST UPDATE Apr. 30, 2024
+LAST UPDATE May 15, 2024
