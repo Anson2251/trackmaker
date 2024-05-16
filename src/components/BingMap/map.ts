@@ -29,8 +29,9 @@ export class bingMaps {
     private maxZoom: number = 20;
     private minZoom: number = 3;
     private centrePinID: number | undefined;
-    liteModeForceHiDpi = false;
+    readonly liteModeForceHiDpi?: boolean;
     plugins: any = {};
+    readonly supportMapTypes: Microsoft.Maps.MapTypeId[];
     constructor(container: HTMLElement, options: MyBingMapOptions, plugins: (typeof bingMapsPluginTemplete)[] = []) {
         this.container = container;
         this.mapType = options.type || Microsoft.Maps.MapTypeId.road;
@@ -49,6 +50,12 @@ export class bingMaps {
             if(options.forceHidpi) console.warn("The forceHidpi option is only available in lite mode and when the screen has a devicePixelRatio > 1");
         }
 
+        this.supportMapTypes = [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale];
+        if(!this.supportMapTypes.includes(this.mapType)) {
+            console.warn(`The map type ${this.mapType} is not supported. Fallback to the default map type ${this.supportMapTypes[0]}`);
+            this.mapType = this.supportMapTypes[0];
+        }
+
         this.map = new Microsoft.Maps.Map(container, {
             credentials: this.credentials,
             center: this.viewCentre,
@@ -56,13 +63,13 @@ export class bingMaps {
             enableInertia: (options.enableInertia === undefined ? true : options.enableInertia),
             liteMode: (options.liteMode === undefined ? false : options.liteMode),
             showDashboard: (options.showDashboard === undefined ? true : options.showDashboard),
-            supportedMapTypes: [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale],
+            supportedMapTypes: this.supportMapTypes,
             maxZoom: this.maxZoom,
             minZoom: this.minZoom,
-            enableClickableLogo: false
+            enableClickableLogo: false,
+            mapTypeId: this.mapType
         });
 
-        this.map.setMapType(this.mapType);
         if (this.plugins.pushPinLayer) {
             this.centrePinID = this.plugins.pushPinLayer.add(this.viewCentre, { title: "You are here" });
         }
