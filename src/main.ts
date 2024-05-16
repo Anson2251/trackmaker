@@ -9,18 +9,21 @@ import router from './router'
 import { loadModules } from './utils/load-modules'
 import { modules } from './configs'
 
+const printLogs = true
+
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 
-loadModules(modules, "trackmaker", 30000).then(() => {
+loadModules(modules, "trackmaker", 30000, printLogs).then(() => {
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {
-    console.error(e);
-    const msg = e.toString();
-    console.log(msg);
-    if (String(msg).toLowerCase().includes("timeout")){
+    console.error("Fail to initialise all the modules");
+    const msg = String(e.toString());
+    if (msg.toLowerCase().includes("timeout")){
+        const trackback = msg.split("Trackback").map(s => s.replace(/((^:\s*)|(,\s*$))/g, ""));
+        console.table(trackback.map(t => ({Trackback: t})), ["Trackback"]);
         document.getElementById("splash")?.remove();
         document.getElementById("timeout")!.style.display = "flex"
     }
@@ -30,3 +33,5 @@ loadModules(modules, "trackmaker", 30000).then(() => {
         document.getElementById("loading-error")!.style.display = "flex"
     }
 });
+
+

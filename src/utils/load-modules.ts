@@ -15,15 +15,24 @@ export const messageFormat = {
     "alreadyLoaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded by another instance, skip`,
     "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${args[1]}`,
     "dependenciesReady": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies are ready`,
-    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load, Trackback: ${args[1]}`
+    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Trackback: ${args[1]}`
 }
 
-export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000): Promise<void> {
+/**
+ * Loads modules from the library based on the specified module name and its dependencies
+ *
+ * @param {moduleItem[]} library - The library of modules to load from.
+ * @param {string} moduleName - The name of the module to load.
+ * @param {number} [timeout=10000] - The timeout duration in milliseconds for loading the module.
+ * @param {boolean} [printLog=false] - Flag to disable the information logs.
+ * @return {Promise<void>} A promise that resolves once the modules are loaded or rejects on errors.
+ */
+export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000, printLog: boolean = false): Promise<void> {
     const module = library.find((m) => m.name === moduleName);
     if (!module) throw new Error(`cannot exactly find module "${moduleName}" from the library`);
     const moduleIndex = library.findIndex((m) => m.name === module.name);
     if (library[moduleIndex].status === "loaded") {
-        console.log(messageFormat.alreadyLoaded(module.name));
+        if(printLog) console.log(messageFormat.alreadyLoaded(module.name));
         return Promise.resolve()
     }
 
@@ -33,37 +42,37 @@ export async function loadModules(library: moduleItem[], moduleName: string, tim
 
     if (missingDependencies.length > 0) {
         const msg = messageFormat.missingDependencies(module.name, missingDependencies.join(", "));
-        console.log(msg);
+        if(printLog) console.log(msg);
         return Promise.reject(msg);
     }
 
     if (library[moduleIndex].status === "error") {
         const msg = messageFormat.errorDetermined(module.name);
-        console.log(msg);
+        if(printLog) console.log(msg);
         return Promise.reject(msg);
     }
 
     if (library[moduleIndex].status === "loading") {
-        console.log(messageFormat.alreadyLoading(module.name));
+        if(printLog) console.log(messageFormat.alreadyLoading(module.name));
         await waitUntilModuleLoaded(library, module.name, timeout);
         return Promise.resolve()
     }
 
     try {
-        if (dependencyModules.length > 0) {
-            // Load the module
+        if (dependencyModules.length > 0) { 
+            // load all the dependencies
             await Promise.all(
-                dependencyModules.map((m) => loadModules(library, m.name, timeout))
+                dependencyModules.map((m) => loadModules(library, m.name, timeout, printLog))
                 || [(new Promise(resolve => resolve(null)))]
             );
-            console.log(messageFormat.dependenciesReady(module.name));
+            if(printLog) console.log(messageFormat.dependenciesReady(module.name));
         }
         library[moduleIndex].status = "loading"; // Set the status to "loading"
         try {
-            console.log(messageFormat.loading(module.name));
+            if(printLog) console.log(messageFormat.loading(module.name));
             await module.moduleInit(timeout);
             library[moduleIndex].status = "loaded";
-            console.log(messageFormat.loaded(module.name));
+            if(printLog) console.log(messageFormat.loaded(module.name));
             return Promise.resolve();
         } catch (error) {
             library[moduleIndex].status = "error";
