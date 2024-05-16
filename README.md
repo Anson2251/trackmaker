@@ -39,9 +39,13 @@ This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (on the `gh-p
 
 ### About the Bing Maps key
 
-The Bing Maps key is passed to the vite by the environment variable `BING_MAPS_KEY`.
+The Bing Maps key is passed to the Vite by the environment variable `BING_MAPS_KEY`.
 
 It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/).
+
+Additionally, the `/vite.config.ts` file is configured to automatically attempt to read the key from the configuration file as a fallback. 
+
+The configuration file's path may be specified by the environment variable `CREDENTIALS_CONFIG_PATH`. The default value for the path is `/credentials-config.json`.
 
 ---
 
