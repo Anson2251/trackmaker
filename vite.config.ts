@@ -101,7 +101,7 @@ export default defineConfig(async () => {
 
 	return {
 		define: {
-			__BING_MAPS_KEY__: bingMapsKey,
+			__BING_MAPS_KEY__: JSON.stringify(bingMapsKey),
 		},
 		base: '/trackmaker/',
 		plugins: [
