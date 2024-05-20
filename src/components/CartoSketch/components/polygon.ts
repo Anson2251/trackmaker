@@ -16,7 +16,7 @@ export type PolygonGeoJSON = {
     properties: PolygonProperties,
     geometry: {
         type: "Polygon",
-        coordinates: Array<[number, number]>,
+        coordinates: [number, number][],
     },
 }
 
