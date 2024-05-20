@@ -5,7 +5,7 @@ import { ref, watch } from 'vue';
 
 import BingMap from '@/components/BingMap/BingMap.vue'
 import { plugins, type MapWithPlugins } from './bing-map-plugins';
-import { type PolylineWithName } from '../BingMap/plugins/drawingm-map';
+import { type PolylineWithName } from '../BingMap/plugins/drawing-map';
 
 import {
 	NSplit,
@@ -23,9 +23,9 @@ import SketchComponentLibrary from './SketchComponentLibrary.vue';
 import PropertiesEdit from './PropertiesEdit.vue';
 
 import BidirectionalMap from '@/utils/bidirectional-map';
-import CartoSketchPrimitiveRegistration from './primitive-registration';
+import BingMapsDrawingPrimitiveProxyLayer from './primitive-registration';
 
-import CartoSketchRoutes from '@/utils/cartosketch/route';
+import CartoSketchRoute from '@/utils/cartosketch/route';
 import CartoSketch from '@/utils/cartosketch';
 
 import { type GeographicRouteItem } from '@/utils/cartosketch/route';
@@ -68,7 +68,7 @@ const localMapType = ref(Microsoft.Maps.MapTypeId.road);
 const componentClassification = new BidirectionalMap<number, "route" | "draft" | "unknown">();
 const componentsPrimitivesMap = new BidirectionalMap<string, number>();
 /** to manage the use of each primitive */
-const registrations = new CartoSketchPrimitiveRegistration(componentsPrimitivesMap, componentClassification);
+const registrations = new BingMapsDrawingPrimitiveProxyLayer(componentsPrimitivesMap, componentClassification);
 const classifiedComponentNames = ref<ClassifiedComponentInfo>({ routes: [], drafts: [], unknowns: [] });
 
 
