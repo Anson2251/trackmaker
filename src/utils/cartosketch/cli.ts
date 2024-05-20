@@ -2,15 +2,15 @@ import CartoSketch from ".";
 import { v4 as uuidV4 } from "uuid";
 
 import CartoSketchDrafts from "./draft";
-import CartoSketchRoutes from "./route";
+import CartoSketchRoute from "./route";
 
 export namespace CartoSketchCLI {
     export function mountCLI() {
         (window as any).CartoSketch = CartoSketchCLI;
     }
 
-    export function listCartoSketches() {
-        return CartoSketch.list();
+    export async function listCartoSketches() {
+        return await CartoSketch.getIDList();
     }
 
     export function getNewID() {
@@ -18,7 +18,7 @@ export namespace CartoSketchCLI {
     }
 
     export const draft = CartoSketchDrafts;
-    export const route = CartoSketchRoutes;
+    export const route = CartoSketchRoute;
 }
 
 export default CartoSketchCLI;

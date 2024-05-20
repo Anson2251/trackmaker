@@ -1,103 +1,106 @@
-import CartoSketchDrafts from "./draft";
-import CartoSketchRoutes from "./route";
+import localforage from "localforage";
 
-import type { GeographicDraftItem } from "./draft";
-import type { GeographicRouteItem } from "./route";
+import CartoSketchDraft from "./draft";
+import CartoSketchRoute from "./route";
+
+import type { GeographicDraftType } from "./draft";
+import type { GeographicRouteType } from "./route";
 import { v4 as uuidV4 } from "uuid";
 
-export namespace CartoSketch {
-	export type CartoSketchStates = {
-		id: string,
-		name: string,
-		hasDrafts: boolean,
-	};
+export type GeographicSketchType = {
+	id: string,
+	name: string,
+	routes: GeographicRouteType,
+	drafts: GeographicDraftType,
+}
 
-	export type Sketch = {
-		id: string,
-		name: string,
-		routes: GeographicRouteItem[],
-		drafts: GeographicDraftItem[],
+export type GeographicSketchGeoJSON = {
+	type: "FeatureCollection",
+	features: {
+		type: "Feature",
+		properties: any,
+		geometry: {
+			type: "Polygon" | "LineString" | "Point",
+			coordinates: [number, number] | [number, number][]
+		}
+	}[]
+}
+
+
+export class CartoSketch {
+	readonly id: string;
+	name: string;
+	routes: CartoSketchRoute;
+	drafts: CartoSketchDraft;
+	constructor(name: string, id = uuidV4(), routes?: CartoSketchRoute, drafts?: CartoSketchDraft) {
+		this.name = name;
+		this.id = id;
+		this.routes = routes || new CartoSketchRoute(name, [], id);
+		this.drafts = drafts || new CartoSketchDraft(name, [], id);
 	}
 
-	export import Routes = CartoSketchRoutes;
-	export import Drafts = CartoSketchDrafts;
+	exportToStorage(): GeographicSketchType {
+		return {
+			id: this.id,
+			name: this.name,
+			routes: this.routes.exportToStorage(),
+			drafts: this.drafts.exportToStorage()
+		}
+	}
+
+	exportAsGeoJSON(): GeographicSketchGeoJSON {
+		const routeFeatures = this.routes.exportAsGeoJSON().features;
+		const draftFeatures = this.drafts.exportAsGeoJSON().features;
+		const features: GeographicSketchGeoJSON["features"] = [...routeFeatures, ...draftFeatures];
+
+		return {
+			type: "FeatureCollection",
+			features: features
+		}
+	}
+}
+
+export namespace CartoSketch {
+	export const storageSpace = "cartosketch_storage";
+	export const storage = localforage.createInstance({ name: storageSpace });
+
+	export import Routes = CartoSketchRoute;
+	export import Drafts = CartoSketchDraft;
 
 	export async function exist(id: string){
-		const routeExist = (await Routes.storage.keys()).includes(id);
-		const draftExist = (await Drafts.storage.keys()).includes(id);
-		return {
-			exist: routeExist || draftExist,
-			route: routeExist,
-			draft: draftExist
+		try {
+			return !!(await storage.getItem(id));
+		}
+		catch(e){
+			return false;
 		}
 	}
 
-	export function create(name: string, id: string = uuidV4(), route: GeographicRouteItem[] = [], draft: GeographicDraftItem[] = []): Sketch {
-		return {
-			id: id,
-			name: name,
-			routes: route,
-			drafts: draft
-		}
+
+	export function readFromStorage(data: GeographicSketchType): CartoSketch {
+		return new CartoSketch(data.name, data.id, CartoSketch.Routes.readFromStorage(data.routes), CartoSketch.Drafts.readFromStorage(data.drafts));
 	}
 
-	/**
-	 * Retrieves a list of CartoSketches with their corresponding draft and route state.
-	 *
-	 * @return A promise that resolves to an array of objects containing the name of the CartoSketch, whether it has drafts, and whether it has a route.
-	 */
-	export async function list(): Promise<CartoSketchStates[]> {
-		const routeList = await CartoSketchRoutes.readList();
-		const draftList = await CartoSketchDrafts.getList();
-
-		const listState: CartoSketchStates[] = []
-
-		routeList.forEach((route) => {
-			const draftState = !!draftList.find((draft) => draft.id === route.id);
-			listState.push({
-				id: route.id,
-				name: route.name,
-				hasDrafts: draftState,
-			})
-		})
-
-		return Promise.resolve(listState);
+	/** Gets all the ids in the storage space*/
+	export async function getIDList(): Promise<string[]> {
+		return await storage.keys();
 	}
 
 	export async function remove(id: string) {
-		const sketchExist = await exist(id);
-		if(!sketchExist.exist) return Promise.reject(`CartoSketch id: ${id} not found`);
-
-		if(sketchExist.route) await CartoSketchRoutes.remove(id);
-		if(sketchExist.draft) await CartoSketchDrafts.remove(id);
-		return Promise.resolve();
+		if(await exist(id)) await storage.removeItem(id);
+		else console.warn("The CartoSketch with id: " + id + " not found and will not be removed");
 	}
 
-	export async function read(id: string, name?: string): Promise<Sketch> {
-		const sketchExist = await exist(id);
-		if(!sketchExist.exist) return Promise.reject(`CartoSketch id: ${id} not found`);
-		if(!sketchExist.route && !name) return Promise.reject(`The name must be provided, either from the route or the parameter`);
-		
-		let draft;
-		let route;
-		const sketchName = name || (await CartoSketchRoutes.getName(id));
-
-		if(sketchExist.route) route = await CartoSketchRoutes.read(id);
-		else route = CartoSketch.Routes.create(name!, sketchName);
-
-		if(sketchExist.draft) draft = await CartoSketchDrafts.read(id);
-		else draft = CartoSketch.Drafts.create(name!);
-		
-		return Promise.resolve(create((route ? route.name : name!), id, route.routes, draft.drafts));
+	export async function read(id: string): Promise<CartoSketch> {
+		if(!await exist(id)) return Promise.reject("The CartoSketch with id: " + id + " not found");
+		const data = await storage.getItem<GeographicSketchType>(id);
+		if(data) return Promise.resolve(readFromStorage(data));
+		else return Promise.reject("The CartoSketch with id: " + id + " is empty. It cannot be read");
 	}
 
-	export async function save(sketch: Sketch) {
-		if (!sketch.id) return Promise.reject("No id provided");
-		if (!sketch.name) return Promise.reject("No name provided");
-
-		await CartoSketchRoutes.save(sketch.id, sketch.name, sketch.routes);
-		await CartoSketchDrafts.save(sketch.id, sketch.drafts);
-		return Promise.resolve();
+	export async function save(sketch: CartoSketch) {
+		const data = sketch.exportToStorage();
+		await storage.setItem(data.id, data);
 	}
 }
 

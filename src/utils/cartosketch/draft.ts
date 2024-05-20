@@ -1,124 +1,137 @@
-import localforage from "localforage";
-import type { GeoJSONPoint } from "./route";
+import {CartoSketchRouteItem, type GeographicRouteItemProperties, type GeoJSONPoint} from "./route";
 
 import { v4 as uuidV4 } from "uuid";
 
-export type GeographicDraftItem = {
-    type: "Feature",
+export type GeographicDraftItemProperties = {
+    title?: string,
+    subTitle?: string;
+    label?: string,
+    fillColor?: string,
+    strokeColor?: string,
+    strokeThickness?: number,
+    icon?: string,
+    visible?: boolean
+}
+
+export const supportedShapeTypes = ["Polygon", "LineString", "Point"];
+export type supportedShapeType = "Polygon" | "LineString" | "Point";
+
+export type GeographicShape = {
+    type: supportedShapeType,
+    coordinates: GeoJSONPoint | GeoJSONPoint[];
+}
+
+export type GeographicDraftItemType = {
     id: string;
-    geometry: {
-        type: "Polygon" | "LineString" | "Point",
-        coordinates: GeoJSONPoint | GeoJSONPoint[];
-    },
-    properties: {
-        title: string,
-        subTitle: string;
-        class: "Polygon" | "LineString" | "Point" | "Label",
-        label: string,
-        fillColor: string,
-        strokeColor: string,
-        strokeThickness: number,
-        icon: string,
-        visible: boolean
-    }
+    name: string
+    shape: GeographicShape,
+    properties: GeographicDraftItemProperties,
 }
 
-export type GeographicDraft = {
+export type GeographicDraftItemGeoJSON = {
+    type: "Feature",
+    properties: GeographicDraftItemProperties,
+    /** the shape inside the feature */
+    geometry: GeographicShape
+}
+
+export type GeographicDraftType = {
     id: string,
-    drafts: GeographicDraftItem[]
+    name: string,
+    drafts: GeographicDraftItemType[]
 }
 
-export type DraftList = GeographicDraft[];
+export type GeographicDraftGeoJSON = {
+    type: "FeatureCollection",
+    features: GeographicDraftItemGeoJSON[]
+}
 
-export namespace CartoSketchDrafts {
-    export const storageSpace = "drafts_storage"
-    export const storage = localforage.createInstance({ name: storageSpace });
 
-    export function create(id: string, drafts?: GeographicDraftItem[]): GeographicDraft {
+export class CartoSketchDraft {
+    readonly id: string;
+    name: string;
+    readonly drafts: CartoSketchDraftItem[];
+
+    constructor(name: string, drafts: CartoSketchDraftItem[] = [], id: string = uuidV4()) {
+        this.id = id;
+        this.name = name;
+        this.drafts = drafts;
+    }
+
+    getDrafts(): Readonly<CartoSketchDraftItem[]> {
+        return Object.freeze(this.drafts);
+    }
+
+    getDraft(id: string) {
+        return this.drafts.find((draft) => draft.id === id);
+    }
+
+    addDraft(draft: CartoSketchDraftItem) {
+        this.drafts.push(draft);
+    }
+
+    exportAsGeoJSON(): GeographicDraftGeoJSON{
         return {
-            id: id,
-            drafts: drafts || [],
+            type: "FeatureCollection",
+            features: this.drafts.map((draft) => draft.exportAsGeoJSON())
         }
     }
 
-    export async function exist(id: string): Promise<boolean>{
-        return (await storage.keys()).includes(id);
-    }
-
-    export async function getIDList() {
-        return await storage.keys();
-    }
-    /**
-     * Reads the list of routes from the route storage
-     *
-     * @return A Promise that resolves to an array of RouteList objects, contains name and route
-     */
-    export async function getList(): Promise<DraftList> {
-        const draftIDs = await storage.keys(); // get the list of names of the routes
-        const collections: DraftList = [];
-
-        for (const id of draftIDs) {
-            collections.push(await read(id));
+    exportToStorage(): GeographicDraftType {
+        return {
+            id: this.id,
+            name: this.name,
+            drafts: this.drafts.map((draft) => draft.exportToStorage())
         }
+    }
+}
 
-        return Promise.resolve(collections);
+export namespace CartoSketchDraft {
+    export function create(name: string, drafts: CartoSketchDraftItem[] = [], id = uuidV4()): CartoSketchDraft {
+        return new CartoSketchDraft(name, drafts, id)
+    }
+
+    export function createItem(name: string, id = uuidV4(), shape: GeographicShape, properties: GeographicDraftItemProperties = {}): CartoSketchDraftItem {
+        return new CartoSketchDraftItem(name, shape, id, properties)
     }
 
     /**
-     * Reads a route from the route storage by its name.
+     * Create a new draft from the provided GeoJSON object, which only contains one feature.
      *
-     * @param id - The id of the route to read.
-     * @return A Promise that resolves to the GeographicRoute object if found,
-     * or rejects with an error message if the name is not provided or the route is not found.
-     */
-    export async function read(id: string): Promise<GeographicDraft> {
-        if (!exist(id)) return Promise.reject(`Drafts for route ${id} not found`);
-
-        const draft = await storage.getItem<GeographicDraft>(id)
-        if (draft) return Promise.resolve(draft);
-        else return Promise.reject(`Failed to read draft ${id}`);
-    }
-
-    /**
-     * Create a new draft from the provided geojson object, which only contains one feature.
-     *
-     * @param geojson - The geojson object containing the draft information.
+     * @param geojson - The GeoJSON object containing the draft information.
+     * @param name
+     * @param id
      * @return A Promise that resolves to the new draft object.
      */
-    export async function createDraftItemFromGeoJSON(geojson: any): Promise<GeographicDraftItem> {
-        if (Array.isArray(geojson.features)) Promise.reject("Only one feature is supported");
+    export function importItemFromGeoJSON(geojson: GeographicDraftItemGeoJSON | any, name?: string, id?: string): CartoSketchDraftItem {
+        if (Array.isArray(geojson.features))
+            throw new Error("[createDraftItemFromGeoJSON] Only one feature is supported");
 
         const type = geojson.geometry.type as string;
-        const coord = geojson.geometry.coordinates as GeoJSONPoint | GeoJSONPoint[];
+        const coordinates = geojson.geometry.coordinates as GeoJSONPoint | GeoJSONPoint[];
         const title = geojson.properties.title as string;
-        const className = geojson.properties.class as string || type;
 
-        if (!(type in ["Polygon", "LineString", "Point"])) return Promise.reject(`Invalid or unsupported geometry type ${type} in feature ${title}`);
-        if (!coord) return Promise.reject(`No coordinates provided in feature ${title}`);
-        if (!title) return Promise.reject("No title provided");
-        if (!(className in ["Polygon", "LineString", "Point", "Label"])) return Promise.reject(`Invalid or unsupported class name ${className} in feature ${title}`);
+        if (!(type in supportedShapeTypes)) throw new Error(`Invalid or unsupported geometry type ${type} in feature ${title}`);
+        if (!coordinates) throw new Error(`No coordinates provided in feature ${title}`);
+        if (!title) throw new Error("No title provided");
 
-        const newDraft: GeographicDraftItem = {
-            type: "Feature",
-            id: uuidV4(),
-            geometry: {
-                type: type as "Polygon" | "LineString" | "Point",
-                coordinates: coord,
-            },
-            properties: {
-                title: title,
-                subTitle: geojson.properties.subTitle || "",
-                class: className as "Polygon" | "LineString" | "Point" | "Label",
-                label: geojson.properties.label || "",
-                fillColor: geojson.properties.fillColor || "",
-                strokeColor: geojson.properties.strokeColor || "",
-                strokeThickness: geojson.properties.strokeThickness || 1,
-                icon: geojson.properties.icon || "",
-                visible: geojson.properties.visible || true,
-            }
+        const properties: GeographicDraftItemProperties = {
+            title: title,
+            subTitle: geojson.properties.subTitle || "",
+            label: geojson.properties.label || "",
+            fillColor: geojson.properties.fillColor || "",
+            strokeColor: geojson.properties.strokeColor || "",
+            strokeThickness: geojson.properties.strokeThickness || 1,
+            icon: geojson.properties.icon || "",
+            visible: geojson.properties.visible || true,
         }
 
-        return Promise.resolve(newDraft);
+        const shape: GeographicShape = {
+            type: type as supportedShapeType,
+            coordinates: coordinates,
+        }
+
+        return new CartoSketchDraftItem(name || title, shape, id, properties);
     }
 
 
@@ -126,76 +139,73 @@ export namespace CartoSketchDrafts {
      * Import a draft which is in the form of GeoJSON based on the provided name and draft content.
      * Newly imported draft will not be stored in the database
      *
-     * @param id - The id of the route the draft belongs to
-     * @param draft - The draft content to import.
+     * @param geojson - The draft content to import.
+     * @param name
+     * @param id
      * @return A promise that resolves to the imported draft.
      */
-    export async function importFromGeoJSON(id: string, draft: string): Promise<GeographicDraft> {
-        const parsedDraft = JSON.parse(draft);
-        const newDraft: GeographicDraftItem[] = []
+    export function importFromGeoJSON(geojson: any, name?: string, id = uuidV4()): CartoSketchDraft {
+        if(geojson.feature) throw new Error("[importFromGeoJSON] Multiple features should be contained");
 
-        try {
-            if (Array.isArray(parsedDraft.features)) { // contains multiple features
-                parsedDraft.features.forEach(async (feature: any) => {
-                    newDraft.push(await createDraftItemFromGeoJSON(feature))
-                });
-            }
-            else newDraft.push(await createDraftItemFromGeoJSON(parsedDraft)); // only contains the single feature
-        }
-        catch (err) {
-            const reason = `Fail to import draft ${id} from the form of GeoJSON, Trackback:\n${err}`;
-            console.error(reason);
-            return Promise.reject(reason);
-        }
+        const collection = (geojson.features as GeographicDraftItemGeoJSON[]).map((feature: GeographicDraftItemGeoJSON, index: number) => {
+            return importItemFromGeoJSON(feature, `${name}-${index}`, undefined);
+        });
 
-        return create(id, newDraft);
+        return new CartoSketchDraft(id, collection, id);
     }
 
-    /**
-     * Export a draft identified by its id.
-     *
-     * @param id - The id of the draft to export.
-     * @return A Promise that resolves to the exported draft as a string.
-     */
-    export async function exportAsGeoJSON(id: string): Promise<string> {
-        if (!id) return Promise.reject("No name provided");
-        if (!exist(id)) return Promise.reject(`Drafts for route ${id} not found`);
-
-        const selectedDraft = await storage.getItem<GeographicDraftItem[]>(id);
-        if (selectedDraft) return Promise.resolve(JSON.stringify(selectedDraft));
-        else return Promise.reject(`Failed to read draft ${id}`);
+    export function readItemFromStorage(data: GeographicDraftItemType): CartoSketchDraftItem {
+        return new CartoSketchDraftItem(data.name, data.shape, data.id, data.properties);
     }
 
-
-    /**
-     * Save drafts to the draft storage with the given id and drafts.
-     *
-     * @param id - The id of the drafts.
-     * @param drafts - The array of draft items to be written.
-     */
-    export async function save(id: string, drafts: GeographicDraftItem[]): Promise<void> {
-        if (!id || !drafts) return Promise.reject("No name or routes provided");
-
-        await storage.setItem<GeographicDraft>(id, {
-            id: id,
-            drafts: drafts
-        })
-        return Promise.resolve();
-    }
-
-    /**
-     * Deletes a draft identified by its id.
-     *
-     * @param id - The id of the draft to delete.
-     * @return A Promise that resolves when the draft is successfully deleted, or rejects with an error message if the id is not provided or the draft is not found.
-     */
-    export async function remove(id: string): Promise<void> {
-        if (!id) return Promise.reject("No id provided");
-        if (!exist(id)) return Promise.reject(`Draft id: ${id} not found`);
-
-        await storage.removeItem(id);
-        return Promise.resolve();
+    export function readFromStorage(data: GeographicDraftType): CartoSketchDraft {
+        return new CartoSketchDraft(data.name, data.drafts.map((draft) => CartoSketchDraft.readItemFromStorage(draft)), data.id);
     }
 }
 
-export default CartoSketchDrafts;
+
+export class CartoSketchDraftItem {
+    name: string;
+    readonly id: string;
+    private shape: GeographicShape;
+    readonly properties: GeographicDraftItemProperties;
+    constructor(name: string, shapes: GeographicShape, id: string = uuidV4(), properties: GeographicDraftItemProperties = {}) {
+        this.name = name;
+        this.id = id;
+        this.shape = shapes;
+        this.properties = properties;
+    }
+
+    setShapes(shapes: GeographicShape) {
+        this.shape = shapes;
+    }
+
+    getShapes() {
+        return Object.freeze(this.shape);
+    }
+
+    setProperties(properties: GeographicDraftItemProperties) {
+        const newProperties = JSON.parse(JSON.stringify(properties)) as GeographicRouteItemProperties;
+        Object.assign(this.properties, newProperties);
+    }
+
+    exportAsGeoJSON(): GeographicDraftItemGeoJSON{
+        return {
+            type: "Feature",
+            properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
+            geometry: this.shape
+        }
+    }
+
+    exportToStorage(): GeographicDraftItemType {
+        return {
+            name: this.name,
+            id: this.id,
+            properties: this.properties,
+            shape: this.shape
+        }
+    }
+}
+
+
+export default CartoSketchDraft;
