@@ -1,0 +1,7 @@
+{
+	"plugin": ["typedoc-plugin-markdown"],
+	"outputFileStrategy": "members",
+	"out": "./docs",
+	"entryFileName": "index",
+	"entryPoints": ["src/utils/cartosketch/index.ts"]
+}
