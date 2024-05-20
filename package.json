@@ -10,7 +10,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "build-preview": "vite build; cd ./dist; python3 -m http.server 5173"
+    "build-preview": "vite build; cd ./dist; python3 -m http.server 5173",
+    "generate-docs": "typedoc"
   },
   "dependencies": {
     "gcoord": "^1.0.6",
@@ -37,6 +38,7 @@
     "eslint-plugin-vue": "^9.23.0",
     "naive-ui": "^2.38.1",
     "npm-run-all2": "^6.1.2",
+    "typedoc-plugin-markdown": "^4.0.2",
     "typescript": "~5.4.0",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-vue-components": "^0.26.0",
