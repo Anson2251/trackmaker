@@ -1,6 +1,6 @@
-<reference path="../../node_modules/@types/bingmaps/index.d.ts" />
-
 <script lang="ts" setup>
+/// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
+
 import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
@@ -168,7 +168,7 @@ onMounted(async () => {
     <n-element class="container">
         <div :id="bingMapID" class="bing-map-container">
         </div>
-        <div tag="div" class="nav-toolbox">
+        <div class="nav-toolbox">
             <n-button strong secondary circle type="primary" @click="() => zoomIn()">
                 <Icon :size="iconSize">
                     <add />
@@ -217,20 +217,5 @@ onMounted(async () => {
 
     background-color: var(--modal-color);
     border: 1px solid var(--border-color);
-}
-
-.nav-toolbox .n-button {
-    width: 3em;
-    height: 3em;
-    margin: 4px;
-}
-
-.nav-toolbox .n-switch {
-    width: 2em;
-    height: 1.5em;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    margin-left: 8px;
-    margin-right: 8px;
 }
 </style>
