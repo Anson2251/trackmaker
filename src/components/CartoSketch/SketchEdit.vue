@@ -1,45 +1,29 @@
-<reference path="../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+/// <reference path="../../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
+
+import {watch, ref} from 'vue';
 
 import BingMap from '@/components/BingMap/BingMap.vue'
-import { plugins, type MapWithPlugins } from './bing-map-plugins';
-import { type PolylineWithName } from '../BingMap/plugins/drawing-map';
+import {type MapWithPlugins, plugins} from './bing-map-plugins';
 
-import {
-	NSplit,
-	NIcon,
-	NCard,
-	NButton,
-	NEmpty,
-	type DrawerPlacement
-} from 'naive-ui';
-import { Save, FolderOpen, MapOutline as MapIcon } from '@vicons/ionicons5';
-import { Edit } from '@vicons/tabler'
+import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';
+import {FolderOpen, MapOutline as MapIcon, Save} from '@vicons/ionicons5';
+import {Edit} from '@vicons/tabler'
 
 import SelectorDrawer from './SelectorDrawer.vue';
-import SketchComponentLibrary from './SketchComponentLibrary.vue';
-import PropertiesEdit from './PropertiesEdit.vue';
+import SketchComponentLibrary from "@/components/CartoSketch/SketchComponentLibrary.vue";
+import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
 
-import BidirectionalMap from '@/utils/bidirectional-map';
-import BingMapsDrawingPrimitiveProxyLayer from './primitive-registration';
+import {BingMapDrawingBackend} from "@/components/BingMap/drawing-backend";
+import DrawingBackend from "@/utils/drawing-map/drawing-backend";
+import SketchEditAdapter from "@/utils/drawing-map/sketch-edit-adapter";
 
-import CartoSketchRoute from '@/utils/cartosketch/route';
-import CartoSketch from '@/utils/cartosketch';
+import CartoSketch, {type CartoSketchInfo} from '@/utils/cartosketch';
 
-import { type GeographicRouteItem } from '@/utils/cartosketch/route';
-import { type GeographicDraftItem } from '@/utils/cartosketch/draft';
+// import CartoSketchCLI from '@/utils/cartosketch/cli';
+// CartoSketchCLI.mountCLI();
 
-import CartoSketchCLI from '@/utils/cartosketch/cli';
-CartoSketchCLI.mountCLI();
-
-type Option = { value: string, label: string };
-interface ClassifiedComponentInfo {
-	routes: Option[],
-	drafts: Option[],
-	unknowns: Option[],
-}
+// type Option = { value: string, label: string };
 
 interface Props {
 	liteMode?: boolean;
@@ -49,27 +33,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const mapNotReadyWarn = (...args: any[]) => console.warn("map not ready, received args", ...args);
-let saveSketch = mapNotReadyWarn;
-let selectSketch = async (...args: any[]) => { mapNotReadyWarn(...args) };
+const adapter = new SketchEditAdapter<any>();
 
-const sketchList = ref<CartoSketch.CartoSketchStates[]>([]);
+const sketchList = ref<CartoSketchInfo[]>([]);
 
-const selectedSketch = ref<CartoSketch.Sketch | null>(null);
-const selectedSketchRoutes = new Map<string, GeographicRouteItem>();
-const selectedSketchDrafts = new Map<string, GeographicDraftItem>();
+let emptySelection = ref(false);//ref<CartoSketch | null>(null);
 
-const selectedComponentName = ref<string | undefined>();
-const selectedComponentSpace = ref<string | undefined>();
+const selectedComponentID = ref<number | undefined>();
+let selectedComponentConfigs = ref<Record<string, string | number | boolean>>({})
 
 const localMapType = ref(Microsoft.Maps.MapTypeId.road);
 
-/* registration */
-const componentClassification = new BidirectionalMap<number, "route" | "draft" | "unknown">();
-const componentsPrimitivesMap = new BidirectionalMap<string, number>();
-/** to manage the use of each primitive */
-const registrations = new BingMapsDrawingPrimitiveProxyLayer(componentsPrimitivesMap, componentClassification);
-const classifiedComponentNames = ref<ClassifiedComponentInfo>({ routes: [], drafts: [], unknowns: [] });
+// const classifiedComponentNames = ref<ClassifiedComponentInfo>({ routes: [], drafts: [], unknowns: [] });
 
 
 /* drawer */
@@ -82,7 +57,7 @@ const drawer = {
 }
 
 
-/* tool bar */
+/* toolbar */
 
 const toolBarIconSize = 20;
 const toolTipBarItems = [
@@ -90,7 +65,7 @@ const toolTipBarItems = [
 		title: "save",
 		icon: Save,
 		iconSize: toolBarIconSize,
-		callback: () => saveSketch()
+		callback: adapter.save.bind(adapter)
 	},
 	{
 		title: "Open",
@@ -101,88 +76,64 @@ const toolTipBarItems = [
 ]
 
 function mapReady(map: MapWithPlugins) {
-	if (!map.plugins.drawingTools) {
-		console.error("Fail to load the drawing module as the plugin is not ready");
-		return;
-	}
+	const backend = new BingMapDrawingBackend(map);
+	adapter.setBackend(backend);
+	emptySelection.value = true;
 
-	map.plugins.drawingTools.addHandler("drawingChanged", () => {
-		const primitives = map.plugins.drawingTools.manager!.getPrimitives();
-		console.log(primitives)
-		primitives.forEach((p) => {
-			registrations.setRegistration((p as any).id, "unknown");
-		})
-		const classified = registrations.classifyNames();
-		console.log(classified)
-		classifiedComponentNames.value = {
-			routes: classified.routes.map((name) => {
-				return { value: name, label: selectedSketchRoutes.get(name)!.name };
-			}),
-			drafts: classified.drafts.map((name) => {
-				return { value: name, label: selectedSketchDrafts.get(name)!.properties.title || name };
-			}),
-			unknowns: classified.unknowns.map((name) => {
-				return { value: name, label: name };
-			})
-		};
-		console.log(classifiedComponentNames.value)
-	})
+	// if (!map.plugins.drawingTools) {
+	// 	console.error("Fail to load the drawing module as the plugin is not ready");
+	// 	return;
+	// }
 
-	selectSketch = async (id: string) => {
-		const sketchOnMap = await map.plugins.drawingTools.loadFromSketch(id);
-		const sketch = await CartoSketch.read(id)
-		if (sketchOnMap) {
-			selectedSketch.value = sketch;
+	// watch(selectedComponentID, () => {
+	// 	if(!map.plugins.drawingTools) return {};
+	// 	const properties = map.plugins.drawingTools.primitiveComponentMetaMap.get(selectedComponentID.value!)
+	// 	if(!properties) return {};
+	// 	console.log("properties selected:", properties);
+	// 	selectedComponentConfigs.value = properties.properties;
+	// })
+	//
+	// //selectedComponentConfigs = computed(() => selectedSketch.value?.getComponentConfigs(selectedComponentName.value!) || {})
+	//
+	// map.plugins.drawingTools.addHandler("onDrawingChanged", () => {
+	// 	const classificationInfo = map.plugins.drawingTools.getClassificationInfo();
+	//
+	// 	classifiedComponentNames.value = {
+	// 		routes: classificationInfo.routes.map((c) => ({value: c.id, label: c.name})),
+	// 		drafts: classificationInfo.drafts.map((c) => ({value: c.id, label: c.name})),
+	// 		unknowns: classificationInfo.unknowns.map((c) => ({value: c.id, label: c.name}))
+	// 	}
+	//
+	// 	console.log(classificationInfo);
+	// })
 
-			sketchOnMap.routesMap.forEach((m, i) => {
-				registrations.setRegistration(m.pid, "route");
-				componentsPrimitivesMap.set(m.id, m.pid);
-				selectedSketchRoutes.set(m.id, sketch.routes[i]);
-			})
-			sketchOnMap.draftsMap.forEach((m, i) => {
-				registrations.setRegistration(m.pid, "draft");
-				componentsPrimitivesMap.set(m.id, m.pid);
-				selectedSketchDrafts.set(m.id, sketch.drafts[i]);
-			})
-		}
-	}
-
-	saveSketch = async () => {
-		if (!map.plugins.drawingTools.manager) {
-			console.warn("map not ready");
-		}
-
-		let routes: PolylineWithName[] = [];
-		let drafts: Microsoft.Maps.IPrimitive[] = [];
-
-		const allPrimitives = map.plugins.drawingTools.manager!.getPrimitives();
-
-		allPrimitives.forEach((primitive) => {
-			const id = (primitive as any).id;
-			if (registrations.getRegistration(id) === "route" && primitive instanceof Microsoft.Maps.Polyline) {
-				routes.push({ name: componentsPrimitivesMap.getBackward(id) || "Untitled", polyline: primitive })
-			} else {
-				drafts.push(primitive)
-			}
-		})
-
-		await map.plugins.drawingTools.saveSketchFromMap(selectedSketch.value?.id!, routes, drafts)
-	}
+	// selectSketch = async (id: string) => {
+	// 	const sketch = await CartoSketch.read(id)
+	// 	if (sketch) {
+	// 		selectedSketch.value = sketch;
+	// 		map.plugins.drawingTools.importPrimitivesFromCartoSketch(sketch);
+	// 	}
+	// }
+	//
+	// saveSketch = async () => {
+	// 	console.log(map.plugins.drawingTools.exportCartoSketch())
+	// }
 }
 
 async function newSketch() {
 	const name = prompt("Enter the name of the new CartoSketch");
 	if (name) {
-		await CartoSketch.save(CartoSketch.create(name));
+		await CartoSketch.write(new CartoSketch(name));
 		updateList();
 	}
 }
 
 function updateList() {
-	CartoSketch.list().then((list) => {
+	CartoSketch.getInfoList().then((list) => {
 		sketchList.value = list;
 	});
 }
+
 updateList();
 
 async function removeCartoSketchFromList(id: string) {
@@ -191,33 +142,33 @@ async function removeCartoSketchFromList(id: string) {
 }
 
 async function selectCartoSketchFromList(id: string) {
-	await selectSketch(id);
-	console.log("selected", selectedSketch.value?.id);
+	await adapter.load(id);
+	console.log("selected sketch, id:", id);
 	drawer.close();
 }
 
 function showAlert(msg: string) {
 	alert(msg);
 }
-
-
 </script>
 
 <template>
 	<SelectorDrawer :list="sketchList" v-model:active="activeSelector" :placement="selectorPlacement" @new="newSketch"
-		@remove="removeCartoSketchFromList" @select="selectCartoSketchFromList"
-		@activeStateSync="(state: boolean) => { activeSelector = state }" @import="showAlert('Not implemented')" />
+					@remove="removeCartoSketchFromList" @select="selectCartoSketchFromList"
+					@activeStateSync="(state: boolean) => { activeSelector = state }"
+					@import="showAlert('Not implemented')"/>
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :default-size="0.7">
 		<template #1>
 			<n-card class="map-container" content-style="padding: 0">
-				<BingMap v-show="!!selectedSketch" :type="localMapType" :plugin="plugins"
-					:lite-mode="(props.liteMode === undefined ? false : props.liteMode)"
-					:force-hidpi="(props.forceHighDpi === undefined ? false : props.forceHighDpi)" @ready="mapReady" />
-				<n-empty description="Map" v-if="!selectedSketch" size="huge"
-					style="height: 100%; justify-content: center">
+				<BingMap v-show="!!emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
+						:lite-mode="props.liteMode"
+						:force-hidpi="props.forceHighDpi"
+						@ready="mapReady"/>
+				<n-empty description="Map" v-if="!emptySelection" size="huge"
+						style="height: 100%; justify-content: center">
 					<template #icon>
 						<n-icon>
-							<MapIcon />
+							<MapIcon/>
 						</n-icon>
 					</template>
 				</n-empty>
@@ -229,29 +180,29 @@ function showAlert(msg: string) {
 					<div v-for="(item, index) in toolTipBarItems" :key="index" @click="item.callback"
 						:title="item.title" class="tool-tip-item">
 						<n-icon :size="item.iconSize">
-							<component :is="item.icon" />
+							<component :is="item.icon"/>
 						</n-icon>
 					</div>
 				</n-card>
 
 				<n-card class="draft-container">
-					<template #header v-if="!!selectedSketch">
+					<template #header v-if="!!emptySelection">
 						Components
 					</template>
-					<n-split direction="vertical" :max="0.8" :min="0.3" :default-size="0.7" v-if="!!selectedSketch">
+					<n-split direction="vertical" :max="0.8" :min="0.3" :default-size="0.7" v-if="!!emptySelection">
 						<template #1>
-							<SketchComponentLibrary :components="classifiedComponentNames"
-								v-model:value="selectedComponentName" />
+							<!--							<SketchComponentLibrary :components="classifiedComponentNames"-->
+							<!--													v-model:value="selectedComponentName"/>-->
 						</template>
 						<template #2>
 							<!-- <PropertiesEdit /> -->
 						</template>
 					</n-split>
-					<n-empty description="No sketch selected" v-if="!selectedSketch"
-						style="height: 100%; justify-content: center">
+					<n-empty description="No sketch selected" v-if="!emptySelection"
+							style="height: 100%; justify-content: center">
 						<template #icon>
 							<n-icon>
-								<Edit />
+								<!--								<properties-edit :properties="{color: '#FF0000'}" />-->
 							</n-icon>
 						</template>
 						<template #extra>
@@ -297,9 +248,6 @@ function showAlert(msg: string) {
 }
 
 .edit-layout {
-	width: 100%;
-	height: 100%;
-
 	max-height: 100%;
 	overflow-y: hidden;
 
