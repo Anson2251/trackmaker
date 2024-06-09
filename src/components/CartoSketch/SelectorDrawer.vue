@@ -4,7 +4,6 @@ import { NDrawer, NDrawerContent, NButtonGroup, NButton, NIcon, type DrawerPlace
 import { CloseCircleOutline, AddCircleOutline } from '@vicons/ionicons5';
 import { Upload } from '@vicons/tabler';
 
-import CartoSketch from '@/utils/cartosketch';
 import SketchSelector from './SketchSelector.vue';
 
 import { watch, ref } from "vue"
@@ -20,7 +19,7 @@ const props = defineProps({
 		default: () => 'right'
 	},
 	list: {
-		type: Array<CartoSketch.CartoSketchStates>,
+		type: Array<{name: string, id: string}>,
 		default: () => []
 	}
 });
@@ -53,7 +52,7 @@ const buttonGroupItems = [
 ]
 
 const activeSelectorFlag = ref(false);
-const drawerSelectorPlacement = ref<DrawerPlacement>('right');
+const drawerSelectorPlacement = ref<DrawerPlacement>(props.placement as DrawerPlacement);
 
 watch(props, () => {
 	activeSelectorFlag.value = props.active;
@@ -61,11 +60,12 @@ watch(props, () => {
 }, { deep: true });
 
 watch(activeSelectorFlag, () => {
-	emit('activeStateSync', activeSelectorFlag.value);
+	emit('update:active', activeSelectorFlag.value);
 });
 
 
-const emit = defineEmits(['new', 'activeStateSync', 'remove', 'select', 'import']);
+const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import']);
+
 </script>
 
 <template>

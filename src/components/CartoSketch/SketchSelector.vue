@@ -3,11 +3,9 @@ import { NList, NListItem, NIcon, NButton } from 'naive-ui';
 
 import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5'
 
-import CartoSketch from '@/utils/cartosketch';
-
 const props = defineProps({
     list: {
-        type: Array<CartoSketch.CartoSketchStates>,
+        type: Array<{name: string, id: string}>,
         default: () => []
     }
 })
