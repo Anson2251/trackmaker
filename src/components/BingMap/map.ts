@@ -21,7 +21,7 @@ export class bingMaps {
     private zoom: number = 5;
     private viewCentre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
     private centre: Microsoft.Maps.Location = new Microsoft.Maps.Location(0, 0)
-    private credentials: string;
+    private readonly credentials: string;
     private mapType: Microsoft.Maps.MapTypeId;
     container: HTMLElement;
     map: Microsoft.Maps.Map;
