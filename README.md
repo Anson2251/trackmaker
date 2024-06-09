@@ -1,11 +1,11 @@
 <div style="text-align: center">
-<img src="/public/favicon.svg" width=128 height=128/>
+<img src="/public/favicon.svg" width=128 height=128 alt="logo"/>
 
 # Track Maker
 
 </div>
 
-A simple tool to track and share your routes.
+Enabling route planning and navigation for sports activities with map marking feature.
 
 ## Todo
 - [x] About page
@@ -18,8 +18,8 @@ A simple tool to track and share your routes.
 - [ ] Record and track the route
 - [ ] Edit routes
 
-    - [x] Basic route editing page
-    - [x] Save the edit (of the shapes on the map)
+    - [ ] Basic route editing page
+    - [ ] Save the edit (of the shapes on the map)
     - [ ] Widgets for editing and modifying the information of the shapes
     - [ ] Load and place the previous saves on the map
     - [x] Manage saved routes (shapes)
@@ -28,6 +28,8 @@ A simple tool to track and share your routes.
 - [ ] Export routes
 - [ ] Import routes
 - [ ] Share routes
+
+*Due to the re-implementation of some code, several features are temporarily unavailable, and their status has been changed to "to-do."*
 
 ## Notice
 
@@ -49,4 +51,4 @@ The configuration file's path may be specified by the environment variable `CRED
 
 ---
 
-LAST UPDATE May 15, 2024
+LAST UPDATE Jun. 9, 2024
