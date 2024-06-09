@@ -9,7 +9,7 @@ import router from './router'
 import { loadModules } from './utils/load-modules'
 import { modules } from './configs'
 
-const printLogs = true
+const printLogs = false
 
 const app = createApp(App);
 app.use(createPinia());
