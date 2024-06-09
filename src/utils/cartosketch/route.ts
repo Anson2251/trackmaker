@@ -1,47 +1,14 @@
 import {v4 as uuidV4} from "uuid";
 import type {GeographicPoint} from "../geolocation";
 
-export type GeoJSONPoint = [number, number];
-
-// for the data stored in the database, it follows the format of Geographic...
-// after parsing, the data should be returned as CartoSketch...
-
-export type GeographicRouteItemProperties = {
-    strokeColor?: string,
-    strokeThickness?: number,
-    visible?: boolean
-}
-
-export type GeographicRouteItemType = {
-    name: string,
-    id: string,
-    properties: GeographicRouteItemProperties,
-    points: GeographicPoint[]
-};
-
-export type GeographicRouteItemGeoJSON = {
-    type: "Feature",
-    properties: GeographicRouteItemProperties,
-    /** the shape inside the feature */
-    geometry: {
-        type: "LineString",
-        /** the list of points which form the shape */
-        coordinates: Array<[number, number]>,
-    },
-}
-
-export type GeographicRouteGeoJSON = {
-    type: "FeatureCollection",
-    /** the list of routes in the collection */
-    features: GeographicRouteItemGeoJSON[]
-}
-
-export type GeographicRouteType = {
-    id: string;
-    name: string,
-    routes: GeographicRouteItemType[]
-};
-
+import type {
+    GeographicRouteGeoJSON,
+    GeographicRouteType,
+    GeographicRouteItemType,
+    GeographicRouteItemProperties,
+    GeographicRouteItemGeoJSON,
+    GeoJSONPoint
+} from "@/utils/cartosketch/definitions";
 
 export class CartoSketchRoute {
     readonly id: string;

@@ -1,51 +1,17 @@
-import {CartoSketchRouteItem, type GeographicRouteItemProperties, type GeoJSONPoint} from "./route";
+import {v4 as uuidV4} from "uuid";
 
-import { v4 as uuidV4 } from "uuid";
-
-export type GeographicDraftItemProperties = {
-    title?: string,
-    subTitle?: string;
-    label?: string,
-    fillColor?: string,
-    strokeColor?: string,
-    strokeThickness?: number,
-    icon?: string,
-    visible?: boolean
-}
-
-export const supportedShapeTypes = ["Polygon", "LineString", "Point"];
-export type supportedShapeType = "Polygon" | "LineString" | "Point";
-
-export type GeographicShape = {
-    type: supportedShapeType,
-    coordinates: GeoJSONPoint | GeoJSONPoint[];
-}
-
-export type GeographicDraftItemType = {
-    id: string;
-    name: string
-    shape: GeographicShape,
-    properties: GeographicDraftItemProperties,
-}
-
-export type GeographicDraftItemGeoJSON = {
-    type: "Feature",
-    properties: GeographicDraftItemProperties,
-    /** the shape inside the feature */
-    geometry: GeographicShape
-}
-
-export type GeographicDraftType = {
-    id: string,
-    name: string,
-    drafts: GeographicDraftItemType[]
-}
-
-export type GeographicDraftGeoJSON = {
-    type: "FeatureCollection",
-    features: GeographicDraftItemGeoJSON[]
-}
-
+import type {
+    GeographicDraftGeoJSON,
+    GeographicDraftItemGeoJSON,
+    GeographicDraftItemProperties,
+    GeographicDraftItemType,
+    GeographicDraftType,
+    GeographicRouteItemProperties,
+    GeographicShape,
+    GeoJSONPoint,
+    SupportedShapeType
+} from "@/utils/cartosketch/definitions";
+import {supportedShapeTypes} from "@/utils/cartosketch/definitions";
 
 export class CartoSketchDraft {
     readonly id: string;
@@ -70,7 +36,7 @@ export class CartoSketchDraft {
         this.drafts.push(draft);
     }
 
-    exportAsGeoJSON(): GeographicDraftGeoJSON{
+    exportAsGeoJSON(): GeographicDraftGeoJSON {
         return {
             type: "FeatureCollection",
             features: this.drafts.map((draft) => draft.exportAsGeoJSON())
@@ -108,7 +74,7 @@ export namespace CartoSketchDraft {
             throw new Error("[createDraftItemFromGeoJSON] Only one feature is supported");
 
         const type = geojson.geometry.type as string;
-        const coordinates = geojson.geometry.coordinates as GeoJSONPoint | GeoJSONPoint[];
+        const coordinates = Array.isArray(geojson.geometry.coordinates[0]) ? geojson.geometry.coordinates : [geojson.geometry.coordinates] as GeoJSONPoint[];
         const title = geojson.properties.title as string;
 
         if (!(type in supportedShapeTypes)) throw new Error(`Invalid or unsupported geometry type ${type} in feature ${title}`);
@@ -127,7 +93,7 @@ export namespace CartoSketchDraft {
         }
 
         const shape: GeographicShape = {
-            type: type as supportedShapeType,
+            type: type as SupportedShapeType,
             coordinates: coordinates,
         }
 
@@ -145,7 +111,7 @@ export namespace CartoSketchDraft {
      * @return A promise that resolves to the imported draft.
      */
     export function importFromGeoJSON(geojson: any, name?: string, id = uuidV4()): CartoSketchDraft {
-        if(geojson.feature) throw new Error("[importFromGeoJSON] Multiple features should be contained");
+        if (geojson.feature) throw new Error("[importFromGeoJSON] Multiple features should be contained");
 
         const collection = (geojson.features as GeographicDraftItemGeoJSON[]).map((feature: GeographicDraftItemGeoJSON, index: number) => {
             return importItemFromGeoJSON(feature, `${name}-${index}`, undefined);
@@ -169,6 +135,7 @@ export class CartoSketchDraftItem {
     readonly id: string;
     private shape: GeographicShape;
     readonly properties: GeographicDraftItemProperties;
+
     constructor(name: string, shapes: GeographicShape, id: string = uuidV4(), properties: GeographicDraftItemProperties = {}) {
         this.name = name;
         this.id = id;
@@ -189,10 +156,10 @@ export class CartoSketchDraftItem {
         Object.assign(this.properties, newProperties);
     }
 
-    exportAsGeoJSON(): GeographicDraftItemGeoJSON{
+    exportAsGeoJSON(): GeographicDraftItemGeoJSON {
         return {
             type: "Feature",
-            properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
+            properties: Object.assign({}, this.properties, {name: this.name, id: this.id}),
             geometry: this.shape
         }
     }
