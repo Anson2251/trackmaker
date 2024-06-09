@@ -35,7 +35,7 @@ watch(props, () => {
     <n-element tag="div" class="radio-list">
         <template #default>
             <div v-for="(option, index) in computedList" :key="index" @click="selectOption(option.option)"
-                :class="`radio-item ${option.checked ? 'radio-item-ckecked' : ''}`" :checked="option.checked">
+                :class="`radio-item ${option.checked ? 'radio-item-checked' : ''}`" :data-checked="option.checked">
                 {{ option.option.label }}
             </div>
         </template>
@@ -43,6 +43,13 @@ watch(props, () => {
 </template>
 
 <style scoped>
+:root {
+  --hover-color: inherit;
+  --border-radius: inherit;
+  --primary-color: inherit;
+  --body-color: inherit;
+}
+
 .radio-list {
     display: flex;
     flex-direction: column;
@@ -51,9 +58,7 @@ watch(props, () => {
 .radio-item {
     display: block;
     margin: 0;
-    padding: 0;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding: 0 8px;
     width: calc(100% - 18px);
     height: 32px;
 
@@ -71,11 +76,11 @@ watch(props, () => {
     overflow: hidden;
 }
 
-.radio-item:hover:not(.radio-item-ckecked) {
+.radio-item:hover:not(.radio-item-checked) {
     background-color: var(--hover-color);
 }
 
-.radio-item-ckecked {
+.radio-item-checked {
     background-color: var(--primary-color);
     color: var(--body-color);
 }

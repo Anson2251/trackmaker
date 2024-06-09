@@ -185,6 +185,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+:root {
+	--border-color: inherit;
+	--modal-color: inherit;
+	--border-radius: inherit;
+}
+
 .container {
     width: 100%;
     height: 100%;
