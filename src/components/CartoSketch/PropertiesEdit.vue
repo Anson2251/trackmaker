@@ -4,99 +4,169 @@ import {
 	NList, NListItem, NFlex, NColorPicker, NInputNumber,
 	NSwitch
 } from 'naive-ui';
-import { ref, watch } from 'vue';
+import {watch, ref, computed} from 'vue';
 
-interface Props {
-	properties: {
-		strokeColor: string,
-		strokeThickness: number,
-		visible: boolean
-		routeOrDraft: string
-	}
+type supportedOptionType = "color" | "number" | "switch" | "radio" | "string";
+type supportedDataType = string | number | boolean;
+
+type OptionInfo = {
+	/** unique id for the option*/
+	name: string;
+	label: string;
+	default: string | number | boolean;
+	type: supportedOptionType;
+	data: any;
 }
-const props = defineProps<Props>();
-const emit = defineEmits(['updateProperties']);
 
-const routeOrDraft = ref(props.properties.routeOrDraft);
-const strokeColor = ref(props.properties.strokeColor);
-const strokeThickness = ref(props.properties.strokeThickness);
-const visible = ref(props.properties.visible);
-
-const propertiesEditview = [
-	{
+const optionDB: Record<string, OptionInfo> = {
+	strokeColor: {
 		name: "strokeColor",
 		label: "Stroke Color",
 		type: "color",
-		model: strokeColor
+		default: "#000000",
+		data: {},
 	},
-	{
+	strokeThickness: {
 		name: "strokeThickness",
 		label: "Stroke Thickness",
 		type: "number",
-		model: strokeThickness
+		default: 1,
+		data: {},
 	},
-	{
+	visible: {
 		name: "visible",
 		label: "Visible",
 		type: "switch",
-		defaultValue: true,
-		model: visible,
-
+		default: true,
+		data: {},
 	},
-	{
+	color: {
+		name: "color",
+		label: "Color",
+		type: "color",
+		default: "#000000",
+		data: {},
+	},
+	draggable: {
+		name: "draggable",
+		label: "Draggable",
+		type: "switch",
+		default: true,
+		data: {},
+	},
+	icon: {
+		name: "icon",
+		label: "Icon",
+		type: "string",
+		default: "",
+		data: {}
+	},
+	text: {
+		name: "text",
+		label: "Text",
+		type: "string",
+		default: "",
+		data: {}
+	},
+	title: {
+		name: "title",
+		label: "Title",
+		type: "string",
+		default: "",
+		data: {}
+	},
+	subTitle: {
+		name: "subTitle",
+		label: "Sub Title",
+		type: "string",
+		default: "",
+		data: {}
+	},
+	routeOrDraft: {
 		name: "routeOrDraft",
 		label: "Classification",
 		type: "radio",
-		defaultValue: "draft",
-		model: routeOrDraft,
-		options: [
-			{
-				label: "Route",
-				value: "route"
-			},
-			{
-				label: "Draft",
-				value: "draft"
-			}
-		]
+		default: "draft",
+		data: {
+			options: [
+				{
+					label: "Route",
+					value: "route"
+				},
+				{
+					label: "Draft",
+					value: "draft"
+				}
+			]
+		}
 	}
-]
-const localProperties = ref({
-	strokeColor: strokeColor,
-	strokeThickness: strokeThickness,
-	visible: visible,
-	routeOrDraft: routeOrDraft
+}
+
+interface Props {
+	componentID: string,
+	properties: Record<string, supportedDataType>
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits(['updateProperties']);
+let propertiesEditview = ref<any[]>([]);
+
+// const configTypes = ["color", "number", "switch", "radio"];
+// const keys = Object.keys(props.properties);
+
+const getConfigItems = () => {
+	return Object.keys(props.properties).map(key => {
+		return {
+			name: key,
+			label: optionDB[key].label,
+			type: optionDB[key].type,
+			default: optionDB[key].default,
+			model: ref<supportedDataType>(props.properties[key as keyof Props["properties"]] || optionDB[key].default),
+			data: optionDB[key].data
+		}
+	})
+}
+
+console.log(props)
+propertiesEditview = computed(() => {
+	console.log(props)
+	return getConfigItems()
 })
 
-watch(localProperties, () => {
-	const newProperties = { ...localProperties.value }
-	console.log(newProperties)
-	emit('updateProperties', newProperties)
-}, { deep: true })
+getConfigItems();
+
+watch(propertiesEditview, () => {
+	const property: any = {};
+	Object.keys(props.properties).forEach(key => {
+		property[key] = propertiesEditview.value.find(p => p.name === key)?.model.value
+	});
+	emit('updateProperties', property)
+}, {deep: true})
 </script>
 
 <template>
 	<div style="height: 100%; width: 100%; overflow: auto;">
 		<n-list :show-divider="false" style="height: max-content; width: fit-content; min-width: 100%;">
 			<n-list-item style="text-align: center; padding: 0;" v-for="property in propertiesEditview"
-				:key="property.name">
+						:key="property.name">
 				<n-flex :align="'center'" justify="space-between" :wrap="false">
 					<p style="white-space: nowrap;">{{ property.label }}</p>
 
 					<n-radio-group v-if="property.type === 'radio'" :name="property.name"
-						:default-value="property.defaultValue" v-model:value="property.model.value">
-						<n-radio-button v-for="option in property.options" :key="option.value" :label="option.label"
-							:value="option.value" />
+						:default-value="property.default" v-model:value="property.model.value">
+						<n-radio-button v-for="option in property.data.options" :key="option.value"
+										:label="option.label"
+										:value="option.value"/>
 					</n-radio-group>
 
 					<n-color-picker v-if="property.type === 'color'" v-model:value="(property.model.value as string)"
-						size="small" :show-alpha="false" />
+									size="small" :show-alpha="false"/>
 
 					<n-input-number v-if="property.type === 'number'" v-model:value="(property.model.value as number)"
-						size="small" placeholder="Thickness" :min="0" :max="100" />
+									size="small" placeholder="Thickness" :min="0" :max="100"/>
 
 					<n-switch v-if="property.type === 'switch'" v-model:value="(property.model.value as boolean)"
-						size="medium" />
+						size="medium"/>
 				</n-flex>
 			</n-list-item>
 		</n-list>
