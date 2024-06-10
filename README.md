@@ -1,17 +1,20 @@
 <div style="text-align: center">
 <img src="/public/favicon.svg" width=128 height=128 alt="logo"/>
 
-# Track Maker
+# Trackmaker
 
 </div>
 
 Enabling route planning and navigation for sports activities with map marking feature.
+
+---
 
 ## Todo
 - [x] About page
 - [x] Get and track geolocation
 - [x] Add frameworks to load the module
 - [x] Basic Bing Maps support
+- [ ] MapLibre GL JS Support
 - [x] Customise touchpad behaviour for Bing Maps
 - [x] Pushpin support
 - [x] Include the drawing module
@@ -29,7 +32,7 @@ Enabling route planning and navigation for sports activities with map marking fe
 - [ ] Import routes
 - [ ] Share routes
 
-*Due to the re-implementation of some code, several features are temporarily unavailable, and their status has been changed to "to-do."*
+*Due to the re-implementation of certain code, several features are temporarily unavailable, and their status has been changed to "to-do".*
 
 ## Notice
 
@@ -51,4 +54,4 @@ The configuration file's path may be specified by the environment variable `CRED
 
 ---
 
-LAST UPDATE Jun. 9, 2024
+Last update: Jun. 10, 2024.
