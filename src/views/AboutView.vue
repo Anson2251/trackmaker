@@ -11,8 +11,8 @@ import { credits } from "@/configs";
 				<div class="logo">
 					<n-image width="100" src="/trackmaker/favicon.svg" preview-disabled />
 				</div>
-				<n-h1>Track Maker</n-h1>
-				<p>A simple tool for tracking and sharing your routes</p>
+				<n-h1>Trackmaker</n-h1>
+				<p>Enabling route planning and navigation for sports activities with map marking feature.</p>
 			</div>
 		</template>
 	</n-card>
@@ -57,6 +57,12 @@ import { credits } from "@/configs";
 </template>
 
 <style scoped>
+:root {
+	--font-family-mono: inherit;
+	--font-size-mini: inherit;
+	--color-text: inherit;
+}
+
 .license {
 	display: grid;
 	grid-template-columns: auto;
@@ -74,7 +80,7 @@ import { credits } from "@/configs";
 	grid-row: 2 / 2;
 	grid-column: 1 / 1;
 
-	font-family: var(--font-family-mono);
+	font-family: var(--font-family-mono), monospace;
 	font-size: var(--font-size-mini);
 	white-space: pre-wrap;
 	overflow: auto;
@@ -139,8 +145,6 @@ import { credits } from "@/configs";
 }
 
 .credit-list .link-icon-list .link-icon {
-
-	display: block;
 	width: 32px;
 	height: 32px;
 
