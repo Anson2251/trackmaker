@@ -1,56 +1,44 @@
 <script setup lang="ts">
 /// <reference path="../../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
-import {watch, ref} from 'vue';
+import {ref, onMounted} from 'vue';
 
 import BingMap from '@/components/BingMap/BingMap.vue'
 import {type MapWithPlugins, plugins} from './bing-map-plugins';
 
 import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';
 import {FolderOpen, MapOutline as MapIcon, Save} from '@vicons/ionicons5';
-import {Edit} from '@vicons/tabler'
 
 import SelectorDrawer from './SelectorDrawer.vue';
-import SketchComponentLibrary from "@/components/CartoSketch/SketchComponentLibrary.vue";
-import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
+// import SketchComponentLibrary from "@/components/CartoSketch/SketchComponentLibrary.vue";
+// import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
 
 import {BingMapDrawingBackend} from "@/components/BingMap/drawing-backend";
-import DrawingBackend from "@/utils/drawing-map/drawing-backend";
 import SketchEditAdapter from "@/utils/drawing-map/sketch-edit-adapter";
 
 import CartoSketch, {type CartoSketchInfo} from '@/utils/cartosketch';
-
-// import CartoSketchCLI from '@/utils/cartosketch/cli';
-// CartoSketchCLI.mountCLI();
-
-// type Option = { value: string, label: string };
 
 interface Props {
 	liteMode?: boolean;
 	forceHighDpi?: boolean;
 	mapType?: string
 }
-
 const props = defineProps<Props>()
 
 const adapter = new SketchEditAdapter<any>();
 
 const sketchList = ref<CartoSketchInfo[]>([]);
 
-let emptySelection = ref(false);//ref<CartoSketch | null>(null);
-
-const selectedComponentID = ref<number | undefined>();
-let selectedComponentConfigs = ref<Record<string, string | number | boolean>>({})
+let emptySelection = ref(false);
+// const selectedComponentID = ref<number | undefined>();
+// let selectedComponentConfigs = ref<Record<string, string | number | boolean>>({})
 
 const localMapType = ref(Microsoft.Maps.MapTypeId.road);
-
-// const classifiedComponentNames = ref<ClassifiedComponentInfo>({ routes: [], drafts: [], unknowns: [] });
 
 
 /* drawer */
 const activeSelector = ref(false);
 const selectorPlacement = ref<DrawerPlacement>("right");
-
 const drawer = {
 	open: () => activeSelector.value = true,
 	close: () => activeSelector.value = false
@@ -58,7 +46,6 @@ const drawer = {
 
 
 /* toolbar */
-
 const toolBarIconSize = 20;
 const toolTipBarItems = [
 	{
@@ -80,11 +67,6 @@ function mapReady(map: MapWithPlugins) {
 	adapter.setBackend(backend);
 	emptySelection.value = true;
 
-	// if (!map.plugins.drawingTools) {
-	// 	console.error("Fail to load the drawing module as the plugin is not ready");
-	// 	return;
-	// }
-
 	// watch(selectedComponentID, () => {
 	// 	if(!map.plugins.drawingTools) return {};
 	// 	const properties = map.plugins.drawingTools.primitiveComponentMetaMap.get(selectedComponentID.value!)
@@ -92,32 +74,8 @@ function mapReady(map: MapWithPlugins) {
 	// 	console.log("properties selected:", properties);
 	// 	selectedComponentConfigs.value = properties.properties;
 	// })
-	//
-	// //selectedComponentConfigs = computed(() => selectedSketch.value?.getComponentConfigs(selectedComponentName.value!) || {})
-	//
-	// map.plugins.drawingTools.addHandler("onDrawingChanged", () => {
-	// 	const classificationInfo = map.plugins.drawingTools.getClassificationInfo();
-	//
-	// 	classifiedComponentNames.value = {
-	// 		routes: classificationInfo.routes.map((c) => ({value: c.id, label: c.name})),
-	// 		drafts: classificationInfo.drafts.map((c) => ({value: c.id, label: c.name})),
-	// 		unknowns: classificationInfo.unknowns.map((c) => ({value: c.id, label: c.name}))
-	// 	}
-	//
-	// 	console.log(classificationInfo);
-	// })
 
-	// selectSketch = async (id: string) => {
-	// 	const sketch = await CartoSketch.read(id)
-	// 	if (sketch) {
-	// 		selectedSketch.value = sketch;
-	// 		map.plugins.drawingTools.importPrimitivesFromCartoSketch(sketch);
-	// 	}
-	// }
-	//
-	// saveSketch = async () => {
-	// 	console.log(map.plugins.drawingTools.exportCartoSketch())
-	// }
+	// selectedComponentConfigs = computed(() => selectedSketch.value?.getComponentConfigs(selectedComponentName.value!) || {})
 }
 
 async function newSketch() {
@@ -134,8 +92,6 @@ function updateList() {
 	});
 }
 
-updateList();
-
 async function removeCartoSketchFromList(id: string) {
 	await CartoSketch.remove(id);
 	updateList();
@@ -150,6 +106,10 @@ async function selectCartoSketchFromList(id: string) {
 function showAlert(msg: string) {
 	alert(msg);
 }
+
+onMounted(() => {
+	updateList();
+});
 </script>
 
 <template>
@@ -160,7 +120,7 @@ function showAlert(msg: string) {
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :default-size="0.7">
 		<template #1>
 			<n-card class="map-container" content-style="padding: 0">
-				<BingMap v-show="!!emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
+				<BingMap v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
 						:lite-mode="props.liteMode"
 						:force-hidpi="props.forceHighDpi"
 						@ready="mapReady"/>
@@ -186,10 +146,10 @@ function showAlert(msg: string) {
 				</n-card>
 
 				<n-card class="draft-container">
-					<template #header v-if="!!emptySelection">
+					<template #header v-if="emptySelection">
 						Components
 					</template>
-					<n-split direction="vertical" :max="0.8" :min="0.3" :default-size="0.7" v-if="!!emptySelection">
+					<n-split direction="vertical" :max="0.8" :min="0.3" :default-size="0.7" v-if="emptySelection">
 						<template #1>
 							<!--							<SketchComponentLibrary :components="classifiedComponentNames"-->
 							<!--													v-model:value="selectedComponentName"/>-->
@@ -233,12 +193,6 @@ function showAlert(msg: string) {
 </style>
 
 <style scoped>
-.split-view {
-	width: 100%;
-	height: 100%;
-	overflow-y: hidden;
-}
-
 .map-container {
 	width: calc(100% - 16px);
 	height: calc(100% - 16px);
