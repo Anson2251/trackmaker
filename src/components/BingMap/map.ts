@@ -1,5 +1,7 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-// import { bingMapsKey } from "@/script/credentials";
+
+/// TODO: abstract the map class
+
 import { bingMapsKey } from "@/configs";
 import bingMapsPluginTemplete from "./plugins/base";
 

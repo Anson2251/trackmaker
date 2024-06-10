@@ -224,4 +224,8 @@ onMounted(async () => {
     background-color: var(--modal-color);
     border: 1px solid var(--border-color);
 }
+
+.nav-toolbox > * {
+	margin: 2px;
+}
 </style>
