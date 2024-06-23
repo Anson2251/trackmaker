@@ -1,6 +1,6 @@
-import DrawingMapBackend from "@/utils/drawing-map/drawing-backend";
-import CartoSketch from "@/utils/cartosketch";
-import * as ComponentProxyConversion from "@/utils/drawing-map/components-proxies/conversion";
+import DrawingMapBackend from "@/libs/drawing-map/drawing-backend";
+import CartoSketch from "@/libs/cartosketch";
+import * as ComponentProxyConversion from "@/libs/drawing-map/components-proxies/conversion";
 
 type AdaptHandlerType = { type: string; id: number, handler: () => void };
 

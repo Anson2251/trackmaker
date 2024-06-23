@@ -73,6 +73,10 @@ export abstract class DrawingComponentProxy<T extends ComponentProperties> {
         else return this.properties[key] as any;
     }
 
+    getPropertiesKeys(): string[] {
+        return Object.keys(this.properties);
+    }
+
     setLocations(coordinates: GeographicPoint[]): void {
         this.coordinates = coordinates;
         this.executeHandler("locationChange");

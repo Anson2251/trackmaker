@@ -1,11 +1,11 @@
 import type {GeographicPoint} from "@/utils/geolocation";
-import PolygonProxy, { type PolygonProperties } from "@/utils/drawing-map/components-proxies/polygon";
-import PushpinProxy, { type PushpinProperties } from "@/utils/drawing-map/components-proxies/pushpin";
-import PolylineProxy, { type PolylineProperties } from "@/utils/drawing-map/components-proxies/polyline";
+import PolygonProxy, { type PolygonProperties } from "@/libs/drawing-map/components-proxies/polygon";
+import PushpinProxy, { type PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
+import PolylineProxy, { type PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
 
-import {CartoSketchRoute, CartoSketchRouteItem} from "@/utils/cartosketch/route";
-import {CartoSketchDraft, CartoSketchDraftItem} from "@/utils/cartosketch/draft";
-import CartoSketch from "@/utils/cartosketch";
+import {CartoSketchRoute, CartoSketchRouteItem} from "@/libs/cartosketch/route";
+import {CartoSketchDraft, CartoSketchDraftItem} from "@/libs/cartosketch/draft";
+import CartoSketch from "@/libs/cartosketch";
 
 type ComponentProxiesCollection = PolygonProxy | PolylineProxy | PushpinProxy;
 

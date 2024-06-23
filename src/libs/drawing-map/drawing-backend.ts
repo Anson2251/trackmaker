@@ -1,10 +1,10 @@
-import DrawingComponentProxy from "@/utils/drawing-map/components-proxies/component";
-import PolygonProxy from "@/utils/drawing-map/components-proxies/polygon";
-import PolylineProxy from "@/utils/drawing-map/components-proxies/polyline";
-import PushpinProxy from "@/utils/drawing-map/components-proxies/pushpin";
-import type { PolygonProperties } from "@/utils/drawing-map/components-proxies/polygon";
-import type { PushpinProperties } from "@/utils/drawing-map/components-proxies/pushpin";
-import type { PolylineProperties } from "@/utils/drawing-map/components-proxies/polyline";
+import DrawingComponentProxy from "@/libs/drawing-map/components-proxies/component";
+import PolygonProxy from "@/libs/drawing-map/components-proxies/polygon";
+import PolylineProxy from "@/libs/drawing-map/components-proxies/polyline";
+import PushpinProxy from "@/libs/drawing-map/components-proxies/pushpin";
+import type { PolygonProperties } from "@/libs/drawing-map/components-proxies/polygon";
+import type { PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
+import type { PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 // type ComponentProperties = any;
