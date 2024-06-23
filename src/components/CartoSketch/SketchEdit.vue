@@ -1,6 +1,8 @@
 <script setup lang="ts">
 /// <reference path="../../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
+// TODO: separate the map component into a separate file
+
 import {ref, onMounted} from 'vue';
 
 import BingMap from '@/components/BingMap/BingMap.vue'
@@ -14,9 +16,9 @@ import SelectorDrawer from './SelectorDrawer.vue';
 // import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
 
 import {BingMapDrawingBackend} from "@/components/BingMap/drawing-backend";
-import SketchEditAdapter from "@/utils/drawing-map/sketch-edit-adapter";
+import SketchEditAdapter from "@/libs/drawing-map/sketch-edit-adapter";
 
-import CartoSketch, {type CartoSketchInfo} from '@/utils/cartosketch';
+import CartoSketch, {type CartoSketchInfo} from 'src/libs/cartosketch';
 
 interface Props {
 	liteMode?: boolean;
@@ -162,7 +164,7 @@ onMounted(() => {
 							style="height: 100%; justify-content: center">
 						<template #icon>
 							<n-icon>
-								<!--								<properties-edit :properties="{color: '#FF0000'}" />-->
+<!--																<properties-edit :properties="{color: '#FF0000'}" />-->
 							</n-icon>
 						</template>
 						<template #extra>
