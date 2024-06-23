@@ -28,7 +28,6 @@ export class bingMapCustomizedTouchpadBehavior extends bingMapsPluginTemplete {
 /**
  * Attaches customized touchpad behavior to a specified container element.
  *
- * @param containerID - The ID of the container element.
  * @param map - The bingMaps object representing the map.
  * @param onMove - The callback function to be called when the map is moved.
  */
@@ -36,8 +35,8 @@ export function useCustomizedTouchpadBehavior(map: bingMaps, onMove: (location: 
     // translate factor for each zoom level
     const screenFactor = map.liteModeForceHiDpi ? window.devicePixelRatio : 1;
     const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
-    
-    const behaviour = (e: WheelEvent) => {
+
+    return (e: WheelEvent) => {
         inputDevicePreferences.updateDeivceType(e);
         e.preventDefault();
 
@@ -53,8 +52,7 @@ export function useCustomizedTouchpadBehavior(map: bingMaps, onMove: (location: 
             const newZoom = Math.min(Math.max(zoom - e.deltaY * 0.05, map.getZoomRange().min), map.getZoomRange().max); // limit zoom to 3-20 inclusive
             onMove(location, newZoom);
         }
-    }
-    return behaviour;
+    };
 }
 
 export default bingMapCustomizedTouchpadBehavior;
