@@ -1,12 +1,12 @@
 import localforage from "localforage";
 
-import * as RouteNamespace from "@/utils/cartosketch/route";
-import * as DraftNamespace from "@/utils/cartosketch/draft";
+import * as RouteNamespace from "@/libs/cartosketch/route";
+import * as DraftNamespace from "@/libs/cartosketch/draft";
 
-import CartoSketchDraft from "@/utils/cartosketch/draft";
-import CartoSketchRoute from "@/utils/cartosketch/route";
+import CartoSketchDraft from "@/libs/cartosketch/draft";
+import CartoSketchRoute from "@/libs/cartosketch/route";
 
-import type {GeographicSketchType} from "@/utils/cartosketch/definitions";
+import type {GeographicSketchType} from "@/libs/cartosketch/definitions";
 import {v4 as uuidV4} from "uuid";
 
 

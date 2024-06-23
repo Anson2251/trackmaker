@@ -1,4 +1,4 @@
-import CartoSketch from ".";
+import CartoSketch from "./index";
 import { v4 as uuidV4 } from "uuid";
 
 import CartoSketchDrafts from "./draft";

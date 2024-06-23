@@ -1,5 +1,5 @@
 import {v4 as uuidV4} from "uuid";
-import type {GeographicPoint} from "../geolocation";
+import type {GeographicPoint} from "../../utils/geolocation";
 
 import type {
     GeographicRouteGeoJSON,
@@ -8,7 +8,7 @@ import type {
     GeographicRouteItemProperties,
     GeographicRouteItemGeoJSON,
     GeoJSONPoint
-} from "@/utils/cartosketch/definitions";
+} from "@/libs/cartosketch/definitions";
 
 export class CartoSketchRoute {
     readonly id: string;

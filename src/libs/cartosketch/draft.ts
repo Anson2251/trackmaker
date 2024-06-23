@@ -10,8 +10,8 @@ import type {
     GeographicShape,
     GeoJSONPoint,
     SupportedShapeType
-} from "@/utils/cartosketch/definitions";
-import {supportedShapeTypes} from "@/utils/cartosketch/definitions";
+} from "@/libs/cartosketch/definitions";
+import {supportedShapeTypes} from "@/libs/cartosketch/definitions";
 
 export class CartoSketchDraft {
     readonly id: string;
