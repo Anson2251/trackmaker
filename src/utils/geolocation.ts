@@ -1,8 +1,18 @@
 import gcoord from "gcoord";
 
 export interface GeographicPoint {
-    latitude: number,
-    longitude: number
+    latitude: number;
+    longitude: number;
+}
+
+export interface GeoJSONPoint {
+    type: "Point",
+    coordinates: [number, number]
+}
+
+interface HandlerItem {
+    id: number,
+    callback: (location: GeographicPoint) => void
 }
 
 const geoLocationPresent: GeographicPoint = {
@@ -10,75 +20,89 @@ const geoLocationPresent: GeographicPoint = {
     longitude: 0
 };
 
-let onchangeCallback: { id: number, callback: (location: GeographicPoint) => void }[] = [];
+let handlers: HandlerItem[] = [];
+
 function doCallbacks() {
-    onchangeCallback.forEach((item) => item.callback(geoLocationPresent));
+    handlers.forEach((item) => item.callback(geoLocationPresent));
 }
 
-export let updateServiceStarted = false;
-export let updateServiceUpdating = true;
+export const supportGeolocation = !!navigator.geolocation;
 
-export function getGeoLocationPresent() {
-    return geoLocationPresent;
+export function clonePoint<T>(point: T): T {
+    return JSON.parse(JSON.stringify(point));
 }
 
-export function isUpdateServiceExist() {
-    return updateServiceStarted;
-}
-
-export function isUpdateServiceUpdating() {
-    return updateServiceUpdating;
-}
-
-export function startUpdatingService() {
-    if (updateServiceStarted) return;
-    updateServiceUpdating = true;
-
-    const successCallback = (position: GeolocationPosition) => {
-        const newPosition = convertCoordinates({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-        })
-        geoLocationPresent.latitude = newPosition.latitude
-        geoLocationPresent.longitude = newPosition.longitude
-        updateServiceStarted = true;
-        updateServiceUpdating = false;
-        doCallbacks();
+export namespace Conversion {
+    export function wgs2gcj(location: GeographicPoint): GeographicPoint {
+        const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
+        return {longitude: converted[0], latitude: converted[1]}
     }
 
-    const errorcallback = (error: GeolocationPositionError) => {
-        console.error("Error: " + error.message);
-        updateServiceUpdating = false;
+    export function geographicPoint2geojsonPoint(location: GeographicPoint): GeoJSONPoint {
+        return {
+            type: "Point",
+            coordinates: [location.longitude, location.latitude]
+        }
     }
 
-    const options: PositionOptions = { enableHighAccuracy: true }
-
-    // for the initial value
-    navigator.geolocation.getCurrentPosition(successCallback, errorcallback, options);
-    return navigator.geolocation.watchPosition(successCallback, errorcallback, options);
+    export function geojsonPoint2geographicPoint(location: GeoJSONPoint): GeographicPoint {
+        return {
+            longitude: location.coordinates[0],
+            latitude: location.coordinates[1]
+        }
+    }
 }
 
-export function stopUpdatingService(id: number) {
-    navigator.geolocation.clearWatch(id);
-    updateServiceStarted = false;
+export namespace UpdateService {
+    export let updateServiceStarted = false;
+    export let updateServiceUpdating = true;
+
+    export const getPresent = () => geoLocationPresent;
+    export const isUpdateServiceExist = () => updateServiceStarted;
+    export const isUpdateServiceUpdating = () => updateServiceUpdating;
+
+    export function startUpdatingService() {
+        if (updateServiceStarted) return;
+        updateServiceUpdating = true;
+
+        const successCallback = (position: GeolocationPosition) => {
+            const newPosition = Conversion.wgs2gcj({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            })
+            geoLocationPresent.latitude = newPosition.latitude
+            geoLocationPresent.longitude = newPosition.longitude
+            updateServiceStarted = true;
+            updateServiceUpdating = false;
+            doCallbacks();
+        }
+
+        const errorCallback = (error: GeolocationPositionError) => {
+            console.error("Error: " + error.message);
+            updateServiceUpdating = false;
+        }
+
+        const options: PositionOptions = {enableHighAccuracy: true}
+
+        // for the initial value
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
+        return navigator.geolocation.watchPosition(successCallback, errorCallback, options);
+    }
+
+    export function stopUpdatingService(id: number) {
+        navigator.geolocation.clearWatch(id);
+        updateServiceStarted = false;
+    }
+
+    export function addListener(callback: (location: GeographicPoint) => void) {
+        const id = handlers.length > 0 ? handlers[handlers.length - 1].id + 1 : 0;
+        handlers.push({id: id, callback: callback});
+    }
+
+    export function removeListener(id: number) {
+        handlers = handlers.filter((item) => item.id !== id);
+    }
 }
 
-export function convertCoordinates(location: GeographicPoint): GeographicPoint {
-    // todo, left a setting to user to enable this feature.
-    const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
-    return { longitude: converted[0], latitude: converted[1] }
-}
 
-export function supportGeolocation(): boolean {
-    return !!navigator.geolocation
-}
-
-export function addChangeListener(callback: (location: GeographicPoint) => void) {
-    const id = onchangeCallback.length > 0 ? onchangeCallback[onchangeCallback.length - 1].id + 1 : 0;
-    onchangeCallback.push({ id: id, callback: callback });
-}
-
-export function removeChangeListener(id: number) {
-    onchangeCallback = onchangeCallback.filter((item) => item.id !== id);
-}
 
