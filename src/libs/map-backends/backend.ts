@@ -1,7 +1,7 @@
 import * as GeoLocation from "@/utils/geolocation";
-import MapPlugin from "@/libs/map-backends/plugin";
+import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
-const allocateMapID = () => {
+export const allocateMapID = () => {
     (window as any).MapCount = ((window as any).MapCount || -1) + 1;
     return (window as any).MapCount;
 }
@@ -41,11 +41,8 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
     minZoom: number = 3;
     plugins: any = {};
     supportMapTypes: OptionTypes["supportedMapTypes"];
-    id: number;
 
-    constructor(container: HTMLElement, options: OptionTypes, plugins: (typeof MapPlugin)[] = []) {
-        this.id = allocateMapID();
-
+    protected constructor(container: HTMLElement, options: OptionTypes, plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[] = []) {
         this.container = container;
         this.mapType = options.type;
         this.centre = options.centre;
@@ -66,13 +63,18 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
         this.startSynchroniseMap();
 
         this.loadPlugins(plugins);
+
+        this.onMapViewChanged();
     }
 
     abstract initialiseMap(options: OptionTypes): MapType;
 
     abstract startSynchroniseMap(): void;
 
-    abstract setCentre(centre: GeoLocation.GeographicPoint, updateMapView: boolean): void;
+    setCentre(centre: GeoLocation.GeographicPoint, silence: boolean): void{
+        this.centre = centre;
+        if(!silence) this.onMapViewChanged();
+    }
 
     getCentre() {
         return this.centre;
@@ -89,10 +91,8 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
         return this.viewCentre;
     }
 
-    loadPlugins(plugins: (typeof MapPlugin)[]) {
+    loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
         let success = true;
-
-        //const initialiseState: boolean[] = [];
 
         plugins.forEach((plugin) => {
             const mountSuccess = (() => {
@@ -103,7 +103,7 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
                     return false;
                 }
             })();
-            success = success && mountSuccess;
+            if (!mountSuccess) success = false;
         }); // mount plugins
 
         return success;
@@ -163,7 +163,7 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
 
     abstract removeNativeHandler(id: any): any;
 
-    addEventHandler(type: string, handler: (map: MapType) => void, native: false): number
+    addEventHandler(type: string, handler: (map: MapBackend<MapType, OptionTypes>) => void, native: false): number
     addEventHandler(type: string, handler: (eventArg?: any) => void, native: true): any;
     addEventHandler(type: string, handler: (eventArg?: any) => void, native: boolean = false): number | any {
         let eventID: number | any;
@@ -194,7 +194,7 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
         return false;
     }
 
-    private onMapViewChanged() {
+    onMapViewChanged() {
         this.eventHandlers.forEach((handler) => {
             if (handler.type === "viewchangeend") handler.handler(this);
         })
