@@ -1,13 +1,13 @@
-import bingMapsPluginTemplete from "./base";
-import bingMaps from "../map";
+import type {MapPlugin} from "@/libs/map-backends/plugin";
+import BingMapBackend from "@/components/BingMap/bing-map-backend";
 
-export class bingMapsLiteModeHiDpi implements bingMapsPluginTemplete {
-    host: bingMaps;
+export class BingMapPlugin_LiteModeHiDPI implements MapPlugin<BingMapBackend> {
+    host: BingMapBackend;
     space: string;
     id: string | undefined;
     containerID: string;
     previousScale: number;
-    constructor(parentMap: bingMaps) {
+    constructor(parentMap: BingMapBackend) {
         this.host = parentMap;
         this.space = "liteModeHiDpi";
         this.containerID = parentMap.container.id;
@@ -15,12 +15,12 @@ export class bingMapsLiteModeHiDpi implements bingMapsPluginTemplete {
     }
     mount() {
         (this.host as any).plugins[this.space] = this;
-        if(this.host.liteModeForceHiDpi) this.id = this.enableLiteForceHiDPI();
+        if(this.host.liteModeForceHiDPI) this.id = this.enableLiteForceHiDPI();
         return true;
     }
     unmount() {
         (this.host as any).plugins[this.space] = null;
-        if(!this.host.liteModeForceHiDpi) return true;
+        if(!this.host.liteModeForceHiDPI) return true;
         return this.disableLiteForceHiDPI();
     }
 
@@ -48,15 +48,15 @@ export class bingMapsLiteModeHiDpi implements bingMapsPluginTemplete {
             return element
         })();
         styleElement.innerHTML = `
-        #${containerID} > div {
-            transform: scale(${1 / window.devicePixelRatio}) !important;
-            transform-origin: top left !important;
-            width: ${window.devicePixelRatio * 100}% !important;
-            height: ${window.devicePixelRatio * 100}% !important;
-        }
-        #${containerID} * {
-            border-radius: ${window.devicePixelRatio * borderRadiusOriginal}px !important;
-        }
+            #${containerID} > div {
+                transform: scale(${1 / window.devicePixelRatio}) !important;
+                transform-origin: top left !important;
+                width: ${window.devicePixelRatio * 100}% !important;
+                height: ${window.devicePixelRatio * 100}% !important;
+            }
+            #${containerID} * {
+                border-radius: ${window.devicePixelRatio * borderRadiusOriginal}px !important;
+            }
         `;
         return styleElementID;
     }
@@ -74,4 +74,4 @@ export class bingMapsLiteModeHiDpi implements bingMapsPluginTemplete {
     }
 }
 
-export default bingMapsLiteModeHiDpi;
+export default BingMapPlugin_LiteModeHiDPI;

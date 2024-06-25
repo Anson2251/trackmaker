@@ -1,22 +1,20 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
-import DrawingMapBackend from "@/utils/drawing-map/drawing-backend";
+import DrawingMapBackend from "@/libs/drawing-map/drawing-backend";
 
-import bingMaps from "./map";
-import bingMapsDrawing from "@/components/BingMap/plugins/drawing-map";
-import DrawingComponentProxy from "@/utils/drawing-map/components-proxies/component";
-import type {PolygonProperties} from "@/utils/drawing-map/components-proxies/polygon";
-import type {PushpinProperties} from "@/utils/drawing-map/components-proxies/pushpin";
-import type {PolylineProperties} from "@/utils/drawing-map/components-proxies/polyline";
+import BingMapPlugin_Drawing from "@/components/BingMap/plugins/drawing-map";
+import DrawingComponentProxy from "@/libs/drawing-map/components-proxies/component";
+import type {PolygonProperties} from "@/libs/drawing-map/components-proxies/polygon";
+import type {PushpinProperties} from "@/libs/drawing-map/components-proxies/pushpin";
+import type {PolylineProperties} from "@/libs/drawing-map/components-proxies/polyline";
 
 import BidirectionalMap from "@/utils/bidirectional-map";
-import {v4 as uuidV4} from "uuid";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 
 type DrawingBingMap = {
     plugins: {
-        drawingTools: bingMapsDrawing
+        drawingTools: BingMapPlugin_Drawing
     }
 }
 

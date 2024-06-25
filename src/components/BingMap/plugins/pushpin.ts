@@ -1,14 +1,13 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.d.ts" />
 
-import bingMapsPluginTemplete from "./base";
-import bingMaps from "../map";
+import type {MapPlugin} from "@/libs/map-backends/plugin";
+import BingMapBackend from "@/components/BingMap/bing-map-backend";
 
-export class bingMapsPushPins extends bingMapsPluginTemplete {
-    host: bingMaps;
+export class bingMapsPushPins implements MapPlugin<BingMapBackend> {
+    host: BingMapBackend;
     space = "pushPinLayer";
     readonly pushPins: {id: number, pin: Microsoft.Maps.Pushpin}[] = [];
-    constructor(parentMap: bingMaps){
-        super(parentMap);
+    constructor(parentMap: BingMapBackend){
         this.host = parentMap;
     }
 

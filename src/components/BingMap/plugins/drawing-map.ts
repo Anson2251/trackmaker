@@ -1,22 +1,22 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
-import bingMapsPluginTemplate from "./base";
-import bingMaps from "../map";
-import BidirectionalMap from "@/utils/bidirectional-map";
+import type {MapPlugin} from "@/libs/map-backends/plugin";
+import BingMapBackend from "@/components/BingMap/bing-map-backend";
 
-type DrawingEventHandler = { type: DrawingEventType, callback: (drawing: bingMapsDrawing) => void };
+type DrawingEventHandler = { type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing) => void };
 export type DrawingEventType = "ready" | "drawingChanged";
 
-export class bingMapsDrawing extends bingMapsPluginTemplate {
+export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     private tools: Microsoft.Maps.DrawingTools;
     initialised = false;
     space = "drawingTools";
+    host: BingMapBackend;
 
     manager: Microsoft.Maps.DrawingManager | undefined;
     handler: DrawingEventHandler[] = [];
 
-    constructor(parentMap: bingMaps) {
-        super(parentMap);
+    constructor(parentMap: BingMapBackend) {
+        this.host = parentMap;
         if (!this.host.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
         if (!(window as any).LoadedBingMapDrawingModule) throw new Error("Bing Map Drawing Module has not been loaded yet");
         this.tools = new Microsoft.Maps.DrawingTools(parentMap.map);
@@ -56,7 +56,7 @@ export class bingMapsDrawing extends bingMapsPluginTemplate {
         return true;
     }
 
-    addHandler(type: DrawingEventType, callback: (drawing: bingMapsDrawing) => void) {
+    addHandler(type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing) => void) {
         this.handler.push({type, callback});
     }
 
@@ -116,4 +116,4 @@ export function initBingMapsDrawingModule(timeout: number = 1000): Promise<void>
     })
 }
 
-export default bingMapsDrawing;
+export default BingMapPlugin_Drawing;
