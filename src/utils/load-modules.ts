@@ -9,13 +9,13 @@ export const messageFormat = {
     "unloaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has not been loaded yet`,
     "loading": (...args: string[]) => `[loadModules] Module "${args[0]}" is loading`,
     "loaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded`,
-    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Trackback: ${args[1]}`,
+    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Track back: \n${args[1]}`,
     "errorDetermined": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, asserted by another instance, skip`,
     "alreadyLoading": (...args: string[]) => `[loadModules] Module "${args[0]}" is already loading by another instance, skip`,
     "alreadyLoaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded by another instance, skip`,
     "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${args[1]}`,
     "dependenciesReady": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies are ready`,
-    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Trackback: ${args[1]}`
+    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${args[1]}`
 }
 
 /**
@@ -27,12 +27,12 @@ export const messageFormat = {
  * @param {boolean} [printLog=false] - Flag to disable the information logs.
  * @return {Promise<void>} A promise that resolves once the modules are loaded or rejects on errors.
  */
-export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000, printLog: boolean = false): Promise<void> {
+export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000, printLog: boolean = !(__RELEASE_MODE__)): Promise<void> {
     const module = library.find((m) => m.name === moduleName);
     if (!module) throw new Error(`cannot exactly find module "${moduleName}" from the library`);
     const moduleIndex = library.findIndex((m) => m.name === module.name);
     if (library[moduleIndex].status === "loaded") {
-        if(printLog) console.log(messageFormat.alreadyLoaded(module.name));
+        if(printLog) console.info(messageFormat.alreadyLoaded(module.name));
         return Promise.resolve()
     }
 
@@ -48,12 +48,12 @@ export async function loadModules(library: moduleItem[], moduleName: string, tim
 
     if (library[moduleIndex].status === "error") {
         const msg = messageFormat.errorDetermined(module.name);
-        if(printLog) console.log(msg);
+        if(printLog) console.info(msg);
         return Promise.reject(msg);
     }
 
     if (library[moduleIndex].status === "loading") {
-        if(printLog) console.log(messageFormat.alreadyLoading(module.name));
+        if(printLog) console.info(messageFormat.alreadyLoading(module.name));
         await waitUntilModuleLoaded(library, module.name, timeout);
         return Promise.resolve()
     }
