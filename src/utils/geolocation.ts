@@ -12,6 +12,7 @@ export interface GeoJSONPoint {
 
 interface HandlerItem {
     id: number,
+    init: boolean;
     callback: (location: GeographicPoint) => void
 }
 
@@ -23,7 +24,7 @@ const geoLocationPresent: GeographicPoint = {
 let handlers: HandlerItem[] = [];
 
 function doCallbacks() {
-    handlers.forEach((item) => item.callback(geoLocationPresent));
+    handlers.filter((item) => !UpdateService.updateServiceStarted === item.init).forEach((item) => item.callback(geoLocationPresent));
 }
 
 export const supportGeolocation = !!navigator.geolocation;
@@ -58,10 +59,10 @@ export namespace UpdateService {
     export let updateServiceUpdating = true;
 
     export const getPresent = () => geoLocationPresent;
-    export const isUpdateServiceExist = () => updateServiceStarted;
-    export const isUpdateServiceUpdating = () => updateServiceUpdating;
+    export const isStarted = () => updateServiceStarted;
+    export const isUpdating = () => updateServiceUpdating;
 
-    export function startUpdatingService() {
+    export function start() {
         if (updateServiceStarted) return;
         updateServiceUpdating = true;
 
@@ -69,12 +70,13 @@ export namespace UpdateService {
             const newPosition = Conversion.wgs2gcj({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
-            })
-            geoLocationPresent.latitude = newPosition.latitude
-            geoLocationPresent.longitude = newPosition.longitude
-            updateServiceStarted = true;
+            });
+            geoLocationPresent.latitude = newPosition.latitude;
+            geoLocationPresent.longitude = newPosition.longitude;
+
             updateServiceUpdating = false;
             doCallbacks();
+            updateServiceStarted = true;
         }
 
         const errorCallback = (error: GeolocationPositionError) => {
@@ -89,14 +91,14 @@ export namespace UpdateService {
         return navigator.geolocation.watchPosition(successCallback, errorCallback, options);
     }
 
-    export function stopUpdatingService(id: number) {
+    export function stop(id: number) {
         navigator.geolocation.clearWatch(id);
         updateServiceStarted = false;
     }
 
-    export function addListener(callback: (location: GeographicPoint) => void) {
+    export function addListener(callback: (location: GeographicPoint) => void, init = false) {
         const id = handlers.length > 0 ? handlers[handlers.length - 1].id + 1 : 0;
-        handlers.push({id: id, callback: callback});
+        handlers.push({id: id, callback: callback, init: init});
     }
 
     export function removeListener(id: number) {
