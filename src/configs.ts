@@ -1,7 +1,7 @@
-import type { moduleItem } from "./utils/load-modules"
-import { initMapScript as initBingMaps } from './components/BingMap/map'
-import { initBingMapsDrawingModule } from './components/BingMap/plugins/drawing-map'
-import { initbingMapsGeojsonModule } from "./utils/geojson";
+import type { moduleItem } from "@/utils/load-modules"
+import { initMapScript as initBingMaps } from '@/components/BingMap/bing-map-backend'
+import { initBingMapsDrawingModule } from '@/components/BingMap/plugins/drawing-map'
+import { initbingMapsGeojsonModule } from "@/utils/geojson";
 
 export const modules: moduleItem[] = [
 	{

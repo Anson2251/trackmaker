@@ -6,7 +6,7 @@ import { useOsTheme } from "naive-ui";
 import BingMap from '../components/BingMap/BingMap.vue';
 import bingMapsPlugin from '@/components/BingMap/plugins/base';
 import bingMapsPushPins from '@/components/BingMap/plugins/pushpin';
-import bingMapCustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
+import BingMapPlugin_CustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
 
 const mapType = ref(String(
 	useOsTheme().value === "dark"
@@ -16,7 +16,7 @@ const mapType = ref(String(
 
 const plugins = ref<(typeof bingMapsPlugin)[]>([
 	bingMapsPushPins,
-	bingMapCustomizedTouchpadBehavior
+	BingMapPlugin_CustomizedTouchpadBehavior
 ]);
 </script>
 

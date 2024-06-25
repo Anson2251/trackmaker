@@ -18,7 +18,7 @@ import SelectorDrawer from './SelectorDrawer.vue';
 import {BingMapDrawingBackend} from "@/components/BingMap/drawing-backend";
 import SketchEditAdapter from "@/libs/drawing-map/sketch-edit-adapter";
 
-import CartoSketch, {type CartoSketchInfo} from 'src/libs/cartosketch';
+import CartoSketch, {type CartoSketchInfo} from '@/libs/cartosketch';
 
 interface Props {
 	liteMode?: boolean;
