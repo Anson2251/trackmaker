@@ -9,13 +9,11 @@ import router from './router'
 import { loadModules } from './utils/load-modules'
 import { modules } from './configs'
 
-const printLogs = false
-
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 
-loadModules(modules, "trackmaker", 30000, printLogs).then(() => {
+loadModules(modules, "trackmaker", 30000).then(() => {
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {
