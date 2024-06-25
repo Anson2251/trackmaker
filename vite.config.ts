@@ -83,7 +83,6 @@ const obfuscatorConfig: ObfuscatorOptions  = {
 	unicodeEscapeSequence: true
 }
 
-
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
 	let bingMapsKey = process.env.BING_MAPS_KEY || ""
@@ -102,6 +101,7 @@ export default defineConfig(async () => {
 	return {
 		define: {
 			__BING_MAPS_KEY__: JSON.stringify(bingMapsKey),
+			__RELEASE_MODE__: process.env.RELEASE_MODE === "true"
 		},
 		base: '/trackmaker/',
 		plugins: [

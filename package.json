@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npm run type-check; npm run generate-docs",
+    "dev": "export RELEASE_MODE=false; vite",
+    "build": "export RELEASE_MODE=true; npm run type-check; npm run generate-docs",
     "preview": "vite preview",
-    "build-only": "vite build",
+    "build-only": "export RELEASE_MODE=true; vite build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "build-preview": "vite build; cd ./dist; python3 -m http.server 5173",
+    "build-preview": "export RELEASE_MODE=true; vite build; cd ./dist; python3 -m http.server 5173",
     "generate-docs": "typedoc"
   },
   "dependencies": {

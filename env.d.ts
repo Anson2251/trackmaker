@@ -7,4 +7,5 @@ declare module '*.vue' {
     export default componentOptions;
 }
 
-declare const __BING_MAPS_KEY__: string
+declare const __BING_MAPS_KEY__: string;
+declare const __RELEASE_MODE__: boolean;
