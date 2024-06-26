@@ -27,12 +27,12 @@ Enabling route planning and navigation for sports activities with map marking fe
     - [ ] Load and place the previous saves on the map
     - [x] Manage saved routes (shapes)
 
-- [x] History of drawing actions for using Redo and Undo
+- [ ] History of drawing actions for using Redo and Undo
 - [ ] Export routes
 - [ ] Import routes
 - [ ] Share routes
 
-*Due to the re-implementation of certain code, several features are temporarily unavailable, and their status has been changed to "to-do".*
+*Due to the re-implementation of certain functions, several features are temporarily unavailable, and their status has been changed to "to-do".*
 
 ## Notice
 
