@@ -1,11 +1,11 @@
-import bingMapsPushPins from '@/components/BingMap/plugins/pushpin';
+import BingMapPlugin_PushPins from '@/components/BingMap/plugins/pushpin';
 import BingMapPlugin_CustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
 import BingMapPlugin_LiteModeHiDPI from '@/components/BingMap/plugins/lite-mode-hidpi';
 import BingMapPlugin_Drawing from '@/components/BingMap/plugins/drawing-map';
 
 export const plugins = [
 	BingMapPlugin_Drawing,
-	bingMapsPushPins,
+	BingMapPlugin_PushPins,
 	BingMapPlugin_CustomizedTouchpadBehavior,
 	BingMapPlugin_LiteModeHiDPI
 ]
@@ -13,7 +13,7 @@ export const plugins = [
 export type MapWithPlugins = {
     plugins: {
         drawingTools: BingMapPlugin_Drawing,
-        pushPinLayer: bingMapsPushPins,
+        pushPinLayer: BingMapPlugin_PushPins,
     };
 }
 

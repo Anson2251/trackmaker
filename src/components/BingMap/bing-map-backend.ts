@@ -21,10 +21,10 @@ export type BingMapOptions = Options<Microsoft.Maps.MapTypeId> & {
 export type BingMapBackendType = MapBackend<Microsoft.Maps.Map, BingMapOptions>;
 
 export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOptions> {
-    centrePinID?: number;
-    liteModeForceHiDPI = false;
-    constructor(container: HTMLElement, options: BingMapOptions, plugins: MapPluginConstructor<BingMapBackendType>[] = []) {
-        super(container, options, plugins);
+    // it is more safe to add all the custom properties into this.properties
+    constructor(container: HTMLElement, options: BingMapOptions, plugins: MapPluginConstructor<BingMapBackend>[] = []) {
+        super(container, options, plugins as unknown as MapPluginConstructor<MapBackend<Microsoft.Maps.Map, BingMapOptions>>[]);
+        // for the ugly assertation, I think there is no way around currently to tackle the type error in a more elegant way
     }
     
     initialiseMap(options: BingMapOptions): Microsoft.Maps.Map {
@@ -42,11 +42,14 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
             mapTypeId: this.mapType
         });
 
-        if(options.forceHiDPI) this.liteModeForceHiDPI = true;
+        if(options.forceHiDPI) this.properties.liteModeForceHiDPI = true;
 
-        if (this.plugins.pushPinLayer) {
-            this.centrePinID = this.plugins.pushPinLayer.add(this.viewCentre, { title: "You are here" });
-        }
+        this.addEventHandler("ready", (_) => {
+            if (this.plugins.pushPinLayer) {
+                this.properties.centrePinID = this.plugins.pushPinLayer.add(geographicPoint2MicrosoftLocation(this.centre), { title: "You are here" });
+            }
+            console.log("bing map ready");
+        }, false);
 
         return map;
     }
@@ -58,7 +61,9 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
             this.onMapViewChanged(); // should be optimized because it is only use to call the other event handler, not the one to synchronize the map view
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
-            this.map.setView({ zoom: this.zoom, center: geographicPoint2MicrosoftLocation(this.viewCentre) })
+            this.map.setView({ zoom: this.zoom, center: geographicPoint2MicrosoftLocation(this.viewCentre) });
+            this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.centre));
+            // console.log(this.centrePinID, this.centre, this.plugins.pushPinLayer.setLocation)
         }, false);
     }
 

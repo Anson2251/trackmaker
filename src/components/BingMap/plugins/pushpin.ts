@@ -3,7 +3,7 @@
 import type {MapPlugin} from "@/libs/map-backends/plugin";
 import BingMapBackend from "@/components/BingMap/bing-map-backend";
 
-export class bingMapsPushPins implements MapPlugin<BingMapBackend> {
+export class BingMapPlugin_PushPins implements MapPlugin<BingMapBackend> {
     host: BingMapBackend;
     space = "pushPinLayer";
     readonly pushPins: {id: number, pin: Microsoft.Maps.Pushpin}[] = [];
@@ -50,6 +50,13 @@ export class bingMapsPushPins implements MapPlugin<BingMapBackend> {
             this.pushPins[index].pin.setOptions(options);
         }
     }
+
+    setLocation(id: number, location: Microsoft.Maps.Location){
+        const index = this.pushPins.findIndex((pin) => pin.id === id);
+        if(index !== -1){
+            this.pushPins[index].pin.setLocation(location);
+        }
+    }
 }
 
-export default bingMapsPushPins;
+export default BingMapPlugin_PushPins;

@@ -15,12 +15,12 @@ export class BingMapPlugin_LiteModeHiDPI implements MapPlugin<BingMapBackend> {
     }
     mount() {
         (this.host as any).plugins[this.space] = this;
-        if(this.host.liteModeForceHiDPI) this.id = this.enableLiteForceHiDPI();
+        if(this.host.properties.liteModeForceHiDPI) this.id = this.enableLiteForceHiDPI();
         return true;
     }
     unmount() {
         (this.host as any).plugins[this.space] = null;
-        if(!this.host.liteModeForceHiDPI) return true;
+        if(!this.host.properties.liteModeForceHiDPI) return true;
         return this.disableLiteForceHiDPI();
     }
 

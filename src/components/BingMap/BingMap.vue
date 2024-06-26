@@ -8,10 +8,10 @@ import { ref, watch, onMounted } from "vue";
 
 import * as GeoLocation from "@/utils/geolocation";
 import {BingMapBackend as bingMaps, allocateBingMapID,  type BingMapOptions, type BingMapBackendType} from "@/components/BingMap/bing-map-backend";
-import type { MapPluginConstructor as bingMapsPlugin } from "@/libs/map-backends/plugin";
+import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 type PropsType = {
-    plugin?: bingMapsPlugin<BingMapBackendType>[],
+    plugin?: MapPluginConstructor<bingMaps>[],
     centre?: {
         latitude: number,
         longitude: number
@@ -35,7 +35,7 @@ const emit = defineEmits(["ready"]);
 let iconSize = ref(24);
 let zoomValue = ref(10);
 
-const bingMapID = ref("");
+const bingMapID = ref(`bing-map-${allocateBingMapID()}`);
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(true);
 let map: bingMaps | undefined = undefined;
@@ -106,7 +106,6 @@ onMounted(async () => {
 	});
 	GeoLocation.UpdateService.start();
 
-	bingMapID.value = `bing-map-${allocateBingMapID()}`;
     container.value = document.getElementById(bingMapID.value)!;
 
 	const mapOptions: BingMapOptions = {
@@ -123,7 +122,7 @@ onMounted(async () => {
     }
     const mapPlugins = props.plugin || [];
 
-    map = new bingMaps(container.value, mapOptions, mapPlugins as bingMapsPlugin<BingMapBackendType>[]);
+    map = new bingMaps(container.value, mapOptions, mapPlugins as MapPluginConstructor<bingMaps>[]);
 
     map.addEventHandler("viewchangeend", (newMap: BingMapBackendType) => {
         pauseZoomSync = true;
@@ -135,6 +134,8 @@ onMounted(async () => {
         viewCentre.value.latitude = newMap.map.getCenter().latitude;
         viewCentre.value.longitude = newMap.map.getCenter().longitude;
     }, false);
+
+	(window as any).map = map;
 
     const initCentre = setInterval(() => {
         if (GeoLocation.UpdateService.isStarted() && !GeoLocation.UpdateService.isUpdating()) {

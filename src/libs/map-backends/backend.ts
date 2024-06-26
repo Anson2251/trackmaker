@@ -42,7 +42,9 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
     plugins: any = {};
     supportMapTypes: OptionTypes["supportedMapTypes"];
 
-    protected constructor(container: HTMLElement, options: OptionTypes, plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[] = []) {
+    properties: Record<string, any>;
+
+    constructor(container: HTMLElement, options: OptionTypes, plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[] = []) {
         this.container = container;
         this.mapType = options.type;
         this.centre = options.centre;
@@ -58,6 +60,8 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
             this.mapType = this.supportMapTypes[0];
         }
 
+        this.properties = {};
+
         this.map = this.initialiseMap(options);
 
         this.startSynchroniseMap();
@@ -65,6 +69,7 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
         this.loadPlugins(plugins);
 
         this.onMapViewChanged();
+        this.onReady();
     }
 
     abstract initialiseMap(options: OptionTypes): MapType;
@@ -197,6 +202,12 @@ export abstract class MapBackend<MapType, OptionTypes extends Options<OptionType
     onMapViewChanged() {
         this.eventHandlers.forEach((handler) => {
             if (handler.type === "viewchangeend") handler.handler(this);
+        })
+    }
+
+    onReady(){
+        this.eventHandlers.forEach((handler) => {
+            if (handler.type === "ready") handler.handler(this);
         })
     }
 
