@@ -338,7 +338,7 @@ export abstract class MapBackend<
 	 */
 	triggerEvent(type: string, ...eventArg: any[]) {
 		this.eventHandlers.forEach((handler) => {
-			if (handler.type === type) handler.handler(eventArg);
+			if (handler.type === type) handler.handler(...eventArg);
 		});
 	}
 	onMapViewChanged() {
