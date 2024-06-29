@@ -5,11 +5,12 @@ import PushpinProxy from "@/libs/drawing-map/components-proxies/pushpin";
 import type { PolygonProperties } from "@/libs/drawing-map/components-proxies/polygon";
 import type { PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
 import type { PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
+import MapBackend from "@/libs/map-backends/backend";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 // type ComponentProperties = any;
 export type HistoryPiece = { type: string, data: any };
-type BackendHandlerType<T> = { type: string; id: number, handler: (backend: DrawingMapBackend<T>) => void };
+type BackendHandlerType<T extends MapBackend<any, any>> = { type: string; id: number, handler: (backend: DrawingMapBackend<T>) => void };
 export type PrimitiveClassification = "route" | "draft" | "unknown";
 
 export interface ClassifiedComponentMeta {
@@ -26,10 +27,10 @@ export type ComponentMeta = {
     className: PrimitiveClassification
 }
 
-export abstract class DrawingMapBackend<T> {
+export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>> {
     private history: (HistoryPiece[])[] = [];
-    hostMap: T;
-    handlers: BackendHandlerType<T>[] = [];
+    hostMap: HostMapType;
+    handlers: BackendHandlerType<HostMapType>[] = [];
     name: string | undefined;
     id: string | undefined;
 
@@ -38,7 +39,7 @@ export abstract class DrawingMapBackend<T> {
 
     private previousPrimitives: DrawingComponentProxy<ComponentProperties>[] = [];
 
-    constructor(hostMap: T) {
+    constructor(hostMap: HostMapType) {
         this.hostMap = hostMap;
         this.addHandler("change", () => {
             const primitives = Array.from(this.primitiveProxyLayer).map(e => e[1]);
@@ -48,9 +49,13 @@ export abstract class DrawingMapBackend<T> {
             this.generateShowHideHistory();
         });
 
+        (this.hostMap as any).plugins.drawingTools.addHandler("ready", () => {
+            this.executeHandler("ready");
+        });
+
         this.initialiseBackend()
             .then(() => {
-                this.executeHandler("ready")
+                this.executeHandler("ready");
             })
             .catch((reason: string) => {
                 throw new Error(`Fail to initialise drawing backend: ${reason}`);
@@ -65,7 +70,7 @@ export abstract class DrawingMapBackend<T> {
         })
     }
 
-    addHandler(type: BackendHandlerType<T>['type'], callback: BackendHandlerType<T>['handler']) {
+    addHandler(type: BackendHandlerType<HostMapType>['type'], callback: BackendHandlerType<HostMapType>['handler']) {
         const id = this.handlers.length > 0 ? this.handlers[this.handlers.length - 1].id + 1 : 0;
         this.handlers.push({type, id: id, handler: callback});
     }

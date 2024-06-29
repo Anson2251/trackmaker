@@ -1,4 +1,5 @@
 import DrawingMapBackend from "@/libs/drawing-map/drawing-backend";
+import MapBackend from "../map-backends/backend";
 import CartoSketch from "@/libs/cartosketch";
 import * as ComponentProxyConversion from "@/libs/drawing-map/components-proxies/conversion";
 
@@ -8,7 +9,7 @@ import BrowserPlatform from "@/utils/platform";
 
 const isMac = BrowserPlatform.os === "Mac OS";
 
-export class SketchEditAdapter<T> {
+export class SketchEditAdapter<T extends MapBackend<any, any>> {
     private handlers: AdaptHandlerType[] = [];
     private backend: DrawingMapBackend<T> | undefined;
     private isBackendReady: boolean = false;
@@ -105,8 +106,7 @@ export class SketchEditAdapter<T> {
         if (!this.checkBackendReady()) return;
         const sketch = await CartoSketch.read(id);
         if (!sketch) {
-            console.warn(`Cannot load sketch ${id}`);
-            return;
+            return Promise.reject(`Cannot load sketch ${id}`);
         }
 
         console.log(sketch, this);
@@ -138,8 +138,7 @@ export class SketchEditAdapter<T> {
         }
 
         if (!this.sketchID || !this.sketchName) {
-            console.warn("Cannot export to sketch, sketch ID or name not set. It seems the sketch has not been loaded yet");
-            return;
+            return Promise.reject("Cannot export to sketch, sketch ID or name not set. It seems the sketch has not been loaded yet");
         }
 
         const components = this.backend!.getClassifiedProxyComponents();
