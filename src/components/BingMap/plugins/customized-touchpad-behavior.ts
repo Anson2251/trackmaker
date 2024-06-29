@@ -39,7 +39,7 @@ export class BingMapPlugin_CustomizedTouchpadBehavior implements MapPlugin<BingM
  */
 export function useCustomizedTouchpadBehavior(map: BingMapBackend, onMove: (location: Microsoft.Maps.Location, zoom: number) => void) {
     // translate factor for each zoom level
-    const screenFactor = map.liteModeForceHiDPI ? window.devicePixelRatio : 1;
+    const screenFactor = map.properties.liteModeForceHiDPI ? window.devicePixelRatio : 1;
     const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
 
     return (e: WheelEvent) => {

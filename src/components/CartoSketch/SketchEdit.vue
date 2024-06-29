@@ -65,7 +65,7 @@ const toolTipBarItems = [
 ]
 
 function mapReady(map: MapWithPlugins) {
-	const backend = new BingMapDrawingBackend(map);
+	const backend = new BingMapDrawingBackend(map as any);
 	adapter.setBackend(backend);
 	emptySelection.value = true;
 

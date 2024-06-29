@@ -9,26 +9,63 @@ import BrowserPlatform from "@/utils/platform";
 
 const isMac = BrowserPlatform.os === "Mac OS";
 
+/**
+ * Adapter for the SketchEdit, allowing to use the drawing backend from the SketchEdit component
+ */
 export class SketchEditAdapter<T extends MapBackend<any, any>> {
+    /**
+     * Registered handlers
+     */
     private handlers: AdaptHandlerType[] = [];
+
+    /**
+     * Backend instance
+     */
     private backend: DrawingMapBackend<T> | undefined;
+
+    /**
+     * Indicate if the backend is ready
+     */
     private isBackendReady: boolean = false;
+
+    /**
+     * Indicate if the adapter is initialised
+     */
     private initialised: boolean = false;
+
+    /**
+     * ID of the sketch
+     */
     sketchID: string | undefined;
+
+    /**
+     * Name of the sketch
+     */
     sketchName: string | undefined;
 
+    /**
+     * Constructor
+     * @param backend Backend instance
+     */
     constructor(backend?: DrawingMapBackend<T>) {
         this.backend = backend;
 
         if(this.backend) this.backendReady();
     }
 
+    /**
+     * Set the backend instance
+     * @param backend Backend instance
+     */
     setBackend(backend: DrawingMapBackend<T>) {
         this.backend = backend;
         this.isBackendReady = false;
         this.backendReady();
     }
 
+    /**
+     * Initialise the backend when ready
+     */
     private backendReady(){
         if(!this.backend) return;
         this.backend.addHandler("ready", () => {
@@ -37,44 +74,69 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
         });
     }
 
+    /**
+     * Check if the backend is ready
+     */
     private checkBackendReady() {
         if(!this.isBackendReady) console.warn("SketchEditAdapter: Backend is not ready");
         return this.isBackendReady;
     }
 
+    /**
+     * Initialise the adapter
+     */
     initialiseAdapter() {
         this.mountKeyShortcuts();
         this.initialised = true;
     }
 
+    /**
+     * Redo the last action
+     */
     redo() {
         if(!this.checkBackendReady()) return;
         console.log("redo");
         this.backend!.redo();
     }
 
+    /**
+     * Undo the last action
+     */
     undo() {
         if(!this.checkBackendReady()) return;
         console.log("undo");
         this.backend!.undo();
     }
 
+    /**
+     * Escape the current state
+     */
     escape() {
         if(!this.checkBackendReady()) return;
         this.backend!.escape();
     }
 
+    /**
+     * Edit a specific primitive
+     * @param id ID of the primitive
+     */
     edit(id: string) {
         if(!this.checkBackendReady()) return;
         this.backend!.edit(id);
     }
 
+    /**
+     * Clear all the primitives
+     */
     clear() {
         if(!this.checkBackendReady()) return;
         console.log("clear");
         this.backend!.clear();
     }
 
+    /**
+     * Mount the key shortcuts
+     */
     private mountKeyShortcuts() {
         if(!this.checkBackendReady()) return;
         document.addEventListener("keydown", (e) => {
@@ -87,21 +149,38 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
         })
     }
 
+    /**
+     * Execute a registered handler
+     * @param type Type of the handler
+     */
     private executeHandler(type: string) {
         this.handlers.forEach((i) => {
             if (i.type === type) i.handler();
         })
     }
 
+    /**
+     * Add a handler
+     * @param type Type of the handler
+     * @param callback Callback function
+     */
     addHandler(type: AdaptHandlerType['type'], callback: AdaptHandlerType['handler']) {
         const id = this.handlers.length > 0 ? this.handlers[this.handlers.length - 1].id + 1 : 0;
         this.handlers.push({type, id: id, handler: callback});
     }
 
+    /**
+     * Remove a handler
+     * @param id ID of the handler
+     */
     removeHandler(id: AdaptHandlerType['id']) {
         this.handlers = this.handlers.filter((h) => h.id !== id);
     }
 
+    /**
+     * Load a sketch from the ID
+     * @param id ID of the sketch
+     */
     async load(id: string) {
         if (!this.checkBackendReady()) return;
         const sketch = await CartoSketch.read(id);
@@ -130,6 +209,9 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
         this.executeHandler("change");
     }
 
+    /**
+     * Save the sketch
+     */
     async save() {
         if (!this.checkBackendReady()) return;
         if (!this.initialised) {

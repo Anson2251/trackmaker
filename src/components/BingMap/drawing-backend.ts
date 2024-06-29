@@ -1,6 +1,7 @@
 /// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
 import DrawingMapBackend from "@/libs/drawing-map/drawing-backend";
+import BingMapBackend from "./bing-map-backend";
 
 import BingMapPlugin_Drawing from "@/components/BingMap/plugins/drawing-map";
 import DrawingComponentProxy from "@/libs/drawing-map/components-proxies/component";
@@ -16,7 +17,7 @@ type DrawingBingMap = {
     plugins: {
         drawingTools: BingMapPlugin_Drawing
     }
-}
+} & BingMapBackend;
 
 export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
     primitiveComponentMap = new BidirectionalMap<number, string>();
@@ -51,7 +52,7 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
     }
 
     getShownComponentIDs(): string[] {
-        return this.hostMap.plugins.drawingTools.manager?.getPrimitives().map(p => {
+        return this.hostMap.plugins.drawingTools.manager?.getPrimitives().map((p: any) => {
             const primitiveID = this.hostMap.plugins.drawingTools.getPrimitiveID(p);
             const componentID = this.primitiveComponentMap.getForward(primitiveID);
             if (componentID === undefined) throw new Error(`Fail to find component id with primitive id ${primitiveID}. (Internal Error)`);
