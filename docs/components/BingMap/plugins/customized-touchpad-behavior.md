@@ -36,7 +36,7 @@ Renames and re-exports [BingMapPlugin_CustomizedTouchpadBehavior](customized-tou
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:14](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L14)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:14](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L14)
 
 #### Properties
 
@@ -46,7 +46,7 @@ Renames and re-exports [BingMapPlugin_CustomizedTouchpadBehavior](customized-tou
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:13](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L13)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:13](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L13)
 
 ##### host
 
@@ -60,7 +60,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:11](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L11)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:11](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L11)
 
 ##### space
 
@@ -74,7 +74,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:12](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L12)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:12](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L12)
 
 #### Methods
 
@@ -92,7 +92,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:19](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L19)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:19](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L19)
 
 ##### unmount()
 
@@ -108,7 +108,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:27](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L27)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:27](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L27)
 
 ## Functions
 
@@ -142,4 +142,4 @@ The callback function to be called when the map is moved.
 
 #### Defined in
 
-[src/components/BingMap/plugins/customized-touchpad-behavior.ts:40](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L40)
+[src/components/BingMap/plugins/customized-touchpad-behavior.ts:40](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/customized-touchpad-behavior.ts#L40)

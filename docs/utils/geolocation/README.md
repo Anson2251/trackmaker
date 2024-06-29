@@ -25,7 +25,7 @@
 
 ###### Defined in
 
-[src/utils/geolocation.ts:10](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L10)
+[src/utils/geolocation.ts:10](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L10)
 
 ##### type
 
@@ -33,7 +33,7 @@
 
 ###### Defined in
 
-[src/utils/geolocation.ts:9](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L9)
+[src/utils/geolocation.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L9)
 
 ***
 
@@ -47,7 +47,7 @@
 
 ###### Defined in
 
-[src/utils/geolocation.ts:4](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L4)
+[src/utils/geolocation.ts:4](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L4)
 
 ##### longitude
 
@@ -55,7 +55,7 @@
 
 ###### Defined in
 
-[src/utils/geolocation.ts:5](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L5)
+[src/utils/geolocation.ts:5](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L5)
 
 ## Variables
 
@@ -65,7 +65,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:30](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L30)
+[src/utils/geolocation.ts:30](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L30)
 
 ## Functions
 
@@ -87,4 +87,4 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:32](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L32)
+[src/utils/geolocation.ts:32](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L32)

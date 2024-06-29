@@ -10,5 +10,9 @@
 		// "src/libs/map-backends/plugin.ts",
 		// "src/libs/drawing-map/sketch-edit-adapter.ts",
 		// "src/utils/*.ts"
+	],
+	"exclude": [
+		"src/types/**/*.ts",
+		"src/test/**/*.ts"
 	]
 }

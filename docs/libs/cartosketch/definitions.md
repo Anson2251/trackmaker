@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:13](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L13)
+[src/libs/cartosketch/definitions.ts:13](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L13)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:46](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L46)
+[src/libs/cartosketch/definitions.ts:46](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L46)
 
 ***
 
@@ -60,7 +60,7 @@ the shape inside the feature
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:33](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L33)
+[src/libs/cartosketch/definitions.ts:33](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L33)
 
 ***
 
@@ -104,7 +104,7 @@ the shape inside the feature
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:51](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L51)
+[src/libs/cartosketch/definitions.ts:51](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L51)
 
 ***
 
@@ -132,7 +132,7 @@ the shape inside the feature
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:26](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L26)
+[src/libs/cartosketch/definitions.ts:26](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L26)
 
 ***
 
@@ -156,7 +156,7 @@ the shape inside the feature
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:40](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L40)
+[src/libs/cartosketch/definitions.ts:40](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L40)
 
 ***
 
@@ -178,7 +178,7 @@ the list of routes in the collection
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:89](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L89)
+[src/libs/cartosketch/definitions.ts:89](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L89)
 
 ***
 
@@ -214,7 +214,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:78](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L78)
+[src/libs/cartosketch/definitions.ts:78](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L78)
 
 ***
 
@@ -238,7 +238,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:65](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L65)
+[src/libs/cartosketch/definitions.ts:65](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L65)
 
 ***
 
@@ -266,7 +266,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:71](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L71)
+[src/libs/cartosketch/definitions.ts:71](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L71)
 
 ***
 
@@ -290,7 +290,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:95](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L95)
+[src/libs/cartosketch/definitions.ts:95](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L95)
 
 ***
 
@@ -310,7 +310,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:18](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L18)
+[src/libs/cartosketch/definitions.ts:18](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L18)
 
 ***
 
@@ -338,7 +338,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:6](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L6)
+[src/libs/cartosketch/definitions.ts:6](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L6)
 
 ***
 
@@ -348,7 +348,7 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:16](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L16)
+[src/libs/cartosketch/definitions.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L16)
 
 ## Variables
 
@@ -358,4 +358,4 @@ the list of points which form the shape
 
 #### Defined in
 
-[src/libs/cartosketch/definitions.ts:15](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/definitions.ts#L15)
+[src/libs/cartosketch/definitions.ts:15](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/definitions.ts#L15)

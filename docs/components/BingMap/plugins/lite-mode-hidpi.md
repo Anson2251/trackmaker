@@ -36,7 +36,7 @@ Renames and re-exports [BingMapPlugin_LiteModeHiDPI](lite-mode-hidpi.md#bingmapp
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:10](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L10)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:10](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L10)
 
 #### Properties
 
@@ -46,7 +46,7 @@ Renames and re-exports [BingMapPlugin_LiteModeHiDPI](lite-mode-hidpi.md#bingmapp
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:8](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L8)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:8](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L8)
 
 ##### host
 
@@ -60,7 +60,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:5](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L5)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:5](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L5)
 
 ##### id
 
@@ -68,7 +68,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:7](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L7)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:7](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L7)
 
 ##### previousScale
 
@@ -76,7 +76,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:9](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L9)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L9)
 
 ##### space
 
@@ -90,7 +90,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:6](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L6)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:6](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L6)
 
 #### Methods
 
@@ -108,7 +108,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:16](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L16)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L16)
 
 ##### unmount()
 
@@ -124,4 +124,4 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/lite-mode-hidpi.ts:21](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/lite-mode-hidpi.ts#L21)
+[src/components/BingMap/plugins/lite-mode-hidpi.ts:21](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/lite-mode-hidpi.ts#L21)

@@ -40,7 +40,7 @@
 
 #### Defined in
 
-[src/configs.ts:30](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/configs.ts#L30)
+[src/configs.ts:30](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L30)
 
 ## Variables
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/configs.ts:28](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/configs.ts#L28)
+[src/configs.ts:28](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L28)
 
 ***
 
@@ -60,7 +60,7 @@
 
 #### Defined in
 
-[src/configs.ts:39](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/configs.ts#L39)
+[src/configs.ts:39](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L39)
 
 ***
 
@@ -70,4 +70,4 @@
 
 #### Defined in
 
-[src/configs.ts:6](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/configs.ts#L6)
+[src/configs.ts:6](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L6)

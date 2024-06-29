@@ -56,7 +56,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:34](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L34)
+[src/libs/drawing-map/components-proxies/pushpin.ts:34](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L34)
 
 #### Properties
 
@@ -70,7 +70,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:17](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L17)
+[src/libs/drawing-map/components-proxies/component.ts:17](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L17)
 
 ##### id
 
@@ -82,7 +82,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:15](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L15)
+[src/libs/drawing-map/components-proxies/component.ts:15](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L15)
 
 ##### name
 
@@ -94,7 +94,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:16](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L16)
+[src/libs/drawing-map/components-proxies/component.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L16)
 
 ##### properties
 
@@ -106,7 +106,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:14](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L14)
+[src/libs/drawing-map/components-proxies/component.ts:14](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L14)
 
 ##### type
 
@@ -118,7 +118,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:24](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L24)
+[src/libs/drawing-map/components-proxies/pushpin.ts:24](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L24)
 
 #### Methods
 
@@ -142,7 +142,7 @@ The name of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:34](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L34)
+[src/libs/drawing-map/components-proxies/component.ts:34](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L34)
 
 ##### exportToGeoJSON()
 
@@ -162,7 +162,7 @@ The GeoJSON representation of the pushpin object.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:56](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L56)
+[src/libs/drawing-map/components-proxies/pushpin.ts:56](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L56)
 
 ##### getLocation()
 
@@ -178,7 +178,7 @@ The location of the pushpin.
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:43](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L43)
+[src/libs/drawing-map/components-proxies/pushpin.ts:43](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L43)
 
 ##### getLocations()
 
@@ -194,7 +194,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:85](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L85)
+[src/libs/drawing-map/components-proxies/component.ts:85](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L85)
 
 ##### getProperties()
 
@@ -210,7 +210,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:67](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L67)
+[src/libs/drawing-map/components-proxies/component.ts:67](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L67)
 
 ##### getPropertiesKeys()
 
@@ -226,7 +226,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:76](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L76)
+[src/libs/drawing-map/components-proxies/component.ts:76](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L76)
 
 ##### getProperty()
 
@@ -246,7 +246,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:71](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L71)
+[src/libs/drawing-map/components-proxies/component.ts:71](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L71)
 
 ##### removeHandler()
 
@@ -266,7 +266,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:44](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L44)
+[src/libs/drawing-map/components-proxies/component.ts:44](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L44)
 
 ##### setLocations()
 
@@ -286,7 +286,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:80](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L80)
+[src/libs/drawing-map/components-proxies/component.ts:80](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L80)
 
 ##### setProperties()
 
@@ -306,7 +306,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:48](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L48)
+[src/libs/drawing-map/components-proxies/component.ts:48](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L48)
 
 ##### setProperty()
 
@@ -328,7 +328,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 ###### Defined in
 
-[src/libs/drawing-map/components-proxies/component.ts:54](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/component.ts#L54)
+[src/libs/drawing-map/components-proxies/component.ts:54](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/component.ts#L54)
 
 ## Type Aliases
 
@@ -360,7 +360,7 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 #### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:13](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L13)
+[src/libs/drawing-map/components-proxies/pushpin.ts:13](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L13)
 
 ***
 
@@ -396,4 +396,4 @@ readonly [`GeographicPoint`](../../../utils/geolocation/README.md#geographicpoin
 
 #### Defined in
 
-[src/libs/drawing-map/components-proxies/pushpin.ts:4](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/components-proxies/pushpin.ts#L4)
+[src/libs/drawing-map/components-proxies/pushpin.ts:4](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/components-proxies/pushpin.ts#L4)

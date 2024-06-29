@@ -10,27 +10,27 @@
 
 ### read()
 
-> **read**(`geoJson`, `styles`?): [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]
+> **read**(`geoJson`, `styles`?): `Microsoft.Maps.IPrimitive`[]
 
 #### Parameters
 
-• **geoJson**: `string` \| [`IGeoJsonObject`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#igeojsonobject)
+• **geoJson**: `string` \| `IGeoJsonObject`
 
-• **styles?**: [`IStylesOptions`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#istylesoptions)
+• **styles?**: `IStylesOptions`
 
 #### Returns
 
-[`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]
+`Microsoft.Maps.IPrimitive`[]
 
 #### Defined in
 
-[src/utils/geojson.ts:4](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geojson.ts#L4)
+[src/utils/geojson.ts:4](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L4)
 
 ***
 
 ### readFromUrl()
 
-> **readFromUrl**(`url`, `timeout`, `jsonpQueryParam`?, `styles`?): `Promise`\<[`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]\>
+> **readFromUrl**(`url`, `timeout`, `jsonpQueryParam`?, `styles`?): `Promise`\<`IPrimitive`[]\>
 
 #### Parameters
 
@@ -40,15 +40,15 @@
 
 • **jsonpQueryParam?**: `string`
 
-• **styles?**: [`IStylesOptions`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#istylesoptions)
+• **styles?**: `IStylesOptions`
 
 #### Returns
 
-`Promise`\<[`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]\>
+`Promise`\<`IPrimitive`[]\>
 
 #### Defined in
 
-[src/utils/geojson.ts:9](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geojson.ts#L9)
+[src/utils/geojson.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L9)
 
 ***
 
@@ -60,7 +60,7 @@
 
 ##### Parameters
 
-• **data**: [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive) \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]
+• **data**: `IPrimitive` \| `IPrimitive`[]
 
 • **stringify?**: `true`
 
@@ -70,22 +70,22 @@
 
 ##### Defined in
 
-[src/utils/geojson.ts:19](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geojson.ts#L19)
+[src/utils/geojson.ts:19](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L19)
 
 #### write(data, stringify)
 
-> **write**(`data`, `stringify`?): [`IGeoJsonObject`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#igeojsonobject)
+> **write**(`data`, `stringify`?): `Microsoft.Maps.IGeoJsonObject`
 
 ##### Parameters
 
-• **data**: [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive) \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)[]
+• **data**: `IPrimitive` \| `IPrimitive`[]
 
 • **stringify?**: `false`
 
 ##### Returns
 
-[`IGeoJsonObject`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#igeojsonobject)
+`Microsoft.Maps.IGeoJsonObject`
 
 ##### Defined in
 
-[src/utils/geojson.ts:20](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geojson.ts#L20)
+[src/utils/geojson.ts:20](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L20)

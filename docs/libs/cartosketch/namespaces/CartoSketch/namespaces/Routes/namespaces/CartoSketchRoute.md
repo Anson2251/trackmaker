@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:52](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L52)
+[src/libs/cartosketch/route.ts:52](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L52)
 
 ***
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:56](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L56)
+[src/libs/cartosketch/route.ts:56](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L56)
 
 ***
 
@@ -82,7 +82,7 @@ The imported CartoSketchRoute object.
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:69](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L69)
+[src/libs/cartosketch/route.ts:69](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L69)
 
 ***
 
@@ -104,7 +104,7 @@ The imported CartoSketchRoute object.
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:81](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L81)
+[src/libs/cartosketch/route.ts:81](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L81)
 
 ***
 
@@ -122,7 +122,7 @@ The imported CartoSketchRoute object.
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:96](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L96)
+[src/libs/cartosketch/route.ts:96](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L96)
 
 ***
 
@@ -140,4 +140,4 @@ The imported CartoSketchRoute object.
 
 #### Defined in
 
-[src/libs/cartosketch/route.ts:100](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/route.ts#L100)
+[src/libs/cartosketch/route.ts:100](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L100)

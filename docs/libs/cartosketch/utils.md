@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/utils.ts:3](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/utils.ts#L3)
+[src/libs/cartosketch/utils.ts:3](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/utils.ts#L3)
 
 ## Functions
 
@@ -36,4 +36,4 @@
 
 #### Defined in
 
-[src/libs/cartosketch/utils.ts:5](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/utils.ts#L5)
+[src/libs/cartosketch/utils.ts:5](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/utils.ts#L5)

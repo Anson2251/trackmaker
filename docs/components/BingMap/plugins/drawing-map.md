@@ -36,7 +36,7 @@ Renames and re-exports [BingMapPlugin_Drawing](drawing-map.md#bingmapplugin_draw
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:18](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L18)
+[src/components/BingMap/plugins/drawing-map.ts:18](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L18)
 
 #### Properties
 
@@ -46,7 +46,7 @@ Renames and re-exports [BingMapPlugin_Drawing](drawing-map.md#bingmapplugin_draw
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:16](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L16)
+[src/components/BingMap/plugins/drawing-map.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L16)
 
 ##### host
 
@@ -60,7 +60,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:13](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L13)
+[src/components/BingMap/plugins/drawing-map.ts:13](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L13)
 
 ##### initialised
 
@@ -68,15 +68,15 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:11](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L11)
+[src/components/BingMap/plugins/drawing-map.ts:11](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L11)
 
 ##### manager
 
-> **manager**: `undefined` \| [`DrawingManager`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#drawingmanager)
+> **manager**: `undefined` \| `DrawingManager`
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:15](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L15)
+[src/components/BingMap/plugins/drawing-map.ts:15](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L15)
 
 ##### space
 
@@ -90,7 +90,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:12](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L12)
+[src/components/BingMap/plugins/drawing-map.ts:12](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L12)
 
 #### Methods
 
@@ -110,7 +110,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:59](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L59)
+[src/components/BingMap/plugins/drawing-map.ts:59](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L59)
 
 ##### clear()
 
@@ -122,7 +122,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:93](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L93)
+[src/components/BingMap/plugins/drawing-map.ts:93](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L93)
 
 ##### edit()
 
@@ -130,7 +130,7 @@ this space under the plugins where the plugin will mount
 
 ###### Parameters
 
-• **shape**: [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+• **shape**: `IPrimitive`
 
 ###### Returns
 
@@ -138,11 +138,11 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:77](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L77)
+[src/components/BingMap/plugins/drawing-map.ts:77](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L77)
 
 ##### getPrimitiveByID()
 
-> **getPrimitiveByID**(`id`): `undefined` \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+> **getPrimitiveByID**(`id`): `undefined` \| `IPrimitive`
 
 ###### Parameters
 
@@ -150,11 +150,11 @@ this space under the plugins where the plugin will mount
 
 ###### Returns
 
-`undefined` \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+`undefined` \| `IPrimitive`
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:85](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L85)
+[src/components/BingMap/plugins/drawing-map.ts:85](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L85)
 
 ##### getPrimitiveID()
 
@@ -162,7 +162,7 @@ this space under the plugins where the plugin will mount
 
 ###### Parameters
 
-• **primitive**: [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+• **primitive**: `IPrimitive`
 
 ###### Returns
 
@@ -170,7 +170,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:89](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L89)
+[src/components/BingMap/plugins/drawing-map.ts:89](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L89)
 
 ##### mount()
 
@@ -186,7 +186,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:42](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L42)
+[src/components/BingMap/plugins/drawing-map.ts:42](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L42)
 
 ##### remove()
 
@@ -194,7 +194,7 @@ this space under the plugins where the plugin will mount
 
 ###### Parameters
 
-• **shape**: [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+• **shape**: `IPrimitive`
 
 ###### Returns
 
@@ -202,7 +202,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:81](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L81)
+[src/components/BingMap/plugins/drawing-map.ts:81](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L81)
 
 ##### stopDrawing()
 
@@ -214,7 +214,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:73](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L73)
+[src/components/BingMap/plugins/drawing-map.ts:73](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L73)
 
 ##### unmount()
 
@@ -230,7 +230,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:47](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L47)
+[src/components/BingMap/plugins/drawing-map.ts:47](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L47)
 
 ## Type Aliases
 
@@ -240,7 +240,7 @@ this space under the plugins where the plugin will mount
 
 #### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:7](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L7)
+[src/components/BingMap/plugins/drawing-map.ts:7](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L7)
 
 ## Functions
 
@@ -258,4 +258,4 @@ this space under the plugins where the plugin will mount
 
 #### Defined in
 
-[src/components/BingMap/plugins/drawing-map.ts:98](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/plugins/drawing-map.ts#L98)
+[src/components/BingMap/plugins/drawing-map.ts:98](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/drawing-map.ts#L98)

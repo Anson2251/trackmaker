@@ -44,7 +44,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:90](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L90)
+[src/libs/drawing-map/drawing-backend.ts:90](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L90)
 
 #### Properties
 
@@ -58,7 +58,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:76](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L76)
+[src/libs/drawing-map/drawing-backend.ts:76](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L76)
 
 ##### hostMap
 
@@ -70,7 +70,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:75](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L75)
+[src/libs/drawing-map/drawing-backend.ts:75](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L75)
 
 ##### id
 
@@ -82,7 +82,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:78](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L78)
+[src/libs/drawing-map/drawing-backend.ts:78](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L78)
 
 ##### name
 
@@ -94,7 +94,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:77](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L77)
+[src/libs/drawing-map/drawing-backend.ts:77](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L77)
 
 ##### primitiveComponentMap
 
@@ -102,7 +102,7 @@ The host map instance.
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:23](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L23)
+[src/components/BingMap/drawing-backend.ts:23](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L23)
 
 #### Methods
 
@@ -132,7 +132,7 @@ The callback function of the handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:143](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L143)
+[src/libs/drawing-map/drawing-backend.ts:143](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L143)
 
 ##### addProxyPrimitive()
 
@@ -160,7 +160,7 @@ The className of the primitive
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:224](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L224)
+[src/libs/drawing-map/drawing-backend.ts:224](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L224)
 
 ##### addProxyPrimitiveToMap()
 
@@ -180,7 +180,7 @@ The className of the primitive
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:38](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L38)
+[src/components/BingMap/drawing-backend.ts:38](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L38)
 
 ##### clear()
 
@@ -198,7 +198,7 @@ Clear all components
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:44](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L44)
+[src/components/BingMap/drawing-backend.ts:44](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L44)
 
 ##### deleteProxyPrimitive()
 
@@ -226,7 +226,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:234](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L234)
+[src/libs/drawing-map/drawing-backend.ts:234](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L234)
 
 ##### edit()
 
@@ -254,7 +254,7 @@ The ID of the component
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:398](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L398)
+[src/libs/drawing-map/drawing-backend.ts:398](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L398)
 
 ##### editComponent()
 
@@ -276,7 +276,7 @@ Go into edit mode for a specific component
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:48](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L48)
+[src/components/BingMap/drawing-backend.ts:48](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L48)
 
 ##### escape()
 
@@ -294,7 +294,7 @@ Escape editing
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:34](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L34)
+[src/components/BingMap/drawing-backend.ts:34](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L34)
 
 ##### executeHandler()
 
@@ -318,7 +318,7 @@ Type of the handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:132](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L132)
+[src/libs/drawing-map/drawing-backend.ts:132](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L132)
 
 ##### getClassificationInfo()
 
@@ -340,7 +340,7 @@ An object containing arrays of metadata of drawing components categorized by the
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:442](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L442)
+[src/libs/drawing-map/drawing-backend.ts:442](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L442)
 
 ##### getClassifiedProxyComponents()
 
@@ -380,11 +380,11 @@ The unknowns of drawing components
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:473](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L473)
+[src/libs/drawing-map/drawing-backend.ts:473](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L473)
 
 ##### getPrimitiveFromComponent()
 
-> **getPrimitiveFromComponent**(`component`): `undefined` \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+> **getPrimitiveFromComponent**(`component`): `undefined` \| `IPrimitive`
 
 ###### Parameters
 
@@ -392,11 +392,11 @@ The unknowns of drawing components
 
 ###### Returns
 
-`undefined` \| [`IPrimitive`](../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+`undefined` \| `IPrimitive`
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:68](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L68)
+[src/components/BingMap/drawing-backend.ts:68](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L68)
 
 ##### getPrimitiveMeta()
 
@@ -422,7 +422,7 @@ The metadata of the component
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:412](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L412)
+[src/libs/drawing-map/drawing-backend.ts:412](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L412)
 
 ##### getShownComponentIDs()
 
@@ -438,7 +438,7 @@ The metadata of the component
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:54](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L54)
+[src/components/BingMap/drawing-backend.ts:54](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L54)
 
 ##### getShownComponents()
 
@@ -458,7 +458,7 @@ The shown components
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:215](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L215)
+[src/libs/drawing-map/drawing-backend.ts:215](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L215)
 
 ##### hide()
 
@@ -487,7 +487,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:204](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L204)
+[src/libs/drawing-map/drawing-backend.ts:204](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L204)
 
 ##### hideByID()
 
@@ -515,7 +515,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:189](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L189)
+[src/libs/drawing-map/drawing-backend.ts:189](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L189)
 
 ##### initialiseBackend()
 
@@ -531,7 +531,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:25](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L25)
+[src/components/BingMap/drawing-backend.ts:25](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L25)
 
 ##### redo()
 
@@ -549,7 +549,7 @@ Redo the last undone action.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:361](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L361)
+[src/libs/drawing-map/drawing-backend.ts:361](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L361)
 
 ##### registerPrimitive()
 
@@ -577,7 +577,7 @@ The classification of the primitive. Default to "unknown" if not provided.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:432](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L432)
+[src/libs/drawing-map/drawing-backend.ts:432](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L432)
 
 ##### removeProxyPrimitiveFromMap()
 
@@ -597,7 +597,7 @@ The classification of the primitive. Default to "unknown" if not provided.
 
 ###### Defined in
 
-[src/components/BingMap/drawing-backend.ts:63](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L63)
+[src/components/BingMap/drawing-backend.ts:63](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L63)
 
 ##### show()
 
@@ -625,7 +625,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:179](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L179)
+[src/libs/drawing-map/drawing-backend.ts:179](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L179)
 
 ##### showByID()
 
@@ -653,7 +653,7 @@ Whether to trigger the change handler
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:164](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L164)
+[src/libs/drawing-map/drawing-backend.ts:164](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L164)
 
 ##### undo()
 
@@ -671,4 +671,4 @@ Undo the latest action.
 
 ###### Defined in
 
-[src/libs/drawing-map/drawing-backend.ts:323](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/drawing-map/drawing-backend.ts#L323)
+[src/libs/drawing-map/drawing-backend.ts:323](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/drawing-backend.ts#L323)

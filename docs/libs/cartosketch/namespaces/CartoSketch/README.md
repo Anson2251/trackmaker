@@ -23,7 +23,7 @@ The database instance
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:75](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L75)
+[src/libs/cartosketch/index.ts:75](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L75)
 
 ***
 
@@ -35,7 +35,7 @@ The storage database name
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:73](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L73)
+[src/libs/cartosketch/index.ts:73](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L73)
 
 ## Functions
 
@@ -59,7 +59,7 @@ A promise that resolves when the item is successfully deleted, or rejects with a
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:251](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L251)
+[src/libs/cartosketch/index.ts:251](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L251)
 
 ***
 
@@ -83,7 +83,7 @@ A promise that resolves to true if the CartoSketch exists, false otherwise.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:88](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L88)
+[src/libs/cartosketch/index.ts:88](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L88)
 
 ***
 
@@ -101,7 +101,7 @@ A promise that resolves to an array of IDs.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:134](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L134)
+[src/libs/cartosketch/index.ts:134](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L134)
 
 ***
 
@@ -119,7 +119,7 @@ A promise that resolves to an array of raw geographic sketches.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:101](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L101)
+[src/libs/cartosketch/index.ts:101](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L101)
 
 ***
 
@@ -137,7 +137,7 @@ A promise that resolves to an array of CartoSketch objects.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:143](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L143)
+[src/libs/cartosketch/index.ts:143](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L143)
 
 ***
 
@@ -155,7 +155,7 @@ A promise that resolves to an array of raw geographic sketches.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:156](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L156)
+[src/libs/cartosketch/index.ts:156](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L156)
 
 ***
 
@@ -179,7 +179,7 @@ A promise that resolves to the read CartoSketch, or rejects with an error messag
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:198](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L198)
+[src/libs/cartosketch/index.ts:198](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L198)
 
 ***
 
@@ -203,7 +203,7 @@ The CartoSketch object created from the provided data.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:125](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L125)
+[src/libs/cartosketch/index.ts:125](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L125)
 
 ***
 
@@ -227,7 +227,7 @@ A promise that resolves to the read item, or rejects with an error if the item d
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:222](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L222)
+[src/libs/cartosketch/index.ts:222](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L222)
 
 ***
 
@@ -251,7 +251,7 @@ A promise that resolves when the CartoSketch is successfully removed, or rejects
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:174](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L174)
+[src/libs/cartosketch/index.ts:174](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L174)
 
 ***
 
@@ -275,7 +275,7 @@ A promise that resolves when the CartoSketch is saved successfully.
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:212](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L212)
+[src/libs/cartosketch/index.ts:212](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L212)
 
 ***
 
@@ -303,4 +303,4 @@ A promise that resolves when the data is successfully written, or rejects with a
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:237](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/libs/cartosketch/index.ts#L237)
+[src/libs/cartosketch/index.ts:237](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L237)

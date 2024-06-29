@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:58](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L58)
+[src/utils/geolocation.ts:58](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L58)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:59](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L59)
+[src/utils/geolocation.ts:59](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L59)
 
 ## Functions
 
@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:99](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L99)
+[src/utils/geolocation.ts:99](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L99)
 
 ***
 
@@ -58,7 +58,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:61](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L61)
+[src/utils/geolocation.ts:61](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L61)
 
 ***
 
@@ -72,7 +72,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:62](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L62)
+[src/utils/geolocation.ts:62](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L62)
 
 ***
 
@@ -86,7 +86,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:63](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L63)
+[src/utils/geolocation.ts:63](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L63)
 
 ***
 
@@ -104,7 +104,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:104](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L104)
+[src/utils/geolocation.ts:104](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L104)
 
 ***
 
@@ -118,7 +118,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:65](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L65)
+[src/utils/geolocation.ts:65](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L65)
 
 ***
 
@@ -136,4 +136,4 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:94](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/utils/geolocation.ts#L94)
+[src/utils/geolocation.ts:94](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L94)

@@ -10,7 +10,7 @@
 
 ### convertProxyToBingMapPrimitives()
 
-> **convertProxyToBingMapPrimitives**(`component`): [`IPrimitive`](../../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+> **convertProxyToBingMapPrimitives**(`component`): `Microsoft.Maps.IPrimitive`
 
 #### Parameters
 
@@ -18,8 +18,8 @@
 
 #### Returns
 
-[`IPrimitive`](../../../../types/MicrosoftMaps/ConfigurationDrivenMaps/namespaces/Microsoft/namespaces/Maps/README.md#iprimitive)
+`Microsoft.Maps.IPrimitive`
 
 #### Defined in
 
-[src/components/BingMap/drawing-backend.ts:76](https://github.com/Anson2251/trackmaker/blob/852db12d0b72b755ac57c96b03b560323c9f2041/src/components/BingMap/drawing-backend.ts#L76)
+[src/components/BingMap/drawing-backend.ts:76](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/drawing-backend.ts#L76)
