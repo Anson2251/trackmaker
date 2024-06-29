@@ -1,37 +1,42 @@
-**trackmaker** • [**Docs**](globals.md)
+**trackmaker** • [**Docs**](modules.md)
 
 ***
 
 <div style="text-align: center">
-<img src="/public/favicon.svg" width=128 height=128/>
+<img src="/public/favicon.svg" width=128 height=128 alt="logo"/>
 
-# Track Maker
+# Trackmaker
 
 </div>
 
-A simple tool to track and share your routes.
+Enabling route planning and navigation for sports activities with map marking feature.
+
+---
 
 ## Todo
 - [x] About page
 - [x] Get and track geolocation
 - [x] Add frameworks to load the module
 - [x] Basic Bing Maps support
+- [ ] MapLibre GL JS Support
 - [x] Customise touchpad behaviour for Bing Maps
 - [x] Pushpin support
 - [x] Include the drawing module
 - [ ] Record and track the route
 - [ ] Edit routes
 
-    - [x] Basic route editing page
-    - [x] Save the edit (of the shapes on the map)
+    - [ ] Basic route editing page
+    - [ ] Save the edit (of the shapes on the map)
     - [ ] Widgets for editing and modifying the information of the shapes
     - [ ] Load and place the previous saves on the map
     - [x] Manage saved routes (shapes)
 
-- [x] History of drawing actions for using Redo and Undo
+- [ ] History of drawing actions for using Redo and Undo
 - [ ] Export routes
 - [ ] Import routes
 - [ ] Share routes
+
+*Due to the re-implementation of certain functions, several features are temporarily unavailable, and their status has been changed to "to-do".*
 
 ## Notice
 
@@ -53,4 +58,4 @@ The configuration file's path may be specified by the environment variable `CRED
 
 ---
 
-LAST UPDATE May 15, 2024
+Last update: Jun. 10, 2024.
