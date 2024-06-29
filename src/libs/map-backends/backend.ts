@@ -36,12 +36,15 @@ export interface ViewOptionType {
 	centre?: GeoLocation.GeographicPoint;
 }
 
+/** The type of the map handlers */
 export type MapEventHandlerType = {
 	id: number;
 	type: string;
 	handler: (eventArg?: any) => void;
 };
 
+/** The general map backend
+ */
 export abstract class MapBackend<
 	MapType,
 	OptionTypes extends Options<OptionTypes["type"]>,
@@ -61,6 +64,11 @@ export abstract class MapBackend<
 
 	properties: Record<string, any>;
 
+	/**
+	 * @param container The html container where the map places
+	 * @param options The options
+	 * @param plugins The plugins to load
+	 */
 	constructor(
 		container: HTMLElement,
 		options: OptionTypes,
@@ -95,19 +103,32 @@ export abstract class MapBackend<
 		this.onReady();
 	}
 
+	/** Initialise the map, should be implemented by subclasses */
 	abstract initialiseMap(options: OptionTypes): MapType;
 
+	/** Start synchronise the map, should be implemented by subclasses */
 	abstract startSynchroniseMap(): void;
 
+	/**
+	 * Set the centre of the map
+	 * @param centre 
+	 * @param silence Whether to call the corresponding handlers
+	 */
 	setCentre(centre: GeoLocation.GeographicPoint, silence: boolean): void {
 		this.centre = centre;
 		if (!silence) this.onMapViewChanged();
 	}
 
+	/** Get the map centre */
 	getCentre() {
 		return this.centre;
 	}
 
+	/**
+	 * Set the view centre
+	 * @param viewCentre Set the centre of viewport
+	 * @param updateMapView Whether to call the corresponding handlers
+	 */
 	setViewCentre(
 		viewCentre: GeoLocation.GeographicPoint,
 		updateMapView: boolean = true,
@@ -118,10 +139,16 @@ export abstract class MapBackend<
 		}
 	}
 
+	/** get the view centre */
 	getViewCentre() {
 		return this.viewCentre;
 	}
 
+	/**
+	 * Load the plugins
+	 * @param plugins The plugin list
+	 * @returns Whether the loading is successful
+	 */
 	loadPlugins(
 		plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[],
 	) {
@@ -142,6 +169,12 @@ export abstract class MapBackend<
 		return success;
 	}
 
+	/**
+	 * Set the zoom of the map
+	 * @param zoom 
+	 * @param updateMapView Whether to call the corresponding handlers
+	 * @returns 
+	 */
 	setZoom(zoom: number, updateMapView: boolean = true) {
 		if (!this.verifyZoom(zoom)) {
 			console.warn(
@@ -155,10 +188,17 @@ export abstract class MapBackend<
 		return true;
 	}
 
+	/**
+	 * Get the zoom of the map
+	 */
 	getZoom() {
 		return this.zoom;
 	}
 
+	/**
+	 * Set the viewport
+	 * @param view Set the zoom and centre of the map
+	 */
 	setView(view: ViewOptionType) {
 		this.setZoom(view.zoom || this.zoom, false);
 		this.setViewCentre(view.centre || this.viewCentre, false);
@@ -166,10 +206,15 @@ export abstract class MapBackend<
 		this.onMapViewChanged();
 	}
 
+	/** Move the map to the centre */
 	gotoCentre() {
 		this.setViewCentre(this.centre);
 	}
 
+	/**
+	 * Zoom in the map
+	 * @returns Whether the zoom is valid
+	 */
 	zoomIn() {
 		const valid = this.verifyZoom(this.zoom + 1);
 		if (valid) {
@@ -180,6 +225,10 @@ export abstract class MapBackend<
 		return false;
 	}
 
+	/**
+	 * Zoom out the map
+	 * @returns Whether the zoom is valid
+	 */
 	zoomOut() {
 		const valid = this.verifyZoom(this.zoom - 1);
 		if (valid) {
@@ -190,17 +239,35 @@ export abstract class MapBackend<
 		return false;
 	}
 
+	/**
+	 * @returns The zoom range
+	 */
 	getZoomRange() {
 		return { min: this.minZoom, max: this.maxZoom };
 	}
 
+	/**
+	 * Add the event to the host map level
+	 * @param type type of the event
+	 * @param handler the callback function
+	 */
 	abstract addNativeHandler(
 		type: string,
 		handler: (eventArg?: any) => void,
 	): any;
 
+	/**
+	 * Remove the event from the host map level
+	 * @param id id of the event
+	 */
 	abstract removeNativeHandler(id: any): any;
 
+	/**
+	 * Add the event to the host map
+	 * @param type type of the event
+	 * @param handler the callback function
+	 * @param native Whether the event is native (add to the host map level)
+	 */
 	addEventHandler(
 		type: string,
 		handler: (map: MapBackend<MapType, OptionTypes>) => void,
@@ -222,6 +289,11 @@ export abstract class MapBackend<
 		return eventID;
 	}
 
+	/**
+	 * Remove the event from the host map
+	 * @param id id of the event
+	 * @param native Whether the event is native (remove from the host map level)
+	 */
 	removeEventHandler(id: number, native: false): void;
 	removeEventHandler(id: any, native: true): void;
 	removeEventHandler(id: number | any, native: boolean = false) {
@@ -229,6 +301,11 @@ export abstract class MapBackend<
 		else this.removeNativeHandler(id);
 	}
 
+	/**
+	 * Add the event to the host map
+	 * @param type type of the event
+	 * @param handler the callback function
+	 */
 	private addEventHandlersCustomized(
 		type: string,
 		handler: MapEventHandlerType["handler"],
@@ -241,6 +318,10 @@ export abstract class MapBackend<
 		return id;
 	}
 
+	/**
+	 * Remove the event from the host map
+	 * @param id id of the event
+	 */
 	private removeEventHandlersCustomized(id: number): boolean {
 		const index = this.eventHandlers.findIndex((handler) => handler.id === id);
 		if (index !== -1) {
@@ -250,16 +331,22 @@ export abstract class MapBackend<
 		return false;
 	}
 
-	onMapViewChanged() {
+	/**
+	 * Trigger the event
+	 * @param type type of the event
+	 * @param eventArg event arg
+	 */
+	triggerEvent(type: string, ...eventArg: any[]) {
 		this.eventHandlers.forEach((handler) => {
-			if (handler.type === "viewchangeend") handler.handler(this);
+			if (handler.type === type) handler.handler(eventArg);
 		});
+	}
+	onMapViewChanged() {
+		this.triggerEvent("viewchangeend", this)
 	}
 
 	onReady() {
-		this.eventHandlers.forEach((handler) => {
-			if (handler.type === "ready") handler.handler(this);
-		});
+		this.triggerEvent("ready", this)
 	}
 
 	private verifyZoom(zoom: number): boolean {
