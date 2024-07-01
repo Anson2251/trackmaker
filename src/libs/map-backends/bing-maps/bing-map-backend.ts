@@ -24,7 +24,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
     // it is more safe to add all the custom properties into this.properties
     constructor(container: HTMLElement, options: BingMapOptions, plugins: MapPluginConstructor<BingMapBackend>[] = []) {
         super(container, options, plugins as unknown as MapPluginConstructor<MapBackend<Microsoft.Maps.Map, BingMapOptions>>[]);
-        // for the ugly assertation, I think there is no way around currently to tackle the type error in a more elegant way
+        // for the ugly assertion, I think there is no way around currently to tackle the type error in a more elegant way
     }
     
     initialiseMap(options: BingMapOptions): Microsoft.Maps.Map {
@@ -44,7 +44,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
 
         if(options.forceHiDPI) this.properties.liteModeForceHiDPI = true;
 
-        this.addEventHandler("ready", (_) => {
+        this.addEventHandler("ready", () => {
             if (this.plugins.pushPinLayer) {
                 this.properties.centrePinID = this.plugins.pushPinLayer.add(geographicPoint2MicrosoftLocation(this.centre), { title: "You are here" });
             }
