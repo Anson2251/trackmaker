@@ -7,7 +7,7 @@ import { Add, Remove } from "@vicons/ionicons5";
 import { ref, watch, onMounted } from "vue";
 
 import * as GeoLocation from "@/utils/geolocation";
-import {BingMapBackend as bingMaps, allocateBingMapID,  type BingMapOptions, type BingMapBackendType} from "@/components/BingMap/bing-map-backend";
+import {BingMapBackend as bingMaps, allocateBingMapID,  type BingMapOptions, type BingMapBackendType} from "@/libs/map-backends/bing-maps/bing-map-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 type PropsType = {

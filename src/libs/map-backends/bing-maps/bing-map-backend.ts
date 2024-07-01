@@ -1,4 +1,4 @@
-/// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
+/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
 import MapBackend, {type Options, allocateMapID} from "@/libs/map-backends/backend";
 import type { GeographicPoint } from "@/utils/geolocation";
