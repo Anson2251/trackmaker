@@ -1,6 +1,6 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
 
-import MapBackend, {type Options, allocateMapID} from "@/libs/map-backends/backend";
+import MapBackend, {type DefaultOptionTypes, allocateMapID} from "@/libs/map-backends/backend";
 import type { GeographicPoint } from "@/utils/geolocation";
 import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
 
@@ -10,7 +10,7 @@ function geographicPoint2MicrosoftLocation(point: GeographicPoint): Microsoft.Ma
     return new Microsoft.Maps.Location(point.latitude, point.longitude);
 }
 
-export type BingMapOptions = Options<Microsoft.Maps.MapTypeId> & {
+export type BingMapOptions = DefaultOptionTypes<Microsoft.Maps.MapTypeId> & {
     customizedTouchpadBehavior?: boolean,
     liteMode?: boolean,
     enableInertia?: boolean,

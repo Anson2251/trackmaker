@@ -46,6 +46,10 @@ export namespace Conversion {
         }
     }
 
+    export function geographicPoint2LngLatPoint(location: GeographicPoint): [number, number] {
+        return [location.longitude, location.latitude]
+    }
+
     export function geojsonPoint2geographicPoint(location: GeoJSONPoint): GeographicPoint {
         return {
             longitude: location.coordinates[0],
@@ -105,6 +109,3 @@ export namespace UpdateService {
         handlers = handlers.filter((item) => item.id !== id);
     }
 }
-
-
-

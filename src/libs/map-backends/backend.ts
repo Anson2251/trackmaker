@@ -9,7 +9,7 @@ export const allocateMapID = () => {
 /**
 The options that a map generally have
 */
-export interface Options<MapIDType> {
+export interface DefaultOptionTypes<MapIDType> {
     /** The centre of the map */
     centre: GeoLocation.GeographicPoint;
     /** The type of the id which indicates the type of the map */
@@ -47,7 +47,7 @@ export type MapEventHandlerType = {
  */
 export abstract class MapBackend<
     MapType,
-    OptionTypes extends Options<OptionTypes["type"]>,
+    OptionTypes extends DefaultOptionTypes<OptionTypes["type"]>,
 > {
     zoom: number = 5;
     viewCentre: GeoLocation.GeographicPoint;

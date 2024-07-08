@@ -1,5 +1,5 @@
 import type { moduleItem } from "@/utils/load-modules"
-import { initMapScript as initBingMaps } from '@/components/BingMap/bing-map-backend'
+import { initMapScript as initBingMaps } from '@/libs/map-backends/bing-maps/bing-map-backend';
 import { initBingMapsDrawingModule } from '@/components/BingMap/plugins/drawing-map'
 import { initbingMapsGeojsonModule } from "@/utils/geojson";
 
