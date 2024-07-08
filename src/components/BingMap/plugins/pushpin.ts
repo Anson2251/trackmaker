@@ -1,7 +1,7 @@
 /// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.d.ts" />
 
 import type {MapPlugin} from "@/libs/map-backends/plugin";
-import BingMapBackend from "@/components/BingMap/bing-map-backend";
+import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 
 export class BingMapPlugin_PushPins implements MapPlugin<BingMapBackend> {
     host: BingMapBackend;

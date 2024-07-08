@@ -1,5 +1,5 @@
 import type {MapPlugin} from "@/libs/map-backends/plugin";
-import BingMapBackend from "@/components/BingMap/bing-map-backend";
+import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 
 export class BingMapPlugin_LiteModeHiDPI implements MapPlugin<BingMapBackend> {
     host: BingMapBackend;

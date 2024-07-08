@@ -15,7 +15,7 @@ import SelectorDrawer from './SelectorDrawer.vue';
 // import SketchComponentLibrary from "@/components/CartoSketch/SketchComponentLibrary.vue";
 // import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
 
-import {BingMapDrawingBackend} from "@/components/BingMap/drawing-backend";
+import {BingMapDrawingBackend} from "@/libs/map-backends/bing-maps/drawing-backend";
 import SketchEditAdapter from "@/libs/drawing-map/sketch-edit-adapter";
 
 import CartoSketch, {type CartoSketchInfo} from '@/libs/cartosketch';
