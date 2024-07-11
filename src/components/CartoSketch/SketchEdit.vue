@@ -67,6 +67,7 @@ const toolTipBarItems = [
 function mapReady(map: MapWithPlugins) {
 	const backend = new BingMapDrawingBackend(map as any);
 	adapter.setBackend(backend);
+	(window as any).adapter = adapter;
 	emptySelection.value = true;
 
 	// watch(selectedComponentID, () => {

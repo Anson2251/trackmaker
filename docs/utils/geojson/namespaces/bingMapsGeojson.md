@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/utils/geojson.ts:4](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L4)
+[src/utils/geojson.ts:4](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geojson.ts#L4)
 
 ***
 
@@ -48,7 +48,7 @@
 
 #### Defined in
 
-[src/utils/geojson.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L9)
+[src/utils/geojson.ts:9](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geojson.ts#L9)
 
 ***
 
@@ -70,7 +70,7 @@
 
 ##### Defined in
 
-[src/utils/geojson.ts:19](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L19)
+[src/utils/geojson.ts:19](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geojson.ts#L19)
 
 #### write(data, stringify)
 
@@ -88,4 +88,4 @@
 
 ##### Defined in
 
-[src/utils/geojson.ts:20](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L20)
+[src/utils/geojson.ts:20](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geojson.ts#L20)

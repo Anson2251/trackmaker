@@ -30,4 +30,4 @@ Renames and re-exports [bingMapsGeojson](namespaces/bingMapsGeojson.md)
 
 #### Defined in
 
-[src/utils/geojson.ts:27](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geojson.ts#L27)
+[src/utils/geojson.ts:27](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geojson.ts#L27)

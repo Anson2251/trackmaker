@@ -40,7 +40,7 @@
 
 #### Defined in
 
-[src/configs.ts:30](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L30)
+[src/configs.ts:32](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/configs.ts#L32)
 
 ## Variables
 
@@ -50,17 +50,17 @@
 
 #### Defined in
 
-[src/configs.ts:28](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L28)
+[src/configs.ts:30](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/configs.ts#L30)
 
 ***
 
 ### credits
 
-> `const` **credits**: [`CreditItem`](configs.md#credititem)[]
+> `const` **credits**: [`CreditItem`](configs.md#credititem)[] = `creditInfo`
 
 #### Defined in
 
-[src/configs.ts:39](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L39)
+[src/configs.ts:41](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/configs.ts#L41)
 
 ***
 
@@ -70,4 +70,4 @@
 
 #### Defined in
 
-[src/configs.ts:6](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/configs.ts#L6)
+[src/configs.ts:8](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/configs.ts#L8)

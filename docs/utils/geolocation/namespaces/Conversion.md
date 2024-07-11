@@ -8,6 +8,24 @@
 
 ## Functions
 
+### geographicPoint2LngLatPoint()
+
+> **geographicPoint2LngLatPoint**(`location`): [`number`, `number`]
+
+#### Parameters
+
+• **location**: [`GeographicPoint`](../README.md#geographicpoint)
+
+#### Returns
+
+[`number`, `number`]
+
+#### Defined in
+
+[src/utils/geolocation.ts:49](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geolocation.ts#L49)
+
+***
+
 ### geographicPoint2geojsonPoint()
 
 > **geographicPoint2geojsonPoint**(`location`): [`GeoJSONPoint`](../README.md#geojsonpoint)
@@ -22,7 +40,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:42](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L42)
+[src/utils/geolocation.ts:42](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geolocation.ts#L42)
 
 ***
 
@@ -40,7 +58,7 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:49](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L49)
+[src/utils/geolocation.ts:53](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geolocation.ts#L53)
 
 ***
 
@@ -58,4 +76,4 @@
 
 #### Defined in
 
-[src/utils/geolocation.ts:37](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/geolocation.ts#L37)
+[src/utils/geolocation.ts:37](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/geolocation.ts#L37)

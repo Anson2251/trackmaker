@@ -18,7 +18,7 @@ Renames and re-exports [BingMapPlugin_PushPins](pushpin.md#bingmapplugin_pushpin
 
 #### Implements
 
-- [`MapPlugin`](../../../libs/map-backends/plugin.md#mappluginhostmaptype)\<[`BingMapBackend`](../bing-map-backend.md#bingmapbackend)\>
+- [`MapPlugin`](../../../libs/map-backends/plugin.md#mappluginhostmaptype)\<[`BingMapBackend`](../../../libs/map-backends/bing-maps/bing-map-backend.md#bingmapbackend)\>
 
 #### Constructors
 
@@ -28,7 +28,7 @@ Renames and re-exports [BingMapPlugin_PushPins](pushpin.md#bingmapplugin_pushpin
 
 ###### Parameters
 
-• **parentMap**: [`BingMapBackend`](../bing-map-backend.md#bingmapbackend)
+• **parentMap**: [`BingMapBackend`](../../../libs/map-backends/bing-maps/bing-map-backend.md#bingmapbackend)
 
 ###### Returns
 
@@ -36,13 +36,13 @@ Renames and re-exports [BingMapPlugin_PushPins](pushpin.md#bingmapplugin_pushpin
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:10](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L10)
+[src/components/BingMap/plugins/pushpin.ts:10](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L10)
 
 #### Properties
 
 ##### host
 
-> **host**: [`BingMapBackend`](../bing-map-backend.md#bingmapbackend)
+> **host**: [`BingMapBackend`](../../../libs/map-backends/bing-maps/bing-map-backend.md#bingmapbackend)
 
 host map
 
@@ -52,7 +52,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:7](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L7)
+[src/components/BingMap/plugins/pushpin.ts:7](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L7)
 
 ##### pushPins
 
@@ -60,7 +60,7 @@ host map
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L9)
+[src/components/BingMap/plugins/pushpin.ts:9](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L9)
 
 ##### space
 
@@ -74,7 +74,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:8](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L8)
+[src/components/BingMap/plugins/pushpin.ts:8](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L8)
 
 #### Methods
 
@@ -94,7 +94,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:31](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L31)
+[src/components/BingMap/plugins/pushpin.ts:31](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L31)
 
 ##### mount()
 
@@ -110,7 +110,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:14](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L14)
+[src/components/BingMap/plugins/pushpin.ts:14](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L14)
 
 ##### remove()
 
@@ -126,7 +126,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:39](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L39)
+[src/components/BingMap/plugins/pushpin.ts:39](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L39)
 
 ##### setLocation()
 
@@ -144,7 +144,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:54](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L54)
+[src/components/BingMap/plugins/pushpin.ts:54](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L54)
 
 ##### setOptions()
 
@@ -162,7 +162,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:47](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L47)
+[src/components/BingMap/plugins/pushpin.ts:47](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L47)
 
 ##### unmount()
 
@@ -178,4 +178,4 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/components/BingMap/plugins/pushpin.ts:19](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/BingMap/plugins/pushpin.ts#L19)
+[src/components/BingMap/plugins/pushpin.ts:19](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/BingMap/plugins/pushpin.ts#L19)

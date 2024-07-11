@@ -44,7 +44,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:39](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L39)
+[src/libs/cartosketch/index.ts:39](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L39)
 
 #### Properties
 
@@ -54,7 +54,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:37](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L37)
+[src/libs/cartosketch/index.ts:37](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L37)
 
 ##### id
 
@@ -62,7 +62,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:34](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L34)
+[src/libs/cartosketch/index.ts:34](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L34)
 
 ##### name
 
@@ -70,7 +70,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:35](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L35)
+[src/libs/cartosketch/index.ts:35](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L35)
 
 ##### routes
 
@@ -78,7 +78,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:36](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L36)
+[src/libs/cartosketch/index.ts:36](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L36)
 
 #### Methods
 
@@ -92,7 +92,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:55](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L55)
+[src/libs/cartosketch/index.ts:55](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L55)
 
 ##### exportToStorage()
 
@@ -104,7 +104,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:46](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L46)
+[src/libs/cartosketch/index.ts:46](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L46)
 
 ##### save()
 
@@ -116,7 +116,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 ###### Defined in
 
-[src/libs/cartosketch/index.ts:66](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L66)
+[src/libs/cartosketch/index.ts:66](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L66)
 
 ## Type Aliases
 
@@ -136,7 +136,7 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:27](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L27)
+[src/libs/cartosketch/index.ts:27](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L27)
 
 ***
 
@@ -156,4 +156,4 @@ Renames and re-exports [CartoSketch](README.md#cartosketch)
 
 #### Defined in
 
-[src/libs/cartosketch/index.ts:15](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/index.ts#L15)
+[src/libs/cartosketch/index.ts:15](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/index.ts#L15)

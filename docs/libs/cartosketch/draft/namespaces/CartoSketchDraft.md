@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:56](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L56)
+[src/libs/cartosketch/draft.ts:56](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L56)
 
 ***
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:60](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L60)
+[src/libs/cartosketch/draft.ts:60](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L60)
 
 ***
 
@@ -79,7 +79,7 @@ A promise that resolves to the imported draft.
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:113](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L113)
+[src/libs/cartosketch/draft.ts:113](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L113)
 
 ***
 
@@ -107,7 +107,7 @@ A Promise that resolves to the new draft object.
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:72](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L72)
+[src/libs/cartosketch/draft.ts:72](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L72)
 
 ***
 
@@ -125,7 +125,7 @@ A Promise that resolves to the new draft object.
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:127](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L127)
+[src/libs/cartosketch/draft.ts:127](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L127)
 
 ***
 
@@ -143,4 +143,4 @@ A Promise that resolves to the new draft object.
 
 #### Defined in
 
-[src/libs/cartosketch/draft.ts:123](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/draft.ts#L123)
+[src/libs/cartosketch/draft.ts:123](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/draft.ts#L123)

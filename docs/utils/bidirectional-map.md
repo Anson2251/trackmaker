@@ -48,7 +48,7 @@ The initial data to populate the map with.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:21](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L21)
+[src/utils/bidirectional-map.ts:21](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L21)
 
 #### Methods
 
@@ -66,7 +66,7 @@ An array of all the values in the backward map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:86](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L86)
+[src/utils/bidirectional-map.ts:86](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L86)
 
 ##### forwardKeys()
 
@@ -82,7 +82,7 @@ An array of all the keys in the forward map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:78](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L78)
+[src/utils/bidirectional-map.ts:78](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L78)
 
 ##### getBackward()
 
@@ -104,7 +104,7 @@ The key associated with the value, or undefined if the value is not in the map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:42](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L42)
+[src/utils/bidirectional-map.ts:42](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L42)
 
 ##### getForward()
 
@@ -126,7 +126,7 @@ The value associated with the key, or undefined if the key is not in the map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:33](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L33)
+[src/utils/bidirectional-map.ts:33](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L33)
 
 ##### hasBackward()
 
@@ -148,7 +148,7 @@ Whether the value is in the backward map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:120](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L120)
+[src/utils/bidirectional-map.ts:120](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L120)
 
 ##### hasForward()
 
@@ -170,7 +170,7 @@ Whether the key is in the forward map.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:111](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L111)
+[src/utils/bidirectional-map.ts:111](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L111)
 
 ##### iterateBackward()
 
@@ -190,7 +190,7 @@ The callback function to call for each key-value pair.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:102](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L102)
+[src/utils/bidirectional-map.ts:102](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L102)
 
 ##### iterateForward()
 
@@ -210,7 +210,7 @@ The callback function to call for each key-value pair.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:94](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L94)
+[src/utils/bidirectional-map.ts:94](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L94)
 
 ##### removeBackward()
 
@@ -230,7 +230,7 @@ The value to remove.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:69](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L69)
+[src/utils/bidirectional-map.ts:69](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L69)
 
 ##### removeForward()
 
@@ -250,7 +250,7 @@ The key to remove.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:60](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L60)
+[src/utils/bidirectional-map.ts:60](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L60)
 
 ##### set()
 
@@ -274,4 +274,4 @@ The value to set.
 
 ###### Defined in
 
-[src/utils/bidirectional-map.ts:51](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/bidirectional-map.ts#L51)
+[src/utils/bidirectional-map.ts:51](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/bidirectional-map.ts#L51)

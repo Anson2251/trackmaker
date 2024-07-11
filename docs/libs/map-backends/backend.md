@@ -20,13 +20,14 @@ The general map backend
 
 #### Extended by
 
-- [`BingMapBackend`](../../components/BingMap/bing-map-backend.md#bingmapbackend)
+- [`BingMapBackend`](bing-maps/bing-map-backend.md#bingmapbackend)
+- [`MapLibreGLBackend`](maplibre-gl/maplibre-gl-backend.md#maplibreglbackend)
 
 #### Type Parameters
 
 • **MapType**
 
-• **OptionTypes** *extends* [`Options`](backend.md#optionsmapidtype)\<`OptionTypes`\[`"type"`\]\>
+• **OptionTypes** *extends* [`DefaultOptionTypes`](backend.md#defaultoptiontypesmapidtype)\<`OptionTypes`\[`"type"`\]\>
 
 #### Constructors
 
@@ -54,7 +55,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:72](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L72)
+[src/libs/map-backends/backend.ts:72](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L72)
 
 #### Properties
 
@@ -64,7 +65,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:54](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L54)
+[src/libs/map-backends/backend.ts:54](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L54)
 
 ##### container
 
@@ -72,7 +73,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:57](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L57)
+[src/libs/map-backends/backend.ts:57](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L57)
 
 ##### credentials
 
@@ -80,7 +81,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:55](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L55)
+[src/libs/map-backends/backend.ts:55](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L55)
 
 ##### eventHandlers
 
@@ -88,7 +89,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:59](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L59)
+[src/libs/map-backends/backend.ts:59](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L59)
 
 ##### map
 
@@ -96,7 +97,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:58](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L58)
+[src/libs/map-backends/backend.ts:58](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L58)
 
 ##### mapType
 
@@ -104,7 +105,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:56](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L56)
+[src/libs/map-backends/backend.ts:56](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L56)
 
 ##### maxZoom
 
@@ -112,7 +113,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:60](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L60)
+[src/libs/map-backends/backend.ts:60](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L60)
 
 ##### minZoom
 
@@ -120,7 +121,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:61](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L61)
+[src/libs/map-backends/backend.ts:61](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L61)
 
 ##### plugins
 
@@ -128,7 +129,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:62](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L62)
+[src/libs/map-backends/backend.ts:62](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L62)
 
 ##### properties
 
@@ -136,7 +137,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:65](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L65)
+[src/libs/map-backends/backend.ts:65](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L65)
 
 ##### supportMapTypes
 
@@ -144,7 +145,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:63](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L63)
+[src/libs/map-backends/backend.ts:63](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L63)
 
 ##### viewCentre
 
@@ -152,7 +153,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:53](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L53)
+[src/libs/map-backends/backend.ts:53](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L53)
 
 ##### zoom
 
@@ -160,7 +161,7 @@ The plugins to load
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:52](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L52)
+[src/libs/map-backends/backend.ts:52](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L52)
 
 #### Methods
 
@@ -192,7 +193,7 @@ Whether the event is native (add to the host map level)
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:271](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L271)
+[src/libs/map-backends/backend.ts:274](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L274)
 
 ###### addEventHandler(type, handler, native)
 
@@ -212,7 +213,7 @@ Whether the event is native (add to the host map level)
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:276](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L276)
+[src/libs/map-backends/backend.ts:279](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L279)
 
 ##### addNativeHandler()
 
@@ -236,7 +237,7 @@ the callback function
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:254](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L254)
+[src/libs/map-backends/backend.ts:257](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L257)
 
 ##### getCentre()
 
@@ -250,7 +251,7 @@ Get the map centre
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:123](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L123)
+[src/libs/map-backends/backend.ts:123](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L123)
 
 ##### getViewCentre()
 
@@ -264,7 +265,7 @@ get the view centre
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:143](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L143)
+[src/libs/map-backends/backend.ts:143](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L143)
 
 ##### getZoom()
 
@@ -278,7 +279,7 @@ Get the zoom of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:194](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L194)
+[src/libs/map-backends/backend.ts:197](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L197)
 
 ##### getZoomRange()
 
@@ -300,7 +301,7 @@ The zoom range
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:245](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L245)
+[src/libs/map-backends/backend.ts:248](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L248)
 
 ##### gotoCentre()
 
@@ -314,7 +315,7 @@ Move the map to the centre
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:210](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L210)
+[src/libs/map-backends/backend.ts:213](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L213)
 
 ##### initialiseMap()
 
@@ -332,7 +333,7 @@ Initialise the map, should be implemented by subclasses
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:107](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L107)
+[src/libs/map-backends/backend.ts:107](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L107)
 
 ##### loadPlugins()
 
@@ -354,7 +355,7 @@ Whether the loading is successful
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:152](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L152)
+[src/libs/map-backends/backend.ts:152](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L152)
 
 ##### onMapViewChanged()
 
@@ -366,7 +367,7 @@ Whether the loading is successful
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:344](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L344)
+[src/libs/map-backends/backend.ts:349](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L349)
 
 ##### onReady()
 
@@ -378,7 +379,7 @@ Whether the loading is successful
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:348](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L348)
+[src/libs/map-backends/backend.ts:353](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L353)
 
 ##### removeEventHandler()
 
@@ -404,7 +405,7 @@ Whether the event is native (remove from the host map level)
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:297](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L297)
+[src/libs/map-backends/backend.ts:300](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L300)
 
 ###### removeEventHandler(id, native)
 
@@ -422,7 +423,7 @@ Whether the event is native (remove from the host map level)
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:298](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L298)
+[src/libs/map-backends/backend.ts:301](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L301)
 
 ##### removeNativeHandler()
 
@@ -442,7 +443,7 @@ id of the event
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:263](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L263)
+[src/libs/map-backends/backend.ts:266](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L266)
 
 ##### setCentre()
 
@@ -464,7 +465,7 @@ Whether to call the corresponding handlers
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:117](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L117)
+[src/libs/map-backends/backend.ts:117](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L117)
 
 ##### setView()
 
@@ -484,7 +485,7 @@ Set the zoom and centre of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:202](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L202)
+[src/libs/map-backends/backend.ts:205](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L205)
 
 ##### setViewCentre()
 
@@ -508,7 +509,7 @@ Whether to call the corresponding handlers
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:132](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L132)
+[src/libs/map-backends/backend.ts:132](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L132)
 
 ##### setZoom()
 
@@ -530,7 +531,7 @@ Whether to call the corresponding handlers
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:178](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L178)
+[src/libs/map-backends/backend.ts:181](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L181)
 
 ##### startSynchroniseMap()
 
@@ -544,7 +545,7 @@ Start synchronise the map, should be implemented by subclasses
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:110](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L110)
+[src/libs/map-backends/backend.ts:110](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L110)
 
 ##### triggerEvent()
 
@@ -568,7 +569,7 @@ event arg
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:339](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L339)
+[src/libs/map-backends/backend.ts:344](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L344)
 
 ##### zoomIn()
 
@@ -584,7 +585,7 @@ Whether the zoom is valid
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:218](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L218)
+[src/libs/map-backends/backend.ts:221](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L221)
 
 ##### zoomOut()
 
@@ -600,13 +601,17 @@ Whether the zoom is valid
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:232](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L232)
+[src/libs/map-backends/backend.ts:235](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L235)
 
 ## Interfaces
 
-### Options\<MapIDType\>
+### DefaultOptionTypes\<MapIDType\>
 
 The options that a map generally have
+
+#### Extended by
+
+- [`MapLibreGLBackendOptionTypes`](maplibre-gl/maplibre-gl-backend.md#maplibreglbackendoptiontypes)
 
 #### Type Parameters
 
@@ -622,7 +627,7 @@ The centre of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:14](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L14)
+[src/libs/map-backends/backend.ts:14](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L14)
 
 ##### credentials
 
@@ -632,7 +637,7 @@ The credential of the map API
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:22](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L22)
+[src/libs/map-backends/backend.ts:22](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L22)
 
 ##### maxZoom?
 
@@ -642,7 +647,7 @@ The max zoom range
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:26](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L26)
+[src/libs/map-backends/backend.ts:26](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L26)
 
 ##### minZoom?
 
@@ -652,7 +657,7 @@ The min zoom range
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:28](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L28)
+[src/libs/map-backends/backend.ts:28](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L28)
 
 ##### showDashboard?
 
@@ -662,7 +667,7 @@ The flag to enable the dashboard
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:24](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L24)
+[src/libs/map-backends/backend.ts:24](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L24)
 
 ##### supportedMapTypes
 
@@ -672,7 +677,7 @@ The collection of the support types
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:18](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L18)
+[src/libs/map-backends/backend.ts:18](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L18)
 
 ##### type
 
@@ -682,7 +687,7 @@ The type of the id which indicates the type of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L16)
+[src/libs/map-backends/backend.ts:16](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L16)
 
 ##### zoom?
 
@@ -692,7 +697,7 @@ The initial zoom of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:20](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L20)
+[src/libs/map-backends/backend.ts:20](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L20)
 
 ***
 
@@ -710,7 +715,7 @@ The view centre of the map
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:36](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L36)
+[src/libs/map-backends/backend.ts:36](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L36)
 
 ##### zoom?
 
@@ -720,7 +725,7 @@ The zoom value
 
 ###### Defined in
 
-[src/libs/map-backends/backend.ts:34](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L34)
+[src/libs/map-backends/backend.ts:34](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L34)
 
 ## Type Aliases
 
@@ -754,7 +759,7 @@ The type of the map handlers
 
 #### Defined in
 
-[src/libs/map-backends/backend.ts:40](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L40)
+[src/libs/map-backends/backend.ts:40](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L40)
 
 ## Functions
 
@@ -768,4 +773,4 @@ The type of the map handlers
 
 #### Defined in
 
-[src/libs/map-backends/backend.ts:4](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/backend.ts#L4)
+[src/libs/map-backends/backend.ts:4](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/backend.ts#L4)

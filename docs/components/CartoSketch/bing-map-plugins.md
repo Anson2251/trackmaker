@@ -28,7 +28,7 @@
 
 #### Defined in
 
-[src/components/CartoSketch/bing-map-plugins.ts:13](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/CartoSketch/bing-map-plugins.ts#L13)
+[src/components/CartoSketch/bing-map-plugins.ts:13](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/CartoSketch/bing-map-plugins.ts#L13)
 
 ## Variables
 
@@ -38,4 +38,4 @@
 
 #### Defined in
 
-[src/components/CartoSketch/bing-map-plugins.ts:6](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/components/CartoSketch/bing-map-plugins.ts#L6)
+[src/components/CartoSketch/bing-map-plugins.ts:6](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/components/CartoSketch/bing-map-plugins.ts#L6)

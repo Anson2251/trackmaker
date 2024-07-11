@@ -6,8 +6,6 @@
 
 ## Modules
 
-- [components/BingMap/bing-map-backend](components/BingMap/bing-map-backend.md)
-- [components/BingMap/drawing-backend](components/BingMap/drawing-backend/README.md)
 - [components/BingMap/plugins/customized-touchpad-behavior](components/BingMap/plugins/customized-touchpad-behavior.md)
 - [components/BingMap/plugins/drawing-map](components/BingMap/plugins/drawing-map.md)
 - [components/BingMap/plugins/lite-mode-hidpi](components/BingMap/plugins/lite-mode-hidpi.md)
@@ -28,6 +26,9 @@
 - [libs/drawing-map/drawing-backend](libs/drawing-map/drawing-backend.md)
 - [libs/drawing-map/sketch-edit-adapter](libs/drawing-map/sketch-edit-adapter.md)
 - [libs/map-backends/backend](libs/map-backends/backend.md)
+- [libs/map-backends/bing-maps/bing-map-backend](libs/map-backends/bing-maps/bing-map-backend.md)
+- [libs/map-backends/bing-maps/drawing-backend](libs/map-backends/bing-maps/drawing-backend/README.md)
+- [libs/map-backends/maplibre-gl/maplibre-gl-backend](libs/map-backends/maplibre-gl/maplibre-gl-backend.md)
 - [libs/map-backends/plugin](libs/map-backends/plugin.md)
 - [main](main.md)
 - [router](router.md)

@@ -42,7 +42,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:17](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L17)
+[src/libs/cartosketch/route.ts:17](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L17)
 
 #### Properties
 
@@ -52,7 +52,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:14](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L14)
+[src/libs/cartosketch/route.ts:14](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L14)
 
 ##### name
 
@@ -60,7 +60,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:15](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L15)
+[src/libs/cartosketch/route.ts:15](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L15)
 
 ##### routes
 
@@ -68,7 +68,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:16](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L16)
+[src/libs/cartosketch/route.ts:16](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L16)
 
 #### Methods
 
@@ -86,7 +86,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:31](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L31)
+[src/libs/cartosketch/route.ts:31](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L31)
 
 ##### exportAsGeoJSON()
 
@@ -98,7 +98,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:35](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L35)
+[src/libs/cartosketch/route.ts:35](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L35)
 
 ##### exportToStorage()
 
@@ -110,7 +110,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:42](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L42)
+[src/libs/cartosketch/route.ts:42](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L42)
 
 ##### getRoute()
 
@@ -126,7 +126,7 @@ Renames and re-exports [CartoSketchRoute](README.md#cartosketchroute)
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:27](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L27)
+[src/libs/cartosketch/route.ts:27](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L27)
 
 ##### getRoutes()
 
@@ -138,7 +138,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:23](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L23)
+[src/libs/cartosketch/route.ts:23](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L23)
 
 ***
 
@@ -166,7 +166,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:110](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L110)
+[src/libs/cartosketch/route.ts:110](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L110)
 
 #### Properties
 
@@ -176,7 +176,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:107](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L107)
+[src/libs/cartosketch/route.ts:107](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L107)
 
 ##### name
 
@@ -184,7 +184,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:106](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L106)
+[src/libs/cartosketch/route.ts:106](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L106)
 
 ##### properties
 
@@ -192,7 +192,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:108](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L108)
+[src/libs/cartosketch/route.ts:108](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L108)
 
 #### Methods
 
@@ -210,7 +210,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:121](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L121)
+[src/libs/cartosketch/route.ts:121](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L121)
 
 ##### exportAsBingMapsPrimitive()
 
@@ -222,7 +222,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:147](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L147)
+[src/libs/cartosketch/route.ts:147](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L147)
 
 ##### exportAsGeoJSON()
 
@@ -234,7 +234,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:134](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L134)
+[src/libs/cartosketch/route.ts:134](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L134)
 
 ##### exportToStorage()
 
@@ -246,7 +246,7 @@ readonly [`CartoSketchRouteItem`](README.md#cartosketchrouteitem)[]
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:153](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L153)
+[src/libs/cartosketch/route.ts:153](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L153)
 
 ##### getPoints()
 
@@ -258,7 +258,7 @@ readonly [`GeographicPoint`](../../../../../../utils/geolocation/README.md#geogr
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:125](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L125)
+[src/libs/cartosketch/route.ts:125](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L125)
 
 ##### setPoints()
 
@@ -274,7 +274,7 @@ readonly [`GeographicPoint`](../../../../../../utils/geolocation/README.md#geogr
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:117](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L117)
+[src/libs/cartosketch/route.ts:117](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L117)
 
 ##### setProperties()
 
@@ -290,4 +290,4 @@ readonly [`GeographicPoint`](../../../../../../utils/geolocation/README.md#geogr
 
 ###### Defined in
 
-[src/libs/cartosketch/route.ts:129](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/cartosketch/route.ts#L129)
+[src/libs/cartosketch/route.ts:129](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/cartosketch/route.ts#L129)

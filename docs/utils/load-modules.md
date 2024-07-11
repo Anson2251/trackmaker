@@ -42,7 +42,7 @@
 
 #### Defined in
 
-[src/utils/load-modules.ts:1](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/load-modules.ts#L1)
+[src/utils/load-modules.ts:1](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/load-modules.ts#L1)
 
 ## Variables
 
@@ -174,7 +174,7 @@
 
 #### Defined in
 
-[src/utils/load-modules.ts:8](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/load-modules.ts#L8)
+[src/utils/load-modules.ts:8](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/load-modules.ts#L8)
 
 ## Functions
 
@@ -210,7 +210,7 @@ A promise that resolves once the modules are loaded or rejects on errors.
 
 #### Defined in
 
-[src/utils/load-modules.ts:30](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/load-modules.ts#L30)
+[src/utils/load-modules.ts:30](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/load-modules.ts#L30)
 
 ***
 
@@ -232,4 +232,4 @@ A promise that resolves once the modules are loaded or rejects on errors.
 
 #### Defined in
 
-[src/utils/load-modules.ts:99](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/load-modules.ts#L99)
+[src/utils/load-modules.ts:99](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/load-modules.ts#L99)

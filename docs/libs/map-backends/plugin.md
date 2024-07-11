@@ -24,7 +24,7 @@ host map
 
 ###### Defined in
 
-[src/libs/map-backends/plugin.ts:7](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/plugin.ts#L7)
+[src/libs/map-backends/plugin.ts:7](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/plugin.ts#L7)
 
 ##### space
 
@@ -34,7 +34,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/libs/map-backends/plugin.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/plugin.ts#L9)
+[src/libs/map-backends/plugin.ts:9](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/plugin.ts#L9)
 
 #### Methods
 
@@ -48,7 +48,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/libs/map-backends/plugin.ts:10](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/plugin.ts#L10)
+[src/libs/map-backends/plugin.ts:10](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/plugin.ts#L10)
 
 ##### unmount()
 
@@ -60,7 +60,7 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/libs/map-backends/plugin.ts:11](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/plugin.ts#L11)
+[src/libs/map-backends/plugin.ts:11](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/plugin.ts#L11)
 
 ***
 
@@ -86,4 +86,4 @@ this space under the plugins where the plugin will mount
 
 ###### Defined in
 
-[src/libs/map-backends/plugin.ts:2](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/map-backends/plugin.ts#L2)
+[src/libs/map-backends/plugin.ts:2](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/map-backends/plugin.ts#L2)

@@ -42,9 +42,17 @@ Backend instance
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:50](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L50)
+[src/libs/drawing-map/sketch-edit-adapter.ts:52](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L52)
 
 #### Properties
+
+##### shortcutMounted
+
+> **shortcutMounted**: `boolean` = `false`
+
+###### Defined in
+
+[src/libs/drawing-map/sketch-edit-adapter.ts:46](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L46)
 
 ##### sketchID
 
@@ -54,7 +62,7 @@ ID of the sketch
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:39](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L39)
+[src/libs/drawing-map/sketch-edit-adapter.ts:39](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L39)
 
 ##### sketchName
 
@@ -64,7 +72,7 @@ Name of the sketch
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:44](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L44)
+[src/libs/drawing-map/sketch-edit-adapter.ts:44](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L44)
 
 #### Methods
 
@@ -90,7 +98,7 @@ Callback function
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:167](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L167)
+[src/libs/drawing-map/sketch-edit-adapter.ts:171](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L171)
 
 ##### clear()
 
@@ -104,7 +112,7 @@ Clear all the primitives
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:131](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L131)
+[src/libs/drawing-map/sketch-edit-adapter.ts:133](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L133)
 
 ##### edit()
 
@@ -124,7 +132,7 @@ ID of the primitive
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:123](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L123)
+[src/libs/drawing-map/sketch-edit-adapter.ts:125](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L125)
 
 ##### escape()
 
@@ -138,7 +146,7 @@ Escape the current state
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:114](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L114)
+[src/libs/drawing-map/sketch-edit-adapter.ts:116](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L116)
 
 ##### initialiseAdapter()
 
@@ -152,7 +160,7 @@ Initialise the adapter
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:88](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L88)
+[src/libs/drawing-map/sketch-edit-adapter.ts:90](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L90)
 
 ##### load()
 
@@ -172,7 +180,7 @@ ID of the sketch
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:184](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L184)
+[src/libs/drawing-map/sketch-edit-adapter.ts:188](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L188)
 
 ##### redo()
 
@@ -186,7 +194,7 @@ Redo the last action
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:96](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L96)
+[src/libs/drawing-map/sketch-edit-adapter.ts:98](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L98)
 
 ##### removeHandler()
 
@@ -206,7 +214,7 @@ ID of the handler
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:176](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L176)
+[src/libs/drawing-map/sketch-edit-adapter.ts:180](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L180)
 
 ##### save()
 
@@ -220,7 +228,7 @@ Save the sketch
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:215](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L215)
+[src/libs/drawing-map/sketch-edit-adapter.ts:219](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L219)
 
 ##### setBackend()
 
@@ -240,7 +248,7 @@ Backend instance
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:60](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L60)
+[src/libs/drawing-map/sketch-edit-adapter.ts:62](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L62)
 
 ##### undo()
 
@@ -254,4 +262,4 @@ Undo the last action
 
 ###### Defined in
 
-[src/libs/drawing-map/sketch-edit-adapter.ts:105](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/libs/drawing-map/sketch-edit-adapter.ts#L105)
+[src/libs/drawing-map/sketch-edit-adapter.ts:107](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/libs/drawing-map/sketch-edit-adapter.ts#L107)

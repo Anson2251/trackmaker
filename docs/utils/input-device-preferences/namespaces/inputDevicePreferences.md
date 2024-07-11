@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:9](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L9)
+[src/utils/input-device-preferences.ts:9](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L9)
 
 ## Variables
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:11](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L11)
+[src/utils/input-device-preferences.ts:11](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L11)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:10](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L10)
+[src/utils/input-device-preferences.ts:10](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L10)
 
 ## Functions
 
@@ -52,7 +52,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:43](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L43)
+[src/utils/input-device-preferences.ts:43](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L43)
 
 ***
 
@@ -70,7 +70,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:52](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L52)
+[src/utils/input-device-preferences.ts:52](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L52)
 
 ***
 
@@ -88,7 +88,7 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:48](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L48)
+[src/utils/input-device-preferences.ts:48](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L48)
 
 ***
 
@@ -106,4 +106,4 @@
 
 #### Defined in
 
-[src/utils/input-device-preferences.ts:19](https://github.com/Anson2251/trackmaker/blob/79fb765ba97780e527d64c6c60143ef30e165330/src/utils/input-device-preferences.ts#L19)
+[src/utils/input-device-preferences.ts:19](https://github.com/Anson2251/trackmaker/blob/542e2b29ae5b4a888f6d924839d95f01680fd96f/src/utils/input-device-preferences.ts#L19)
