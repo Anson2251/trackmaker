@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import { useOsTheme } from "naive-ui";
 import BingMap from '@/components/BingMap/BingMap.vue';
 import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
-import  BingMapBackend from "@/components/BingMap/bing-map-backend";
+import  BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 import BingMapPlugin_PushPins from '@/components/BingMap/plugins/pushpin';
 import BingMapPlugin_CustomizedTouchpadBehavior from '@/components/BingMap/plugins/customized-touchpad-behavior';
 
