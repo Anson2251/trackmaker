@@ -77,8 +77,8 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     name: string | undefined;
     id: string | undefined;
 
-    private primitiveProxyLayer = new Map<string, DrawingComponentProxy<ComponentProperties>>()
-    private primitiveClassification = new Map<string, PrimitiveClassification>();
+    primitiveProxyLayer = new Map<string, DrawingComponentProxy<ComponentProperties>>()
+    primitiveClassification = new Map<string, PrimitiveClassification>();
 
     private previousPrimitives: DrawingComponentProxy<ComponentProperties>[] = [];
 
@@ -105,23 +105,26 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             this.generateShowHideHistory();
         });
 
-        // Add a ready handler to the drawing tools plugin
-        (this.hostMap as any).plugins.drawingTools.addHandler("ready", () => {
-            // Execute the ready handler
-            this.executeHandler("ready");
-        });
+        // // Add a ready handler to the drawing tools plugin
+        // (this.hostMap as any).plugins.drawingTools.addHandler("ready", () => {
+        //     // Execute the ready handler
+        //     this.executeHandler("ready");
+        // });
 
         // Initialize the backend
         this.initialiseBackend()
             .then(() => {
                 // Execute the ready handler after the initialization is successful
                 this.executeHandler("ready");
+                this.startSyncComponents();
             })
             .catch((reason: string) => {
                 // Throw an error if the initialization fails
                 throw new Error(`Fail to initialise drawing backend: ${reason}`);
             })
     }
+
+    abstract startSyncComponents(): void;
 
     abstract initialiseBackend(): Promise<void>
 
@@ -155,6 +158,8 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     abstract removeProxyPrimitiveFromMap(primitive: DrawingComponentProxy<ComponentProperties>): void
 
     abstract addProxyPrimitiveToMap(primitive: DrawingComponentProxy<ComponentProperties>): void
+
+    abstract linkNewNativePrimitive(primitive: Microsoft.Maps.IPrimitive): void
 
     /**
      * Show a primitive by its ID
@@ -321,6 +326,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @returns
      */
     undo(): void {
+        console.log(this.history)
         if (this.history.length >= 1) {
             const correspondingAction: HistoryPiece[] = this.findCorrespondingUndoAction();
 
@@ -338,7 +344,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
                     }
                 })
                 this.executeHandler('change')
-                this.history.push([{type: "undo", data: correspondingAction}]);
+                this.addHistory( "undo",correspondingAction);
             } else {
                 correspondingAction[0].data.forEach((redoneAction: HistoryPiece) => {
                     if (redoneAction.type === "add") {
@@ -348,7 +354,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
                     }
                 })
                 this.executeHandler('change')
-                this.history.push([{type: "undo", data: correspondingAction[0].data}]);
+                this.addHistory("undo", correspondingAction[0].data);
             }
         }
     }
@@ -375,7 +381,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
                 }
             });
             this.executeHandler('change');
-            this.history.push([{type: "redo", data: undoAction[0].data}]);
+            this.addHistory("redo", undoAction[0].data);
         }
     }
 

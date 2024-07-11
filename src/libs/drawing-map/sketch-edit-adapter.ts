@@ -43,6 +43,8 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
      */
     sketchName: string | undefined;
 
+    shortcutMounted: boolean = false;
+
     /**
      * Constructor
      * @param backend Backend instance
@@ -139,6 +141,8 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
      */
     private mountKeyShortcuts() {
         if(!this.checkBackendReady()) return;
+        if(this.shortcutMounted) return;
+        this.shortcutMounted = true;
         document.addEventListener("keydown", (e) => {
             const isUndo = (e.key === "z" && !e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));
             const isRedo = (e.key === "z" && e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));

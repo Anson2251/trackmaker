@@ -3,7 +3,7 @@
 import type {MapPlugin} from "@/libs/map-backends/plugin";
 import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 
-type DrawingEventHandler = { type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing) => void };
+type DrawingEventHandler = { type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing, ...args: any) => void };
 export type DrawingEventType = "ready" | "drawingChanged";
 
 export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
@@ -14,6 +14,8 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
 
     manager: Microsoft.Maps.DrawingManager | undefined;
     handler: DrawingEventHandler[] = [];
+
+    previousPrimitives: Set<number> = new Set();
 
     constructor(parentMap: BingMapBackend) {
         this.host = parentMap;
@@ -60,14 +62,26 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
         this.handler.push({type, callback});
     }
 
-    private executeHandler(type: DrawingEventType) {
+    addNativeHandler(type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing) => void) {
+        console.log("add native handler", type);
+        if(!this.manager) throw new Error("Fail to add native handler, manager is not initialized");
+        Microsoft.Maps.Events.addHandler(this.manager, type, callback);
+    }
+
+    private executeHandler(type: DrawingEventType, ...args: any) {
         this.handler.forEach((i) => {
-            if (i.type === type) i.callback(this);
+            if (i.type === type) i.callback(this, ...args);
         })
     }
 
     private onChange() {
         if (!this.manager) return;
+
+        const primitives = this.manager.getPrimitives();
+        const newPrimitives = primitives.filter((p) => !this.previousPrimitives.has((p as any).id));
+        const deletedPrimitives = Array.from(this.previousPrimitives).filter((id) => !primitives.some((p) => (p as any).id === id));
+
+        this.executeHandler("drawingChanged", newPrimitives, deletedPrimitives);
     }
 
     stopDrawing() {
