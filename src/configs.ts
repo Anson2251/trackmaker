@@ -1,7 +1,7 @@
 import type { moduleItem } from "@/utils/load-modules"
 import { initMapScript as initBingMaps } from '@/libs/map-backends/bing-maps/bing-map-backend';
 import { initBingMapsDrawingModule } from '@/components/BingMap/plugins/drawing-map'
-import { initbingMapsGeojsonModule } from "@/utils/geojson";
+import { initBingMapsGeojsonModule } from "@/utils/geojson";
 
 import creditInfo from "@/assets/credits.json";
 
@@ -17,7 +17,7 @@ export const modules: moduleItem[] = [
 	},
 	{
 		name: "bingMapsGeojson",
-		moduleInit: initbingMapsGeojsonModule,
+		moduleInit: initBingMapsGeojsonModule,
 		dependencies: ["bingMaps"]
 	},
 	{

@@ -24,7 +24,7 @@ export namespace bingMapsGeojson {
     }
 }
 
-export function initbingMapsGeojsonModule(){
+export function initBingMapsGeojsonModule(){
     return new Promise<void>((resolve, reject) => {
         if((window as any).LoadedBingMapGeojsonModule) resolve();
         else (window as any).LoadedBingMapGeojsonModule = false;

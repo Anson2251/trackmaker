@@ -23,13 +23,13 @@ async function readFile(filePath: string): Promise<string> {
 		});
 		return Promise.resolve(config);
 	} catch (err) {
-		return Promise.reject(`cannnot load the file "${filePath}"`);
+		return Promise.reject(`Cannot load the file "${filePath}"`);
 	}
 }
 
 const obfuscatorConfig: ObfuscatorOptions  = {
 	compact: true,
-	controlFlowFlattening: false,
+	controlFlowFlattening: true,
 	controlFlowFlatteningThreshold: 0.75,
 	deadCodeInjection: false,
 	deadCodeInjectionThreshold: 0.4,
@@ -53,7 +53,7 @@ const obfuscatorConfig: ObfuscatorOptions  = {
 	renamePropertiesMode: 'safe',
 	reservedNames: [],
 	reservedStrings: [],
-	seed: 0,
+	seed: (new Date()).getTime(),
 	selfDefending: false,
 	simplify: true,
 	sourceMap: false,
