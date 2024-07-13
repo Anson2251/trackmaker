@@ -1,5 +1,3 @@
-/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 import DrawingMapBackend from "@/libs/drawing-map/drawing-backend";
 import BingMapBackend from "./bing-map-backend";
 
@@ -46,7 +44,7 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
     }
 
     editComponent(component: DrawingComponentProxy<ComponentProperties>): void {
-        const primitive = this.getPrimitiveFromComponent(component)
+        const primitive = this.getPrimitiveFromComponent(component);
         if (primitive === undefined) throw new Error(`Fail to find primitive with id ${component.id}`);
         this.hostMap.plugins.drawingTools.edit(primitive);
     }
@@ -56,7 +54,7 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
             const primitiveID = this.hostMap.plugins.drawingTools.getPrimitiveID(p);
             const componentID = this.primitiveComponentMap.getForward(primitiveID);
             if (componentID === undefined) throw new Error(`Fail to find component id with primitive id ${primitiveID}. (Internal Error)`);
-            return componentID
+            return componentID;
         }) || [];
     }
 
@@ -74,15 +72,17 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
     startSyncComponents(): void {
         const callback = (backend: any, newPrimitives: any, deletedPrimitives: any) => {
             console.log(backend, newPrimitives, deletedPrimitives);
-            newPrimitives.forEach((p: any) => this.linkNewNativePrimitive(p));
+            newPrimitives.forEach((p: any) => {
+                if(this.primitiveComponentMap.hasForward(Number((p as any).id)) === false) this.linkNewNativePrimitive(p);
+            });
             this.executeHandler("change");
-        }
+        };
         this.hostMap.plugins.drawingTools.addHandler("drawingChanged", callback);
     }
 
     linkNewNativePrimitive(primitive: Microsoft.Maps.IPrimitive): void {
         const className = this.getPrimitiveClass(primitive);
-        let newComponent: any = null
+        let newComponent: any = null;
         switch (className) {
             case "pushpin": {
                 newComponent = BingMapDrawingBackend.convertPushPinPrimitiveToProxy(primitive as Microsoft.Maps.Pushpin);
@@ -140,7 +140,7 @@ export namespace BingMapDrawingBackend {
         const geoLocation = {
             latitude: coord.latitude,
             longitude: coord.longitude
-        }
+        };
         const properties: PushpinProperties = {
             title: (primitive as Microsoft.Maps.Pushpin).getTitle(),
             subTitle: (primitive as Microsoft.Maps.Pushpin).getSubTitle(),
@@ -148,7 +148,7 @@ export namespace BingMapDrawingBackend {
             icon: (primitive as Microsoft.Maps.Pushpin).getIcon(),
             visible: (primitive as Microsoft.Maps.Pushpin).getVisible(),
             draggable: (primitive as Microsoft.Maps.Pushpin).getDraggable(),
-        }
+        };
         return new PushPinProxy([geoLocation], properties);
     }
 
@@ -158,7 +158,7 @@ export namespace BingMapDrawingBackend {
             strokeColor: (primitive as Microsoft.Maps.Polyline).getStrokeColor().toString(),
             strokeThickness: (primitive as Microsoft.Maps.Polyline).getStrokeThickness(),
             visible: (primitive as Microsoft.Maps.Polyline).getVisible(),
-        }
+        };
         return new PolylineProxy(coordinates, properties);
     }
 
@@ -169,7 +169,7 @@ export namespace BingMapDrawingBackend {
             strokeColor: (primitive as Microsoft.Maps.Polygon).getStrokeColor().toString(),
             strokeThickness: (primitive as Microsoft.Maps.Polygon).getStrokeThickness(),
             visible: (primitive as Microsoft.Maps.Polygon).getVisible(),
-        }
+        };
         return new PolygonProxy(coordinates, properties);
     }
 }

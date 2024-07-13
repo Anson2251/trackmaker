@@ -1,7 +1,7 @@
 import { UAParser } from 'ua-parser-js'; 
 
 export namespace BrowserPlatform {
-    export const ua = new UAParser(navigator.userAgent)
+    export const ua = new UAParser(navigator.userAgent);
     export const isMobile = ua.getDevice().type === "mobile";
     export const isTablet = ua.getDevice().type === "tablet";
     export const isUnknown = ua.getDevice().type === "";

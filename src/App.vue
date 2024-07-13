@@ -51,14 +51,14 @@ export default {
 					),
 				key: 'about',
 			},
-		]
+		];
 
 		return {
 			theme,
 			menuOptions
 		};
 	},
-}
+};
 </script>
 
 <template>

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-/// <reference path="../../../src/types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 // TODO: separate the map component into a separate file
 
 import {ref, onMounted} from 'vue';
 
-import BingMap from '@/components/BingMap/BingMap.vue'
+import BingMap from '@/components/BingMap/BingMap.vue';
 import {type MapWithPlugins, plugins} from './bing-map-plugins';
 
 import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';
@@ -25,7 +23,7 @@ interface Props {
 	forceHighDpi?: boolean;
 	mapType?: string
 }
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const adapter = new SketchEditAdapter<any>();
 
@@ -44,7 +42,7 @@ const selectorPlacement = ref<DrawerPlacement>("right");
 const drawer = {
 	open: () => activeSelector.value = true,
 	close: () => activeSelector.value = false
-}
+};
 
 
 /* toolbar */
@@ -62,7 +60,7 @@ const toolTipBarItems = [
 		iconSize: toolBarIconSize,
 		callback: drawer.open
 	}
-]
+];
 
 function mapReady(map: MapWithPlugins) {
 	const backend = new BingMapDrawingBackend(map as any);

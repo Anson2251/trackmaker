@@ -6,7 +6,7 @@ import { Upload } from '@vicons/tabler';
 
 import SketchSelector from './SketchSelector.vue';
 
-import { watch, ref } from "vue"
+import { watch, ref } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
 
 const props = defineProps({
@@ -28,7 +28,7 @@ const buttonGroupItems = [
 	{
 		title: "import",
 		icon: Upload,
-		callback: () => { emit('import') },
+		callback: () => { emit('import'); },
 		secondary: true,
 		iconSize: 17,
 		type: "default"
@@ -49,7 +49,7 @@ const buttonGroupItems = [
 		iconSize: 20,
 		type: "error"
 	},
-]
+];
 
 const activeSelectorFlag = ref(false);
 const drawerSelectorPlacement = ref<DrawerPlacement>(props.placement as DrawerPlacement);

@@ -77,10 +77,10 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     name: string | undefined;
     id: string | undefined;
 
-    primitiveProxyLayer = new Map<string, DrawingComponentProxy<ComponentProperties>>()
+    primitiveProxyLayer = new Map<string, DrawingComponentProxy<ComponentProperties>>();
     primitiveClassification = new Map<string, PrimitiveClassification>();
 
-    private previousPrimitives: DrawingComponentProxy<ComponentProperties>[] = [];
+    private previousComponents: DrawingComponentProxy<ComponentProperties>[] = [];
 
     /**
      * Constructor for the DrawingMapBackend class.
@@ -98,11 +98,11 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             
             // For each primitive, register it if it is not already classified
             primitives.forEach(p => {
-                if(!this.primitiveClassification.has(p.id)) this.registerPrimitive(p)
+                if(!this.primitiveClassification.has(p.id)) this.registerPrimitive(p);
             });
             
             // Generate a history of show and hide actions
-            this.generateShowHideHistory();
+            this.generateShowHideHistory().forEach(p => this.addHistory(p.type, p.data));
         });
 
         // // Add a ready handler to the drawing tools plugin
@@ -121,7 +121,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             .catch((reason: string) => {
                 // Throw an error if the initialization fails
                 throw new Error(`Fail to initialise drawing backend: ${reason}`);
-            })
+            });
     }
 
     abstract startSyncComponents(): void;
@@ -135,7 +135,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     executeHandler(type: string) {
         this.handlers.forEach((i) => {
             if (i.type === type) i.handler(this);
-        })
+        });
     }
 
     /**
@@ -260,19 +260,19 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      *
      * @returns An array of history entries, or null if no changes have been made.
      */
-    private generateShowHideHistory(): HistoryPiece[] | null {
-        const latestPrimitives: DrawingComponentProxy<ComponentProperties>[] = this.getShownComponents();
-        const newPrimitive: DrawingComponentProxy<ComponentProperties>[] = diff(latestPrimitives, this.previousPrimitives);
-        const removedPrimitive: DrawingComponentProxy<ComponentProperties>[] = diff(this.previousPrimitives, latestPrimitives);
+    private generateShowHideHistory(): HistoryPiece[] {
+        const latestComponents: DrawingComponentProxy<ComponentProperties>[] = this.getShownComponents();
+        const newComponents: DrawingComponentProxy<ComponentProperties>[] = diff(latestComponents, this.previousComponents);
+        const removedComponents: DrawingComponentProxy<ComponentProperties>[] = diff(this.previousComponents, latestComponents);
 
-        if (newPrimitive.length === 0 && removedPrimitive.length === 0) return null;
-        const action: HistoryPiece[] = [
-            {type: "add", data: newPrimitive},
-            {type: "delete", data: removedPrimitive},
-        ]
+        console.log(latestComponents,this.previousComponents, newComponents, removedComponents);
 
-        // console.log(newPrimitive)
-        this.previousPrimitives = this.getShownComponents();
+        const action: HistoryPiece[] = [];
+        if(newComponents.length > 0) action.push({type: "show", data: newComponents});
+        if(removedComponents.length > 0) action.push({type: "delete", data: removedComponents});
+
+        console.log(action);
+        this.previousComponents = this.getShownComponents();
         return action;
     }
 
@@ -326,7 +326,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @returns
      */
     undo(): void {
-        console.log(this.history)
+        console.log(this.history);
         if (this.history.length >= 1) {
             const correspondingAction: HistoryPiece[] = this.findCorrespondingUndoAction();
 
@@ -342,8 +342,8 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
                     } else if (action.type === "delete") {
                         action.data.forEach((e: DrawingComponentProxy<ComponentProperties>) => this.show(e, true));
                     }
-                })
-                this.executeHandler('change')
+                });
+                this.executeHandler('change');
                 this.addHistory( "undo",correspondingAction);
             } else {
                 correspondingAction[0].data.forEach((redoneAction: HistoryPiece) => {
@@ -352,8 +352,8 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
                     } else if (redoneAction.type === "delete") {
                         redoneAction.data.forEach((e: DrawingComponentProxy<ComponentProperties>) => this.show(e, true));
                     }
-                })
-                this.executeHandler('change')
+                });
+                this.executeHandler('change');
                 this.addHistory("undo", correspondingAction[0].data);
             }
         }
@@ -427,7 +427,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             type: primitive.type,
             /** The properties of the component */
             properties: primitive.properties
-        }
+        };
     }
 
     /**
@@ -467,7 +467,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             drafts: getMeta("draft"),
             /** The metadata of drawing components categorized as unknown */
             unknowns: getMeta("unknown")
-        }
+        };
     }
 
     /**
@@ -489,7 +489,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             routes: primitives.filter((p) => this.getPrimitiveMeta(p).className === "route") as PolylineProxy[],
             drafts: primitives.filter((p) => this.getPrimitiveMeta(p).className === "draft") as (PolygonProxy | PolylineProxy | PushpinProxy)[],
             unknowns: primitives.filter((p) => this.getPrimitiveMeta(p).className === "unknown")
-        }
+        };
     }
 }
 

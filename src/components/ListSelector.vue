@@ -19,7 +19,7 @@ const computedList = computed<{ option: Option, checked: boolean }[]>(() => {
         option: item,
         checked: item.value === selectedValue.value
     }));
-})
+});
 
 function selectOption(option: Option) {
     selectedValue.value = option.value;
@@ -27,8 +27,8 @@ function selectOption(option: Option) {
 }
 
 watch(props, () => {
-    selectedValue.value = props.value
-})
+    selectedValue.value = props.value;
+});
 </script>
 
 <template>

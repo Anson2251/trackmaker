@@ -1,5 +1,3 @@
-/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.d.ts" />
-
 import type {MapPlugin} from "@/libs/map-backends/plugin";
 import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 

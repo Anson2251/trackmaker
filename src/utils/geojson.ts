@@ -1,19 +1,17 @@
-/// <reference path="../..../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 export namespace bingMapsGeojson {
     export function read(geoJson: string | Microsoft.Maps.IGeoJsonObject, styles?: Microsoft.Maps.IStylesOptions | undefined): Microsoft.Maps.IPrimitive[] {
         const data = Microsoft.Maps.GeoJson.read(geoJson, styles);
-        return Array.isArray(data) ? data : [data]
+        return Array.isArray(data) ? data : [data];
     }
 
     export function readFromUrl(url: string, timeout = 10000, jsonpQueryParam?: string | undefined, styles?: Microsoft.Maps.IStylesOptions | undefined) {
         return new Promise<Microsoft.Maps.IPrimitive[]>((resolve, reject) => {
             const callback = (data: Microsoft.Maps.IPrimitive[] | Microsoft.Maps.IPrimitive) => {
                 resolve(Array.isArray(data) ? data : [data]);
-            }
+            };
             setTimeout(() => reject("Timeout"), timeout);
             Microsoft.Maps.GeoJson.readFromUrl(url, callback, jsonpQueryParam, styles);
-        })
+        });
     }
 
     export function write(data: Microsoft.Maps.IPrimitive | Microsoft.Maps.IPrimitive[], stringify?: true): string
@@ -34,7 +32,7 @@ export function initBingMapsGeojsonModule(){
             (window as any).LoadedBingMapGeojsonModule = true;
             resolve();
         });
-    })
+    });
 }
 
 export default bingMapsGeojson;

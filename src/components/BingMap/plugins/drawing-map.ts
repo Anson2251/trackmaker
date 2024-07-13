@@ -1,5 +1,3 @@
-/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 import type {MapPlugin} from "@/libs/map-backends/plugin";
 import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 
@@ -36,7 +34,7 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
             this.tools.showDrawingManager((manager) => {
                 Microsoft.Maps.Events.addHandler(manager, "drawingEnded", () => this.onChange());
                 Microsoft.Maps.Events.addHandler(manager, "drawingErased", () => this.onChange());
-                resolve(manager)
+                resolve(manager);
             });
         });
     }
@@ -71,7 +69,7 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     private executeHandler(type: DrawingEventType, ...args: any) {
         this.handler.forEach((i) => {
             if (i.type === type) i.callback(this, ...args);
-        })
+        });
     }
 
     private onChange() {
@@ -85,7 +83,7 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     }
 
     stopDrawing() {
-        this.tools?.finish()
+        this.tools?.finish();
     }
 
     edit(shape: Microsoft.Maps.IPrimitive) {
@@ -97,11 +95,11 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     }
 
     getPrimitiveByID(id: number) {
-        return this.manager?.getPrimitives().find((p) => (p as any).id === id)
+        return this.manager?.getPrimitives().find((p) => (p as any).id === id);
     }
 
     getPrimitiveID(primitive: Microsoft.Maps.IPrimitive) {
-        return (primitive as any).id
+        return (primitive as any).id;
     }
 
     clear() {
@@ -127,7 +125,7 @@ export function initBingMapsDrawingModule(timeout: number = 1000): Promise<void>
             if (timer > timeout) reject(new Error("Loading Bing Maps Drawing Module timeout"));
             timer += 1;
         }, 1);
-    })
+    });
 }
 
 export default BingMapPlugin_Drawing;

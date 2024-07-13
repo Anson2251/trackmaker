@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-/// <reference path="../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
@@ -29,7 +27,7 @@ type PropsType = {
     showDashboard?: boolean
 }
 
-const props = defineProps<PropsType>()
+const props = defineProps<PropsType>();
 const emit = defineEmits(["ready"]);
 
 let iconSize = ref(24);
@@ -69,7 +67,7 @@ watch(props, () => {
 	zoomValue.value = props.zoom || 10;
 	viewCentre.value.latitude = props.viewCentre ? props.viewCentre.latitude : 0;
 	viewCentre.value.longitude = props.viewCentre ? props.viewCentre.longitude : 0;
-	if ((props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId)
+	if ((props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId);
 }, { deep: true });
 
 watch(geoLocationKeepCentre, () => {
@@ -84,13 +82,13 @@ watch(zoomValue, () => {
 
 watch(viewCentre, () => {
 	if (map && !pausePositionSync) {
-		(map as bingMaps).map.setView({ center: viewCentre.value })
+		(map as bingMaps).map.setView({ center: viewCentre.value });
 		pausePositionSync = true;
-		setTimeout(() => pausePositionSync = false, 10)
+		setTimeout(() => pausePositionSync = false, 10);
 	}
 	if (geoLocationKeepCentre.value && map) {
 		if (map.getViewCentre().latitude !== centre.value.latitude || map.getViewCentre().longitude !== centre.value.longitude) {
-			map.gotoCentre()
+			map.gotoCentre();
 		}
 	}
 }, { deep: true });
@@ -119,7 +117,7 @@ onMounted(async () => {
         forceHiDPI: props.forceHidpi || false,
         showDashboard: props.showDashboard || false,
         liteMode: props.liteMode || false,
-    }
+    };
     const mapPlugins = props.plugin || [];
 
     map = new bingMaps(container.value, mapOptions, mapPlugins as MapPluginConstructor<bingMaps>[]);
@@ -142,7 +140,7 @@ onMounted(async () => {
             clearInterval(initCentre);
             const geoLocation = GeoLocation.UpdateService.getPresent();
             centre.value = new Microsoft.Maps.Location(geoLocation.latitude, geoLocation.longitude);
-            map?.setView({ centre: centre.value })
+            map?.setView({ centre: centre.value });
         }
     });
 

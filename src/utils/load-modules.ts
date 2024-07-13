@@ -16,7 +16,7 @@ export const messageFormat = {
     "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${args[1]}`,
     "dependenciesReady": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies are ready`,
     "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${args[1]}`
-}
+};
 
 /**
  * Loads modules from the library based on the specified module name and its dependencies

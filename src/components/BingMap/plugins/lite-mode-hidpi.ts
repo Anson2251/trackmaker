@@ -45,7 +45,7 @@ export class BingMapPlugin_LiteModeHiDPI implements MapPlugin<BingMapBackend> {
             const element = document.createElement("style");
             element.id = styleElementID;
             document.head.appendChild(element);
-            return element
+            return element;
         })();
         styleElement.innerHTML = `
             #${containerID} > div {
@@ -59,7 +59,7 @@ export class BingMapPlugin_LiteModeHiDPI implements MapPlugin<BingMapBackend> {
             }
         `;
         return styleElementID;
-    }
+    };
 
     private disableLiteForceHiDPI() {
         const styleElementID = `${this.containerID}-force-hidpi-style-support`;

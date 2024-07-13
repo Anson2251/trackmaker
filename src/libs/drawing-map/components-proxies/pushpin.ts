@@ -45,7 +45,7 @@ export class PushPinProxy extends DrawingComponentProxy<PushpinProperties> {
         return {
             latitude: nativeLocation.latitude,
             longitude: nativeLocation.longitude,
-        }
+        };
     }
 
     /**
@@ -62,7 +62,7 @@ export class PushPinProxy extends DrawingComponentProxy<PushpinProperties> {
                 coordinates: [location.longitude, location.latitude],
             },
             properties: this.properties,
-        }
+        };
     }
 }
 

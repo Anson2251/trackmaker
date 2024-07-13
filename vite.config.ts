@@ -1,7 +1,7 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
 import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 import { ObfuscatorOptions } from "javascript-obfuscator";
 import viteCompression from 'vite-plugin-compression';
@@ -81,11 +81,11 @@ const obfuscatorConfig: ObfuscatorOptions  = {
 	target: 'browser',
 	transformObjectKeys: true,
 	unicodeEscapeSequence: true
-}
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-	let bingMapsKey = process.env.BING_MAPS_KEY || ""
+	let bingMapsKey = process.env.BING_MAPS_KEY || "";
 	const credentialsConfigPath = process.env.CREDENTIALS_CONFIG_PATH || "credentials-config.json";
 
 	if (!bingMapsKey) {
@@ -129,5 +129,5 @@ export default defineConfig(async () => {
 			chunkSizeWarningLimit: 2000,
 			outDir: "dist/trackmaker",
 		},
-	}
-})
+	};
+});

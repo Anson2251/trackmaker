@@ -150,7 +150,7 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
             if (isUndo) this.undo();
             if (isRedo) this.redo();
             if (e.key === "Escape") this.escape();
-        })
+        });
     }
 
     /**
@@ -160,7 +160,7 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
     private executeHandler(type: string) {
         this.handlers.forEach((i) => {
             if (i.type === type) i.handler();
-        })
+        });
     }
 
     /**
@@ -228,7 +228,7 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
         }
 
         const components = this.backend!.getClassifiedProxyComponents();
-        const sketch = ComponentProxyConversion.exportComponentsToCartoSketch(components.routes, components.drafts, this.sketchID, this.sketchName)
+        const sketch = ComponentProxyConversion.exportComponentsToCartoSketch(components.routes, components.drafts, this.sketchID, this.sketchName);
         await sketch.save();
     }
 }

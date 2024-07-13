@@ -47,8 +47,8 @@ export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBack
                 : 0
         );
 
-        this.properties.nativeHandlers.push({handler: handler, id: id, type: type})
-        this.map.on(type, handler)
+        this.properties.nativeHandlers.push({handler: handler, id: id, type: type});
+        this.map.on(type, handler);
     }
 
     removeNativeHandler(id: any) {

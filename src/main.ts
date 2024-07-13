@@ -1,13 +1,13 @@
-import './assets/main.css'
+import './assets/main.css';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import router from './router';
 
-import { loadModules } from './utils/load-modules'
-import { modules } from './configs'
+import { loadModules } from './utils/load-modules';
+import { modules } from './configs';
 
 const app = createApp(App);
 app.use(createPinia());
@@ -23,12 +23,12 @@ loadModules(modules, "trackmaker", 30000).then(() => {
         const trackback = msg.split("Trackback").map(s => s.replace(/((^:\s*)|(,\s*$))/g, ""));
         console.table(trackback.map(t => ({Trackback: t})), ["Trackback"]);
         document.getElementById("splash")?.remove();
-        document.getElementById("timeout")!.style.display = "flex"
+        document.getElementById("timeout")!.style.display = "flex";
     }
     else{
         document.getElementById("splash")?.remove();
-        document.getElementById("error-msg")!.innerHTML = msg
-        document.getElementById("loading-error")!.style.display = "flex"
+        document.getElementById("error-msg")!.innerHTML = msg;
+        document.getElementById("loading-error")!.style.display = "flex";
     }
 });
 

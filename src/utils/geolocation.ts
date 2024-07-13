@@ -36,25 +36,25 @@ export function clonePoint<T>(point: T): T {
 export namespace Conversion {
     export function wgs2gcj(location: GeographicPoint): GeographicPoint {
         const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
-        return {longitude: converted[0], latitude: converted[1]}
+        return {longitude: converted[0], latitude: converted[1]};
     }
 
     export function geographicPoint2geojsonPoint(location: GeographicPoint): GeoJSONPoint {
         return {
             type: "Point",
             coordinates: [location.longitude, location.latitude]
-        }
+        };
     }
 
     export function geographicPoint2LngLatPoint(location: GeographicPoint): [number, number] {
-        return [location.longitude, location.latitude]
+        return [location.longitude, location.latitude];
     }
 
     export function geojsonPoint2geographicPoint(location: GeoJSONPoint): GeographicPoint {
         return {
             longitude: location.coordinates[0],
             latitude: location.coordinates[1]
-        }
+        };
     }
 }
 
@@ -81,14 +81,14 @@ export namespace UpdateService {
             updateServiceUpdating = false;
             doCallbacks();
             updateServiceStarted = true;
-        }
+        };
 
         const errorCallback = (error: GeolocationPositionError) => {
             console.error("Error: " + error.message);
             updateServiceUpdating = false;
-        }
+        };
 
-        const options: PositionOptions = {enableHighAccuracy: true}
+        const options: PositionOptions = {enableHighAccuracy: true};
 
         // for the initial value
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);

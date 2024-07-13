@@ -45,7 +45,7 @@ export function importComponentFromCartoSketchDraftItem(item: CartoSketchDraftIt
                 title: (item.name as string) || "",
                 subTitle:  "",
                 visible: true,
-            }, item.properties)
+            }, item.properties);
             return new PushpinProxy([point], properties, item.id, item.name);
         }
         case "LineString": {
@@ -103,7 +103,7 @@ export function importComponentsFromCartoSketch(sketch: CartoSketch): {routes: P
     return {
         routes: importRouteFromCartoSketchRoute(sketch.routes),
         drafts: importComponentsFromCartoSketchDraft(sketch.drafts),
-    }
+    };
 }
 
 // ======= EXPORT FROM PROXIES =======
@@ -113,7 +113,7 @@ export function exportComponentToCartoSketchDraftItem(component: ComponentProxie
     const shape = {
         type: component.type as "Point" | "LineString" | "Polygon",
         coordinates: component.coordinates.map(p => [p.longitude, p.latitude] as [number, number]),
-    }
+    };
 
     switch (component.type) {
         case "Polygon": {

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-/// <reference path="../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 import { ref } from 'vue';
 import { useOsTheme } from "naive-ui";
 import BingMap from '@/components/BingMap/BingMap.vue';

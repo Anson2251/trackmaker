@@ -8,7 +8,7 @@ export const plugins = [
 	BingMapPlugin_PushPins,
 	BingMapPlugin_CustomizedTouchpadBehavior,
 	BingMapPlugin_LiteModeHiDPI
-]
+];
 
 export type MapWithPlugins = {
     plugins: {

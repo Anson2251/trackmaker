@@ -31,6 +31,6 @@ const router = createRouter({
       // use () => import() to lazy load this page
     }
   ]
-})
+});
 
-export default router
+export default router;

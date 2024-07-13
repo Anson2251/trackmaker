@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { NList, NListItem, NIcon, NButton } from 'naive-ui';
 
-import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5'
+import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5';
 
 const props = defineProps({
     list: {
         type: Array<{name: string, id: string}>,
         default: () => []
     }
-})
+});
 
-const emit = defineEmits(['select', 'remove'])
+const emit = defineEmits(['select', 'remove']);
 
 function select(id: string) {
-    emit('select', id)
+    emit('select', id);
 }
 
 function remove(id: string) {

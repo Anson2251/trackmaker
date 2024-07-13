@@ -40,7 +40,7 @@ export class CartoSketchDraft {
         return {
             type: "FeatureCollection",
             features: this.drafts.map((draft) => draft.exportAsGeoJSON())
-        }
+        };
     }
 
     exportToStorage(): GeographicDraftType {
@@ -48,17 +48,17 @@ export class CartoSketchDraft {
             id: this.id,
             name: this.name,
             drafts: this.drafts.map((draft) => draft.exportToStorage())
-        }
+        };
     }
 }
 
 export namespace CartoSketchDraft {
     export function create(name: string, drafts: CartoSketchDraftItem[] = [], id = uuidV4()): CartoSketchDraft {
-        return new CartoSketchDraft(name, drafts, id)
+        return new CartoSketchDraft(name, drafts, id);
     }
 
     export function createItem(name: string, id = uuidV4(), shape: GeographicShape, properties: GeographicDraftItemProperties = {}): CartoSketchDraftItem {
-        return new CartoSketchDraftItem(name, shape, id, properties)
+        return new CartoSketchDraftItem(name, shape, id, properties);
     }
 
     /**
@@ -90,12 +90,12 @@ export namespace CartoSketchDraft {
             strokeThickness: geojson.properties.strokeThickness || 1,
             icon: geojson.properties.icon || "",
             visible: geojson.properties.visible || true,
-        }
+        };
 
         const shape: GeographicShape = {
             type: type as SupportedShapeType,
             coordinates: coordinates,
-        }
+        };
 
         return new CartoSketchDraftItem(name || title, shape, id, properties);
     }
@@ -161,7 +161,7 @@ export class CartoSketchDraftItem {
             type: "Feature",
             properties: Object.assign({}, this.properties, {name: this.name, id: this.id}),
             geometry: this.shape
-        }
+        };
     }
 
     exportToStorage(): GeographicDraftItemType {
@@ -170,7 +170,7 @@ export class CartoSketchDraftItem {
             id: this.id,
             properties: this.properties,
             shape: this.shape
-        }
+        };
     }
 }
 

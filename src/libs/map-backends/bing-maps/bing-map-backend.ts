@@ -1,5 +1,3 @@
-/// <reference path="../../../types/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-
 import MapBackend, {type DefaultOptionTypes, allocateMapID} from "@/libs/map-backends/backend";
 import type { GeographicPoint } from "@/utils/geolocation";
 import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
@@ -104,7 +102,7 @@ export async function initMapScript(timeout = 10000, scriptURL = "https://www.bi
                 (window as any).LoadedBingMapScripts = true;
                 (window as any)[callbackName] = null;
                 resolve();
-            }
+            };
         }
     });
 

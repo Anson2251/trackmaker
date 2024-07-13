@@ -20,11 +20,11 @@ const selectedComponentID = ref<string | undefined>(props.value);
 
 watch(selectedComponentID, () => {
     emit('update:value', selectedComponentID.value);
-})
+});
 
 watch(props, () => {
-    selectedComponentID.value = props.value
-})
+    selectedComponentID.value = props.value;
+});
 </script>
 
 <template>

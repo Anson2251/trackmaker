@@ -22,7 +22,7 @@ export class BidirectionalMap<T, U> {
         data.forEach((i) => {
             this.forwardMap.set(i.key1, i.key2);
             this.backwardMap.set(i.key2, i.key1);
-        })
+        });
     }
 
     /**

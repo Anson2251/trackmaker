@@ -100,7 +100,7 @@ const optionDB: Record<string, OptionInfo> = {
 			]
 		}
 	}
-}
+};
 
 interface Props {
 	componentID: string,
@@ -123,25 +123,25 @@ const getConfigItems = () => {
 			default: optionDB[key].default,
 			model: ref<supportedDataType>(props.properties[key as keyof Props["properties"]] || optionDB[key].default),
 			data: optionDB[key].data
-		}
-	})
-}
+		};
+	});
+};
 
-console.log(props)
+console.log(props);
 propertiesEditview = computed(() => {
-	console.log(props)
-	return getConfigItems()
-})
+	console.log(props);
+	return getConfigItems();
+});
 
 getConfigItems();
 
 watch(propertiesEditview, () => {
 	const property: any = {};
 	Object.keys(props.properties).forEach(key => {
-		property[key] = propertiesEditview.value.find(p => p.name === key)?.model.value
+		property[key] = propertiesEditview.value.find(p => p.name === key)?.model.value;
 	});
-	emit('updateProperties', property)
-}, {deep: true})
+	emit('updateProperties', property);
+}, {deep: true});
 </script>
 
 <template>

@@ -49,7 +49,7 @@ export class CartoSketch {
             name: this.name,
             routes: this.routes.exportToStorage(),
             drafts: this.drafts.exportToStorage()
-        }
+        };
     }
 
     exportAsGeoJSON(): GeographicSketchGeoJSON {
@@ -60,7 +60,7 @@ export class CartoSketch {
         return {
             type: "FeatureCollection",
             features: features
-        }
+        };
     }
 
     async save() {
@@ -239,7 +239,7 @@ export namespace CartoSketch {
             storage.setItem(id, data)
                 .then(() => resolve())
                 .catch(err => reject(err));
-        })
+        });
     }
 
     /**
@@ -253,7 +253,7 @@ export namespace CartoSketch {
             storage.removeItem(id)
                 .then(() => resolve())
                 .catch(err => reject(err));
-        })
+        });
     }
 }
 

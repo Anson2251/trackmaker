@@ -36,7 +36,7 @@ export class CartoSketchRoute {
         return {
             type: "FeatureCollection",
             features: this.routes.map((route) => route.exportAsGeoJSON())
-        }
+        };
     }
 
     exportToStorage(): GeographicRouteType {
@@ -44,7 +44,7 @@ export class CartoSketchRoute {
             id: this.id,
             name: this.name,
             routes: this.routes.map((route) => route.exportToStorage())
-        }
+        };
     }
 }
 
@@ -156,7 +156,7 @@ export class CartoSketchRouteItem {
             id: this.id,
             properties: this.properties,
             points: this.points
-        }
+        };
     }
 }
 

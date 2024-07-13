@@ -20,13 +20,13 @@ export class BingMapPlugin_CustomizedTouchpadBehavior implements MapPlugin<BingM
         this.host.map.setOptions({ disableScrollWheelZoom: true });
         this.behaviour = useCustomizedTouchpadBehavior(this.host, (location: Microsoft.Maps.Location, zoom: number) => {
             this.host.setView({ centre: location, zoom: zoom });
-        })
-        this.host.container.addEventListener("wheel", this.behaviour, { passive: false })
+        });
+        this.host.container.addEventListener("wheel", this.behaviour, { passive: false });
         return true;
     }
     unmount(): boolean {
         this.host.map.setOptions({ disableScrollWheelZoom: false });
-        if(this.behaviour) this.host.container.removeEventListener("wheel", this.behaviour)
+        if(this.behaviour) this.host.container.removeEventListener("wheel", this.behaviour);
         return true;
     }
 }
@@ -40,7 +40,7 @@ export class BingMapPlugin_CustomizedTouchpadBehavior implements MapPlugin<BingM
 export function useCustomizedTouchpadBehavior(map: BingMapBackend, onMove: (location: Microsoft.Maps.Location, zoom: number) => void) {
     // translate factor for each zoom level
     const screenFactor = map.properties.liteModeForceHiDPI ? window.devicePixelRatio : 1;
-    const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01]
+    const zoomFactor = [5000, 2500, 1000, 500, 250, 200, 100, 50, 25, 10, 5, 2, 1, 0.4, 0.25, 0.20, 0.15, 0.12, 0.05, 0.025, 0.01];
 
     return (e: WheelEvent) => {
         inputDevicePreferences.updateDeivceType(e);
