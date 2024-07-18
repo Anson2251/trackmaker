@@ -133,8 +133,6 @@ onMounted(async () => {
         viewCentre.value.longitude = newMap.map.getCenter().longitude;
     }, false);
 
-	(window as any).map = map;
-
     const initCentre = setInterval(() => {
         if (GeoLocation.UpdateService.isStarted() && !GeoLocation.UpdateService.isUpdating()) {
             clearInterval(initCentre);
