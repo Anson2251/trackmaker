@@ -13,8 +13,6 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     manager: Microsoft.Maps.DrawingManager | undefined;
     handler: DrawingEventHandler[] = [];
 
-    previousPrimitives: Set<number> = new Set();
-
     constructor(parentMap: BingMapBackend) {
         this.host = parentMap;
         if (!this.host.map.getOptions().liteMode) console.warn("Drawing tools are recommended in lite mode, for the performance concern");
@@ -75,11 +73,11 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     private onChange() {
         if (!this.manager) return;
 
-        const primitives = this.manager.getPrimitives();
-        const newPrimitives = primitives.filter((p) => !this.previousPrimitives.has((p as any).id));
-        const deletedPrimitives = Array.from(this.previousPrimitives).filter((id) => !primitives.some((p) => (p as any).id === id));
+        // const primitives = this.manager.getPrimitives();
+        // const newPrimitives = primitives.filter((p) => !this.previousPrimitives.has((p as any).id));
+        // const deletedPrimitives = Array.from(this.previousPrimitives).filter((id) => !primitives.some((p) => (p as any).id === id));
 
-        this.executeHandler("drawingChanged", newPrimitives, deletedPrimitives);
+        this.executeHandler("drawingChanged");
     }
 
     stopDrawing() {
@@ -95,11 +93,22 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     }
 
     getPrimitiveByID(id: number) {
-        return this.manager?.getPrimitives().find((p) => (p as any).id === id);
+        if(!this.manager) return undefined;
+
+        return this.getAllPrimitives()!.find((p) => (p as any).id === id);
     }
 
     getPrimitiveID(primitive: Microsoft.Maps.IPrimitive) {
-        return (primitive as any).id;
+        return (primitive as any).id as number;
+    }
+
+    getAllPrimitives() {
+        return this.manager?.getPrimitives();
+    }
+
+    getAllPrimitiveIDs() {
+        if(!this.manager) return [];
+        return this.manager.getPrimitives().map((p) => this.getPrimitiveID(p));
     }
 
     clear() {

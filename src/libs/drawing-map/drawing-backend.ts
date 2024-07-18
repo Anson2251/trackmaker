@@ -11,27 +11,13 @@ type ComponentProperties = PolygonProperties | PushpinProperties | PolylinePrope
 // type ComponentProperties = any;
 export type HistoryPiece = { type: string, data: any };
 type BackendHandlerType<T extends MapBackend<any, any>> = { type: string; id: number, handler: (backend: DrawingMapBackend<T>) => void };
-export type PrimitiveClassification = "route" | "draft" | "unknown";
+export type componentClassification = "route" | "draft" | "unknown";
 
 
-/**
- * Interface that represents a classification of components.
- *
- * It categorizes components into three categories: routes, drafts, and unknowns.
- * Each category is represented as an array of `ComponentMeta` objects.
- */
+/** It categorizes components into three categories: routes, drafts, and unknowns. */
 export interface ClassifiedComponentMeta {
-    /**
-     * An array of `ComponentMeta` objects representing the routes.
-     */
     routes: ComponentMeta[],
-    /**
-     * An array of `ComponentMeta` objects representing the drafts.
-     */
     drafts: ComponentMeta[],
-    /**
-     * An array of `ComponentMeta` objects representing the unknown components.
-     */
     unknowns: ComponentMeta[]
 }
 
@@ -43,44 +29,29 @@ export interface ClassifiedComponentMeta {
  * the properties of the component (`properties`), and the classification of the component (`className`).
  */
 export type ComponentMeta = {
-    /**
-     * The unique identifier of the component.
-     */
     id: string,
-    /**
-     * The name of the component.
-     */
     name: string,
-    /**
-     * The type of the component.
-     */
     type: string,
-    /**
-     * The properties of the component.
-     *
-     * The properties are represented as a record where the keys are strings and the values can be
-     * strings, numbers, or booleans.
-     */
     properties: Record<string, string | number | boolean>,
-    /**
-     * The classification of the component.
-     *
-     * The classification can be one of the following: "route", "draft", or "unknown".
-     */
-    className: PrimitiveClassification
+    /** The classification can be one of the following: "route", "draft", or "unknown". */
+    className: componentClassification
 }
 
 export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>> {
     private history: (HistoryPiece[])[] = [];
+    /** The host map instance. */
     hostMap: HostMapType;
+    /** The handlers in the backend. */
     handlers: BackendHandlerType<HostMapType>[] = [];
     name: string | undefined;
     id: string | undefined;
 
-    primitiveProxyLayer = new Map<string, DrawingComponentProxy<ComponentProperties>>();
-    primitiveClassification = new Map<string, PrimitiveClassification>();
+    /** The proxy layer of components, links ids with the components */
+    componentLibrary = new Map<string, DrawingComponentProxy<ComponentProperties>>();
+    componentClassification = new Map<string, componentClassification>();
 
-    private previousComponents: DrawingComponentProxy<ComponentProperties>[] = [];
+    previousComponentIDs: Set<string> = new Set();
+    shownComponentIDs: Set<string> = new Set();
 
     /**
      * Constructor for the DrawingMapBackend class.
@@ -92,18 +63,19 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
         this.hostMap = hostMap;
 
         // Add a change handler to the backend
-        this.addHandler("change", () => {
-            // Get the primitives from the primitive proxy layer
-            const primitives = Array.from(this.primitiveProxyLayer).map(e => e[1]);
+        // this.addHandler("change", () => {
+        //     // Get the primitives from the primitive proxy layer
+        //     const components = Array.from(this.componentProxyLayer).map(e => e[1]);
+        //     console.log("change", this.getShownComponentIDs(), components);
             
-            // For each primitive, register it if it is not already classified
-            primitives.forEach(p => {
-                if(!this.primitiveClassification.has(p.id)) this.registerPrimitive(p);
-            });
+        //     // For each primitive, register it if it is not already classified
+        //     components.forEach(p => {
+        //         if(!this.componentClassification.has(p.id)) this.registerPrimitive(p);
+        //     });
             
-            // Generate a history of show and hide actions
-            this.generateShowHideHistory().forEach(p => this.addHistory(p.type, p.data));
-        });
+        //     // Generate a history of show and hide actions
+        //     this.generateShowHideHistory().forEach(p => this.addHistory(p.type, p.data));
+        // });
 
         // // Add a ready handler to the drawing tools plugin
         // (this.hostMap as any).plugins.drawingTools.addHandler("ready", () => {
@@ -124,8 +96,30 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
             });
     }
 
-    abstract startSyncComponents(): void;
+    /** Add the hook for synchronising components between the abstract backend and the implementation */
+    startSyncComponents() {
+        this.addHandler("change", () => {
+            try {
+            this.syncFromMapToBackend();
+            this.syncFromBackendToMap();
+            }
+            catch (e) {
+                console.error("Fail to sync components, reason: \na", e);
+            }
+        });
+    }
 
+    /** Sync components from the abstract backend to the drawing map implementation */
+    abstract syncFromMapToBackend(): void;
+    /** Sync components from the drawing map implementation to the abstract backend */
+    abstract syncFromBackendToMap(): void;
+
+    /** Convert a proxy component to a native primitive */
+    abstract convertProxyComponentToNativePrimitive(component: DrawingComponentProxy<ComponentProperties>): any;
+    /** Convert a native primitive to a proxy component */
+    abstract convertNativePrimitiveToProxyComponent(primitive: any): DrawingComponentProxy<ComponentProperties>;
+
+    /** Initialise the backend */
     abstract initialiseBackend(): Promise<void>
 
     /**
@@ -155,35 +149,23 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
         });
     }
 
-    abstract removeProxyPrimitiveFromMap(primitive: DrawingComponentProxy<ComponentProperties>): void
-
-    abstract addProxyPrimitiveToMap(primitive: DrawingComponentProxy<ComponentProperties>): void
-
-    abstract linkNewNativePrimitive(primitive: Microsoft.Maps.IPrimitive): void
-
     /**
      * Show a primitive by its ID
      * @param id The ID of the primitive
      * @param silent Whether to trigger the change handler
      */
     showByID(id: string, silent = false) {
-        const component = this.primitiveProxyLayer.get(id);
-        if (component) {
-            this.addProxyPrimitiveToMap(component);
-            if (!silent) this.executeHandler("change");
-        } else {
-            throw new Error(`No corresponding primitive found by id: ${id}`);
-        }
+        this.shownComponentIDs.add(id);
+        if (!silent) this.executeHandler("change");
     }
 
     /**
      * Show a primitive
-     * @param primitive The primitive to show
+     * @param component The primitive to show
      * @param silent Whether to trigger the change handler
      */
-    show(primitive: DrawingComponentProxy<ComponentProperties>, silent = false) {
-        this.addProxyPrimitiveToMap(primitive);
-        if (!silent) this.executeHandler("change");
+    show(component: DrawingComponentProxy<ComponentProperties>, silent = false) {
+        this.showByID(component.id, silent);
     }
 
     /**
@@ -192,43 +174,29 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @param [silent=false] - Whether to trigger the change handler
      */
     hideByID(id: string, silent = false) {
-        const component = this.primitiveProxyLayer.get(id);
-        if (component) {
-            this.removeProxyPrimitiveFromMap(component);
-            if (!silent) this.executeHandler("change");
-        } else {
-            throw new Error(`No corresponding primitive found by id: ${id}`);
-        }
+        this.shownComponentIDs.delete(id);
+        if (!silent) this.executeHandler("change");
     }
 
     /**
      * Hide a primitive
-     * @param primitive The primitive to hide
+     * @param component The primitive to hide
      * @param [silent=false] Whether to trigger the change handler
 +     */
-    hide(primitive: DrawingComponentProxy<ComponentProperties>, silent = false) {
-        this.removeProxyPrimitiveFromMap(primitive);
-        if (!silent) this.executeHandler("change");
+    hide(component: DrawingComponentProxy<ComponentProperties>, silent = false) {
+        this.hideByID(component.id, silent);
     }
 
     abstract getShownComponentIDs(): string[]
 
     /**
-     * Get the shown components
-     * @returns The shown components
-     */
-    getShownComponents(): DrawingComponentProxy<ComponentProperties>[] {
-        return this.getShownComponentIDs().map(id => this.primitiveProxyLayer.get(id)!);
-    }
-
-    /**
      * Add a primitive to the proxy layer with a given className
-     * @param primitive - The primitive to add
+     * @param component - The primitive to add
      * @param [className="unknown"] - The className of the primitive
      */
-    addProxyPrimitive(primitive: DrawingComponentProxy<ComponentProperties>, className: PrimitiveClassification = "unknown") {
-        this.registerPrimitive(primitive, className);
-        this.primitiveProxyLayer.set(primitive.id, primitive);
+    add(component: DrawingComponentProxy<ComponentProperties>, className: componentClassification = "unknown") {
+        this.componentLibrary.set(component.id, component);
+        this.registerPrimitive(component, className);
     }
 
     /**
@@ -236,12 +204,13 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @param primitive - The primitive to delete
      * @param [silent=false] - Whether to trigger the change handler
      */
-    deleteProxyPrimitive(primitive: DrawingComponentProxy<ComponentProperties>, silent = false): void {
+    remove(primitive: DrawingComponentProxy<ComponentProperties>, silent = false): void {
         try {
             this.hide(primitive);
         } finally {
-            this.primitiveProxyLayer.delete(primitive.id);
-            this.removeProxyPrimitiveFromMap(primitive);
+            this.componentLibrary.delete(primitive.id);
+            this.componentClassification.delete(primitive.id);
+            this.componentLibrary.delete(primitive.id);
             if (!silent) this.executeHandler("change");
         }
     }
@@ -261,18 +230,14 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @returns An array of history entries, or null if no changes have been made.
      */
     private generateShowHideHistory(): HistoryPiece[] {
-        const latestComponents: DrawingComponentProxy<ComponentProperties>[] = this.getShownComponents();
-        const newComponents: DrawingComponentProxy<ComponentProperties>[] = diff(latestComponents, this.previousComponents);
-        const removedComponents: DrawingComponentProxy<ComponentProperties>[] = diff(this.previousComponents, latestComponents);
-
-        console.log(latestComponents,this.previousComponents, newComponents, removedComponents);
+        const newComponents = diff(this.shownComponentIDs, this.previousComponentIDs);
+        const removedComponents = diff(this.previousComponentIDs, this.shownComponentIDs);
 
         const action: HistoryPiece[] = [];
         if(newComponents.length > 0) action.push({type: "show", data: newComponents});
         if(removedComponents.length > 0) action.push({type: "delete", data: removedComponents});
 
-        console.log(action);
-        this.previousComponents = this.getShownComponents();
+        this.previousComponentIDs = new Set(JSON.parse(JSON.stringify(Array.from(this.shownComponentIDs))) as string[]);
         return action;
     }
 
@@ -389,9 +354,9 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     abstract escape(): void;
 
     /** Go into edit mode for a specific component
-     * @param component
+     * @param primitive
      */
-    abstract editComponent(component: DrawingComponentProxy<ComponentProperties>): void;
+    abstract editPrimitive(primitive: DrawingComponentProxy<ComponentProperties>): void;
 
     /** Clear all components */
     abstract clear(): void;
@@ -401,10 +366,10 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @param id - The ID of the component
      * @throws {Error} - If no corresponding primitive is found by the given ID
      */
-    edit(id: string): void {
-        const component: DrawingComponentProxy<ComponentProperties> | undefined = this.primitiveProxyLayer.get(id);
+    editComponent(id: string): void {
+        const component: DrawingComponentProxy<ComponentProperties> | undefined = this.componentLibrary.get(id);
         if (component) {
-            this.editComponent(component);
+            this.editPrimitive(component);
         } else {
             throw new Error(`No corresponding primitive found by id: ${id}`);
         }
@@ -412,21 +377,21 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
 
     /**
      * Get the metadata of a drawing component by its primitive
-     * @param primitive - The primitive of the component
+     * @param component - The primitive of the component
      * @returns The metadata of the component
      */
-    getPrimitiveMeta(primitive: DrawingComponentProxy<ComponentProperties>): ComponentMeta {
+    getComponentMeta(component: DrawingComponentProxy<ComponentProperties>): ComponentMeta {
         return {
             /** The unique identifier of the component */
-            id: primitive.id,
+            id: component.id,
             /** The classification of the component */
-            className: this.primitiveClassification.get(primitive.id) || "unknown",
+            className: this.componentClassification.get(component.id) || "unknown",
             /** The name of the component */
-            name: primitive.name,
+            name: component.name,
             /** The type of the component */
-            type: primitive.type,
+            type: component.type,
             /** The properties of the component */
-            properties: primitive.properties
+            properties: component.properties
         };
     }
 
@@ -435,29 +400,24 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
      * @param primitive - The primitive to register
      * @param className - The classification of the primitive. Default to "unknown" if not provided.
      */
-    registerPrimitive(primitive: DrawingComponentProxy<ComponentProperties>, className?: PrimitiveClassification): void {
-        this.primitiveClassification.set(primitive.id, className || "unknown");
+    registerPrimitive(primitive: DrawingComponentProxy<ComponentProperties>, className?: componentClassification): void {
+        this.componentClassification.set(primitive.id, className || "unknown");
     }
 
-    /**
-     * Get the metadata of drawing components categorized by their classifications
-     * @returns An object containing arrays of metadata of drawing components categorized by their classifications
-     *          Each classification is a key in the object, and the corresponding value is an array of metadata of components
-     *          of that classification.
-     */
+    /** Get the metadata of drawing components categorized by their classifications */
     getClassificationInfo(): ClassifiedComponentMeta {
         /** The array of primitives */
-        const primitives = Array.from(this.primitiveProxyLayer).map(e => e[1]);
+        const primitives = Array.from(this.componentLibrary).map(e => e[1]);
 
         /**
          * Get the metadata of drawing components of a specific classification
          * @param className - The classification of the components
          * @returns An array of metadata of drawing components of the specified classification
          */
-        const getMeta = (className: PrimitiveClassification): ComponentMeta[] => {
+        const getMeta = (className: componentClassification): ComponentMeta[] => {
             return primitives
-                .filter((p) => this.getPrimitiveMeta(p).className === className)
-                .map((p) => this.getPrimitiveMeta(p));
+                .filter((p) => this.getComponentMeta(p).className === className)
+                .map((p) => this.getComponentMeta(p));
         };
 
         return {
@@ -470,12 +430,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
         };
     }
 
-    /**
-     * Get the drawing components categorized by their classifications
-     * @returns An object containing arrays of drawing components categorized by their classifications
-     *          Each classification is a key in the object, and the corresponding value is an array of components
-     *          of that classification.
-     */
+    /** Get the drawing components categorized by their classifications */
     getClassifiedProxyComponents(): {
         /** The routes of drawing components */
         routes: PolylineProxy[];
@@ -484,11 +439,11 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
         /** The unknowns of drawing components */
         unknowns: DrawingComponentProxy<ComponentProperties>[];
     } {
-        const primitives = Array.from(this.primitiveProxyLayer).map(e => e[1]);
+        const primitives = Array.from(this.componentLibrary).map(e => e[1]);
         return {
-            routes: primitives.filter((p) => this.getPrimitiveMeta(p).className === "route") as PolylineProxy[],
-            drafts: primitives.filter((p) => this.getPrimitiveMeta(p).className === "draft") as (PolygonProxy | PolylineProxy | PushpinProxy)[],
-            unknowns: primitives.filter((p) => this.getPrimitiveMeta(p).className === "unknown")
+            routes: primitives.filter((p) => this.getComponentMeta(p).className === "route") as PolylineProxy[],
+            drafts: primitives.filter((p) => this.getComponentMeta(p).className === "draft") as (PolygonProxy | PolylineProxy | PushpinProxy)[],
+            unknowns: primitives.filter((p) => this.getComponentMeta(p).className === "unknown")
         };
     }
 }
@@ -500,7 +455,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
  * @param list2 - The second list of elements.
  * @returns An array of elements in `list1` that are not present in `list2`.
  */
-function diff<T>(list1: T[], list2: Iterable<T>): T[] {
+function diff<T>(list1: Iterable<T>, list2: Iterable<T>): T[] {
     /**
      * A `Set` object that contains the elements of `list2`.
      */
@@ -508,7 +463,7 @@ function diff<T>(list1: T[], list2: Iterable<T>): T[] {
     /**
      * An array of elements in `list1` that are not present in `list2Set`.
      */
-    return list1.filter(x => !list2Set.has(x));
+    return Array.from(list1).filter((e) => !list2Set.has(e));
 }
 
 export default DrawingMapBackend;

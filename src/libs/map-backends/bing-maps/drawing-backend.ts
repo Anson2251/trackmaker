@@ -3,84 +3,89 @@ import BingMapBackend from "./bing-map-backend";
 
 import type BingMapPlugin_Drawing from "@/components/BingMap/plugins/drawing-map";
 import DrawingComponentProxy from "@/libs/drawing-map/components-proxies/component";
-import PolygonProxy, {type PolygonProperties} from "@/libs/drawing-map/components-proxies/polygon";
-import PushPinProxy, {type PushpinProperties} from "@/libs/drawing-map/components-proxies/pushpin";
-import PolylineProxy, {type PolylineProperties} from "@/libs/drawing-map/components-proxies/polyline";
+import PolygonProxy, { type PolygonProperties } from "@/libs/drawing-map/components-proxies/polygon";
+import PushPinProxy, { type PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
+import PolylineProxy, { type PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
 
 import BidirectionalMap from "@/utils/bidirectional-map";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 
-type DrawingBingMap = {
+interface DrawingBingMap extends BingMapBackend {
     plugins: {
         drawingTools: BingMapPlugin_Drawing
     }
-} & BingMapBackend;
+}
 
 export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
     primitiveComponentMap = new BidirectionalMap<number, string>();
+    previousPrimitiveIDs: number[] = [];
 
-    initialiseBackend(): Promise<void> {
-        if (this.hostMap.plugins.drawingTools.initialised) return Promise.resolve();
-        return new Promise((resolve) => {
-            this.hostMap.plugins.drawingTools.addHandler("ready", () => {
-                resolve();
+    syncFromMapToBackend(): void {
+        const latestPrimitivesIDs = this.hostMap.plugins.drawingTools.getAllPrimitiveIDs();
+        const newPrimitivesIDs = latestPrimitivesIDs.filter(id => !this.previousPrimitiveIDs.includes(id));
+        const deletedPrimitives = this.previousPrimitiveIDs.filter(id => !latestPrimitivesIDs.includes(id));
+
+        this.previousPrimitiveIDs = latestPrimitivesIDs;
+
+        console.log(newPrimitivesIDs, deletedPrimitives);
+
+        const addedComponentIDs: string[] = [];
+        if (newPrimitivesIDs) {
+            newPrimitivesIDs.forEach(id => {
+                const primitive = this.hostMap.plugins.drawingTools.getPrimitiveByID(id);
+                if (!primitive) return;
+
+                const component = this.convertNativePrimitiveToProxyComponent(primitive);
+
+                // add registration
+                this.add(component);
+                this.showByID(component.id, true);
+                addedComponentIDs.push(component.id);
+                this.primitiveComponentMap.set(id, component.id);
             });
-        });
-    }
+        }
 
-    escape(): void {
-        this.hostMap.plugins.drawingTools.stopDrawing();
-    }
+        const deletedComponentIDs: string[] = [];
+        if (deletedPrimitives) {
+            deletedPrimitives.forEach(id => {
+                const correspondingComponentID = this.primitiveComponentMap.getForward(id);
+                if (!correspondingComponentID) {
+                    console.error("correspondingComponentID not found");
+                    return;
+                }
 
-    addProxyPrimitiveToMap(component: DrawingComponentProxy<ComponentProperties>): void {
-        const primitive = BingMapDrawingBackend.convertProxyToBingMapPrimitives(component);
-        this.hostMap.plugins.drawingTools.manager?.add(primitive);
-        this.primitiveComponentMap.set(this.hostMap.plugins.drawingTools.getPrimitiveID(primitive), component.id);
-    }
+                const component = this.componentLibrary.get(correspondingComponentID)!;
 
-    clear(): void {
-        this.hostMap.plugins.drawingTools.clear();
-    }
-
-    editComponent(component: DrawingComponentProxy<ComponentProperties>): void {
-        const primitive = this.getPrimitiveFromComponent(component);
-        if (primitive === undefined) throw new Error(`Fail to find primitive with id ${component.id}`);
-        this.hostMap.plugins.drawingTools.edit(primitive);
-    }
-
-    getShownComponentIDs(): string[] {
-        return this.hostMap.plugins.drawingTools.manager?.getPrimitives().map((p: any) => {
-            const primitiveID = this.hostMap.plugins.drawingTools.getPrimitiveID(p);
-            const componentID = this.primitiveComponentMap.getForward(primitiveID);
-            if (componentID === undefined) throw new Error(`Fail to find component id with primitive id ${primitiveID}. (Internal Error)`);
-            return componentID;
-        }) || [];
-    }
-
-    removeProxyPrimitiveFromMap(component: DrawingComponentProxy<ComponentProperties>): void {
-        const primitive = this.getPrimitiveFromComponent(component);
-        if(primitive) this.hostMap.plugins.drawingTools.manager?.remove(primitive);
-    }
-
-    getPrimitiveFromComponent(component: DrawingComponentProxy<ComponentProperties>): Microsoft.Maps.IPrimitive | undefined {
-        const primitiveID = this.primitiveComponentMap.getBackward(component.id);
-        if (primitiveID === undefined) return undefined;
-        return this.hostMap.plugins.drawingTools.getPrimitiveByID(primitiveID);
-    }
-
-    startSyncComponents(): void {
-        const callback = (backend: any, newPrimitives: any, deletedPrimitives: any) => {
-            console.log(backend, newPrimitives, deletedPrimitives);
-            newPrimitives.forEach((p: any) => {
-                if(this.primitiveComponentMap.hasForward(Number((p as any).id)) === false) this.linkNewNativePrimitive(p);
+                // remove registration
+                this.hide(component, true);
+                this.remove(component);
+                deletedComponentIDs.push(correspondingComponentID);
+                this.primitiveComponentMap.removeForward(id);
             });
-            this.executeHandler("change");
-        };
-        this.hostMap.plugins.drawingTools.addHandler("drawingChanged", callback);
-    }
+        }
 
-    linkNewNativePrimitive(primitive: Microsoft.Maps.IPrimitive): void {
+        // TODO: add history record
+    }
+    syncFromBackendToMap(): void {
+        throw new Error("Method not implemented.");
+    }
+    convertProxyComponentToNativePrimitive(component: DrawingComponentProxy<PolygonProperties | PushpinProperties | PolylineProperties>): Microsoft.Maps.IPrimitive {
+        const className = component.type;
+        switch (className) {
+            case "pushpin": {
+                return BingMapDrawingBackend.convertPushPinProxyToPrimitive(component as PushPinProxy);
+            }
+            case "polyline": {
+                return BingMapDrawingBackend.convertPolylineProxyToPrimitive(component as PolylineProxy);
+            }
+            case "polygon": {
+                return BingMapDrawingBackend.convertPolygonProxyToPrimitive(component as PolygonProxy);
+            }
+        }
+        throw new Error(`Fail to convert component with class name "${className}"`);
+    }
+    convertNativePrimitiveToProxyComponent(primitive: Microsoft.Maps.IPrimitive): DrawingComponentProxy<PolygonProperties | PushpinProperties | PolylineProperties> {
         const className = this.getPrimitiveClass(primitive);
         let newComponent: any = null;
         switch (className) {
@@ -97,13 +102,64 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
                 break;
             }
         }
-        if (newComponent !== null) {
-            this.primitiveProxyLayer.set(newComponent.id, newComponent);
-            this.primitiveComponentMap.set((primitive as any).id as number, newComponent.id);
-        }
-        else{
-            console.error("Fail to link new native primitive, unknown primitive", primitive);
-        }
+        if (!newComponent) throw new Error(`Fail to convert primitive with class name "${className}"`);
+        return newComponent;
+    }
+
+    getShownComponentIDs(): string[] {
+        throw new Error("Method not implemented.");
+    }
+
+    escape(): void {
+        this.hostMap.plugins.drawingTools.stopDrawing();
+    }
+
+    initialiseBackend(): Promise<void> {
+        if (this.hostMap.plugins.drawingTools.initialised) return Promise.resolve();
+        return new Promise((resolve) => {
+            this.hostMap.plugins.drawingTools.addHandler("ready", () => {
+                this.hostMap.plugins.drawingTools.addHandler("drawingChanged", () => {
+                    this.executeHandler("change");
+                });
+                resolve();
+            });
+        });
+    }
+
+    // addProxyPrimitiveToMap(component: DrawingComponentProxy<ComponentProperties>): void {
+    //     const primitive = BingMapDrawingBackend.convertProxyToBingMapPrimitives(component);
+    //     this.hostMap.plugins.drawingTools.manager?.add(primitive);
+    //     this.primitiveComponentMap.set(this.hostMap.plugins.drawingTools.getPrimitiveID(primitive), component.id);
+    // }
+
+    clear(): void {
+        this.hostMap.plugins.drawingTools.clear();
+    }
+
+    editPrimitive(component: DrawingComponentProxy<ComponentProperties>): void {
+        const primitive = this.getPrimitiveFromComponent(component);
+        if (primitive === undefined) throw new Error(`Fail to find primitive with id ${component.id}`);
+        this.hostMap.plugins.drawingTools.edit(primitive);
+    }
+
+    // getShownComponentIDs(): string[] {
+    //     return this.hostMap.plugins.drawingTools.manager?.getPrimitives().map((p: any) => {
+    //         const primitiveID = this.hostMap.plugins.drawingTools.getPrimitiveID(p);
+    //         const componentID = this.primitiveComponentMap.getForward(primitiveID);
+    //         if (componentID === undefined) throw new Error(`Fail to find component id with primitive id ${primitiveID}. (Internal Error)`);
+    //         return componentID;
+    //     }) || [];
+    // }
+
+    // removeProxyPrimitiveFromMap(component: DrawingComponentProxy<ComponentProperties>): void {
+    //     const primitive = this.getPrimitiveFromComponent(component);
+    //     if(primitive) this.hostMap.plugins.drawingTools.manager?.remove(primitive);
+    // }
+
+    getPrimitiveFromComponent(component: DrawingComponentProxy<ComponentProperties>): Microsoft.Maps.IPrimitive | undefined {
+        const primitiveID = this.primitiveComponentMap.getBackward(component.id);
+        if (primitiveID === undefined) return undefined;
+        return this.hostMap.plugins.drawingTools.getPrimitiveByID(primitiveID);
     }
 
     private getPrimitiveClass(p: Microsoft.Maps.IPrimitive): string {
@@ -171,5 +227,17 @@ export namespace BingMapDrawingBackend {
             visible: (primitive as Microsoft.Maps.Polygon).getVisible(),
         };
         return new PolygonProxy(coordinates, properties);
+    }
+
+    export function convertPushPinProxyToPrimitive(proxy: PushPinProxy): Microsoft.Maps.Pushpin {
+        return new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(proxy.coordinates[0].latitude, proxy.coordinates[0].longitude), proxy.properties);
+    }
+
+    export function convertPolylineProxyToPrimitive(proxy: PolylineProxy): Microsoft.Maps.Polyline {
+        return new Microsoft.Maps.Polyline(proxy.coordinates.map(c => new Microsoft.Maps.Location(c.latitude, c.longitude)), proxy.properties);
+    }
+
+    export function convertPolygonProxyToPrimitive(proxy: PolygonProxy): Microsoft.Maps.Polygon {
+        return new Microsoft.Maps.Polygon(proxy.coordinates.map(c => new Microsoft.Maps.Location(c.latitude, c.longitude)), proxy.properties);
     }
 }

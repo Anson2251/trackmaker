@@ -124,7 +124,7 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
      */
     edit(id: string) {
         if(!this.checkBackendReady()) return;
-        this.backend!.edit(id);
+        this.backend!.editComponent(id);
     }
 
     /**
@@ -143,7 +143,8 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
         if(!this.checkBackendReady()) return;
         if(this.shortcutMounted) return;
         this.shortcutMounted = true;
-        document.addEventListener("keydown", (e) => {
+        document.addEventListener("keyup", (e) => {
+            console.log(e.key, e.ctrlKey, e.metaKey, e.shiftKey);
             const isUndo = (e.key === "z" && !e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));
             const isRedo = (e.key === "z" && e.shiftKey && ((e.ctrlKey && !isMac) || (e.metaKey && isMac)));
 
@@ -204,10 +205,10 @@ export class SketchEditAdapter<T extends MapBackend<any, any>> {
 
         const proxies = ComponentProxyConversion.importComponentsFromCartoSketch(sketch);
         proxies.routes.forEach((r) => {
-            this.backend!.addProxyPrimitive(r as any, "route");
+            this.backend!.add(r as any, "route");
         });
         proxies.drafts.forEach((d) => {
-            this.backend!.addProxyPrimitive(d as any, "draft");
+            this.backend!.add(d as any, "draft");
         });
 
         this.executeHandler("change");

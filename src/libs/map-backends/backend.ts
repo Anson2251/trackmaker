@@ -2,8 +2,8 @@ import * as GeoLocation from "@/utils/geolocation";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 export const allocateMapID = () => {
-    (window as any).MapCount = ((window as any).MapCount || -1) + 1;
-    return (window as any).MapCount;
+    window.MapCount = Number.isInteger(window.MapCount) ? window.MapCount + 1 : 0;
+    return window.MapCount;
 };
 
 /**
