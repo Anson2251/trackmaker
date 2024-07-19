@@ -114,11 +114,6 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
     /** Sync components from the drawing map implementation to the abstract backend */
     abstract syncFromBackendToMap(): void;
 
-    /** Convert a proxy component to a native primitive */
-    abstract convertProxyComponentToNativePrimitive(component: DrawingComponentProxy<ComponentProperties>): any;
-    /** Convert a native primitive to a proxy component */
-    abstract convertNativePrimitiveToProxyComponent(primitive: any): DrawingComponentProxy<ComponentProperties>;
-
     /** Initialise the backend */
     abstract initialiseBackend(): Promise<void>
 

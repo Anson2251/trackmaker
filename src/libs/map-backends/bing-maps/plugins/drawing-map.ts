@@ -1,4 +1,5 @@
 import type {MapPlugin} from "@/libs/map-backends/plugin";
+import { getPrimitiveID } from "../primitive-utils";
 import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 
 type DrawingEventHandler = { type: DrawingEventType, callback: (drawing: BingMapPlugin_Drawing, ...args: any) => void };
@@ -72,11 +73,6 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
 
     private onChange() {
         if (!this.manager) return;
-
-        // const primitives = this.manager.getPrimitives();
-        // const newPrimitives = primitives.filter((p) => !this.previousPrimitives.has((p as any).id));
-        // const deletedPrimitives = Array.from(this.previousPrimitives).filter((id) => !primitives.some((p) => (p as any).id === id));
-
         this.executeHandler("drawingChanged");
     }
 
@@ -98,17 +94,13 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
         return this.getAllPrimitives()!.find((p) => (p as any).id === id);
     }
 
-    getPrimitiveID(primitive: Microsoft.Maps.IPrimitive) {
-        return (primitive as any).id as number;
-    }
-
     getAllPrimitives() {
         return this.manager?.getPrimitives();
     }
 
     getAllPrimitiveIDs() {
         if(!this.manager) return [];
-        return this.manager.getPrimitives().map((p) => this.getPrimitiveID(p));
+        return this.manager.getPrimitives().map((p) => getPrimitiveID(p));
     }
 
     clear() {
