@@ -1,6 +1,6 @@
-import MapBackend, {type DefaultOptionTypes, allocateMapID} from "@/libs/map-backends/backend";
+import MapBackend, { type DefaultOptionTypes, allocateMapID } from "@/libs/map-backends/backend";
 import type { GeographicPoint } from "@/utils/geolocation";
-import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
+import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 export const allocateBingMapID = allocateMapID;
 
@@ -24,7 +24,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
         super(container, options, plugins as unknown as MapPluginConstructor<MapBackend<Microsoft.Maps.Map, BingMapOptions>>[]);
         // for the ugly assertion, I think there is no way around currently to tackle the type error in a more elegant way
     }
-    
+
     initialiseMap(options: BingMapOptions): Microsoft.Maps.Map {
         const map = new Microsoft.Maps.Map(this.container, {
             credentials: this.credentials,
@@ -40,7 +40,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
             mapTypeId: this.mapType
         });
 
-        if(options.forceHiDPI) this.properties.liteModeForceHiDPI = true;
+        if (options.forceHiDPI) this.properties.liteModeForceHiDPI = true;
 
         this.addEventHandler("ready", () => {
             if (this.plugins.pushPinLayer) {
@@ -71,7 +71,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
 
     removeNativeHandler(id: any) {
         Microsoft.Maps.Events.removeHandler(id as Microsoft.Maps.IHandlerId);
-    } 
+    }
 }
 
 /**
