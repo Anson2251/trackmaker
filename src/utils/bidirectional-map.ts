@@ -4,14 +4,10 @@
  * @template U The type of the values in the forward map.
  */
 export class BidirectionalMap<T, U> {
-    /**
-     * The forward map.
-     */
+    /** The forward map. */
     private forwardMap: Map<T, U> = new Map();
 
-    /**
-     * The backward map.
-     */
+    /** The backward map. */
     private backwardMap: Map<U, T> = new Map();
 
     /**

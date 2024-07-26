@@ -20,7 +20,7 @@ export function getPrimitiveID(primitive: Microsoft.Maps.IPrimitive): number {
  * @return {string} The class name of the primitive object.
  */
 export function getPrimitiveClass(p: Microsoft.Maps.IPrimitive): string {
-    return ((p as any).entity.id as string).split("_")[0].toLocaleLowerCase();
+    return ((p as any).entity.id as string).split("_")[0].toLowerCase();
 }
 
 /**

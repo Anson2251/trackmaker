@@ -91,7 +91,7 @@ export class BingMapPlugin_Drawing implements MapPlugin<BingMapBackend> {
     getPrimitiveByID(id: number) {
         if(!this.manager) return undefined;
 
-        return this.getAllPrimitives()!.find((p) => (p as any).id === id);
+        return this.getAllPrimitives()!.find((p) => getPrimitiveID(p) === id);
     }
 
     getAllPrimitives() {

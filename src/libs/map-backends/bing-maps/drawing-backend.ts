@@ -61,13 +61,13 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
         // TODO: add history record
     }
     syncFromBackendToMap(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     
     
 
     getShownComponentIDs(): string[] {
-        throw new Error("Method not implemented.");
+        return this.primitiveComponentMap.backwardKeys();
     }
 
     escape(): void {
