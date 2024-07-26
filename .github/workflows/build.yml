@@ -26,9 +26,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Remove package lock
-        run: rm package-lock.json
-
       - name: Build
         run: npm run build-release
         env: 
