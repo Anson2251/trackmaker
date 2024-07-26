@@ -1,4 +1,5 @@
 import gcoord from "gcoord";
+import { clone, cloneDeep } from "lodash-es";
 
 export interface GeographicPoint {
     latitude: number;
@@ -30,7 +31,7 @@ function doCallbacks() {
 export const supportGeolocation = !!navigator.geolocation;
 
 export function clonePoint<T>(point: T): T {
-    return JSON.parse(JSON.stringify(point));
+    return cloneDeep(point);
 }
 
 export namespace Conversion {

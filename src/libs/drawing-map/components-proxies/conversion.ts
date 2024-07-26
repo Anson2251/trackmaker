@@ -7,6 +7,8 @@ import {CartoSketchRoute, CartoSketchRouteItem} from "@/libs/cartosketch/route";
 import {CartoSketchDraft, CartoSketchDraftItem} from "@/libs/cartosketch/draft";
 import CartoSketch from "@/libs/cartosketch";
 
+import { cloneDeep } from "lodash-es";
+
 type ComponentProxiesCollection = PolygonProxy | PolylineProxy | PushpinProxy;
 
 // ====== CONVERT TO PROXIES ======
@@ -109,7 +111,7 @@ export function importComponentsFromCartoSketch(sketch: CartoSketch): {routes: P
 // ======= EXPORT FROM PROXIES =======
 
 export function exportComponentToCartoSketchDraftItem(component: ComponentProxiesCollection): CartoSketchDraftItem {
-    const properties = JSON.parse(JSON.stringify(component.getProperties())) as  PolygonProperties | PolylineProperties | PushpinProperties;
+    const properties = cloneDeep(component.getProperties()) as  PolygonProperties | PolylineProperties | PushpinProperties;
     const shape = {
         type: component.type as "Point" | "LineString" | "Polygon",
         coordinates: component.coordinates.map(p => [p.longitude, p.latitude] as [number, number]),
@@ -138,7 +140,7 @@ export function exportComponentsToCartoSketchDraft(components: ComponentProxiesC
 
 export function exportComponentTOCartoSketchRouteItem(component: PolylineProxy): CartoSketchRouteItem {
     const points = component.getLocations().map(p => ({latitude: p.latitude, longitude: p.longitude} as GeographicPoint));
-    const properties = JSON.parse(JSON.stringify(component.getProperties())) as PolylineProperties;
+    const properties = cloneDeep(component.getProperties()) as PolylineProperties;
     return new CartoSketchRouteItem(component.name, component.id, points, properties);
 }
 

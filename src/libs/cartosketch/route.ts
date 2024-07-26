@@ -1,5 +1,6 @@
 import {v4 as uuidV4} from "uuid";
 import type {GeographicPoint} from "../../utils/geolocation";
+import { cloneDeep } from "lodash-es";
 
 import type {
     GeographicRouteGeoJSON,
@@ -115,11 +116,11 @@ export class CartoSketchRouteItem {
     }
 
     setPoints(points: GeographicPoint[]) {
-        this.points = JSON.parse(JSON.stringify(points));
+        this.points = cloneDeep(points);
     }
 
     appendPoint(point: GeographicPoint) {
-        this.points.push(JSON.parse(JSON.stringify(point)) as GeographicPoint);
+        this.points.push(cloneDeep(point) as GeographicPoint);
     }
 
     getPoints(){
@@ -127,7 +128,7 @@ export class CartoSketchRouteItem {
     }
 
     setProperties(properties: GeographicRouteItemProperties) {
-        const newProperties = JSON.parse(JSON.stringify(properties)) as GeographicRouteItemProperties;
+        const newProperties = cloneDeep(properties) as GeographicRouteItemProperties;
         Object.assign(this.properties, newProperties);
     }
 

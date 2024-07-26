@@ -1,4 +1,5 @@
-import {v4 as uuidV4} from "uuid";
+import { v4 as uuidV4 } from "uuid";
+import { cloneDeep } from 'lodash-es';
 
 import type {
     GeographicDraftGeoJSON,
@@ -11,7 +12,7 @@ import type {
     GeoJSONPoint,
     SupportedShapeType
 } from "@/libs/cartosketch/definitions";
-import {supportedShapeTypes} from "@/libs/cartosketch/definitions";
+import { supportedShapeTypes } from "@/libs/cartosketch/definitions";
 
 export class CartoSketchDraft {
     readonly id: string;
@@ -152,14 +153,14 @@ export class CartoSketchDraftItem {
     }
 
     setProperties(properties: GeographicDraftItemProperties) {
-        const newProperties = JSON.parse(JSON.stringify(properties)) as GeographicRouteItemProperties;
+        const newProperties = cloneDeep(properties) as GeographicRouteItemProperties;
         Object.assign(this.properties, newProperties);
     }
 
     exportAsGeoJSON(): GeographicDraftItemGeoJSON {
         return {
             type: "Feature",
-            properties: Object.assign({}, this.properties, {name: this.name, id: this.id}),
+            properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
             geometry: this.shape
         };
     }

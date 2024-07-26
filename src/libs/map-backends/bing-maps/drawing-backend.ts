@@ -8,6 +8,7 @@ import { type PushpinProperties } from "@/libs/drawing-map/components-proxies/pu
 import { type PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
 
 import BidirectionalMap from "@/utils/bidirectional-map";
+import { difference } from "lodash-es";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 
@@ -23,8 +24,8 @@ export class BingMapDrawingBackend extends DrawingMapBackend<DrawingBingMap> {
 
     syncFromMapToBackend(): void {
         const latestPrimitivesIDs = this.hostMap.plugins.drawingTools.getAllPrimitiveIDs();
-        const newPrimitivesIDs = latestPrimitivesIDs.filter(id => !this.previousPrimitiveIDs.includes(id));
-        const deletedPrimitives = this.previousPrimitiveIDs.filter(id => !latestPrimitivesIDs.includes(id));
+        const newPrimitivesIDs = difference(latestPrimitivesIDs, this.previousPrimitiveIDs);
+        const deletedPrimitives = difference(this.previousPrimitiveIDs, latestPrimitivesIDs);
 
         this.previousPrimitiveIDs = latestPrimitivesIDs;
 

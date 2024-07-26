@@ -6,6 +6,7 @@ import type { PolygonProperties } from "@/libs/drawing-map/components-proxies/po
 import type { PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
 import type { PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
 import MapBackend from "@/libs/map-backends/backend";
+import { cloneDeep } from "lodash-es";
 
 type ComponentProperties = PolygonProperties | PushpinProperties | PolylineProperties;
 // type ComponentProperties = any;
@@ -232,7 +233,7 @@ export abstract class DrawingMapBackend<HostMapType extends MapBackend<any, any>
         if(newComponents.length > 0) action.push({type: "show", data: newComponents});
         if(removedComponents.length > 0) action.push({type: "delete", data: removedComponents});
 
-        this.previousComponentIDs = new Set(JSON.parse(JSON.stringify(Array.from(this.shownComponentIDs))) as string[]);
+        this.previousComponentIDs = cloneDeep(this.shownComponentIDs);
         return action;
     }
 
