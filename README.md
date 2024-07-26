@@ -57,7 +57,7 @@ type CredentialItemType = {
 
 To access the credential keys defined in the array, use the global variable named `__<name>__`, for example, `__BING_MAPS_KEY__`.
 
-> **Note:** In the context of `TypeScript`, the new credential item should be declared globally. For example, if a new credential item named `NEW_KEY` can be declared as follows:
+> **Note:** In the context of `TypeScript`, the new credential item should be declared globally. For example, a new credential item named `NEW_KEY` can be declared as follows:
 > ```typescript
 > declare const __NEW_KEY__: string;
 > ```

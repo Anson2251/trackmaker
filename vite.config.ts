@@ -111,6 +111,9 @@ async function readFile(filePath: string): Promise<string> {
 }
 
 async function getCredentials(credentialFilePath: string) {
+	if(credentialFilePath !== credentialFileDefaultPath) {
+		console.log(`Using credential configuration file: ${credentialFilePath}`);
+	}
 	const credentialFileExist = await checkFileExist(credentialFilePath);
 	const credentialFileContent: Record<string, string | number> = credentialFileExist ? JSON.parse(await readFile(credentialFilePath)) : {};
 	const finalCredential: Record<string, string> = {};
