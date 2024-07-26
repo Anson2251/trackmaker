@@ -7,26 +7,6 @@ import { ObfuscatorOptions } from "javascript-obfuscator";
 import viteCompression from 'vite-plugin-compression';
 import { promises as fs } from 'fs';
 
-async function checkFileExist(filePath: string): Promise<boolean> {
-	try {
-		await fs.access(filePath);
-		return Promise.resolve(true);
-	} catch (error) {
-		return Promise.resolve(false);
-	}
-}
-
-async function readFile(filePath: string): Promise<string> {
-	try {
-		const config = await fs.readFile(filePath, {
-			encoding: "utf-8"
-		});
-		return Promise.resolve(config);
-	} catch (err) {
-		return Promise.reject(`Cannot load the file "${filePath}"`);
-	}
-}
-
 const obfuscatorConfig: ObfuscatorOptions  = {
 	compact: true,
 	controlFlowFlattening: true,
@@ -83,40 +63,90 @@ const obfuscatorConfig: ObfuscatorOptions  = {
 	unicodeEscapeSequence: true
 };
 
+const obfuscator = obfuscatorPlugin({
+	apply: "build",
+	options: obfuscatorConfig,
+});
+
+const compression = viteCompression({
+	verbose: true,
+	algorithm: "brotliCompress",
+	compressionOptions: {
+		level: 11,
+	},
+	deleteOriginFile: false
+});
+
+type CredentialItemType = {
+	name: string,
+	type: "string" | "number"
+}
+const credentialItems: CredentialItemType[] = [
+	{
+		name: "BING_MAPS_KEY",
+		type: "string"
+	}
+];
+
+const credentialFileDefaultPath = "./credentials-config.json";
+
+async function checkFileExist(filePath: string): Promise<boolean> {
+	try {
+		await fs.access(filePath);
+		return Promise.resolve(true);
+	} catch (error) {
+		return Promise.resolve(false);
+	}
+}
+
+async function readFile(filePath: string): Promise<string> {
+	try {
+		const config = await fs.readFile(filePath, {
+			encoding: "utf-8"
+		});
+		return Promise.resolve(config);
+	} catch (err) {
+		return Promise.reject(`Cannot read from the file "${filePath}"`);
+	}
+}
+
+async function getCredentials(credentialFilePath: string) {
+	const credentialFileExist = await checkFileExist(credentialFilePath);
+	const credentialFileContent: Record<string, string | number> = credentialFileExist ? JSON.parse(await readFile(credentialFilePath)) : {};
+	const finalCredential: Record<string, string> = {};
+
+	credentialItems.forEach(item => {
+		let value: string | number | undefined = process.env[item.name] || credentialFileContent[item.name] || undefined;
+		
+		if(typeof value === "undefined") {
+			console.warn("\x1b[33m%s\x1b[0m", `Credential item "${item.name}" cannot be found in the environment or the "${credentialFilePath}"`);
+			value = "";
+		}
+
+		if(item.type === "string") value = String(value);
+		else if(item.type === "number") value = Number(value);
+
+		finalCredential[`__${item.name}__`] = JSON.stringify(value);
+	});
+
+	return finalCredential;
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-	let bingMapsKey = process.env.BING_MAPS_KEY || "";
-	const credentialsConfigPath = process.env.CREDENTIALS_CONFIG_PATH || "credentials-config.json";
-
-	if (!bingMapsKey) {
-		const keyExposeScriptExist = await checkFileExist(credentialsConfigPath);
-		if (keyExposeScriptExist) {
-			const configContent = JSON.parse(await readFile(credentialsConfigPath));
-			if(configContent.bingMaps) bingMapsKey = String(configContent.bingMaps);
-		}
-	}
-
-	if(!bingMapsKey) console.warn("\x1b[33m%s\x1b[0m", `Bing Maps Key cannot be found in the environment or load from "${credentialsConfigPath}", please set BING_MAPS_KEY`);
+	const credentialsConfigPath = process.env.CREDENTIALS_CONFIG_PATH || credentialFileDefaultPath;
+	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
 
 	return {
 		define: {
-			__BING_MAPS_KEY__: JSON.stringify(bingMapsKey),
-			__RELEASE_MODE__: process.env.RELEASE_MODE === "true"
+			...(await getCredentials(credentialsConfigPath)),
+			__RELEASE_MODE__: releaseMode ? "true" : "false",
 		},
-		base: '/trackmaker/',
+		base: './',
 		plugins: [
 			vue(),
-			obfuscatorPlugin({
-				apply: "build",
-				options: obfuscatorConfig,
-			}),
-			viteCompression({
-				algorithm: "brotliCompress",
-				compressionOptions: {
-					level: 11,
-				},
-				deleteOriginFile: false
-			})
+			obfuscator,
+			compression
 		],
 		resolve: {
 			alias: {

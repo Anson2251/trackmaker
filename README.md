@@ -36,22 +36,50 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 ## Notice
 
-### About the online demo
+### About the Online Demo
 
 This project is still under development. Many features are being implemented.
 
 This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo` branch) is for experimental use only. It is now automatically built with the latest code on the `main` branch. Some features may not work properly.
 
-### About the Bing Maps key
+### About the Credential Keys
 
-The Bing Maps key is passed to the Vite by the environment variable `BING_MAPS_KEY`.
+The required key items are set in `vite.config.ts` via the array `credentialItems`.
 
-It's free to apply for a basic key from the [Bing Maps Dev Centre](https://www.bingmapsportal.com/).
+The type of the item is as follows:
 
-Additionally, the `/vite.config.ts` file is configured to automatically attempt to read the key from the configuration file as a fallback. 
+```typescript
+type CredentialItemType = {
+	name: string,
+	type: "string" | "number"
+}
+```
 
-The configuration file's path may be specified by the environment variable `CREDENTIALS_CONFIG_PATH`. The default value for the path is `/credentials-config.json`.
+To access the credential keys defined in the array, use the global variable named `__<name>__`, for example, `__BING_MAPS_KEY__`.
+
+> **Note:** In the context of `TypeScript`, the new credential item should be declared globally. For example, if a new credential item named `NEW_KEY` can be declared as follows:
+> ```typescript
+> declare const __NEW_KEY__: string;
+> ```
+
+The value of the credential items can be set in two ways:
+
+- **Environment Variables:** Assign the value by using environment variables named `<name>`.
+
+    ```bash
+    export BING_MAPS_KEY=<Your Key>
+    ```
+
+- **Configuration File:** Pass the value by using a configuration file in JSON format. The default path for the file is `./credentials-config.json`, which can be changed using the `CREDENTIALS_CONFIG_PATH` variable.
+
+    ```json
+    {
+        "BING_MAPS_KEY": "<Your Key>"
+    }
+    ```
+
+> **Note:** The configuration file is the fallback option.
 
 ---
 
-Last update: Jun. 10, 2024.
+Last update: Jul. 26, 2024.

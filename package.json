@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "export RELEASE_MODE=false; vite",
-    "build": "export RELEASE_MODE=true; npm run type-check",
+    "build": "vite build",
     "preview": "vite preview",
-    "build-only": "export RELEASE_MODE=true; vite build",
+    "build-release": "export RELEASE_MODE=true; npm run build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .eslintignore",
-    "build-preview": "export RELEASE_MODE=true; vite build; cd ./dist; python3 -m http.server 5173",
+    "build-preview": "npm run build-release; cd ./dist; python3 -m http.server 5173",
     "generate-docs": "typedoc"
   },
   "dependencies": {

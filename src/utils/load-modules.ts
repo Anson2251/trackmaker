@@ -27,7 +27,7 @@ export const messageFormat = {
  * @param {boolean} [printLog=false] - Flag to disable the information logs.
  * @return {Promise<void>} A promise that resolves once the modules are loaded or rejects on errors.
  */
-export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000, printLog: boolean = !(__RELEASE_MODE__)): Promise<void> {
+export async function loadModules(library: moduleItem[], moduleName: string, timeout: number = 10000, printLog: boolean = true): Promise<void> {
     // Find the module in the library
     const module = library.find((m) => m.name === moduleName);
     if (!module) throw new Error(`cannot exactly find module "${moduleName}" from the library`);
