@@ -1,11 +1,14 @@
 import { fileURLToPath, URL } from 'node:url';
+import { promises as fs } from 'fs';
 
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
-import { ObfuscatorOptions } from "javascript-obfuscator";
 import viteCompression from 'vite-plugin-compression';
-import { promises as fs } from 'fs';
+
+import vue from '@vitejs/plugin-vue';
+import legacy from '@vitejs/plugin-legacy';
+import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
+import type { ObfuscatorOptions } from "javascript-obfuscator";
+
 
 const obfuscatorConfig: ObfuscatorOptions  = {
 	compact: true,
@@ -149,7 +152,10 @@ export default defineConfig(async () => {
 		plugins: [
 			vue(),
 			obfuscator,
-			compression
+			compression,
+			legacy({
+				targets: ">0.3%, edge>=18, firefox>=67, chrome>=64, safari>=12, chromeAndroid>=64, iOS>=12",
+			}),
 		],
 		resolve: {
 			alias: {
@@ -158,7 +164,6 @@ export default defineConfig(async () => {
 			extensions: ['.ts', '.tsx', '.js', '.jsx', '.vue', '.json'],
 		},
 		build: {
-			target: "es2015",
 			chunkSizeWarningLimit: 2000,
 			outDir: "dist/trackmaker",
 		},
