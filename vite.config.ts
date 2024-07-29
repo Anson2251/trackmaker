@@ -154,7 +154,7 @@ export default defineConfig(async () => {
 			obfuscator,
 			compression,
 			legacy({
-				targets: ">0.3%, edge>=18, firefox>=67, chrome>=64, safari>=12, chromeAndroid>=64, iOS>=12",
+				targets: ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12",
 			}),
 		],
 		resolve: {
