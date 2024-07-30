@@ -1,10 +1,10 @@
 import MapBackend, { type DefaultOptionTypes, allocateMapID } from "@/libs/map-backends/backend";
-import type { GeographicPoint } from "@/utils/geolocation";
+import type { GeographicPointType } from "@/utils/geolocation";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 export const allocateBingMapID = allocateMapID;
 
-function geographicPoint2MicrosoftLocation(point: GeographicPoint): Microsoft.Maps.Location {
+function geographicPoint2MicrosoftLocation(point: GeographicPointType): Microsoft.Maps.Location {
     return new Microsoft.Maps.Location(point.latitude, point.longitude);
 }
 

@@ -1,5 +1,5 @@
 import DrawingComponentProxy from "./component";
-import type { GeographicPoint } from "@/utils/geolocation";
+import type { GeographicPointType } from "@/utils/geolocation";
 
 export type PolylineProperties = {
     strokeColor: string,
@@ -18,7 +18,7 @@ export type PolylineGeoJSON = {
 
 export class PolylineProxy extends DrawingComponentProxy<PolylineProperties> {
     type = "LineString";
-    constructor(coordinates: GeographicPoint[], properties: PolylineProperties, id?: string, name?: string) {
+    constructor(coordinates: GeographicPointType[], properties: PolylineProperties, id?: string, name?: string) {
         super(coordinates, properties, id, name);
     }
 

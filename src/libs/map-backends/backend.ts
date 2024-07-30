@@ -11,7 +11,7 @@ The options that a map generally have
 */
 export interface DefaultOptionTypes<MapIDType> {
     /** The centre of the map */
-    centre: GeoLocation.GeographicPoint;
+    centre: GeoLocation.GeographicPointType;
     /** The type of the id which indicates the type of the map */
     type: MapIDType;
     /** The collection of the support types */
@@ -33,7 +33,7 @@ export interface ViewOptionType {
     /** The zoom value */
     zoom?: number;
     /** The view centre of the map */
-    centre?: GeoLocation.GeographicPoint;
+    centre?: GeoLocation.GeographicPointType;
 }
 
 /** The type of the map handlers */
@@ -50,8 +50,8 @@ export abstract class MapBackend<
     OptionTypes extends DefaultOptionTypes<OptionTypes["type"]>,
 > {
     zoom: number = 5;
-    viewCentre: GeoLocation.GeographicPoint;
-    centre: GeoLocation.GeographicPoint;
+    viewCentre: GeoLocation.GeographicPointType;
+    centre: GeoLocation.GeographicPointType;
     readonly credentials: string;
     mapType: OptionTypes["type"];
     container: HTMLElement;
@@ -114,7 +114,7 @@ export abstract class MapBackend<
      * @param centre
      * @param silence Whether to call the corresponding handlers
      */
-    setCentre(centre: GeoLocation.GeographicPoint, silence: boolean): void {
+    setCentre(centre: GeoLocation.GeographicPointType, silence: boolean): void {
         this.centre = centre;
         if (!silence) this.onMapViewChanged();
     }
@@ -130,7 +130,7 @@ export abstract class MapBackend<
      * @param updateMapView Whether to call the corresponding handlers
      */
     setViewCentre(
-        viewCentre: GeoLocation.GeographicPoint,
+        viewCentre: GeoLocation.GeographicPointType,
         updateMapView: boolean = true,
     ) {
         this.viewCentre = GeoLocation.clonePoint(viewCentre);

@@ -1,9 +1,9 @@
 import inputDevicePreferences from "@/utils/input-device-preferences";
 import type {MapPlugin} from "@/libs/map-backends/plugin";
 import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
-import type {GeographicPoint} from "@/utils/geolocation";
+import type {GeographicPointType} from "@/utils/geolocation";
 
-function geographicPoint2MicrosoftLocation(point: GeographicPoint): Microsoft.Maps.Location {
+function geographicPoint2MicrosoftLocation(point: GeographicPointType): Microsoft.Maps.Location {
     return new Microsoft.Maps.Location(point.latitude, point.longitude);
 }
 

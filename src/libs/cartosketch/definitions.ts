@@ -1,4 +1,4 @@
-import type {GeographicPoint} from "@/utils/geolocation";
+import type {GeographicPointType} from "@/utils/geolocation";
 
 
 // ======= GENERAL =======
@@ -72,7 +72,7 @@ export type GeographicRouteItemType = {
     name: string,
     id: string,
     properties: GeographicRouteItemProperties,
-    points: GeographicPoint[]
+    points: GeographicPointType[]
 };
 
 export type GeographicRouteItemGeoJSON = {
@@ -97,4 +97,3 @@ export type GeographicRouteType = {
     name: string,
     routes: GeographicRouteItemType[]
 };
-

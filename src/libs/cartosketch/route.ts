@@ -1,5 +1,5 @@
-import {v4 as uuidV4} from "uuid";
-import type {GeographicPoint} from "../../utils/geolocation";
+import { v4 as uuidV4 } from "uuid";
+import type { GeographicPointType } from "../../utils/geolocation";
 import { cloneDeep } from "lodash-es";
 
 import type {
@@ -54,7 +54,7 @@ export namespace CartoSketchRoute {
         return new CartoSketchRoute(name, routes, id);
     }
 
-    export function createItem(name: string, id = uuidV4(), points: GeographicPoint[] = [], properties: GeographicRouteItemProperties = {}): CartoSketchRouteItem {
+    export function createItem(name: string, id = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}): CartoSketchRouteItem {
         return new CartoSketchRouteItem(name, id, points, properties);
     }
 
@@ -68,7 +68,7 @@ export namespace CartoSketchRoute {
      * @return The imported CartoSketchRoute object.
      */
     export function importFromGeoJSON(geojson: GeographicRouteGeoJSON | any, name?: string, id = uuidV4()): CartoSketchRoute {
-        if(geojson.feature) throw new Error("Multiple features should be contained");
+        if (geojson.feature) throw new Error("Multiple features should be contained");
 
         name = name || id;
 
@@ -80,18 +80,18 @@ export namespace CartoSketchRoute {
     }
 
     export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON | any, name?: string, id?: string): CartoSketchRouteItem {
-        if(geojson.features) throw new Error("[importItemFromGeoJSON] Only one feature is supported");
+        if (geojson.features) throw new Error("[importItemFromGeoJSON] Only one feature is supported");
 
         const properties = geojson.properties as GeographicRouteItemProperties;
         const type = geojson.geometry.type as string;
         const coordinates = geojson.geometry.coordinates as GeoJSONPoint[];
 
-        if(type !== "LineString") throw new Error(`[importItemFromGeoJSON] Unsupported geometry type for routes ${type}`);
+        if (type !== "LineString") throw new Error(`[importItemFromGeoJSON] Unsupported geometry type for routes ${type}`);
 
         id = id || uuidV4();
         name = name || id;
 
-        return new CartoSketchRouteItem(name, id, coordinates.map((point) => ({latitude: point[1], longitude: point[0]} as GeographicPoint)), properties);
+        return new CartoSketchRouteItem(name, id, coordinates.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPointType)), properties);
     }
 
     export function importItemFromStorage(data: GeographicRouteItemType): CartoSketchRouteItem {
@@ -107,23 +107,23 @@ export class CartoSketchRouteItem {
     name: string;
     readonly id: string;
     readonly properties: GeographicRouteItemProperties;
-    private points: GeographicPoint[];
-    constructor(name: string, id: string = uuidV4(), points: GeographicPoint[] = [], properties: GeographicRouteItemProperties = {}) {
+    private points: GeographicPointType[];
+    constructor(name: string, id: string = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}) {
         this.name = name;
         this.id = id;
         this.properties = properties;
         this.points = points;
     }
 
-    setPoints(points: GeographicPoint[]) {
+    setPoints(points: GeographicPointType[]) {
         this.points = cloneDeep(points);
     }
 
-    appendPoint(point: GeographicPoint) {
-        this.points.push(cloneDeep(point) as GeographicPoint);
+    appendPoint(point: GeographicPointType) {
+        this.points.push(cloneDeep(point) as GeographicPointType);
     }
 
-    getPoints(){
+    getPoints() {
         return Object.freeze(this.points);
     }
 

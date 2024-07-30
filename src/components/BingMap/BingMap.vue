@@ -134,7 +134,7 @@ onMounted(async () => {
     }, false);
 
     const initCentre = setInterval(() => {
-        if (GeoLocation.UpdateService.isStarted() && !GeoLocation.UpdateService.isUpdating()) {
+        if (GeoLocation.UpdateService.isStarted() && GeoLocation.UpdateService.isInitialised()) {
             clearInterval(initCentre);
             const geoLocation = GeoLocation.UpdateService.getPresent();
             centre.value = new Microsoft.Maps.Location(geoLocation.latitude, geoLocation.longitude);

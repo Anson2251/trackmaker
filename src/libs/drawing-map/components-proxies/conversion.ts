@@ -1,4 +1,4 @@
-import type {GeographicPoint} from "@/utils/geolocation";
+import type {GeographicPointType} from "@/utils/geolocation";
 import PolygonProxy, { type PolygonProperties } from "@/libs/drawing-map/components-proxies/polygon";
 import PushpinProxy, { type PushpinProperties } from "@/libs/drawing-map/components-proxies/pushpin";
 import PolylineProxy, { type PolylineProperties } from "@/libs/drawing-map/components-proxies/polyline";
@@ -17,7 +17,7 @@ export function importComponentFromGeoJSON(GeoJSON: any, type?: "Polygon" | "Poi
     if(type && GeoJSON.geometry.type as string !== type) throw new Error(`Cannot convert GeoJSON type: ${GeoJSON.geometry.type} into ${type}`);
 
     const shapeType = (type || GeoJSON.geometry.type) as string;
-    const shapeCoords = (GeoJSON.geometry.coordinates as [number, number][]).map((point) => ({longitude: point[0], latitude: point[1]} as GeographicPoint));
+    const shapeCoords = (GeoJSON.geometry.coordinates as [number, number][]).map((point) => ({longitude: point[0], latitude: point[1]} as GeographicPointType));
     const shapeName = (name || GeoJSON.properties.name || GeoJSON.properties.title) as string;
 
     switch(shapeType) {
@@ -36,7 +36,7 @@ export function importComponentFromCartoSketchDraftItem(item: CartoSketchDraftIt
     const shape = item.getShapes();
     switch(shape.type) {
         case "Point": {
-            const point: GeographicPoint = {
+            const point: GeographicPointType = {
                 latitude: shape.coordinates[0][1] as number,
                 longitude: shape.coordinates[0][0] as number
             };
@@ -54,7 +54,7 @@ export function importComponentFromCartoSketchDraftItem(item: CartoSketchDraftIt
             const coordinates = (shape.coordinates as [number, number][]).map((point) => ({
                 longitude: point[0],
                 latitude: point[1]
-            } as GeographicPoint));
+            } as GeographicPointType));
             const properties: PolylineProperties = Object.assign({}, {
                 strokeColor: "#000000",
                 strokeThickness: 1,
@@ -67,7 +67,7 @@ export function importComponentFromCartoSketchDraftItem(item: CartoSketchDraftIt
             const coordinates = (shape.coordinates as [number, number][]).map((point) => ({
                 longitude: point[0],
                 latitude: point[1]
-            } as GeographicPoint));
+            } as GeographicPointType));
             const properties: PolygonProperties = Object.assign({}, {
                 fillColor: "#2d9cec",
                 strokeColor: "#000000",
@@ -93,7 +93,7 @@ export function importRouteFromCartoSketchRouteItem(item: CartoSketchRouteItem):
         strokeThickness: 1,
         visible: true,
     }, item.properties);
-    const coordinates = item.getPoints().map(p => ({latitude: p.latitude, longitude: p.longitude} as GeographicPoint));
+    const coordinates = item.getPoints().map(p => ({latitude: p.latitude, longitude: p.longitude} as GeographicPointType));
     return new PolylineProxy(coordinates, properties, item.id, item.name);
 }
 
@@ -139,7 +139,7 @@ export function exportComponentsToCartoSketchDraft(components: ComponentProxiesC
 }
 
 export function exportComponentTOCartoSketchRouteItem(component: PolylineProxy): CartoSketchRouteItem {
-    const points = component.getLocations().map(p => ({latitude: p.latitude, longitude: p.longitude} as GeographicPoint));
+    const points = component.getLocations().map(p => ({latitude: p.latitude, longitude: p.longitude} as GeographicPointType));
     const properties = cloneDeep(component.getProperties()) as PolylineProperties;
     return new CartoSketchRouteItem(component.name, component.id, points, properties);
 }

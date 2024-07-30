@@ -1,4 +1,4 @@
-import type { GeographicPoint } from "@/utils/geolocation";
+import type { GeographicPointType } from "@/utils/geolocation";
 import DrawingComponentProxy from "./component";
 
 export type PushpinProperties = {
@@ -31,16 +31,16 @@ export class PushPinProxy extends DrawingComponentProxy<PushpinProperties> {
      * @param [id] The ID of the pushpin.
      * @param [name] The name of the pushpin.
      */
-    constructor(coordinates: GeographicPoint[], properties: PushpinProperties, id?: string, name?: string) {
+    constructor(coordinates: GeographicPointType[], properties: PushpinProperties, id?: string, name?: string) {
         super(coordinates, properties, id, name);
     }
 
     /**
      * Retrieves the location of the pushpin.
      *
-     * @returns {GeographicPoint} The location of the pushpin.
+     * @returns {GeographicPointType} The location of the pushpin.
      */
-    getLocation(): GeographicPoint {
+    getLocation(): GeographicPointType {
         const nativeLocation = this.getLocations()[0];
         return {
             latitude: nativeLocation.latitude,

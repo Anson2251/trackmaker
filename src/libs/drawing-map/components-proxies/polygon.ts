@@ -1,5 +1,5 @@
 import DrawingComponentProxy from "./component";
-import type { GeographicPoint } from "@/utils/geolocation";
+import type { GeographicPointType } from "@/utils/geolocation";
 
 export type PolygonProperties = {
     fillColor: string,
@@ -19,7 +19,7 @@ export type PolygonGeoJSON = {
 
 export class PolygonProxy extends DrawingComponentProxy<PolygonProperties> {
     type = "Polygon";
-    constructor(shape: GeographicPoint[], properties: PolygonProperties, id?: string, name?: string) {
+    constructor(shape: GeographicPointType[], properties: PolygonProperties, id?: string, name?: string) {
         super(shape, properties, id, name);
     }
 

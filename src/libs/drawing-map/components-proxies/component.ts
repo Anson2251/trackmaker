@@ -1,5 +1,5 @@
 import {v4 as uuidV4} from "uuid";
-import type {GeographicPoint} from "@/utils/geolocation";
+import type {GeographicPointType} from "@/utils/geolocation";
 
 export type AcceptedComponentPropertyDataType = boolean | number | string;
 export type ComponentProperties = Record<string, AcceptedComponentPropertyDataType>;
@@ -14,11 +14,11 @@ export abstract class DrawingComponentProxy<T extends ComponentProperties> {
     properties: T;
     id: string = uuidV4();
     name: string = "Untitled";
-    coordinates: GeographicPoint[];
+    coordinates: GeographicPointType[];
     private handlers: ComponentEventHandler<T>[] = [];
     abstract type: string;
 
-    protected constructor(coordinates: GeographicPoint[], properties: T, id?: string, name?: string) {
+    protected constructor(coordinates: GeographicPointType[], properties: T, id?: string, name?: string) {
         this.coordinates = coordinates;
         this.properties = Object.assign({}, properties);
         if (id) this.id = id;
@@ -77,12 +77,12 @@ export abstract class DrawingComponentProxy<T extends ComponentProperties> {
         return Object.keys(this.properties);
     }
 
-    setLocations(coordinates: GeographicPoint[]): void {
+    setLocations(coordinates: GeographicPointType[]): void {
         this.coordinates = coordinates;
         this.executeHandler("locationChange");
     }
 
-    getLocations(): Readonly<GeographicPoint[]> {
+    getLocations(): Readonly<GeographicPointType[]> {
         return Object.freeze(this.coordinates);
     }
 
