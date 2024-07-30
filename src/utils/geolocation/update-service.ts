@@ -1,5 +1,5 @@
 import type { GeographicPointType } from "./definitions";
-import { Driver as UpdaterDriver } from "./location-update-worker";
+import { Driver as UpdaterDriver } from "./update-worker-driver";
 
 type HandlerItemType = {
     id: number

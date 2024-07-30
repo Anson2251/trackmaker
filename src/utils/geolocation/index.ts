@@ -47,5 +47,5 @@ export function clonePoint<T>(point: T): T {
 
 export * from "./definitions";
 export * from "./conversion";
-export * from "./location-update-worker";
+export * from "./update-worker";
 export * from "./update-service";
