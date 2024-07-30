@@ -1,3 +1,5 @@
+// THIS FILE SHOULD BE RUN IN THE WEB WORKER ENVIRONMENT
+
 import type { GeographicPointType } from "./definitions";
 import { wgs2gcj } from "./conversion";
 
@@ -29,6 +31,13 @@ let updaterID = 0;
 let requestingLocationStatus = false;
 let receiveLocationFunction: ((location: any) => void) = () => { };
 
+/**
+ * Creates a location updater that periodically requests the user's geolocation and calls the provided callbacks when the location changes.
+ *
+ * @param {number} updateInterval - The interval (in milliseconds) at which the location should be updated. Default is 200ms.
+ * @param {(location: GeographicPointType) => void} onChange - The callback function to be called when the location changes.
+ * @param {(error: GeolocationPositionError) => void} [onError=()=>{}] - The callback function to be called when an error occurs. Default is an empty function.
+ */
 function locationUpdater(updateInterval: number = 200, onChange: (location: GeographicPointType) => void, onError: ((error: GeolocationPositionError) => void) = () => { }) {
     let previousLocation: GeographicPointType = {
         latitude: 0,

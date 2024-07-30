@@ -5,5 +5,6 @@ export interface GeographicPointType {
 
 export interface GeoJSONPointType {
     type: "Point",
+    /** [Longitude, Latitude] */
     coordinates: [number, number]
 }

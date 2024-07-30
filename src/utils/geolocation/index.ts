@@ -8,6 +8,7 @@ export type LocationAccessInfoType = {
     code?: number
 }
 
+/** Check whether the access to the geolocation is permitted */
 export async function checkGeolocationAccess(): Promise<LocationAccessInfoType> {
     return new Promise<LocationAccessInfoType>((resolve) => {
         if(!supportGeolocation) {
