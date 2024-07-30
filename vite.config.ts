@@ -10,7 +10,7 @@ import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 import type { ObfuscatorOptions } from "javascript-obfuscator";
 
 
-const obfuscatorConfig: ObfuscatorOptions  = {
+const obfuscatorConfig: ObfuscatorOptions = {
 	compact: true,
 	controlFlowFlattening: true,
 	controlFlowFlatteningThreshold: 0.75,
@@ -114,7 +114,7 @@ async function readFile(filePath: string): Promise<string> {
 }
 
 async function getCredentials(credentialFilePath: string) {
-	if(credentialFilePath !== credentialFileDefaultPath) {
+	if (credentialFilePath !== credentialFileDefaultPath) {
 		console.log(`Using credential configuration file: ${credentialFilePath}`);
 	}
 	const credentialFileExist = await checkFileExist(credentialFilePath);
@@ -123,14 +123,14 @@ async function getCredentials(credentialFilePath: string) {
 
 	credentialItems.forEach(item => {
 		let value: string | number | undefined = process.env[item.name] || credentialFileContent[item.name] || undefined;
-		
-		if(typeof value === "undefined") {
+
+		if (typeof value === "undefined") {
 			console.warn("\x1b[33m%s\x1b[0m", `Credential item "${item.name}" cannot be found in the environment or the "${credentialFilePath}"`);
 			value = "";
 		}
 
-		if(item.type === "string") value = String(value);
-		else if(item.type === "number") value = Number(value);
+		if (item.type === "string") value = String(value);
+		else if (item.type === "number") value = Number(value);
 
 		finalCredential[`__${item.name}__`] = JSON.stringify(value);
 	});
@@ -151,11 +151,17 @@ export default defineConfig(async () => {
 		base: './',
 		plugins: [
 			vue(),
-			obfuscator,
-			compression,
-			legacy({
-				targets: ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12",
-			}),
+			...(
+				releaseMode
+					? [
+						obfuscator,
+						compression,
+						legacy({
+							targets: ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12",
+						})
+					]
+					: []
+			),
 		],
 		resolve: {
 			alias: {
