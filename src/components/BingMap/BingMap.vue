@@ -103,6 +103,7 @@ onMounted(async () => {
         if (!props.tracking) return;
 
         map?.setCentre(newLocation, geoLocationKeepCentre.value);
+        map?.gotoCentre();
         emit("update:centre", { ...newLocation });
     });
     GeoLocation.UpdateService.start();
@@ -119,12 +120,13 @@ onMounted(async () => {
     const initCentre = setInterval(() => {
         if (GeoLocation.UpdateService.isStarted() && GeoLocation.UpdateService.isInitialised()) {
             clearInterval(initCentre);
+            
             map?.setCentre(GeoLocation.UpdateService.getPresent(), true);
             map?.gotoCentre();
-            if (geoLocationKeepCentre.value) map?.freezeViewCentre();
         }
     });
 
+    if (geoLocationKeepCentre.value) map?.freezeViewCentre();
     emit("ready", map);
 });
 </script>

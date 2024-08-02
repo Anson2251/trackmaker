@@ -143,7 +143,7 @@ export abstract class MapBackend<
         viewCentre: GeoLocation.GeographicPointType,
         updateMapView: boolean = true,
     ) {
-        if(this.viewCentreFrozen) return;
+        if(this.viewCentreFrozen && !(viewCentre.latitude === this.centre.latitude && viewCentre.longitude === this.centre.longitude)) return;
         this.viewCentre = GeoLocation.clonePoint(viewCentre);
         if (updateMapView) {
             this.onMapViewChanged();
