@@ -50,17 +50,18 @@ export abstract class MapBackend<
     OptionTypes extends DefaultOptionTypes<OptionTypes["type"]>,
 > {
     zoom: number = 5;
-    viewCentre: GeoLocation.GeographicPointType;
-    centre: GeoLocation.GeographicPointType;
+    private viewCentre: GeoLocation.GeographicPointType;
+    private centre: GeoLocation.GeographicPointType;
     readonly credentials: string;
     mapType: OptionTypes["type"];
-    container: HTMLElement;
-    map: MapType;
+    readonly container: HTMLElement;
+    readonly map: MapType;
     eventHandlers: MapEventHandlerType[] = [];
-    maxZoom: number = 20;
-    minZoom: number = 3;
-    plugins: any = {};
-    supportMapTypes: OptionTypes["supportedMapTypes"];
+    private maxZoom: number = 20;
+    private minZoom: number = 3;
+    readonly plugins: any = {};
+    readonly supportMapTypes: OptionTypes["supportedMapTypes"];
+    viewCentreFrozen = false;
 
     properties: Record<string, any>;
 
@@ -96,9 +97,7 @@ export abstract class MapBackend<
         this.map = this.initialiseMap(options);
 
         this.startSynchroniseMap();
-
         this.loadPlugins(plugins);
-
         this.onMapViewChanged();
         this.onReady();
     }
@@ -109,19 +108,30 @@ export abstract class MapBackend<
     /** Start synchronise the map, should be implemented by subclasses */
     abstract startSynchroniseMap(): void;
 
+    freezeViewCentre() {
+        console.log("View centre is frozen");
+        this.gotoCentre();
+        this.viewCentreFrozen = true;
+    }
+
+    unfreezeViewCentre() {
+        console.log("View centre is unfrozen");
+        this.viewCentreFrozen = false;
+    }
+
     /**
      * Set the centre of the map
      * @param centre
      * @param silence Whether to call the corresponding handlers
      */
     setCentre(centre: GeoLocation.GeographicPointType, silence: boolean): void {
-        this.centre = centre;
+        this.centre = GeoLocation.clonePoint(centre);
         if (!silence) this.onMapViewChanged();
     }
 
     /** Get the map centre */
     getCentre() {
-        return this.centre;
+        return Object.freeze(this.centre);
     }
 
     /**
@@ -133,6 +143,7 @@ export abstract class MapBackend<
         viewCentre: GeoLocation.GeographicPointType,
         updateMapView: boolean = true,
     ) {
+        if(this.viewCentreFrozen) return;
         this.viewCentre = GeoLocation.clonePoint(viewCentre);
         if (updateMapView) {
             this.onMapViewChanged();
@@ -141,7 +152,7 @@ export abstract class MapBackend<
 
     /** get the view centre */
     getViewCentre() {
-        return this.viewCentre;
+        return Object.freeze(this.viewCentre);
     }
 
     /**
@@ -149,9 +160,7 @@ export abstract class MapBackend<
      * @param plugins The plugin list
      * @returns Whether the loading is successful
      */
-    loadPlugins(
-        plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[],
-    ) {
+    loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
         let success = true;
 
         plugins.forEach((plugin) => {
@@ -159,10 +168,7 @@ export abstract class MapBackend<
                 try {
                     return new plugin(this).mount();
                 } catch (e) {
-                    console.error(
-                        `Fail to initialize plugin: ${plugin.name}`,
-                        e,
-                    );
+                    console.error(`Fail to initialize plugin: ${plugin.name}`, e);
                     return false;
                 }
             })();
@@ -246,7 +252,7 @@ export abstract class MapBackend<
      * @returns The zoom range
      */
     getZoomRange() {
-        return { min: this.minZoom, max: this.maxZoom };
+        return Object.freeze({ min: this.minZoom, max: this.maxZoom });
     }
 
     /**

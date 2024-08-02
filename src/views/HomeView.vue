@@ -17,11 +17,12 @@ const plugins = ref<(MapPluginConstructor<BingMapBackend>)[]>([
 	BingMapPlugin_PushPins,
 	BingMapPlugin_CustomizedTouchpadBehavior
 ]);
+const zoom = ref(10);
 </script>
 
 <template>
 	<div class="map-layout">
-		<BingMap :map-type="mapType" :lite-mode="false" :plugin="plugins" />
+		<BingMap :map-type="mapType" :lite-mode="false" :plugin="plugins" :zoom="zoom" :tracking="true"/>
 	</div>
 </template>
 

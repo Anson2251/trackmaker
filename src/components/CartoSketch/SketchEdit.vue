@@ -123,7 +123,7 @@ onMounted(() => {
 			<n-card class="map-container" content-style="padding: 0">
 				<BingMap v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
 						:lite-mode="props.liteMode"
-						:force-hidpi="props.forceHighDpi"
+						:forceHiDPI="props.forceHighDpi"
 						@ready="mapReady"/>
 				<n-empty description="Map" v-if="!emptySelection" size="huge"
 						style="height: 100%; justify-content: center">

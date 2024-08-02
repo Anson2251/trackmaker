@@ -3,13 +3,15 @@ import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
 import { ref, watch, onMounted } from "vue";
+import { bingMapsKey } from "@/configs";
+import { cloneDeep } from "lodash-es";
 
 import * as GeoLocation from "@/utils/geolocation";
-import {BingMapBackend as bingMaps, allocateBingMapID,  type BingMapOptions, type BingMapBackendType} from "@/libs/map-backends/bing-maps/bing-map-backend";
+import { BingMapBackend, allocateBingMapID, type BingMapOptions, type BingMapBackendType } from "@/libs/map-backends/bing-maps/bing-map-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 
 type PropsType = {
-    plugin?: MapPluginConstructor<bingMaps>[],
+    plugin?: MapPluginConstructor<BingMapBackend>[],
     centre?: {
         latitude: number,
         longitude: number
@@ -18,35 +20,27 @@ type PropsType = {
         latitude: number,
         longitude: number
     },
+    tracking?: boolean,
     mapType: string,
     zoom?: number,
     liteMode?: boolean,
-    forceHidpi?: boolean,
+    forceHiDPI?: boolean,
     customizedTouchpadBehavior?: boolean,
     enableInertia?: boolean,
     showDashboard?: boolean
 }
 
 const props = defineProps<PropsType>();
-const emit = defineEmits(["ready"]);
+const emit = defineEmits(["ready", "update:zoom", "update:centre", "update:viewCentre", "update:mapType"]);
 
 let iconSize = ref(24);
-let zoomValue = ref(10);
+const message = useMessage();
 
 const bingMapID = ref(`bing-map-${allocateBingMapID()}`);
 const container = ref<HTMLElement | null>(null);
-let geoLocationKeepCentre = ref(true);
-let map: bingMaps | undefined = undefined;
+let geoLocationKeepCentre = ref(!!props.tracking);
+let map: BingMapBackend | undefined = undefined;
 const supportMapTypes = [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight, Microsoft.Maps.MapTypeId.grayscale];
-
-let pauseZoomSync = false;
-let pausePositionSync = false;
-
-let viewCentre = props.viewCentre ? ref(new Microsoft.Maps.Location(props.viewCentre.latitude, props.viewCentre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
-let centre = props.centre ? ref(new Microsoft.Maps.Location(props.centre.latitude, props.centre.longitude)) : ref(new Microsoft.Maps.Location(0, 0));
-let type = props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined) || Microsoft.Maps.MapTypeId.road;
-
-const message = useMessage();
 
 function zoomIn() {
     if (map) {
@@ -60,85 +54,74 @@ function zoomOut() {
     }
 }
 
-watch(props, () => {
-	centre.value.latitude = props.centre ? props.centre.latitude : 0;
-	centre.value.longitude = props.centre ? props.centre.longitude : 0;
+function setupBingMaps(props: PropsType) {
+    if (!container.value) throw new Error(`Container ${bingMapID.value} is not ready.`);
 
-	zoomValue.value = props.zoom || 10;
-	viewCentre.value.latitude = props.viewCentre ? props.viewCentre.latitude : 0;
-	viewCentre.value.longitude = props.viewCentre ? props.viewCentre.longitude : 0;
-	if ((props.mapType as unknown as (Microsoft.Maps.MapTypeId | undefined)) !== map?.map.getMapTypeId()) map?.map.setMapType(props.mapType! as unknown as Microsoft.Maps.MapTypeId);
-}, { deep: true });
-
-watch(geoLocationKeepCentre, () => {
-	if (map && geoLocationKeepCentre) map.setView({ centre: centre.value });
-});
-
-watch(zoomValue, () => {
-	if (map && !pauseZoomSync) {
-		(map as bingMaps).setZoom(Math.round(zoomValue.value));
-	}
-});
-
-watch(viewCentre, () => {
-	if (map && !pausePositionSync) {
-		(map as bingMaps).map.setView({ center: viewCentre.value });
-		pausePositionSync = true;
-		setTimeout(() => pausePositionSync = false, 10);
-	}
-	if (geoLocationKeepCentre.value && map) {
-		if (map.getViewCentre().latitude !== centre.value.latitude || map.getViewCentre().longitude !== centre.value.longitude) {
-			map.gotoCentre();
-		}
-	}
-}, { deep: true });
-
-watch(centre, () => {
-	map?.setCentre(centre.value, geoLocationKeepCentre.value);
-}, { deep: true });
-
-onMounted(async () => {
-	GeoLocation.UpdateService.addListener((newLocation) => {
-		map?.setCentre(new Microsoft.Maps.Location(newLocation.latitude, newLocation.longitude), geoLocationKeepCentre.value);
-		centre.value = new Microsoft.Maps.Location(newLocation.latitude, newLocation.longitude);
-	});
-	GeoLocation.UpdateService.start();
-
-    container.value = document.getElementById(bingMapID.value)!;
-
-	const mapOptions: BingMapOptions = {
-        centre: centre.value,
-        type: type,
-		supportedMapTypes: supportMapTypes,
-        zoom: zoomValue.value,
-        credentials: __BING_MAPS_KEY__,
-        customizedTouchpadBehavior: props.customizedTouchpadBehavior || true,
-        enableInertia: props.enableInertia || false,
-        forceHiDPI: props.forceHidpi || false,
-        showDashboard: props.showDashboard || false,
-        liteMode: props.liteMode || false,
+    const mapOptions: BingMapOptions = {
+        centre: (props.centre ? props.centre : { latitude: 0, longitude: 0 }),
+        type: (props.mapType as any || Microsoft.Maps.MapTypeId.road),
+        supportedMapTypes: supportMapTypes,
+        zoom: (props.zoom || 10),
+        credentials: bingMapsKey,
+        customizedTouchpadBehavior: (props.customizedTouchpadBehavior || true),
+        enableInertia: (props.enableInertia || false),
+        forceHiDPI: (props.forceHiDPI || false),
+        showDashboard: (props.showDashboard || false),
+        liteMode: (props.liteMode || false),
     };
     const mapPlugins = props.plugin || [];
 
-    map = new bingMaps(container.value, mapOptions, mapPlugins as MapPluginConstructor<bingMaps>[]);
+    return new BingMapBackend(container.value, mapOptions, mapPlugins as MapPluginConstructor<BingMapBackend>[]);
+}
 
+let oldProps = cloneDeep(props);
+watch(props, () => {
+    if (!map) return;
+
+    if (oldProps.centre && props.centre && oldProps.centre !== props.centre) {
+        map.setCentre(props.centre || { latitude: 0, longitude: 0 }, geoLocationKeepCentre.value);
+    }
+
+    if (oldProps.zoom && props.zoom && oldProps.zoom !== props.zoom) {
+        console.log("zoom changed", oldProps.zoom, props.zoom);
+        map.setZoom(props.zoom || 10);
+    }
+
+    if (oldProps.viewCentre && props.viewCentre && oldProps.viewCentre !== props.viewCentre) {
+        map.setCentre(props.viewCentre || { latitude: 0, longitude: 0 }, geoLocationKeepCentre.value);
+    }
+
+    if (oldProps.mapType && props.mapType && oldProps.mapType !== props.mapType) {
+        map.map.setMapType((props.mapType || Microsoft.Maps.MapTypeId.road) as any);
+    }
+
+    oldProps = cloneDeep(props);
+}, { deep: true });
+
+onMounted(async () => {
+    GeoLocation.UpdateService.addListener((newLocation) => {
+        if (!props.tracking) return;
+
+        map?.setCentre(newLocation, geoLocationKeepCentre.value);
+        emit("update:centre", { ...newLocation });
+    });
+    GeoLocation.UpdateService.start();
+
+    container.value = document.getElementById(bingMapID.value)!;
+
+
+    map = setupBingMaps(props);
     map.addEventHandler("viewchangeend", (newMap: BingMapBackendType) => {
-        pauseZoomSync = true;
-        pausePositionSync = true;
-        setTimeout(() => pauseZoomSync = false, 50);
-        setTimeout(() => pausePositionSync = false, 50);
-
-        zoomValue.value = newMap.getZoom();
-        viewCentre.value.latitude = newMap.map.getCenter().latitude;
-        viewCentre.value.longitude = newMap.map.getCenter().longitude;
+        emit("update:zoom", newMap.getZoom());
+        emit("update:viewCentre", { ...newMap.getCentre() });
     }, false);
 
     const initCentre = setInterval(() => {
         if (GeoLocation.UpdateService.isStarted() && GeoLocation.UpdateService.isInitialised()) {
             clearInterval(initCentre);
-            const geoLocation = GeoLocation.UpdateService.getPresent();
-            centre.value = new Microsoft.Maps.Location(geoLocation.latitude, geoLocation.longitude);
-            map?.setView({ centre: centre.value });
+            map?.setCentre(GeoLocation.UpdateService.getPresent(), true);
+            map?.gotoCentre();
+            if (geoLocationKeepCentre.value) map?.freezeViewCentre();
         }
     });
 
@@ -161,16 +144,18 @@ onMounted(async () => {
                     <remove />
                 </Icon>
             </n-button>
-            <n-switch v-model:value="geoLocationKeepCentre" size="small" />
+            <n-switch v-model:value="geoLocationKeepCentre"
+                @click="() => { geoLocationKeepCentre ? map?.freezeViewCentre() : map?.unfreezeViewCentre() }"
+                size="small" />
         </div>
     </n-element>
 </template>
 
 <style scoped>
 :root {
-	--border-color: inherit;
-	--modal-color: inherit;
-	--border-radius: inherit;
+    --border-color: inherit;
+    --modal-color: inherit;
+    --border-radius: inherit;
 }
 
 .container {
@@ -207,7 +192,7 @@ onMounted(async () => {
     border: 1px solid var(--border-color);
 }
 
-.nav-toolbox > * {
-	margin: 2px;
+.nav-toolbox>* {
+    margin: 2px;
 }
 </style>

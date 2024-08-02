@@ -28,14 +28,14 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
     initialiseMap(options: BingMapOptions): Microsoft.Maps.Map {
         const map = new Microsoft.Maps.Map(this.container, {
             credentials: this.credentials,
-            center: geographicPoint2MicrosoftLocation(this.viewCentre),
+            center: geographicPoint2MicrosoftLocation(this.getViewCentre()),
             zoom: this.zoom,
             enableInertia: (options.enableInertia === undefined ? true : options.enableInertia),
             liteMode: (options.liteMode === undefined ? false : options.liteMode),
             showDashboard: (options.showDashboard === undefined ? true : options.showDashboard),
             supportedMapTypes: this.supportMapTypes,
-            maxZoom: this.maxZoom,
-            minZoom: this.minZoom,
+            maxZoom: this.getZoomRange().max,
+            minZoom: this.getZoomRange().min,
             enableClickableLogo: false,
             mapTypeId: this.mapType
         });
@@ -44,9 +44,8 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
 
         this.addEventHandler("ready", () => {
             if (this.plugins.pushPinLayer) {
-                this.properties.centrePinID = this.plugins.pushPinLayer.add(geographicPoint2MicrosoftLocation(this.centre), { title: "You are here" });
+                this.properties.centrePinID = this.plugins.pushPinLayer.add(geographicPoint2MicrosoftLocation(this.getCentre()), { title: "You are here" });
             }
-            console.log("bing map ready");
         }, false);
 
         return map;
@@ -55,12 +54,12 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
     startSynchroniseMap(): void {
         this.addEventHandler('viewchangeend', () => { // synchronize zoom and centre from map
             this.zoom = this.map.getZoom();
-            this.viewCentre = this.map.getCenter();
+            this.setViewCentre(this.map.getCenter());
             this.onMapViewChanged(); // should be optimized because it is only use to call the other event handler, not the one to synchronize the map view
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
-            this.map.setView({ zoom: this.zoom, center: geographicPoint2MicrosoftLocation(this.viewCentre) });
-            this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.centre));
+            this.map.setView({ zoom: this.zoom, center: geographicPoint2MicrosoftLocation(this.getViewCentre()) });
+            this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.getCentre()));
             // console.log(this.centrePinID, this.centre, this.plugins.pushPinLayer.setLocation)
         }, false);
     }
