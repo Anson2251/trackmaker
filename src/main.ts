@@ -13,7 +13,7 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 
-loadModules(modules, "trackmaker", 30000, __RELEASE_MODE__).then(() => {
+loadModules(modules, "trackmaker", 30000, !__RELEASE_MODE__).then(() => {
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {
