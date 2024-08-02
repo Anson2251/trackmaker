@@ -51,7 +51,7 @@ function locationUpdater(updateInterval: number = 200, onChange: (location: Geog
                 longitude: position.longitude
             });
             if (newPosition.latitude !== previousLocation.latitude || newPosition.longitude !== previousLocation.longitude) {
-                console.log(`Geolocation Changed to: (LAT ${newPosition.latitude}, LNG ${newPosition.longitude})`);
+                console.log(`Geolocation changed to: (LAT ${newPosition.latitude}, LNG ${newPosition.longitude})`);
                 onChange(newPosition);
                 previousLocation = newPosition;
             }

@@ -6,70 +6,6 @@ import viteCompression from 'vite-plugin-compression';
 
 import vue from '@vitejs/plugin-vue';
 import legacy from '@vitejs/plugin-legacy';
-import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
-import type { ObfuscatorOptions } from "javascript-obfuscator";
-
-
-const obfuscatorConfig: ObfuscatorOptions = {
-	compact: true,
-	controlFlowFlattening: true,
-	controlFlowFlatteningThreshold: 0.75,
-	deadCodeInjection: false,
-	deadCodeInjectionThreshold: 0.4,
-	debugProtection: false,
-	debugProtectionInterval: 0,
-	disableConsoleOutput: false,
-	domainLock: [],
-	domainLockRedirectUrl: 'about:blank',
-	forceTransformStrings: [],
-	identifierNamesCache: null,
-	identifierNamesGenerator: 'hexadecimal',
-	identifiersDictionary: [],
-	identifiersPrefix: '',
-	ignoreImports: false,
-	inputFileName: '',
-	log: false,
-	numbersToExpressions: true,
-	optionsPreset: 'default',
-	renameGlobals: false,
-	renameProperties: false,
-	renamePropertiesMode: 'safe',
-	reservedNames: [],
-	reservedStrings: [],
-	seed: (new Date()).getTime(),
-	selfDefending: false,
-	simplify: true,
-	sourceMap: false,
-	sourceMapBaseUrl: '',
-	sourceMapFileName: '',
-	sourceMapMode: 'separate',
-	sourceMapSourcesMode: 'sources-content',
-	splitStrings: true,
-	splitStringsChunkLength: 5,
-	stringArray: true,
-	stringArrayCallsTransform: true,
-	stringArrayCallsTransformThreshold: 0.5,
-	stringArrayEncoding: [],
-	stringArrayIndexesType: [
-		'hexadecimal-number'
-	],
-	stringArrayIndexShift: true,
-	stringArrayRotate: true,
-	stringArrayShuffle: true,
-	stringArrayWrappersCount: 1,
-	stringArrayWrappersChainedCalls: true,
-	stringArrayWrappersParametersMaxCount: 2,
-	stringArrayWrappersType: 'variable',
-	stringArrayThreshold: 0.75,
-	target: 'browser',
-	transformObjectKeys: true,
-	unicodeEscapeSequence: true
-};
-
-const obfuscator = obfuscatorPlugin({
-	apply: "build",
-	options: obfuscatorConfig,
-});
 
 const compression = viteCompression({
 	verbose: true,
@@ -154,7 +90,6 @@ export default defineConfig(async () => {
 			...(
 				releaseMode
 					? [
-						obfuscator,
 						compression,
 						legacy({
 							targets: ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12",
