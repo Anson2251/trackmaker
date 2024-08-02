@@ -2,6 +2,9 @@
 import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
 import { credits } from "@/configs";
+import { ref } from "vue";
+
+const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 </script>
 
 <template>
@@ -9,7 +12,7 @@ import { credits } from "@/configs";
 		<template #default>
 			<div class="project-card">
 				<div class="logo">
-					<n-image width="100" src="/trackmaker/favicon.svg" preview-disabled />
+					<n-image width="100" :src="logo" preview-disabled />
 				</div>
 				<n-h1>Trackmaker</n-h1>
 				<p>Enabling route planning and navigation for sports activities with map marking feature.</p>
