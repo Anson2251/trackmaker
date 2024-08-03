@@ -1,4 +1,3 @@
-import { wgs2gcj } from "./conversion";
 import type { GeographicPointType } from "./definitions";
 
 /** A set of utilities for interacting with the location-updating worker */
@@ -47,10 +46,10 @@ export namespace Driver {
             // Define success and failure callbacks for the geolocation API
             const successCallback = (position: GeolocationPosition) => {
                 // Convert the retrieved location from WGS84 to GCJ02
-                const convertedLocation = wgs2gcj({
+                const convertedLocation = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude
-                });
+                };
                 // Resolve the Promise with the converted location and no error
                 resolve({
                     status: true,
