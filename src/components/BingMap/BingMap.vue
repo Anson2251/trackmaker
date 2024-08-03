@@ -74,6 +74,12 @@ function setupBingMaps(props: PropsType) {
     return new BingMapBackend(container.value, mapOptions, mapPlugins as MapPluginConstructor<BingMapBackend>[]);
 }
 
+function trackingModeEnterLeave() {
+    if (!map) return;
+    geoLocationKeepCentre.value ? map?.freezeViewCentre() : map?.unfreezeViewCentre();
+    if (geoLocationKeepCentre.value) message.info("You're in tracking mode. The map will only follow your geographical location.", { duration: 3000 });
+}
+
 let oldProps = cloneDeep(props);
 watch(props, () => {
     if (!map) return;
@@ -110,7 +116,6 @@ onMounted(async () => {
 
     container.value = document.getElementById(bingMapID.value)!;
 
-
     map = setupBingMaps(props);
     map.addEventHandler("viewchangeend", (newMap: BingMapBackendType) => {
         emit("update:zoom", newMap.getZoom());
@@ -118,16 +123,16 @@ onMounted(async () => {
     }, false);
 
     const initCentre = setInterval(() => {
-        if (GeoLocation.UpdateService.isStarted() && GeoLocation.UpdateService.isInitialised()) {
+        if (GeoLocation.UpdateService.isInitialised()) {
             clearInterval(initCentre);
-            
+
             map?.setCentre(GeoLocation.UpdateService.getPresent(), true);
             map?.gotoCentre();
         }
     });
 
-    if (geoLocationKeepCentre.value) map?.freezeViewCentre();
     emit("ready", map);
+    trackingModeEnterLeave();
 });
 </script>
 
@@ -146,9 +151,7 @@ onMounted(async () => {
                     <remove />
                 </Icon>
             </n-button>
-            <n-switch v-model:value="geoLocationKeepCentre"
-                @click="() => { geoLocationKeepCentre ? map?.freezeViewCentre() : map?.unfreezeViewCentre() }"
-                size="small" />
+            <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />
         </div>
     </n-element>
 </template>
