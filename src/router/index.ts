@@ -1,16 +1,12 @@
 import { createRouter, createMemoryHistory } from 'vue-router';
 
-import HomeView from '@/views/HomeView.vue';
-import EditView from '@/views/EditView.vue';
-import AboutView from '@/views/AboutView.vue';
-
 const router = createRouter({
   history: createMemoryHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('@/views/HomeView.vue'),
       meta: {
         timeout: 5000
       }
@@ -18,7 +14,7 @@ const router = createRouter({
     {
       path: '/edit',
       name: 'edit',
-      component: EditView,
+      component: () => import('@/views/EditView.vue'),
       meta: {
         timeout: 5000
       }
@@ -26,9 +22,12 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      component: AboutView,
-
-      // use () => import() to lazy load this page
+      component: () => import('@/views/AboutView.vue'),
+    },
+    {
+      path: '/exp-maplibregljs',
+      name: 'Preview - MapLibreGL JS',
+      component: () => import('@/views/MapLibreGLJSPreview.vue'),
     }
   ]
 });

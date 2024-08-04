@@ -51,6 +51,17 @@ export default {
 					),
 				key: 'about',
 			},
+			{
+				label: () =>
+					h(
+						RouterLink,
+						{
+							to: "/exp-maplibregljs",
+						},
+						{ default: () => 'Preview MapLibreGLJS' }
+					),
+				key: 'exp-maplibregljs',
+			},
 		];
 
 		return {

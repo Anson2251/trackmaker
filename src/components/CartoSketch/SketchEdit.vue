@@ -3,7 +3,7 @@
 
 import {ref, onMounted} from 'vue';
 
-import BingMap from '@/components/BingMap/BingMap.vue';
+import BingMap from '@/libs/map-backends/bing-maps/BingMap.vue';
 import {type MapWithPlugins, plugins} from './bing-map-plugins';
 
 import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';

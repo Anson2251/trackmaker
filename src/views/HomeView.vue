@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useOsTheme } from "naive-ui";
-import BingMap from '@/components/BingMap/BingMap.vue';
+import BingMapView from '@/libs/map-backends/bing-maps/BingMap.vue';
 import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
 import  BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 import BingMapPlugin_PushPins from '@/libs/map-backends/bing-maps/plugins/pushpin';
@@ -22,7 +22,7 @@ const zoom = ref(10);
 
 <template>
 	<div class="map-layout">
-		<BingMap :map-type="mapType" :lite-mode="false" :plugin="plugins" :zoom="zoom" :tracking="true"/>
+		<BingMapView :map-type="mapType" :lite-mode="false" :plugin="plugins" :zoom="zoom" :tracking="true"/>
 	</div>
 </template>
 
