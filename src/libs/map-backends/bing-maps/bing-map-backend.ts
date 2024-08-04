@@ -21,7 +21,7 @@ export type BingMapBackendType = MapBackend<Microsoft.Maps.Map, BingMapOptions>;
 export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOptions> {
     // it is more safe to add all the custom properties into this.properties
     constructor(container: HTMLElement, options: BingMapOptions, plugins: MapPluginConstructor<BingMapBackend>[] = []) {
-        super(container, options, plugins as unknown as MapPluginConstructor<MapBackend<Microsoft.Maps.Map, BingMapOptions>>[]);
+        super(container, options, [], plugins as unknown as MapPluginConstructor<MapBackend<Microsoft.Maps.Map, BingMapOptions>>[]);
         // for the ugly assertion, I think there is no way around currently to tackle the type error in a more elegant way
     }
 

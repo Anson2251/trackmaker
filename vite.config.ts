@@ -24,6 +24,10 @@ const credentialItems: CredentialItemType[] = [
 	{
 		name: "BING_MAPS_KEY",
 		type: "string"
+	},
+	{
+		name: "MAPTILER_KEY",
+		type: "string"
 	}
 ];
 

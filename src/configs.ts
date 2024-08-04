@@ -28,6 +28,7 @@ export const modules: moduleItem[] = [
 ];
 
 export const bingMapsKey = __BING_MAPS_KEY__;
+export const mapTilerKey = __MAPTILER_KEY__;
 
 export type CreditItem = {
 	id: string

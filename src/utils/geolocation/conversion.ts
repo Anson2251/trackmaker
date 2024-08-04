@@ -5,10 +5,10 @@ import { cloneDeep } from "lodash-es";
 export enum PointTypes {
     GEOGRAPHIC = 0,
     GEOJSON = 1,
-    LNGLAT = 2
+    LNGLAT = 2,
 }
 
-export type LngLatPointType = [number, number]
+export type LngLatPointType = [number, number];
 
 /**
 * Convert WGS coordinate to GCJ coordinate
@@ -27,19 +27,22 @@ export namespace Conversion {
     export function getCoordinate(point: GeoJSONPointType, type: PointTypes.GEOJSON): GeographicPointType
     export function getCoordinate(point: LngLatPointType, type: PointTypes.LNGLAT): GeographicPointType
     export function getCoordinate(point: AllPossiblePointTypes, type: PointTypes): GeographicPointType {
-        switch(type) {
-            case PointTypes.GEOGRAPHIC:
+        switch (type) {
+            case PointTypes.GEOGRAPHIC: {
                 return cloneDeep(point) as GeographicPointType;
-            case PointTypes.GEOJSON:
+            }
+            case PointTypes.GEOJSON: {
                 return {
                     latitude: (point as GeoJSONPointType).coordinates[1],
                     longitude: (point as GeoJSONPointType).coordinates[0]
                 };
-            case PointTypes.LNGLAT:
+            }
+            case PointTypes.LNGLAT: {
                 return {
                     latitude: (point as LngLatPointType)[1],
                     longitude: (point as LngLatPointType)[0]
                 };
+            }
         }
     }
 
@@ -48,18 +51,21 @@ export namespace Conversion {
     export function createLocationPoint(location: GeographicPointType, type: PointTypes.LNGLAT): LngLatPointType
     export function createLocationPoint(location: GeographicPointType, type: PointTypes): AllPossiblePointTypes {
         switch (type) {
-            case PointTypes.GEOGRAPHIC:
+            case PointTypes.GEOGRAPHIC: {
                 return cloneDeep(location);
-            case PointTypes.GEOJSON:
+            }
+            case PointTypes.GEOJSON: {
                 return {
                     type: "Point",
                     coordinates: [location.longitude, location.latitude]
                 };
-            case PointTypes.LNGLAT:
+            }
+            case PointTypes.LNGLAT: {
                 return [
                     location.longitude,
                     location.latitude
                 ];
+            }
         }
     }
 
@@ -67,11 +73,11 @@ export namespace Conversion {
     export function convertLocationPoint(point: AllPossiblePointTypes, to: PointTypes.GEOJSON): GeoJSONPointType
     export function convertLocationPoint(point: AllPossiblePointTypes, to: PointTypes.LNGLAT): LngLatPointType
     export function convertLocationPoint(point: AllPossiblePointTypes, to: PointTypes): AllPossiblePointTypes {
-        if(Array.isArray(point)) {
+        if (Array.isArray(point)) {
             return createLocationPoint(getCoordinate(point as LngLatPointType, PointTypes.LNGLAT), to as any);
         }
 
-        if((point as any).type === "Point") {
+        if ((point as any).type === "Point") {
             return createLocationPoint(getCoordinate(point as GeoJSONPointType, PointTypes.GEOJSON), to as any);
         }
 

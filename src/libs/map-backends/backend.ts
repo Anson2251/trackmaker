@@ -20,8 +20,6 @@ export interface DefaultOptionTypes<MapIDType> {
     zoom?: number;
     /** The credential of the map API */
     credentials: string;
-    /** The flag to enable the dashboard */
-    showDashboard?: boolean;
     /** The max zoom range */
     maxZoom?: number;
     /** The min zoom range */
@@ -43,6 +41,8 @@ export type MapEventHandlerType = {
     handler: (eventArg?: any) => void;
 };
 
+export type AllPossibleMapFeatures = "pitch" | "bearing"
+
 /** The general map backend
  */
 export abstract class MapBackend<
@@ -59,8 +59,13 @@ export abstract class MapBackend<
     eventHandlers: MapEventHandlerType[] = [];
     private maxZoom: number = 20;
     private minZoom: number = 3;
+    private pitch: number = 90;
+    private bearing: number = 0;
+    private minPitch: number = 0;
+    private maxPitch: number = 60;
     readonly plugins: any = {};
     readonly supportMapTypes: OptionTypes["supportedMapTypes"];
+    private supportedFeatures: AllPossibleMapFeatures[];
     viewCentreFrozen = false;
 
     properties: Record<string, any>;
@@ -73,6 +78,7 @@ export abstract class MapBackend<
     constructor(
         container: HTMLElement,
         options: OptionTypes,
+        supportedFeatures: AllPossibleMapFeatures[] = [],
         plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[] = [],
     ) {
         this.container = container;
@@ -82,6 +88,8 @@ export abstract class MapBackend<
         this.zoom = options.zoom || this.zoom;
         this.maxZoom = options.maxZoom || this.maxZoom;
         this.minZoom = options.minZoom || this.minZoom;
+        this.minPitch = 0;
+        this.maxPitch = 60;
         this.credentials = options.credentials;
 
         this.supportMapTypes = options.supportedMapTypes;
@@ -92,6 +100,7 @@ export abstract class MapBackend<
             this.mapType = this.supportMapTypes[0];
         }
 
+        this.supportedFeatures = supportedFeatures;
         this.properties = {};
 
         this.map = this.initialiseMap(options);
@@ -132,6 +141,51 @@ export abstract class MapBackend<
     /** Get the map centre */
     getCentre() {
         return Object.freeze(this.centre);
+    }
+
+    private supportPitch() {
+        const flag = this.supportedFeatures.includes("pitch");
+        if(!flag) console.error("Map does not support pitch");
+        return flag;
+    }
+
+    getPitch() {
+        if(!this.supportPitch()) return 0;
+        return this.pitch;
+    }
+
+    setPitch(pitch: number, silence: boolean) {
+        if(!this.supportPitch()) return;
+        if(!this.verifyPitch(pitch)) return;
+        this.pitch = pitch;
+        if(!silence) this.onMapViewChanged();
+    }
+
+    setPitchRange(min: number, max: number) {
+        if(!this.supportPitch()) return;
+        this.minPitch = min;
+        this.maxPitch = max;
+    }
+
+    verifyPitch(pitch: number) {
+        return pitch >= this.minPitch && pitch <= this.maxPitch;
+    }
+
+    private supportBearing() {
+        const flag = this.supportedFeatures.includes("bearing");
+        if(!flag) console.error("Map does not support bearing");
+        return flag;
+    }
+
+    getBearing() {
+        if(!this.supportBearing()) return 0;
+        return this.bearing;
+    }
+
+    setBearing(bearing: number, silence: boolean) {
+        if(!this.supportBearing()) return;
+        this.bearing = bearing;
+        if(!silence) this.onMapViewChanged();
     }
 
     /**
