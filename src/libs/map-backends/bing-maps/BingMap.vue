@@ -68,6 +68,8 @@ function setupBingMaps(props: PropsType) {
         forceHiDPI: (props.forceHiDPI || false),
         showDashboard: (props.showDashboard || false),
         liteMode: (props.liteMode || false),
+        minZoom: 1,
+        maxZoom: 15
     };
     const mapPlugins = props.plugin || [];
 

@@ -3,5 +3,5 @@ import SketchEdit from '@/components/CartoSketch/SketchEdit.vue';
 </script>
 
 <template>
-	<SketchEdit :lite-mode="true" :force-high-dpi="true" />
+	<SketchEdit :lite-mode="true" :force-high-dpi="false" />
 </template>

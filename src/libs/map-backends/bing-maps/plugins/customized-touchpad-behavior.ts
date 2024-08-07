@@ -15,7 +15,7 @@ export class BingMapPlugin_CustomizedTouchpadBehavior implements MapPlugin<BingM
     mount(): boolean {
         this.host.map.setOptions({ disableScrollWheelZoom: true });
         this.behaviour = useCustomizedTouchpadBehavior(this.host, (location: GeographicPointType, zoom: number) => {
-            this.host.setView({centre: location, zoom: zoom});
+            this.host.setViewPort({centre: location, zoom: zoom});
         });
         this.host.container.addEventListener("wheel", this.behaviour, { passive: false });
         return true;
