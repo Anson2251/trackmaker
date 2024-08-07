@@ -7,6 +7,6 @@ export interface MapPlugin<HostMapType> {
     host: HostMapType;
     /** this space under the plugins where the plugin will mount */
     space: string;
-    mount(): boolean;
-    unmount(): boolean;
+    mount(): boolean | Promise<boolean>;
+    unmount(): boolean | Promise<boolean>;
 }

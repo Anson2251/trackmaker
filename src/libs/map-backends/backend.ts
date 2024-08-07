@@ -366,20 +366,20 @@ export abstract class MapBackend<
      * @param plugins The plugin list
      * @returns Whether the loading is successful
      */
-    loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
+    async loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
         let success = true;
 
-        plugins.forEach((plugin) => {
-            const mountSuccess = (() => {
+        for(const plugin of plugins){
+            const mountSuccess = await (async () => {
                 try {
-                    return new plugin(this).mount();
+                    return await new plugin(this).mount();
                 } catch (e) {
                     console.info(`Fail to initialize plugin: ${plugin.name}`, e);
                     return false;
                 }
             })();
             if (!mountSuccess) success = false;
-        }); // mount plugins
+        } // mount plugins
 
         return success;
     }
