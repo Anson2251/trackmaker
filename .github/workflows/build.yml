@@ -33,6 +33,7 @@ jobs:
         run: npm run build-release
         env: 
           BING_MAPS_KEY: ${{ secrets.BING_MAPS_KEY }}
+          MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
 
       - name: Copy README to dist
         run: cp ./.github/workflows/github-page-readme.md ./dist/trackmaker/README.md
