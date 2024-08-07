@@ -4,13 +4,13 @@ import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
 import { Rotate360 } from "@vicons/tabler";
 import { ref, watch, onMounted } from "vue";
-import { mapTilerKey } from "@/configs";
+
 import { cloneDeep, inRange } from "lodash-es";
 
 import * as GeoLocation from "@/utils/geolocation";
-import { MapLibreGLBackend, allocateBingMapID, type MapLibreGLBackendOptionTypes, type MapLibreGLBackendType } from "@/libs/map-backends/maplibre-gl/maplibre-gl-backend";
+import { MapLibreGLBackend, allocateMapLibreGLMapID, type MapLibreGLBackendOptionTypes, type MapLibreGLBackendType } from "@/libs/map-backends/maplibre-gl/maplibre-gl-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
-
+import { mapTilerKey } from "@/configs";
 type PropsType = {
     plugin?: MapPluginConstructor<MapLibreGLBackend>[], // TODO
     centre?: {
@@ -40,7 +40,7 @@ const pitch = ref(0);
 const bearing = ref(0);
 const bearingTweakStickDeg = 10;
 
-const maplibreglID = ref(`maplibregl-${allocateBingMapID()}`);
+const maplibreglID = ref(`maplibregl-${allocateMapLibreGLMapID()}`);
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(!!props.tracking);
 let map: MapLibreGLBackend | undefined = undefined;
@@ -57,21 +57,21 @@ function zoomOut() {
     }
 }
 
-function setupBingMaps(props: PropsType) {
+function setupMaplibreGLMaps(props: PropsType) {
     if (!container.value) throw new Error(`Container ${maplibreglID.value} is not ready.`);
 
     const mapOptions: MapLibreGLBackendOptionTypes = {
         centre: (props.centre ? props.centre : { latitude: 0, longitude: 0 }),
         zoom: (props.zoom || 10),
-        type: "https://api.maptiler.com/maps/basic-v2/style.json",
-        supportedMapTypes: ["https://api.maptiler.com/maps/basic-v2/style.json", "https://api.maptiler.com/maps/streets-v2/style.json"],
+        type: "street",
+        supportedMapTypes: ["street", "satellite"],
         credentials: mapTilerKey,
-        maxZoom: 18,
+        maxZoom: 22,
         minZoom: 1,
     };
-    // const mapPlugins = props.plugin || [];
+    const mapPlugins = props.plugin || [];
 
-    return new MapLibreGLBackend(container.value, mapOptions);
+    return new MapLibreGLBackend(container.value, mapOptions, mapPlugins);
 }
 
 function trackingModeEnterLeave() {
@@ -84,8 +84,8 @@ watch(pitch, () => {
     map?.setPitch(pitch.value, false);
 });
 watch(bearing, () => {
-    if(inRange(Math.abs(bearing.value), 0, bearingTweakStickDeg)) bearing.value = 0; // no need to tweak
-    if(inRange(Math.abs(bearing.value), 90 - bearingTweakStickDeg, 90 + bearingTweakStickDeg)) bearing.value = 90 * Math.sign(bearing.value);
+    if (inRange(Math.abs(bearing.value), 0, bearingTweakStickDeg)) bearing.value = 0; // no need to tweak
+    if (inRange(Math.abs(bearing.value), 90 - bearingTweakStickDeg, 90 + bearingTweakStickDeg)) bearing.value = 90 * Math.sign(bearing.value);
     map?.setBearing(bearing.value, false);
 });
 
@@ -116,7 +116,7 @@ watch(props, () => {
 
 onMounted(async () => {
     GeoLocation.UpdateService.addListener((newLocation) => {
-        if (!props.tracking) return;
+        if (geoLocationKeepCentre.value) return;
 
         map?.setCentre(newLocation, geoLocationKeepCentre.value);
         map?.gotoCentre();
@@ -126,56 +126,9 @@ onMounted(async () => {
 
     container.value = document.getElementById(maplibreglID.value)!;
 
-    map = setupBingMaps(props);
+    map = setupMaplibreGLMaps(props);
 
-    map.map.on('load', () => {
-        // Insert the layer beneath any symbol layer.
-        const layers = map!.map.getStyle().layers;
-
-        let labelLayerId;
-        for (let i = 0; i < layers.length; i++) {
-            if (layers[i].type === 'symbol' && (layers[i] as any)!.layout['text-field']!) {
-                labelLayerId = layers[i].id;
-                break;
-            }
-        }
-
-        map!.map.addSource('openmaptiles', {
-            url: `https://api.maptiler.com/tiles/v3/tiles.json?key=${mapTilerKey}`,
-            type: 'vector',
-        });
-
-        map!.map.addLayer(
-            {
-                'id': '3d-buildings',
-                'source': 'openmaptiles',
-                'source-layer': 'building',
-                'type': 'fill-extrusion',
-                'minzoom': 15,
-                'paint': {
-                    'fill-extrusion-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
-                    ],
-                    'fill-extrusion-height': [
-                        'interpolate',
-                        ['linear'],
-                        ['zoom'],
-                        15,
-                        0,
-                        16,
-                        ['get', 'render_height']
-                    ],
-                    'fill-extrusion-base': ['case',
-                        ['>=', ['get', 'zoom'], 16],
-                        ['get', 'render_min_height'], 0
-                    ]
-                }
-            },
-            labelLayerId
-        );
-    });
+    
 
     map.addEventHandler("viewchangeend", (newMap: MapLibreGLBackendType) => {
         emit("update:zoom", newMap.getZoom());
@@ -222,7 +175,8 @@ onMounted(async () => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 8em;" :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`"/></div>
+                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 8em;"
+                        :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
                 <!--pitch-->
@@ -236,15 +190,16 @@ onMounted(async () => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider v-model:value="pitch" :min="0" :max="60" vertical style="height: 8em;" :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`"/></div>
+                <div><n-slider v-model:value="pitch" :min="0" :max="60" vertical style="height: 8em;" :tooltip="true"
+                        placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
-            <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />            
+            <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />
         </div>
     </n-element>
 </template>
 
 <style>
-.mapview-tooltip-popover-input .v-binder-follower-content > .n-slider-handle-indicator {
+.mapview-tooltip-popover-input .v-binder-follower-content>.n-slider-handle-indicator {
     text-wrap: nowrap;
 }
 </style>

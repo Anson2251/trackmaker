@@ -4,8 +4,10 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { Conversion as LocationConversion, type GeographicPointType, PointTypes} from "@/utils/geolocation";
 import type { DefaultOptionTypes } from "@/libs/map-backends/backend";
 import { isEqual } from "lodash-es";
+import { getMapLibreGLStyle } from "./maplibre-gl-styles";
+import { type MapPluginConstructor } from "../plugin";
 
-export const allocateBingMapID = allocateMapID;
+export const allocateMapLibreGLMapID = allocateMapID;
 
 const toLngLatPoint = (point: GeographicPointType): [number, number] => {
     return LocationConversion.convertLocationPoint(point, PointTypes.LNGLAT);
@@ -33,15 +35,17 @@ export declare interface MapLibreGLBackend {
     }
 }
 
+
+
 export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBackendOptionTypes> {
-    constructor(container: HTMLElement, options: MapLibreGLBackendOptionTypes) {
-        super(container, options, ["pitch", "bearing"], []);
+    constructor(container: HTMLElement, options: MapLibreGLBackendOptionTypes, plugins: MapPluginConstructor<MapLibreGLBackend>[] = []) {
+        super(container, options, ["pitch", "bearing"], plugins as any[]);
     }
 
     initialiseMap(options: MapLibreGLBackendOptionTypes): maplibregl.Map {
         const map = new maplibregl.Map({
             container: this.container, // container id
-            style: `${options.type}?key=${options.credentials}`, // style URL
+            style: getMapLibreGLStyle(options.type, options.credentials), // style URL
             center: LocationConversion.convertLocationPoint(this.getCentre(), PointTypes.LNGLAT), // starting position [lng, lat]
             zoom: this.getZoom(), // starting zoom
             maxZoom: this.getZoomRange().max,
