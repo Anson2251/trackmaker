@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
+import { NButton, NSwitch, NElement, NSlider, NPopover, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
+import { Rotate360 } from "@vicons/tabler";
 import { ref, watch, onMounted } from "vue";
 import { mapTilerKey } from "@/configs";
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, inRange } from "lodash-es";
 
 import * as GeoLocation from "@/utils/geolocation";
 import { MapLibreGLBackend, allocateBingMapID, type MapLibreGLBackendOptionTypes, type MapLibreGLBackendType } from "@/libs/map-backends/maplibre-gl/maplibre-gl-backend";
@@ -35,8 +36,11 @@ const emit = defineEmits(["ready", "update:zoom", "update:centre", "update:viewC
 
 let iconSize = ref(24);
 const message = useMessage();
+const pitch = ref(0);
+const bearing = ref(0);
+const bearingTweakStickDeg = 10;
 
-const bingMapID = ref(`maplibregl-${allocateBingMapID()}`);
+const maplibreglID = ref(`maplibregl-${allocateBingMapID()}`);
 const container = ref<HTMLElement | null>(null);
 let geoLocationKeepCentre = ref(!!props.tracking);
 let map: MapLibreGLBackend | undefined = undefined;
@@ -54,7 +58,7 @@ function zoomOut() {
 }
 
 function setupBingMaps(props: PropsType) {
-    if (!container.value) throw new Error(`Container ${bingMapID.value} is not ready.`);
+    if (!container.value) throw new Error(`Container ${maplibreglID.value} is not ready.`);
 
     const mapOptions: MapLibreGLBackendOptionTypes = {
         centre: (props.centre ? props.centre : { latitude: 0, longitude: 0 }),
@@ -62,7 +66,8 @@ function setupBingMaps(props: PropsType) {
         type: "https://api.maptiler.com/maps/basic-v2/style.json",
         supportedMapTypes: ["https://api.maptiler.com/maps/basic-v2/style.json", "https://api.maptiler.com/maps/streets-v2/style.json"],
         credentials: mapTilerKey,
-        // credentials: bingMapsKey,
+        maxZoom: 18,
+        minZoom: 1,
     };
     // const mapPlugins = props.plugin || [];
 
@@ -74,6 +79,15 @@ function trackingModeEnterLeave() {
     geoLocationKeepCentre.value ? map?.freezeViewCentre() : map?.unfreezeViewCentre();
     if (geoLocationKeepCentre.value) message.info("You're in tracking mode. The map will only follow your geographical location.", { duration: 3000 });
 }
+
+watch(pitch, () => {
+    map?.setPitch(pitch.value, false);
+});
+watch(bearing, () => {
+    if(inRange(Math.abs(bearing.value), 0, bearingTweakStickDeg)) bearing.value = 0; // no need to tweak
+    if(inRange(Math.abs(bearing.value), 90 - bearingTweakStickDeg, 90 + bearingTweakStickDeg)) bearing.value = 90 * Math.sign(bearing.value);
+    map?.setBearing(bearing.value, false);
+});
 
 let oldProps = cloneDeep(props);
 watch(props, () => {
@@ -110,9 +124,59 @@ onMounted(async () => {
     });
     GeoLocation.UpdateService.start();
 
-    container.value = document.getElementById(bingMapID.value)!;
+    container.value = document.getElementById(maplibreglID.value)!;
 
     map = setupBingMaps(props);
+
+    map.map.on('load', () => {
+        // Insert the layer beneath any symbol layer.
+        const layers = map!.map.getStyle().layers;
+
+        let labelLayerId;
+        for (let i = 0; i < layers.length; i++) {
+            if (layers[i].type === 'symbol' && (layers[i] as any)!.layout['text-field']!) {
+                labelLayerId = layers[i].id;
+                break;
+            }
+        }
+
+        map!.map.addSource('openmaptiles', {
+            url: `https://api.maptiler.com/tiles/v3/tiles.json?key=${mapTilerKey}`,
+            type: 'vector',
+        });
+
+        map!.map.addLayer(
+            {
+                'id': '3d-buildings',
+                'source': 'openmaptiles',
+                'source-layer': 'building',
+                'type': 'fill-extrusion',
+                'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
+                    ],
+                    'fill-extrusion-height': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        15,
+                        0,
+                        16,
+                        ['get', 'render_height']
+                    ],
+                    'fill-extrusion-base': ['case',
+                        ['>=', ['get', 'zoom'], 16],
+                        ['get', 'render_min_height'], 0
+                    ]
+                }
+            },
+            labelLayerId
+        );
+    });
+
     map.addEventHandler("viewchangeend", (newMap: MapLibreGLBackendType) => {
         emit("update:zoom", newMap.getZoom());
         emit("update:viewCentre", { ...newMap.getCentre() });
@@ -134,7 +198,7 @@ onMounted(async () => {
 
 <template>
     <n-element class="container">
-        <div :id="bingMapID" class="bing-map-container">
+        <div :id="maplibreglID" class="maplibregl-map-container">
         </div>
         <div class="nav-toolbox">
             <n-button strong secondary circle type="primary" @click="() => zoomIn()">
@@ -147,10 +211,43 @@ onMounted(async () => {
                     <remove />
                 </Icon>
             </n-button>
-            <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />
+            <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
+                <!--bearing-->
+                <template #trigger>
+                    <n-button strong secondary circle type="primary">
+                        <Icon :size="iconSize">
+                            <div style="transform: rotateX(200deg);">
+                                <Rotate360 style="transform: rotate(225deg);" />
+                            </div>
+                        </Icon>
+                    </n-button>
+                </template>
+                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 8em;" :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`"/></div>
+            </n-popover>
+            <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
+                <!--pitch-->
+                <template #trigger>
+                    <n-button strong secondary circle type="primary">
+                        <!--bearing-->
+                        <Icon :size="iconSize">
+                            <div style="transform: rotateY(20deg);">
+                                <Rotate360 style="transform: rotate(-45deg);" />
+                            </div>
+                        </Icon>
+                    </n-button>
+                </template>
+                <div><n-slider v-model:value="pitch" :min="0" :max="60" vertical style="height: 8em;" :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`"/></div>
+            </n-popover>
+            <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />            
         </div>
     </n-element>
 </template>
+
+<style>
+.mapview-tooltip-popover-input .v-binder-follower-content > .n-slider-handle-indicator {
+    text-wrap: nowrap;
+}
+</style>
 
 <style scoped>
 :root {
@@ -165,7 +262,7 @@ onMounted(async () => {
     position: relative;
 }
 
-.bing-map-container {
+.maplibregl-map-container {
     width: calc(100% - 2px);
     height: calc(100% - 2px);
 
@@ -173,7 +270,7 @@ onMounted(async () => {
     border: 1px solid var(--border-color);
 }
 
-.bing-map-container * {
+.maplibregl-map-container * {
     border-radius: var(--border-radius);
 }
 
@@ -195,5 +292,18 @@ onMounted(async () => {
 
 .nav-toolbox>* {
     margin: 2px;
+}
+
+.bottom-panel {
+    position: absolute;
+    bottom: 32px;
+    left: 8px;
+    right: 8px;
+    height: 32px;
+
+    padding: 8px;
+
+    background-color: var(--modal-color);
+    border-top: 1px solid var(--border-color);
 }
 </style>
