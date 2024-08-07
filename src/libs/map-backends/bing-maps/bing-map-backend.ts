@@ -29,7 +29,7 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
         const map = new Microsoft.Maps.Map(this.container, {
             credentials: this.credentials,
             center: geographicPoint2MicrosoftLocation(this.getViewCentre()),
-            zoom: this.zoom,
+            zoom: this.getZoom(),
             enableInertia: (options.enableInertia === undefined ? true : options.enableInertia),
             liteMode: (options.liteMode === undefined ? false : options.liteMode),
             showDashboard: (options.showDashboard === undefined ? true : options.showDashboard),
@@ -53,12 +53,12 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
 
     startSynchroniseMap(): void {
         this.addEventHandler('viewchangeend', () => { // synchronize zoom and centre from map
-            this.zoom = this.map.getZoom();
+            this.setZoom(this.map.getZoom());
             this.setViewCentre(this.map.getCenter());
             this.onMapViewChanged(); // should be optimized because it is only use to call the other event handler, not the one to synchronize the map view
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
-            this.map.setView({ zoom: this.zoom, center: geographicPoint2MicrosoftLocation(this.getViewCentre()) });
+            this.map.setView({ zoom: this.getZoom(), center: geographicPoint2MicrosoftLocation(this.getViewCentre()) });
             this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.getCentre()));
             // console.log(this.centrePinID, this.centre, this.plugins.pushPinLayer.setLocation)
         }, false);

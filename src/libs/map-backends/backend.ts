@@ -1,8 +1,9 @@
 import * as GeoLocation from "@/utils/geolocation";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
+import {isNumber, isEmpty} from "lodash-es";
 
 export const allocateMapID = () => {
-    window.MapCount = Number.isInteger(window.MapCount) ? window.MapCount + 1 : 0;
+    window.MapCount = isNumber(window.MapCount) ? window.MapCount + 1 : 0;
     return window.MapCount;
 };
 
@@ -21,9 +22,13 @@ export interface DefaultOptionTypes<MapIDType> {
     /** The credential of the map API */
     credentials: string;
     /** The max zoom range */
-    maxZoom?: number;
+    maxZoom: number;
     /** The min zoom range */
-    minZoom?: number;
+    minZoom: number;
+    /** The max pitch range */
+    maxPitch?: number;
+    /** The min pitch range */
+    minPitch?: number;
 }
 
 /** The type of viewport of the map */
@@ -41,7 +46,18 @@ export type MapEventHandlerType = {
     handler: (eventArg?: any) => void;
 };
 
-export type AllPossibleMapFeatures = "pitch" | "bearing"
+export type RangeType = {
+    max: number;
+    min: number;
+}
+
+export type AllPossibleMapFeatures = "pitch" | "bearing" | "fractionalZoom"
+
+export type MapViewPortType = {
+    centre: GeoLocation.GeographicPointType;
+    bearing: number;
+    pitch: number;
+}
 
 /** The general map backend
  */
@@ -49,24 +65,24 @@ export abstract class MapBackend<
     MapType,
     OptionTypes extends DefaultOptionTypes<OptionTypes["type"]>,
 > {
-    zoom: number = 5;
-    private viewCentre: GeoLocation.GeographicPointType;
-    private centre: GeoLocation.GeographicPointType;
+    private zoom: number = 5;
+    private zoomRange: RangeType;
+    private pitchRange: RangeType;
+
+    private viewPort: MapViewPortType;
+    private viewPortFrozen = false;
+    private mapViewPort: MapViewPortType;
+    
     readonly credentials: string;
     mapType: OptionTypes["type"];
     readonly container: HTMLElement;
     readonly map: MapType;
+
     eventHandlers: MapEventHandlerType[] = [];
-    private maxZoom: number = 20;
-    private minZoom: number = 3;
-    private pitch: number = 90;
-    private bearing: number = 0;
-    private minPitch: number = 0;
-    private maxPitch: number = 60;
     readonly plugins: any = {};
     readonly supportMapTypes: OptionTypes["supportedMapTypes"];
     private supportedFeatures: AllPossibleMapFeatures[];
-    viewCentreFrozen = false;
+    
 
     properties: Record<string, any>;
 
@@ -81,17 +97,31 @@ export abstract class MapBackend<
         supportedFeatures: AllPossibleMapFeatures[] = [],
         plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[] = [],
     ) {
-        this.container = container;
-        this.mapType = options.type;
-        this.centre = options.centre;
-        this.viewCentre = GeoLocation.clonePoint(this.centre);
-        this.zoom = options.zoom || this.zoom;
-        this.maxZoom = options.maxZoom || this.maxZoom;
-        this.minZoom = options.minZoom || this.minZoom;
-        this.minPitch = 0;
-        this.maxPitch = 60;
-        this.credentials = options.credentials;
+        this.supportedFeatures = supportedFeatures;
+        this.properties = {};
 
+        this.mapViewPort = {
+            centre: GeoLocation.clonePoint(options.centre),
+            bearing: 0,
+            pitch: 0,
+        };
+        this.zoom = options.zoom || this.zoom;
+
+        this.viewPort = {
+            centre: GeoLocation.clonePoint(this.mapViewPort.centre),
+            bearing: 0,
+            pitch: 0,
+        };
+
+        this.zoomRange = {min: 0, max: 0};
+        this.setZoomRange(options.minZoom, options.maxZoom);
+
+        this.pitchRange = {min: 0, max: 0};
+        this.setPitchRange(options.minPitch || 0, options.maxPitch || 60);
+
+        this.container = container;
+        this.credentials = options.credentials;
+        this.mapType = options.type;
         this.supportMapTypes = options.supportedMapTypes;
         if (!this.supportMapTypes.includes(this.mapType)) {
             console.warn(
@@ -99,9 +129,6 @@ export abstract class MapBackend<
             );
             this.mapType = this.supportMapTypes[0];
         }
-
-        this.supportedFeatures = supportedFeatures;
-        this.properties = {};
 
         this.map = this.initialiseMap(options);
 
@@ -120,12 +147,16 @@ export abstract class MapBackend<
     freezeViewCentre() {
         console.log("View centre is frozen");
         this.gotoCentre();
-        this.viewCentreFrozen = true;
+        this.viewPortFrozen = true;
     }
 
     unfreezeViewCentre() {
         console.log("View centre is unfrozen");
-        this.viewCentreFrozen = false;
+        this.viewPortFrozen = false;
+    }
+
+    getMapViewFrozenStatus() {
+        return this.viewPortFrozen;
     }
 
     /**
@@ -134,120 +165,147 @@ export abstract class MapBackend<
      * @param silence Whether to call the corresponding handlers
      */
     setCentre(centre: GeoLocation.GeographicPointType, silence: boolean): void {
-        this.centre = GeoLocation.clonePoint(centre);
+        this.mapViewPort.centre = GeoLocation.clonePoint(centre);
         if (!silence) this.onMapViewChanged();
     }
 
     /** Get the map centre */
     getCentre() {
-        return Object.freeze(this.centre);
+        return Object.freeze(this.mapViewPort.centre);
     }
 
     private supportPitch() {
         const flag = this.supportedFeatures.includes("pitch");
-        if(!flag) console.error("Map does not support pitch");
+        if(!flag) console.info("Map does not support pitch");
         return flag;
+    }
+
+    setPitchRange(min?: number, max?: number) {
+        if(!this.supportPitch()) return;
+        if(isNumber(min)) this.pitchRange.min = min!;
+        if(isNumber(max)) this.pitchRange.max = max!;
+    }
+    
+    verifyPitch(pitch: number) {
+        return pitch >= this.pitchRange.min && pitch <= this.pitchRange.max;
     }
 
     getPitch() {
         if(!this.supportPitch()) return 0;
-        return this.pitch;
+        return this.mapViewPort.pitch;
     }
 
     setPitch(pitch: number, silence: boolean) {
         if(!this.supportPitch()) return;
         if(!this.verifyPitch(pitch)) return;
-        this.pitch = pitch;
+        this.mapViewPort.pitch = pitch;
         if(!silence) this.onMapViewChanged();
-    }
-
-    setPitchRange(min: number, max: number) {
-        if(!this.supportPitch()) return;
-        this.minPitch = min;
-        this.maxPitch = max;
-    }
-
-    verifyPitch(pitch: number) {
-        return pitch >= this.minPitch && pitch <= this.maxPitch;
     }
 
     private supportBearing() {
         const flag = this.supportedFeatures.includes("bearing");
-        if(!flag) console.error("Map does not support bearing");
+        if(!flag) console.info("Map does not support bearing");
         return flag;
     }
 
     getBearing() {
         if(!this.supportBearing()) return 0;
-        return this.bearing;
+        return this.mapViewPort.bearing;
     }
 
     setBearing(bearing: number, silence: boolean) {
         if(!this.supportBearing()) return;
-        this.bearing = bearing;
+        this.mapViewPort.bearing = bearing;
         if(!silence) this.onMapViewChanged();
     }
 
+    setMapViewPort(port: Partial<MapViewPortType>, silence = false) {
+        if(isNumber(port.bearing)) this.setBearing(port.bearing, true);
+        if(isNumber(port.pitch)) this.setPitch(port.pitch, true);
+        if(!isEmpty(port.centre)) this.setCentre(port.centre, true);
+        if(!silence) this.onMapViewChanged();
+    }
+
+    getMapViewPort(): Readonly<MapViewPortType> {
+        return Object.freeze(this.mapViewPort);
+    }
+
+    /** get the view centre */
+    getViewCentre() {
+        return Object.freeze(this.viewPort.centre);
+    }
+    
     /**
      * Set the view centre
      * @param viewCentre Set the centre of viewport
      * @param updateMapView Whether to call the corresponding handlers
      */
-    setViewCentre(
-        viewCentre: GeoLocation.GeographicPointType,
-        updateMapView: boolean = true,
-    ) {
-        if(this.viewCentreFrozen && !(viewCentre.latitude === this.centre.latitude && viewCentre.longitude === this.centre.longitude)) return;
-        this.viewCentre = GeoLocation.clonePoint(viewCentre);
-        if (updateMapView) {
-            this.onMapViewChanged();
-        }
+    setViewCentre(viewCentre: GeoLocation.GeographicPointType, silence = false) {
+        const mapCentre = this.getCentre();
+        if(this.viewPortFrozen && !(viewCentre.latitude === mapCentre.latitude && viewCentre.longitude === mapCentre.longitude)) return;
+        this.viewPort.centre = GeoLocation.clonePoint(viewCentre);
+        if(!silence) this.onMapViewChanged();
     }
 
-    /** get the view centre */
-    getViewCentre() {
-        return Object.freeze(this.viewCentre);
+    getViewBearing() {
+        if(!this.supportBearing()) return 0;
+        return this.viewPort.bearing;
+    }
+
+    setViewBearing(bearing: number, silence = false) {
+        if(!this.supportBearing()) return;
+        if(this.viewPortFrozen && bearing !== this.viewPort.bearing) return;
+        this.viewPort.bearing = bearing;
+        if(!silence) this.onMapViewChanged();
+    }
+
+    getViewPitch() {
+        if(!this.supportPitch()) return 0;
+        return this.viewPort.pitch;
+    }
+
+    setViewPitch(pitch: number, silence = false) {
+        if(!this.supportPitch() || !this.verifyPitch(pitch)) return;
+        if(this.viewPortFrozen && pitch !== this.viewPort.pitch) return;
+        this.viewPort.pitch = pitch;
+        if(!silence) this.onMapViewChanged();
     }
 
     /**
-     * Load the plugins
-     * @param plugins The plugin list
-     * @returns Whether the loading is successful
+     * Set the viewport
+     * @param view Set the zoom and centre of the map
      */
-    loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
-        let success = true;
+    setViewPort(view: Partial<(ViewOptionType & MapViewPortType)>, silence = false) {
+        if(isNumber(view.zoom)) this.setZoom(view.zoom, false);
+        if(!isEmpty(view.centre)) this.setViewCentre(view.centre);
+        if(isNumber(view.bearing)) this.setViewBearing(view.bearing);
+        if(isNumber(view.pitch)) this.setViewPitch(view.pitch);
 
-        plugins.forEach((plugin) => {
-            const mountSuccess = (() => {
-                try {
-                    return new plugin(this).mount();
-                } catch (e) {
-                    console.error(`Fail to initialize plugin: ${plugin.name}`, e);
-                    return false;
-                }
-            })();
-            if (!mountSuccess) success = false;
-        }); // mount plugins
+        if(!silence) this.onMapViewChanged();
+    }
 
-        return success;
+    /**
+     * Get the current view port of the map.
+     * @returns The viewport
+     */
+    getViewPort(): Readonly<MapViewPortType> {
+        return Object.freeze(this.viewPort);
     }
 
     /**
      * Set the zoom of the map
      * @param zoom
-     * @param updateMapView Whether to call the corresponding handlers
+     * @param silence Whether to call the corresponding handlers
      * @returns
      */
-    setZoom(zoom: number, updateMapView: boolean = true) {
+    setZoom(zoom: number, silence: boolean = true) {
         if (!this.verifyZoom(zoom)) {
-            console.warn(
-                `Invalid zoom value. Must be between ${this.minZoom} and ${this.maxZoom} inclusive`,
-            );
+            console.warn(`Invalid zoom value "${zoom}". The value must be between ${this.zoomRange.min} and ${this.zoomRange.max} inclusive`);
             return false;
         }
 
         this.zoom = zoom;
-        if (updateMapView) this.onMapViewChanged();
+        if (!silence) this.onMapViewChanged();
         return true;
     }
 
@@ -258,20 +316,9 @@ export abstract class MapBackend<
         return this.zoom;
     }
 
-    /**
-     * Set the viewport
-     * @param view Set the zoom and centre of the map
-     */
-    setView(view: ViewOptionType) {
-        this.setZoom(view.zoom || this.zoom, false);
-        this.setViewCentre(view.centre || this.viewCentre, false);
-
-        this.onMapViewChanged();
-    }
-
     /** Move the map to the centre */
     gotoCentre() {
-        this.setViewCentre(this.centre);
+        this.setViewCentre(this.getCentre());
     }
 
     /**
@@ -306,7 +353,35 @@ export abstract class MapBackend<
      * @returns The zoom range
      */
     getZoomRange() {
-        return Object.freeze({ min: this.minZoom, max: this.maxZoom });
+        return Object.freeze({ min: this.zoomRange.min, max: this.zoomRange.max });
+    }
+
+    setZoomRange(min?: number, max?: number) {
+        if(isNumber(min)) this.zoomRange.min = min!;
+        if(isNumber(max)) this.zoomRange.max = max!;
+    }
+
+    /**
+     * Load the plugins
+     * @param plugins The plugin list
+     * @returns Whether the loading is successful
+     */
+    loadPlugins(plugins: MapPluginConstructor<MapBackend<MapType, OptionTypes>>[]) {
+        let success = true;
+
+        plugins.forEach((plugin) => {
+            const mountSuccess = (() => {
+                try {
+                    return new plugin(this).mount();
+                } catch (e) {
+                    console.info(`Fail to initialize plugin: ${plugin.name}`, e);
+                    return false;
+                }
+            })();
+            if (!mountSuccess) success = false;
+        }); // mount plugins
+
+        return success;
     }
 
     /**
@@ -415,7 +490,7 @@ export abstract class MapBackend<
     }
 
     private verifyZoom(zoom: number): boolean {
-        return zoom >= this.minZoom && zoom <= this.maxZoom;
+        return zoom >= this.zoomRange.min && zoom <= this.zoomRange.max;
     }
 }
 

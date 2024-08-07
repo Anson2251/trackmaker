@@ -1,10 +1,19 @@
 import MapBackend, { allocateMapID} from "@/libs/map-backends/backend";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import * as GeoLocation from "@/utils/geolocation";
+import { Conversion as LocationConversion, type GeographicPointType, PointTypes} from "@/utils/geolocation";
 import type { DefaultOptionTypes } from "@/libs/map-backends/backend";
+import { isEqual } from "lodash-es";
 
 export const allocateBingMapID = allocateMapID;
+
+const toLngLatPoint = (point: GeographicPointType): [number, number] => {
+    return LocationConversion.convertLocationPoint(point, PointTypes.LNGLAT);
+};
+
+const toGeographicPoint = (point: [number, number]): GeographicPointType => {
+    return LocationConversion.convertLocationPoint(point, PointTypes.GEOGRAPHIC);
+};
 
 export type MapLibreGLBackendType = MapBackend<maplibregl.Map, MapLibreGLBackendOptionTypes>;
 
@@ -33,8 +42,8 @@ export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBack
         const map = new maplibregl.Map({
             container: this.container, // container id
             style: `${options.type}?key=${options.credentials}`, // style URL
-            center: GeoLocation.Conversion.convertLocationPoint(this.getCentre(), GeoLocation.PointTypes.LNGLAT), // starting position [lng, lat]
-            zoom: this.zoom, // starting zoom
+            center: LocationConversion.convertLocationPoint(this.getCentre(), PointTypes.LNGLAT), // starting position [lng, lat]
+            zoom: this.getZoom(), // starting zoom
             maxZoom: this.getZoomRange().max,
             minZoom: this.getZoomRange().min,
         });
@@ -45,8 +54,14 @@ export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBack
     }
 
     startSynchroniseMap(): void {
+        const checkMapViewCentre = () => {
+            if(this.getMapViewFrozenStatus() && !isEqual(this.map.getCenter().toArray(), toLngLatPoint(this.getCentre()))) {
+                this.map.setCenter(toLngLatPoint(this.getCentre()));
+            }
+        };
+
         this.addEventHandler('viewchangeend', () => {
-            this.map.setCenter(GeoLocation.Conversion.convertLocationPoint(this.getCentre(), GeoLocation.PointTypes.LNGLAT));
+            this.map.setCenter(toLngLatPoint(this.getViewCentre()));
             this.map.setZoom(this.getZoom());
             this.map.setBearing(this.getBearing());
             this.map.setPitch(this.getPitch());
@@ -55,11 +70,14 @@ export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBack
         this.addEventHandler('pitchend', () => {
             this.setPitch(this.map.getPitch(), true);
         }, true);
-        this.addEventHandler('zoomend', () => {
-            this.setZoom(this.map.getZoom(), false);
+        this.addEventHandler('zoom', () => {
+            this.setViewCentre(toGeographicPoint(this.map.getCenter().toArray()), true);
+            this.setZoom(this.map.getZoom(), true);
+            checkMapViewCentre();
         }, true);
-        this.addEventHandler('moveend', () => {
-            this.setCentre(GeoLocation.Conversion.convertLocationPoint(this.map.getCenter().toArray(), GeoLocation.PointTypes.GEOGRAPHIC), true);
+        this.addEventHandler('move', () => {
+            this.setViewCentre(toGeographicPoint(this.map.getCenter().toArray()), true);
+            checkMapViewCentre();
         }, true);
     }
 
