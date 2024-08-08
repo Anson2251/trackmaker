@@ -8,3 +8,12 @@ export interface GeoJSONPointType {
     /** [Longitude, Latitude] */
     coordinates: [number, number]
 }
+
+export type LocationResponseType = {
+    status: boolean;
+    location: GeographicPointType;
+    error: {
+        code: number;
+        message: string;
+    }
+};

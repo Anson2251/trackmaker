@@ -1,7 +1,7 @@
-import MapBackend, { allocateMapID} from "@/libs/map-backends/backend";
+import MapBackend, { allocateMapID } from "@/libs/map-backends/backend";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Conversion as LocationConversion, type GeographicPointType, PointTypes} from "@/utils/geolocation";
+import { Conversion as LocationConversion, type GeographicPointType, PointTypes } from "@/utils/geolocation";
 import type { DefaultOptionTypes } from "@/libs/map-backends/backend";
 import { isEqual } from "lodash-es";
 import { getMapLibreGLStyle } from "./maplibre-gl-styles";
@@ -57,9 +57,22 @@ export class MapLibreGLBackend extends MapBackend<maplibregl.Map, MapLibreGLBack
         return map;
     }
 
+    getSymbolLayerID(): string | undefined {
+        const layers = this.map.getStyle().layers;
+
+        let labelLayerId;
+        for (let i = 0; i < layers.length; i++) {
+            if (layers[i].type === 'symbol') {
+                labelLayerId = layers[i].id;
+                break;
+            }
+        }
+        return labelLayerId;
+    }
+
     startSynchroniseMap(): void {
         const checkMapViewCentre = () => {
-            if(this.getMapViewFrozenStatus() && !isEqual(this.map.getCenter().toArray(), toLngLatPoint(this.getCentre()))) {
+            if (this.getMapViewFrozenStatus() && !isEqual(this.map.getCenter().toArray(), toLngLatPoint(this.getCentre()))) {
                 this.map.setCenter(toLngLatPoint(this.getCentre()));
             }
         };

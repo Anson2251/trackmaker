@@ -6,6 +6,7 @@ export class MapLibreGLPlugin_TerrainLayer implements MapPlugin<MapLibreGLBacken
     host: MapLibreGLBackend;
     space: string;
     behaviour: ((e: WheelEvent) => void) | undefined;
+    shown = false;
     constructor(parentMap: MapLibreGLBackend) {
         this.host = parentMap;
         this.space = "terrainLayer";
@@ -27,11 +28,28 @@ export class MapLibreGLPlugin_TerrainLayer implements MapPlugin<MapLibreGLBacken
             type: 'hillshade',
             source: 'hillshadeSource',
             layout: { visibility: 'visible' },
-            paint: { 'hillshade-shadow-color': '#473B24' }
-        });
+            paint: { 'hillshade-shadow-color': '#473B24' },
+        }, this.host.getSymbolLayerID());
+        this.host.map.getLayer('hills')!.visibility = 'none';
+    }
+
+    private show() {
+        if(this.shown) return;
+        this.shown = true;
+        this.host.map.getLayer('hills')!.visibility = 'visible';
         this.host.map.setTerrain({
             source: 'terrainSource',
-            exaggeration: 1
+            exaggeration: 1,
+        });
+    }
+
+    hide(){
+        if(!this.shown) return;
+        this.shown = false;
+        this.host.map.getLayer('hills')!.visibility = 'none';
+        this.host.map.setTerrain({
+            source: 'terrainSource',
+            exaggeration: 0,
         });
     }
 
@@ -40,13 +58,23 @@ export class MapLibreGLPlugin_TerrainLayer implements MapPlugin<MapLibreGLBacken
             const initialiser = setInterval(() => {
                 if (this.host.map.isStyleLoaded()) {
                     this.initialise();
+                    const processTerrainLayer = () => {
+                        if(this.host.getPitch() > 0) {
+                            this.show();
+                        }
+                        else {
+                            this.hide();
+                        }
+                    };
+                    this.host.addEventHandler("pitch", processTerrainLayer, true);
+                    this.host.addEventHandler("load", processTerrainLayer, true);
                     clearInterval(initialiser);
                     resolve(true);
                 }
             });
         });
     }
-    
+
     unmount(): boolean {
         this.host.map.removeLayer("hills");
         this.host.map.removeSource("terrainSource");
