@@ -16,7 +16,7 @@ const sizeStyle = computed(() => {
     else return "";
 })
 
-const orientationTextList = ["N", "E", "S", "W"];
+const orientationTextList = ["N", "W", "S", "E"];
 
 const orientationText = computed(() => {
     const deg = props.bearing > 0 ? props.bearing : 360 + props.bearing;

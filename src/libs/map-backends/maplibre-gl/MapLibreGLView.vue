@@ -91,6 +91,7 @@ watch(bearing, () => {
     if (inRange(Math.abs(sticksDeg - bearing.value), 0, bearingTweakStickDeg)) bearing.value = sticksDeg; // no need to tweak
     map?.setBearing(bearing.value, false);
 });
+// TODO: add a input status indicator to prevent the updater breaks user's input
 
 let oldProps = cloneDeep(props);
 watch(props, () => {
@@ -132,7 +133,7 @@ onMounted(async () => {
 
     DeviceOrientationService.addHandler((deg) => {
         console.log("device orientation", deg);
-        bearing.value = 360 - deg;
+        bearing.value = 360-deg;
     });
     DeviceOrientationService.start();
 
@@ -184,7 +185,7 @@ onMounted(async () => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 16em;"
+                <div><n-slider vertical v-model:value="bearing" :min="0" :max="360" style="height: 16em;"
                         :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
@@ -207,7 +208,7 @@ onMounted(async () => {
         </div>
 
         <div class="compass-container">
-            <MapCompass :bearing="bearing" :size="iconSize * 2"/>
+            <MapCompass :bearing="360-bearing" :size="iconSize * 2"/>
         </div>
     </n-element>
 </template>
