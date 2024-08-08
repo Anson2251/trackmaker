@@ -63,7 +63,7 @@ function setupMaplibreGLMaps(props: PropsType) {
     const mapOptions: MapLibreGLBackendOptionTypes = {
         centre: (props.centre ? props.centre : { latitude: 0, longitude: 0 }),
         zoom: (props.zoom || 10),
-        type: "street",
+        type: props.mapType,
         supportedMapTypes: ["street", "satellite"],
         credentials: mapTilerKey,
         maxZoom: 22,
@@ -122,14 +122,14 @@ onMounted(async () => {
         map?.gotoCentre();
         emit("update:centre", { ...newLocation });
     });
+    GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
+        message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 }); 
+    }, true);
     GeoLocation.UpdateService.start();
 
     container.value = document.getElementById(maplibreglID.value)!;
 
     map = setupMaplibreGLMaps(props);
-
-    
-
     map.addEventHandler("viewchangeend", (newMap: MapLibreGLBackendType) => {
         emit("update:zoom", newMap.getZoom());
         emit("update:viewCentre", { ...newMap.getCentre() });
