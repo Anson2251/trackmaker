@@ -116,7 +116,7 @@ watch(props, () => {
 
 onMounted(async () => {
     GeoLocation.UpdateService.addListener((newLocation) => {
-        if (geoLocationKeepCentre.value) return;
+        if (!geoLocationKeepCentre.value) return;
 
         map?.setCentre(newLocation, geoLocationKeepCentre.value);
         map?.gotoCentre();
