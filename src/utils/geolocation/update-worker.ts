@@ -1,6 +1,6 @@
 // THIS FILE SHOULD BE RUN IN THE WEB WORKER ENVIRONMENT
 
-import type { GeographicPointType } from "./definitions";
+import type { GeographicPointType, LocationResponseType } from "./definitions";
 import { wgs2gcj } from "./conversion";
 
 function postLocationRequest() {
@@ -11,8 +11,8 @@ function postLocation(location: GeographicPointType) {
     postMessage({ msg: "location", data: location });
 }
 
-function postError(error: GeolocationPositionError) {
-    postMessage({ msg: "error", data: error || {} });
+function postError(error: LocationResponseType["error"]) {
+    postMessage({ msg: "error", data: error });
 }
 
 function requestLocation(): Promise<GeographicPointType> {
@@ -36,9 +36,9 @@ let receiveLocationFunction: ((location: any) => void) = () => { };
  *
  * @param {number} updateInterval - The interval (in milliseconds) at which the location should be updated. Default is 200ms.
  * @param {(location: GeographicPointType) => void} onChange - The callback function to be called when the location changes.
- * @param {(error: GeolocationPositionError) => void} [onError=()=>{}] - The callback function to be called when an error occurs. Default is an empty function.
+ * @param {(error: LocationResponseType["error"]) => void} [onError=()=>{}] - The callback function to be called when an error occurs. Default is an empty function.
  */
-function locationUpdater(updateInterval: number = 200, onChange: (location: GeographicPointType) => void, onError: ((error: GeolocationPositionError) => void) = () => { }) {
+function locationUpdater(updateInterval: number = 200, onChange: (location: GeographicPointType) => void, onError: ((error: LocationResponseType["error"]) => void) = () => { }) {
     let previousLocation: GeographicPointType = {
         latitude: 0,
         longitude: 0
@@ -51,14 +51,14 @@ function locationUpdater(updateInterval: number = 200, onChange: (location: Geog
                 longitude: position.longitude
             });
             if (newPosition.latitude !== previousLocation.latitude || newPosition.longitude !== previousLocation.longitude) {
-                console.log(`Geolocation changed to: (LAT ${newPosition.latitude}, LNG ${newPosition.longitude})`);
+                console.log(`[geolocation-update-worker] Geolocation changed to: (LAT ${newPosition.latitude}, LNG ${newPosition.longitude})`);
                 onChange(newPosition);
                 previousLocation = newPosition;
             }
         };
 
-        const failureCallback = (error: GeolocationPositionError) => {
-            console.error("Error: " + error);
+        const failureCallback = (error: LocationResponseType["error"]) => {
+            console.error(`[geolocation-update-worker] Fail to get the geolocation. Code: ${error.code}, Msg: ${error.message}`);
             onError(error);
         };
 

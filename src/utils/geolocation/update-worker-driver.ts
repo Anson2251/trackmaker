@@ -1,4 +1,4 @@
-import type { GeographicPointType } from "./definitions";
+import type { LocationResponseType } from "./definitions";
 
 /** A set of utilities for interacting with the location-updating worker */
 export namespace Driver {
@@ -31,11 +31,7 @@ export namespace Driver {
         });
     }
 
-    export type LocationResponseType = {
-        status: boolean;
-        location: GeographicPointType;
-        error: GeolocationPositionError | undefined;
-    };
+    
     /**
      * Request the current location from the browser's geolocation API and send it to the location-updating worker.
      * @param {Worker} updater - The location-updating worker
@@ -54,7 +50,10 @@ export namespace Driver {
                 resolve({
                     status: true,
                     location: convertedLocation,
-                    error: undefined
+                    error: {
+                        code: 0,
+                        message: ""
+                    }
                 });
             };
             const failureCallback = (error: GeolocationPositionError) => {
@@ -65,7 +64,10 @@ export namespace Driver {
                         latitude: 0,
                         longitude: 0
                     },
-                    error: error
+                    error: {
+                        code: error.code,
+                        message: error.message
+                    }
                 });
             };
             // Request the current location from the browser's geolocation API

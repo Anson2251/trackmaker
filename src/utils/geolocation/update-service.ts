@@ -3,8 +3,10 @@ import { Driver as UpdaterDriver } from "./update-worker-driver";
 
 type HandlerItemType = {
     id: number
-    callback: (geoLocation: GeographicPointType) => void
+    callback: (geoLocation: GeographicPointType, ...any: any[]) => void
     type: "change" | "error" | "start" | "stop"
+    triggered: boolean
+    once: boolean
 }
 
 /** A wrapper around the location-updating worker */
@@ -38,8 +40,8 @@ export class Updater {
                 break;
             }
             case "error": {
-                console.error("Failed to get location: " + event.data.data.message);
-                this.executeHandlers("error");
+                console.error("[geolocation-update-service] Failed to get location: " + event.data.data.message);
+                this.executeHandlers("error", event.data.data);
                 this.stop();
                 break;
             }
@@ -94,9 +96,9 @@ export class Updater {
      * @param {HandlerItemType['callback']} callback - The callback function of the handler.
      * @return {number} The ID of the added handler.
      */
-    addHandler(type: HandlerItemType['type'], callback: HandlerItemType['callback']): number {
+    addHandler(type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean = false): number {
         const id = this.handlers.length > 0 ? this.handlers[this.handlers.length - 1].id + 1 : 0;
-        this.handlers.push({ id: id, callback: callback, type: type });
+        this.handlers.push({ id: id, callback: callback, type: type, triggered: false, once: once });
         return id;
     }
 
@@ -113,8 +115,11 @@ export class Updater {
      *
      * @param {HandlerItemType['type']} type - The type of the handlers to execute.
      */
-    private executeHandlers(type: HandlerItemType['type']) {
-        this.handlers.filter((item) => item.type === type).forEach(item => item.callback(this.geoLocationPresent));
+    private executeHandlers(type: HandlerItemType['type'], ...any: any[]) {
+        this.handlers.filter((item) => (item.type === type) && !(item.triggered && item.once)).forEach(item => {
+            item.callback(this.geoLocationPresent, ...any);
+            item.triggered = true;
+        });
     }
 }
 
@@ -132,13 +137,15 @@ export namespace UpdateService {
     export const isInitialised = () => worker.locationInitialised;
 
     /** Start the updater service */
-    export const start = () => UpdateService.worker.start();
+    export const start = () => worker.start();
 
     /** Stop the updater service */
-    export const stop = () => UpdateService.worker.stop();
+    export const stop = () => worker.stop();
 
     /** Add a handler to the service. It will be triggered on "change" */
-    export const addListener = (callback: (location: GeographicPointType) => void) => UpdateService.worker.addHandler("change", callback);
+    export const addListener = (callback: (location: GeographicPointType) => void) => worker.addHandler("change", callback);
+
+    export const addHandler = (type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean) => worker.addHandler(type, callback, once);
     
     /** Remove a handler from the service 
      * @param {number} id - The ID of the handler to remove

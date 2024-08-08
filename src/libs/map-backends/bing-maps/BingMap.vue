@@ -114,6 +114,9 @@ onMounted(async () => {
         map?.gotoCentre();
         emit("update:centre", { ...newLocation });
     });
+    GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
+        message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 }); 
+    }, true);
     GeoLocation.UpdateService.start();
 
     container.value = document.getElementById(bingMapID.value)!;
