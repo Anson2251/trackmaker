@@ -5,9 +5,12 @@ import { Add, Remove } from "@vicons/ionicons5";
 import { Rotate360 } from "@vicons/tabler";
 import { ref, watch, onMounted } from "vue";
 
+import MapCompass from "@/components/MapCompass.vue";
+
 import { cloneDeep, inRange } from "lodash-es";
 
 import * as GeoLocation from "@/utils/geolocation";
+import { DeviceOrientationService } from "@/utils/device-orientation-service";
 import { MapLibreGLBackend, allocateMapLibreGLMapID, type MapLibreGLBackendOptionTypes, type MapLibreGLBackendType } from "@/libs/map-backends/maplibre-gl/maplibre-gl-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 import { mapTilerKey } from "@/configs";
@@ -84,8 +87,8 @@ watch(pitch, () => {
     map?.setPitch(pitch.value, false);
 });
 watch(bearing, () => {
-    if (inRange(Math.abs(bearing.value), 0, bearingTweakStickDeg)) bearing.value = 0; // no need to tweak
-    if (inRange(Math.abs(bearing.value), 90 - bearingTweakStickDeg, 90 + bearingTweakStickDeg)) bearing.value = 90 * Math.sign(bearing.value);
+    const sticksDeg = Math.round(bearing.value / 90) * 90;
+    if (inRange(Math.abs(sticksDeg - bearing.value), 0, bearingTweakStickDeg)) bearing.value = sticksDeg; // no need to tweak
     map?.setBearing(bearing.value, false);
 });
 
@@ -126,6 +129,12 @@ onMounted(async () => {
         message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 }); 
     }, true);
     GeoLocation.UpdateService.start();
+
+    DeviceOrientationService.addHandler((deg) => {
+        console.log("device orientation", deg);
+        bearing.value = 360 - deg;
+    });
+    DeviceOrientationService.start();
 
     container.value = document.getElementById(maplibreglID.value)!;
 
@@ -175,7 +184,7 @@ onMounted(async () => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 8em;"
+                <div><n-slider vertical v-model:value="bearing" :min="-180" :max="180" style="height: 16em;"
                         :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
@@ -194,6 +203,11 @@ onMounted(async () => {
                         placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />
+            
+        </div>
+
+        <div class="compass-container">
+            <MapCompass :bearing="bearing" :size="iconSize * 2"/>
         </div>
     </n-element>
 </template>
@@ -249,16 +263,9 @@ onMounted(async () => {
     margin: 2px;
 }
 
-.bottom-panel {
+.compass-container {
     position: absolute;
-    bottom: 32px;
-    left: 8px;
     right: 8px;
-    height: 32px;
-
-    padding: 8px;
-
-    background-color: var(--modal-color);
-    border-top: 1px solid var(--border-color);
+    bottom: 48px;
 }
 </style>
