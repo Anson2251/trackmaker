@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "export RELEASE_MODE=false; vite dev",
+    "serve": "export RELEASE_MODE=false; vite dev --host",
     "build": "vite build",
     "preview": "vite preview",
     "build-release": "export RELEASE_MODE=true; npm run build",

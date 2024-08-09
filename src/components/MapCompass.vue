@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 
 interface Props {
     bearing: number
@@ -14,14 +14,14 @@ const rotationStyle = computed(() => {
 const sizeStyle = computed(() => {
     if(props.size) return `--compass-size: ${props.size}px`;
     else return "";
-})
+});
 
 const orientationTextList = ["N", "W", "S", "E"];
 
 const orientationText = computed(() => {
     const deg = props.bearing > 0 ? props.bearing : 360 + props.bearing;
     return orientationTextList[Math.round((deg % 360) / 90) % 4];
-})
+});
 </script>
 
 <template>

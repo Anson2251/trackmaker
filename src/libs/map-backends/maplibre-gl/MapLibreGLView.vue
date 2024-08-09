@@ -89,7 +89,7 @@ watch(pitch, () => {
 watch(bearing, () => {
     const sticksDeg = Math.round(bearing.value / 90) * 90;
     if (inRange(Math.abs(sticksDeg - bearing.value), 0, bearingTweakStickDeg)) bearing.value = sticksDeg; // no need to tweak
-    map?.setBearing(bearing.value, false);
+    map?.setBearing(360 - bearing.value, false);
 });
 // TODO: add a input status indicator to prevent the updater breaks user's input
 
@@ -133,7 +133,7 @@ onMounted(async () => {
 
     DeviceOrientationService.addHandler((deg) => {
         console.log("device orientation", deg);
-        bearing.value = 360-deg;
+        bearing.value = deg;
     });
     DeviceOrientationService.start();
 
@@ -208,7 +208,7 @@ onMounted(async () => {
         </div>
 
         <div class="compass-container">
-            <MapCompass :bearing="360-bearing" :size="iconSize * 2"/>
+            <MapCompass :bearing="bearing" :size="iconSize * 2"/>
         </div>
     </n-element>
 </template>
