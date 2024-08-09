@@ -75,7 +75,7 @@ export class MapLibreGLPlugin_BuildingLayer implements MapPlugin<MapLibreGLBacke
                         }
                     };
                     this.host.addEventHandler("pitch", processBuildingLayer, true);
-                    this.host.map.once('load', processBuildingLayer);
+                    setTimeout(processBuildingLayer, 100);
                     clearInterval(initialiser);
                     resolve(true);
                 }
