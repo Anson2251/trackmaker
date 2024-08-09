@@ -215,7 +215,7 @@ export abstract class MapBackend<
 
     setBearing(bearing: number, silence: boolean) {
         if(!this.supportBearing()) return;
-        this.mapViewPort.bearing = bearing;
+        this.mapViewPort.bearing = 360 - bearing;
         if(!silence) this.onMapViewChanged();
     }
 
@@ -255,7 +255,7 @@ export abstract class MapBackend<
     setViewBearing(bearing: number, silence = false) {
         if(!this.supportBearing()) return;
         if(this.viewPortFrozen && bearing !== this.viewPort.bearing) return;
-        this.viewPort.bearing = bearing;
+        this.viewPort.bearing = 360 - bearing;
         if(!silence) this.onMapViewChanged();
     }
 

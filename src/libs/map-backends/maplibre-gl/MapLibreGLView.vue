@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { NButton, NSwitch, NElement, NSlider, NPopover, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
-import { Add, Remove } from "@vicons/ionicons5";
-import { Rotate360 } from "@vicons/tabler";
+import { Rotate360, ZoomIn, ZoomOut } from "@vicons/tabler";
 import { ref, watch, onMounted } from "vue";
 
 import MapCompass from "@/components/MapCompass.vue";
@@ -15,7 +14,7 @@ import { MapLibreGLBackend, allocateMapLibreGLMapID, type MapLibreGLBackendOptio
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 import { mapTilerKey } from "@/configs";
 type PropsType = {
-    plugin?: MapPluginConstructor<MapLibreGLBackend>[], // TODO
+    plugin?: MapPluginConstructor<MapLibreGLBackend>[],
     centre?: {
         latitude: number,
         longitude: number
@@ -80,7 +79,9 @@ function setupMaplibreGLMaps(props: PropsType) {
 function trackingModeEnterLeave() {
     if (!map) return;
     geoLocationKeepCentre.value ? map?.freezeViewCentre() : map?.unfreezeViewCentre();
-    if (geoLocationKeepCentre.value) message.info("You're in tracking mode. The map will only follow your geographical location.", { duration: 3000 });
+    if (geoLocationKeepCentre.value) {
+        message.info("You're in tracking mode. The map will only follow your geographical location.", { duration: 3000 });
+    }
 }
 
 watch(pitch, () => {
@@ -89,7 +90,7 @@ watch(pitch, () => {
 watch(bearing, () => {
     const sticksDeg = Math.round(bearing.value / 90) * 90;
     if (inRange(Math.abs(sticksDeg - bearing.value), 0, bearingTweakStickDeg)) bearing.value = sticksDeg; // no need to tweak
-    map?.setBearing(360 - bearing.value, false);
+    map?.setBearing(bearing.value, false);
 });
 // TODO: add a input status indicator to prevent the updater breaks user's input
 
@@ -118,25 +119,23 @@ watch(props, () => {
     oldProps = cloneDeep(props);
 }, { deep: true });
 
+GeoLocation.UpdateService.addListener((newLocation) => {
+    if (!geoLocationKeepCentre.value) return;
+
+    map?.setCentre(newLocation, geoLocationKeepCentre.value);
+    map?.gotoCentre();
+    emit("update:centre", { ...newLocation });
+});
+GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
+    message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 });
+}, true);
+
+DeviceOrientationService.addHandler((deg) => {
+    console.log("device orientation", deg);
+    bearing.value = deg;
+});
+
 onMounted(async () => {
-    GeoLocation.UpdateService.addListener((newLocation) => {
-        if (!geoLocationKeepCentre.value) return;
-
-        map?.setCentre(newLocation, geoLocationKeepCentre.value);
-        map?.gotoCentre();
-        emit("update:centre", { ...newLocation });
-    });
-    GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
-        message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 }); 
-    }, true);
-    GeoLocation.UpdateService.start();
-
-    DeviceOrientationService.addHandler((deg) => {
-        console.log("device orientation", deg);
-        bearing.value = deg;
-    });
-    DeviceOrientationService.start();
-
     container.value = document.getElementById(maplibreglID.value)!;
 
     map = setupMaplibreGLMaps(props);
@@ -165,13 +164,13 @@ onMounted(async () => {
         </div>
         <div class="nav-toolbox">
             <n-button strong secondary circle type="primary" @click="() => zoomIn()">
-                <Icon :size="iconSize">
-                    <add />
+                <Icon :size="iconSize - 2">
+                    <ZoomIn />
                 </Icon>
             </n-button>
             <n-button strong secondary circle type="primary" @click="() => zoomOut()">
-                <Icon :size="iconSize">
-                    <remove />
+                <Icon :size="iconSize - 2">
+                    <ZoomOut />
                 </Icon>
             </n-button>
             <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
@@ -204,11 +203,11 @@ onMounted(async () => {
                         placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-switch v-model:value="geoLocationKeepCentre" @click="trackingModeEnterLeave" size="small" />
-            
+
         </div>
 
         <div class="compass-container">
-            <MapCompass :bearing="bearing" :size="iconSize * 2"/>
+            <MapCompass :bearing="bearing" :size="iconSize * 2" />
         </div>
     </n-element>
 </template>

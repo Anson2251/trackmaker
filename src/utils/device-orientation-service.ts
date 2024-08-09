@@ -2,7 +2,7 @@ import { isNumber } from "lodash-es";
 
 function triggerHandlers(){
     for(const handler of DeviceOrientationService.handlers) {
-        handler.callback(DeviceOrientationService.degree);
+        handler.callback(DeviceOrientationService.bearing);
     }
 }
 
@@ -12,7 +12,7 @@ type HandlerItemType = {
 }
 
 export namespace DeviceOrientationService {
-    export let degree = 0;
+    export let bearing = 0;
 
     let started = false;
     export const handlers: HandlerItemType[] = [];
@@ -22,11 +22,11 @@ export namespace DeviceOrientationService {
             stop();
             return;
         }
-        degree = event.alpha!;
+        bearing = event.alpha!;
 
         if (typeof (event as any).webkitCompassHeading !== "undefined") {
             // For iOS, event.webkitCompassHeading gives the heading directly
-            degree = (event as any).webkitCompassHeading;
+            bearing = (event as any).webkitCompassHeading;
         }
 
         triggerHandlers();

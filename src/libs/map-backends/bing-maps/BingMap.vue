@@ -106,19 +106,18 @@ watch(props, () => {
     oldProps = cloneDeep(props);
 }, { deep: true });
 
+GeoLocation.UpdateService.addListener((newLocation) => {
+    if (!geoLocationKeepCentre.value) return;
+
+    map?.setCentre(newLocation, geoLocationKeepCentre.value);
+    map?.gotoCentre();
+    emit("update:centre", { ...newLocation });
+});
+GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
+    message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 });
+}, true);
+
 onMounted(async () => {
-    GeoLocation.UpdateService.addListener((newLocation) => {
-        if (!geoLocationKeepCentre.value) return;
-
-        map?.setCentre(newLocation, geoLocationKeepCentre.value);
-        map?.gotoCentre();
-        emit("update:centre", { ...newLocation });
-    });
-    GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
-        message.error(`Fail to show your location, reason: "${error.message}".`, { duration: 3000 }); 
-    }, true);
-    GeoLocation.UpdateService.start();
-
     container.value = document.getElementById(bingMapID.value)!;
 
     map = setupBingMaps(props);
