@@ -25,7 +25,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 			Credits
 		</template>
 		<template #default>
-			<n-p>Without the following (open source) projects, Track Maker could not be built:</n-p>
+			<n-p>Without the following (open source) projects, Trackmaker could not be built:</n-p>
 			<n-divider />
 			<n-collapse :accordion="true" class="credit-list" :trigger-areas='["main", "arrow"]'>
 				<n-collapse-item v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))" :key="credit.id"
