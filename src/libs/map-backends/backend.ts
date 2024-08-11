@@ -489,7 +489,7 @@ export abstract class MapBackend<
         this.triggerEvent("ready", this);
     }
 
-    private verifyZoom(zoom: number): boolean {
+    verifyZoom(zoom: number): boolean {
         return zoom >= this.zoomRange.min && zoom <= this.zoomRange.max;
     }
 }
