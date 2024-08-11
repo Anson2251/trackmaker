@@ -2,24 +2,22 @@
 import { computed, onMounted } from "vue";
 
 interface Props {
-    bearing: number
-    size?: number
+    bearing: number;
+    pitch?: number;
+    size?: number;
 }
 const props = defineProps<Props>();
 const emit = defineEmits(["update:bearing"]);
 
-const rotationStyle = computed(() => {
-    return `transform: rotate(${props.bearing}deg)`;
-});
+const rotationStyle = computed(() => `transform: rotate(${props.bearing}deg)`);
 
-const sizeStyle = computed(() => {
-    if(props.size) return `--compass-size: ${props.size}px`;
-    else return "";
-});
+const pitchRotationStyle = computed(() => `transform: rotateX(${Math.min(45, (props.pitch ? props.pitch : 0))}deg); transition: all 0.3s ease;`);
+
+const sizeStyle = computed(() => props.size ? `--compass-size: ${props.size}px` : "");
 
 const orientationTextList = ["N", "W", "S", "E"];
 
-const wheelOrientationAcceleration = 0.5;
+const wheelOrientationAcceleration = 0.3;
 
 const orientationText = computed(() => {
     const deg = props.bearing > 0 ? props.bearing : 360 + props.bearing;
@@ -29,36 +27,38 @@ const orientationText = computed(() => {
 onMounted(() => {
     const compassContainer = document.querySelector(".map-compass") as HTMLDivElement;
     compassContainer.onclick = () => emit("update:bearing", 0);
-    if(compassContainer){
+    if (compassContainer) {
         compassContainer.addEventListener("mousewheel", (event) => {
             event.preventDefault();
-            const newDeg = props.bearing + (((event as any).deltaY * wheelOrientationAcceleration) % 360);
-            emit("update:bearing", newDeg >= 0 ? newDeg : 360 + newDeg);
+            const newDeg = (props.bearing + ((event as any).deltaY * wheelOrientationAcceleration)) % 360;
+            emit("update:bearing", Math.round(newDeg >= 0 ? newDeg : 360 + newDeg));
         });
     }
 });
 </script>
 
 <template>
-    <div class="map-compass" :style="sizeStyle">
-        <div class="compass-panel" :style="rotationStyle">
-            <div class="pin north-pin"></div>
-            <div class="pin east-pin"></div>
-            <div class="pin south-pin"></div>
-            <div class="pin west-pin"></div>
-        </div>
+    <div :style="pitchRotationStyle">
+        <div class="map-compass" :style="sizeStyle">
+            <div class="compass-panel" :style="rotationStyle">
+                <div class="pin north-pin"></div>
+                <div class="pin east-pin"></div>
+                <div class="pin south-pin"></div>
+                <div class="pin west-pin"></div>
+            </div>
 
-        <span class="compass-orientation-text">
-            {{ orientationText }}
-        </span>
+            <span class="compass-orientation-text">
+                {{ orientationText }}
+            </span>
+        </div>
     </div>
 </template>
 
 <style scoped>
 :root {
-  --primary-color: inherit;
-  --n-color: inherit;
-  --border-color: inherit;
+    --primary-color: inherit;
+    --n-color: inherit;
+    --border-color: inherit;
 }
 
 .map-compass {
@@ -92,7 +92,7 @@ onMounted(() => {
     border-radius: 50%;
 
     overflow: hidden;
-    transform-origin: 50% 50%; 
+    transform-origin: 50% 50%;
 
     box-shadow: inset 0 0 6px 2px rgba(0, 0, 0, 0.1), inset 0 0 4px 0px rgba(0, 0, 0, 0.4);
 }
@@ -116,7 +116,7 @@ onMounted(() => {
     width: var(--secondary-pin-size);
     height: var(--secondary-pin-size);
 
-    
+
     top: calc(50% - calc(var(--secondary-pin-size) / 2));
     right: var(--margin);
     background-color: var(--secondary-color);
@@ -142,7 +142,7 @@ onMounted(() => {
     position: absolute;
     width: var(--secondary-pin-size);
     height: var(--secondary-pin-size);
-    
+
     top: calc(50% - calc(var(--secondary-pin-size) / 2));
     left: var(--margin);
     background-color: var(--secondary-color);

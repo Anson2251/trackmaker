@@ -91,7 +91,7 @@ onMounted(() => {
         </div>
 
         <div class="compass-container">
-            <MapCompass v-model:bearing="manager.bearing" :size="iconSize * 2" />
+            <MapCompass v-model:bearing="manager.bearing" :size="iconSize * 2" :pitch="manager.pitch" />
         </div>
     </n-element>
 </template>
