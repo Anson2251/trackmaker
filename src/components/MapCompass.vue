@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 
 interface Props {
     bearing: number
     size?: number
 }
 const props = defineProps<Props>();
+const emit = defineEmits(["update:bearing"]);
 
 const rotationStyle = computed(() => {
     return `transform: rotate(${props.bearing}deg)`;
@@ -18,9 +19,23 @@ const sizeStyle = computed(() => {
 
 const orientationTextList = ["N", "W", "S", "E"];
 
+const wheelOrientationAcceleration = 0.5;
+
 const orientationText = computed(() => {
     const deg = props.bearing > 0 ? props.bearing : 360 + props.bearing;
     return orientationTextList[Math.round((deg % 360) / 90) % 4];
+});
+
+onMounted(() => {
+    const compassContainer = document.querySelector(".map-compass") as HTMLDivElement;
+    compassContainer.onclick = () => emit("update:bearing", 0);
+    if(compassContainer){
+        compassContainer.addEventListener("mousewheel", (event) => {
+            event.preventDefault();
+            const newDeg = props.bearing + (((event as any).deltaY * wheelOrientationAcceleration) % 360);
+            emit("update:bearing", newDeg >= 0 ? newDeg : 360 + newDeg);
+        });
+    }
 });
 </script>
 
