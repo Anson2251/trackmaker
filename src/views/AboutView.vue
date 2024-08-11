@@ -1,5 +1,5 @@
 <script setup>
-import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
+import { NH1, NP, NA, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement } from "naive-ui";
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
 import { credits } from "@/configs";
 import { ref } from "vue";
@@ -16,6 +16,28 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 				</div>
 				<n-h1>Trackmaker</n-h1>
 				<p>Enabling route planning and navigation for sports activities with map marking feature.</p>
+			</div>
+		</template>
+		<template #footer>
+			<n-divider style="margin-top: 8px; margin-bottom: 12px;" title-placement="left">License</n-divider>
+			<div class="license-container">
+				<n-p :depth="2">
+					Copyright (C) 2024-Present Heyan Zhu and the Trackmaker contributors
+					<br><br>
+					This program is free software: you can redistribute it and/or modify
+					it under the terms of the GNU General Public License as published by
+					the Free Software Foundation, either version 3 of the License, or
+					(at your option) any later version.
+					<br><br>
+					This program is distributed in the hope that it will be useful,
+					but WITHOUT ANY WARRANTY; without even the implied warranty of
+					MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+					GNU General Public License for more details.
+					<br><br>
+					You should have received a copy of the GNU General Public License
+					along with this program. If not, see
+					<n-a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</n-a>.
+				</n-p>
 			</div>
 		</template>
 	</n-card>
@@ -35,7 +57,9 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 						<n-divider v-if="credit.license" />
 						<div class="license" v-if="credit.license">
 							<n-p>License:</n-p>
-							<n-element tag="pre">{{ credit.license.trim().replace(/\n([\s]*)\n/, "\n\n").split("\n\n").map((l) => l.split("\n").map((s) => s.trim()).join(" ")).join("\n\n") }}</n-element>
+							<n-element tag="pre">{{ credit.license.trim().replace(/\n([\s]*)\n/,
+								"\n\n").split("\n\n").map((l) => l.split("\n").map((s) =>
+									s.trim()).join("")).join("\n\n") }}</n-element>
 						</div>
 					</template>
 					<template #header-extra>
@@ -45,7 +69,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 									<Link />
 								</n-icon>
 							</a>
-							<a :href=credit.url >
+							<a :href=credit.url>
 								<n-icon size=24 class="link-icon"> <!-- url -->
 									<logo-github v-if="credit.url.includes('github')" />
 									<DocumentTextOutline v-else />
@@ -64,6 +88,10 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 	--font-family-mono: inherit;
 	--font-size-mini: inherit;
 	--color-text: inherit;
+}
+
+.license-container {
+	text-align: justify;
 }
 
 .license {
@@ -141,7 +169,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 	align-items: center;
 }
 
-.link-icon-list > a {
+.link-icon-list>a {
 	text-decoration: none;
 	color: var(--color-text);
 	cursor: grab;
