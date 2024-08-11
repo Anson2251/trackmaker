@@ -41,7 +41,7 @@ export class MapManager {
     zoom = ref(10);
     pitch = ref(0);
     bearing = ref(0);
-    bearingTweakStickDeg = 10;
+    bearingTweakStickDeg = 0;
     backendType: "bing" | "maplibregl";
     private message: MessageEmitterType;
     private emit: CommonMapEmitters;
