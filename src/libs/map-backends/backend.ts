@@ -202,6 +202,10 @@ export abstract class MapBackend<
         if(!silence) this.onMapViewChanged();
     }
 
+    getPitchRange() {
+        return Object.freeze(this.pitchRange);
+    }
+
     private supportBearing() {
         const flag = this.supportedFeatures.includes("bearing");
         if(!flag) console.info("Map does not support bearing");
@@ -489,7 +493,7 @@ export abstract class MapBackend<
         this.triggerEvent("ready", this);
     }
 
-    private verifyZoom(zoom: number): boolean {
+    verifyZoom(zoom: number): boolean {
         return zoom >= this.zoomRange.min && zoom <= this.zoomRange.max;
     }
 }

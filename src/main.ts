@@ -23,6 +23,7 @@ loadModules(modules, "trackmaker", 30000, !__RELEASE_MODE__).then(() => {
     document.getElementById("splash")?.remove();
 }).catch((e) => {
     console.error("Fail to initialise all the modules");
+    console.error(e);
     const msg = String(e.toString());
     if (msg.toLowerCase().includes("timeout")) {
         const trackback = msg.split("Trackback").map(s => s.replace(/((^:\s*)|(,\s*$))/g, ""));
