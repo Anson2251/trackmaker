@@ -1,4 +1,4 @@
-import { ref, type Ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { inRange } from "lodash-es";
 
 import * as GeoLocation from "@/utils/geolocation";
@@ -10,7 +10,7 @@ import MapBackend, { allocateMapID } from "@/libs/map-backends/backend";
 
 import { mapTilerKey, bingMapsKey } from "@/configs";
 
-type PropsType = {
+export type PropsType = {
     plugin?: MapPluginConstructor<MapLibreGLBackend>[],
     centre?: {
         latitude: number,
@@ -25,28 +25,29 @@ type PropsType = {
     zoom?: number,
 }
 
-type MessageEmitterType = {
+export type MessageEmitterType = {
     info: (msg: string, duration: number) => void,
     warning: (msg: string, duration: number) => void
     error: (msg: string, duration: number) => void
 }
 
+export type CommonMapEmitters = (event: "ready" | "update:centre" | "update:zoom" | "update:viewCentre" | "update:mapType", ...args: any[]) => void;
 
 export class MapManager {
     id: string;
     container: HTMLElement | undefined = undefined;
     map: MapBackend<any, any> | undefined = undefined;
-    geoLocationKeepCentre = ref(false);
+    trackingMode = ref(false);
     zoom = ref(10);
     pitch = ref(0);
     bearing = ref(0);
     bearingTweakStickDeg = 10;
     backendType: "bing" | "maplibregl";
     private message: MessageEmitterType;
-    private emit: any;
+    private emit: CommonMapEmitters;
     private props: any;
 
-    constructor(props: PropsType & any, emits: any, messageEmitter: MessageEmitterType, backendType: "bing" | "maplibregl" = "maplibregl") {
+    constructor(props: PropsType & any, emits: CommonMapEmitters, messageEmitter: MessageEmitterType, backendType: "bing" | "maplibregl" = "maplibregl") {
         this.id = `MapView-${backendType.toUpperCase()}-${allocateMapID()}`;
         this.message = messageEmitter;
         this.emit = emits;
@@ -57,7 +58,8 @@ export class MapManager {
             if (!this.map) return;
             if (this.map.verifyPitch(this.pitch.value)) this.map.setPitch(this.pitch.value, false);
             else {
-                this.message.warning("Already at maximum preset pitch level", 1000);
+                if(this.pitch.value > this.map.getPitchRange().max) this.message.warning("Already at maximum preset pitch level", 1000);
+                else if(this.pitch.value < this.map.getPitchRange().min) this.message.warning("Already at minimum preset pitch level", 1000);
                 this.pitch.value = this.map.getPitch();
             }
         });
@@ -72,14 +74,15 @@ export class MapManager {
             if (!this.map) return;
             if (this.map.verifyZoom(this.zoom.value)) this.map.setZoom(this.zoom.value, false);
             else {
-                this.message.warning("Already at maximum zoom level", 1000);
+                if(this.zoom.value > this.map.getZoomRange().max) this.message.warning("Already at maximum preset zoom level", 1000);
+                else if(this.zoom.value < this.map.getZoomRange().min) this.message.warning("Already at minimum preset zoom level", 1000);
                 this.zoom.value = this.map.getZoom();
             }
         });
 
         
 
-        watch(this.geoLocationKeepCentre, this.trackingModeEnterLeave.bind(this));
+        watch(this.trackingMode, this.trackingModeEnterLeave.bind(this));
         // TODO: add a input status indicator to prevent these updaters break user's input (especially for mobile devices with touch screens)
 
         watch(props, this.handleProps.bind(this), { deep: true });
@@ -89,7 +92,7 @@ export class MapManager {
         if (!this.map) return;
 
         if (oldProps.centre && newProps.centre && oldProps.centre !== newProps.centre) {
-            this.map.setCentre(newProps.centre || { latitude: 0, longitude: 0 }, this.geoLocationKeepCentre.value);
+            this.map.setCentre(newProps.centre || { latitude: 0, longitude: 0 }, this.trackingMode.value);
         }
 
         if (oldProps.zoom && newProps.zoom && oldProps.zoom !== newProps.zoom) {
@@ -97,7 +100,7 @@ export class MapManager {
         }
 
         if (oldProps.viewCentre && newProps.viewCentre && oldProps.viewCentre !== newProps.viewCentre) {
-            this.map.setCentre(newProps.viewCentre || { latitude: 0, longitude: 0 }, this.geoLocationKeepCentre.value);
+            this.map.setCentre(newProps.viewCentre || { latitude: 0, longitude: 0 }, this.trackingMode.value);
         }
 
         // TODO
@@ -109,7 +112,7 @@ export class MapManager {
         const mapOptions: BingMapOptions = {
             centre: (this.props.centre ? this.props.centre : { latitude: 0, longitude: 0 }),
             type: (this.props.mapType as any || Microsoft.Maps.MapTypeId.road),
-            supportedMapTypes: this.props.supportMapTypes,
+            supportedMapTypes: [Microsoft.Maps.MapTypeId.road, Microsoft.Maps.MapTypeId.aerial, Microsoft.Maps.MapTypeId.canvasDark, Microsoft.Maps.MapTypeId.canvasLight],
             zoom: (this.props.zoom || 10),
             credentials: bingMapsKey,
             customizedTouchpadBehavior: (this.props.customizedTouchpadBehavior || true),
@@ -156,9 +159,9 @@ export class MapManager {
     private initialiseGeolocation() {
         GeoLocation.UpdateService.addListener((newLocation) => {
             if (!this.map) return;
-            if (!this.geoLocationKeepCentre.value) return;
+            if (!this.trackingMode.value) return;
 
-            this.map.setCentre(newLocation, this.geoLocationKeepCentre.value);
+            this.map.setCentre(newLocation, this.trackingMode.value);
             this.map.gotoCentre();
             this.emit("update:centre", { ...newLocation });
         });
@@ -178,7 +181,7 @@ export class MapManager {
     mount() {
         this.initialiseGeolocation();
         this.initialiseDeviceOrientation();
-        console.log(this.container, document.getElementById(this.id)!)
+
         this.container = document.getElementById(this.id)!;
 
         this.map = this.setupMap();
@@ -197,14 +200,18 @@ export class MapManager {
             }
         });
 
-        this.emit("ready", this.map);
         this.trackingModeEnterLeave();
+        this.emit("ready", this.map);
+
     }
 
     private trackingModeEnterLeave() {
-        if (!this.map) return;
-        this.geoLocationKeepCentre.value ? this.map.freezeViewCentre() : this.map.unfreezeViewCentre();
-        if (this.geoLocationKeepCentre.value) {
+        if (!this.map) {
+            console.log("map not ready");
+            return;
+        }
+        this.trackingMode.value ? this.map.freezeViewCentre() : this.map.unfreezeViewCentre();
+        if (this.trackingMode.value) {
             this.message.info("You're in tracking mode. The map will only follow your geographical location.", 3000);
         }
     }

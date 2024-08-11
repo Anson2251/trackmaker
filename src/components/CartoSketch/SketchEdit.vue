@@ -3,7 +3,7 @@
 
 import {ref, onMounted} from 'vue';
 
-import BingMap from '@/libs/map-backends/bing-maps/BingMap.vue';
+import BingMapView from '@/libs/map-backends/bing-maps/BingMapView.vue';
 import {type MapWithPlugins, plugins} from './bing-map-plugins';
 
 import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';
@@ -121,7 +121,7 @@ onMounted(() => {
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :default-size="0.7">
 		<template #1>
 			<n-card class="map-container" content-style="padding: 0">
-				<BingMap v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
+				<BingMapView v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
 						:lite-mode="props.liteMode"
 						:forceHiDPI="props.forceHighDpi"
 						@ready="mapReady"/>

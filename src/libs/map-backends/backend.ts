@@ -202,6 +202,10 @@ export abstract class MapBackend<
         if(!silence) this.onMapViewChanged();
     }
 
+    getPitchRange() {
+        return Object.freeze(this.pitchRange);
+    }
+
     private supportBearing() {
         const flag = this.supportedFeatures.includes("bearing");
         if(!flag) console.info("Map does not support bearing");

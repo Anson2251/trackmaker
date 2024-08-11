@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useOsTheme } from "naive-ui";
-import BingMapView from '@/libs/map-backends/bing-maps/BingMap.vue';
+import BingMapView from '@/libs/map-backends/bing-maps/BingMapView.vue';
 import type {MapPluginConstructor} from "@/libs/map-backends/plugin";
-import  BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
+import BingMapBackend from "@/libs/map-backends/bing-maps/bing-map-backend";
 import BingMapPlugin_PushPins from '@/libs/map-backends/bing-maps/plugins/pushpin';
 import BingMapPlugin_CustomizedTouchpadBehavior from '@/libs/map-backends/bing-maps/plugins/customized-touchpad-behavior';
 
