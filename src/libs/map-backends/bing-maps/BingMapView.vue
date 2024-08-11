@@ -3,11 +3,8 @@ import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
 import { ref, reactive, onMounted } from "vue";
-import { bingMapsKey } from "@/configs";
-import { cloneDeep } from "lodash-es";
 
-import * as GeoLocation from "@/utils/geolocation";
-import { BingMapBackend, allocateBingMapID, type BingMapOptions, type BingMapBackendType } from "@/libs/map-backends/bing-maps/bing-map-backend";
+import { BingMapBackend } from "@/libs/map-backends/bing-maps/bing-map-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
 import MapManager from "@/components/MapView/map-manager";
 
