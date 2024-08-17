@@ -132,10 +132,12 @@ export abstract class MapBackend<
 
         this.map = this.initialiseMap(options);
 
-        this.startSynchroniseMap();
-        this.loadPlugins(plugins);
-        this.onMapViewChanged();
-        this.onReady();
+        this.loadPlugins(plugins)
+        .then(() => {
+            this.startSynchroniseMap();
+            this.onMapViewChanged();
+            this.onReady();
+        });
     }
 
     /** Initialise the map, should be implemented by subclasses */

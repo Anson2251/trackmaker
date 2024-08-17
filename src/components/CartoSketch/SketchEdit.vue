@@ -44,6 +44,8 @@ const drawer = {
 	close: () => activeSelector.value = false
 };
 
+const mapPlugins = ref(plugins);
+
 
 /* toolbar */
 const toolBarIconSize = 20;
@@ -63,6 +65,7 @@ const toolTipBarItems = [
 ];
 
 function mapReady(map: MapWithPlugins) {
+	console.log(map);
 	const backend = new BingMapDrawingBackend(map as any);
 	adapter.setBackend(backend);
 	(window as any).adapter = adapter;
@@ -121,7 +124,7 @@ onMounted(() => {
 	<n-split direction="horizontal" :max="0.8" :min="0.4" :default-size="0.7">
 		<template #1>
 			<n-card class="map-container" content-style="padding: 0">
-				<BingMapView v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="plugins"
+				<BingMapView v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="mapPlugins"
 						:lite-mode="props.liteMode"
 						:forceHiDPI="props.forceHighDpi"
 						@ready="mapReady"/>

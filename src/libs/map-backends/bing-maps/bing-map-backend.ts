@@ -59,7 +59,8 @@ export class BingMapBackend extends MapBackend<Microsoft.Maps.Map, BingMapOption
         }, true);
         this.addEventHandler("viewchangeend", () => { // synchronize zoom and centre to map
             this.map.setView({ zoom: this.getZoom(), center: geographicPoint2MicrosoftLocation(this.getViewCentre()) });
-            this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.getCentre()));
+            if(this.plugins.pushPinLayer) this.plugins.pushPinLayer.setLocation(this.properties.centrePinID, geographicPoint2MicrosoftLocation(this.getCentre()));
+            else console.info("Pushpin layer not found, cannot set location indicator pin");
             // console.log(this.centrePinID, this.centre, this.plugins.pushPinLayer.setLocation)
         }, false);
     }
