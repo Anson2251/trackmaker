@@ -7,6 +7,8 @@
 
 Enabling route planning and navigation for sports activities with map marking feature.
 
+> ⚠️ This project is currently on hold and will resume in a few weeks. I am tired.
+
 ---
 
 ## Todo
