@@ -30,6 +30,10 @@ const credentialItems: CredentialItemType[] = [
 	{
 		name: "MAPTILER_KEY",
 		type: "string"
+	},
+	{
+		name: "BING_MAPS_KEY_TAURI",
+		type: "string",
 	}
 ];
 
@@ -84,13 +88,13 @@ async function getCredentials(credentialFilePath: string) {
 export default defineConfig(async () => {
 	const credentialsConfigPath = process.env.CREDENTIALS_CONFIG_PATH || credentialFileDefaultPath;
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
-	const tauriRelease = !!JSON.parse((process.env.TAURI_RELEASE || "false").toLowerCase());
+	const tauriEnv = !!JSON.parse((process.env.TAURI_ENVIRONMENT || "false").toLowerCase());
 
 	const plugins = [];
 
 	plugins.push(vue());
 
-	if(!tauriRelease) {
+	if(!tauriEnv) {
 		if(releaseMode) {
 			plugins.push(compression);
 			plugins.push(legacy({ targets: legacyLevel }));
@@ -101,6 +105,7 @@ export default defineConfig(async () => {
 		define: {
 			...(await getCredentials(credentialsConfigPath)),
 			__RELEASE_MODE__: releaseMode ? "true" : "false",
+			__TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
 		},
 		base: './',
 		plugins: plugins,

@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "export RELEASE_MODE=false; vite dev",
+    "dev-tauri": "npx tauri dev",
     "serve": "export RELEASE_MODE=false; vite dev --host",
     "build": "vite build",
     "preview": "vite preview",
     "build-release": "export RELEASE_MODE=true; npm run build",
-    "build-tauri": "export RELEASE_MODE=true; export TAURI_RELEASE=true; npx tauri build",
+    "build-tauri": "export RELEASE_MODE=true; npx tauri build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .eslintignore",
     "build-preview": "npm run build-release; cd ./dist; python3 -m http.server 5173",
