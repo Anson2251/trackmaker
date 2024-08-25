@@ -3,11 +3,23 @@ import type {GeographicPointType} from "@/utils/geolocation";
 
 // ======= GENERAL =======
 
+export type GeographicSketchMetaType = {
+    name: string,
+    author: string,
+    description: string,
+    creation_timestamp: number,
+    modification_timestamp: number,
+    tags: string[],
+    type: "application/json",
+    version: 1,
+    signature: string
+}
+
 export type GeographicSketchType = {
     id: string,
-    name: string,
     routes: GeographicRouteType,
     drafts: GeographicDraftType,
+    meta: GeographicSketchMetaType
 }
 
 export type GeoJSONPoint = [number, number];
@@ -20,6 +32,32 @@ export type GeographicShape = {
     coordinates: GeoJSONPoint[];
 }
 
+export type GeneralComponentMetaType = {
+    name: string,
+    description: string,
+}
+
+export function GeographicSketchMetaDefaultValue(): GeographicSketchMetaType {
+    return {
+        name: "Untitled",
+        author: "",
+        description: "",
+        creation_timestamp: Date.now(),
+        modification_timestamp: Date.now(),
+        tags: [],
+        type: "application/json",
+        version: 1,
+        signature: ""
+    };
+}
+
+export function GeneralComponentMetaDefaultValue(): GeneralComponentMetaType {
+    return {
+        name: "Untitled",
+        description: "",
+    };
+}
+
 
 // ======= DRAFT =======
 
@@ -28,6 +66,7 @@ export type GeographicDraftItemType = {
     name: string
     shape: GeographicShape,
     properties: GeographicDraftItemProperties,
+    meta: GeneralComponentMetaType
 }
 
 export type GeographicDraftItemGeoJSON = {
@@ -72,7 +111,8 @@ export type GeographicRouteItemType = {
     name: string,
     id: string,
     properties: GeographicRouteItemProperties,
-    points: GeographicPointType[]
+    points: GeographicPointType[],
+    meta: GeneralComponentMetaType
 };
 
 export type GeographicRouteItemGeoJSON = {

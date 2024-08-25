@@ -1,18 +1,19 @@
 import { v4 as uuidV4 } from "uuid";
 import { cloneDeep } from 'lodash-es';
 
-import type {
-    GeographicDraftGeoJSON,
-    GeographicDraftItemGeoJSON,
-    GeographicDraftItemProperties,
-    GeographicDraftItemType,
-    GeographicDraftType,
-    GeographicRouteItemProperties,
-    GeographicShape,
-    GeoJSONPoint,
-    SupportedShapeType
+import {
+    type GeneralComponentMetaType,
+    type GeographicDraftGeoJSON,
+    type GeographicDraftItemGeoJSON,
+    type GeographicDraftItemProperties,
+    type GeographicDraftItemType,
+    type GeographicDraftType,
+    type GeographicRouteItemProperties,
+    type GeographicShape,
+    type GeoJSONPoint,
+    type SupportedShapeType
 } from "@/libs/cartosketch/definitions";
-import { supportedShapeTypes } from "@/libs/cartosketch/definitions";
+import { supportedShapeTypes, GeneralComponentMetaDefaultValue } from "@/libs/cartosketch/definitions";
 
 export class CartoSketchDraft {
     readonly id: string;
@@ -136,19 +137,24 @@ export class CartoSketchDraftItem {
     readonly id: string;
     private shape: GeographicShape;
     readonly properties: GeographicDraftItemProperties;
+    meta: GeneralComponentMetaType;
 
-    constructor(name: string, shapes: GeographicShape, id: string = uuidV4(), properties: GeographicDraftItemProperties = {}) {
+    constructor(name: string, shapes: GeographicShape, id: string = uuidV4(), properties: GeographicDraftItemProperties = {}, meta?: Partial<GeneralComponentMetaType>) {
         this.name = name;
         this.id = id;
         this.shape = shapes;
         this.properties = properties;
+        this.meta = {
+            ...GeneralComponentMetaDefaultValue(),
+            ...meta
+        };
     }
 
     setShapes(shapes: GeographicShape) {
-        this.shape = shapes;
+        this.shape = cloneDeep(shapes);
     }
 
-    getShapes() {
+    getShapes(): Readonly<GeographicShape> {
         return Object.freeze(this.shape);
     }
 
@@ -158,20 +164,21 @@ export class CartoSketchDraftItem {
     }
 
     exportAsGeoJSON(): GeographicDraftItemGeoJSON {
-        return {
+        return cloneDeep({
             type: "Feature",
             properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
             geometry: this.shape
-        };
+        });
     }
 
     exportToStorage(): GeographicDraftItemType {
-        return {
+        return cloneDeep({
             name: this.name,
             id: this.id,
             properties: this.properties,
-            shape: this.shape
-        };
+            shape: this.shape,
+            meta: this.meta
+        });
     }
 }
 

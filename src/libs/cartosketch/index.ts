@@ -1,3 +1,6 @@
+// todo: meta field support
+// todo: migrate field name to meta
+
 import localforage from "localforage";
 
 import * as RouteNamespace from "@/libs/cartosketch/route";
@@ -6,8 +9,9 @@ import * as DraftNamespace from "@/libs/cartosketch/draft";
 import CartoSketchDraft from "@/libs/cartosketch/draft";
 import CartoSketchRoute from "@/libs/cartosketch/route";
 
-import type {GeographicSketchType} from "@/libs/cartosketch/definitions";
+import  {type GeographicSketchType, type GeographicSketchMetaType, GeographicSketchMetaDefaultValue} from "@/libs/cartosketch/definitions";
 import {v4 as uuidV4} from "uuid";
+import { cloneDeep } from "lodash-es";
 
 
 // for the data stored in the database, it follows the format of Geographic...
@@ -35,21 +39,26 @@ export class CartoSketch {
     name: string;
     routes: CartoSketchRoute;
     drafts: CartoSketchDraft;
+    meta: GeographicSketchMetaType;
 
-    constructor(name: string, id = uuidV4(), routes?: CartoSketchRoute, drafts?: CartoSketchDraft) {
-        this.name = name;
+    constructor(id = uuidV4(), routes?: CartoSketchRoute, drafts?: CartoSketchDraft, meta?: Partial<GeographicSketchMetaType>) {
         this.id = id;
         this.routes = routes || new CartoSketchRoute(name, [], id);
         this.drafts = drafts || new CartoSketchDraft(name, [], id);
+
+        this.meta = {
+            ...GeographicSketchMetaDefaultValue(),
+            ...meta
+        };
     }
 
     exportToStorage(): GeographicSketchType {
-        return {
+        return cloneDeep({
             id: this.id,
-            name: this.name,
             routes: this.routes.exportToStorage(),
-            drafts: this.drafts.exportToStorage()
-        };
+            drafts: this.drafts.exportToStorage(),
+            meta: this.meta
+        });
     }
 
     exportAsGeoJSON(): GeographicSketchGeoJSON {
@@ -59,7 +68,7 @@ export class CartoSketch {
 
         return {
             type: "FeatureCollection",
-            features: features
+            features: cloneDeep(features)
         };
     }
 
