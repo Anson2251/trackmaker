@@ -27,7 +27,7 @@ export const modules: moduleItem[] = [
 	}
 ];
 
-export const bingMapsKey = __BING_MAPS_KEY__;
+export const bingMapsKey = __TAURI_ENVIRONMENT__ ? __BING_MAPS_KEY_TAURI__ : __BING_MAPS_KEY__;
 export const mapTilerKey = __MAPTILER_KEY__;
 
 export type CreditItem = {
