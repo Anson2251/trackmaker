@@ -42,6 +42,12 @@ This project is still under development. Many features are being implemented.
 
 This [<u>online demo</u>](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo` branch) is for experimental use only. It is now automatically built with the latest code on the `main` branch. Some features may not work properly.
 
+### About the Tauri demo
+
+[Tauri](https://v2.tauri.app/) is a framework for building tiny, fast binaries for all major desktop and mobile platforms. 
+
+The desktop version of Trackmaker is built using Tauri. Unfortunately, geolocation features are currently unavailable in the Tauri environment, and the solution is work in progress.
+
 ### About the Credential Keys
 
 The required key items are set in `vite.config.ts` via the array `credentialItems`.
