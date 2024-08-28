@@ -88,4 +88,4 @@ The value of the credential items can be set in two ways:
 
 ---
 
-Last update: Jul. 26, 2024.
+Last update: Aug. 28, 2024.

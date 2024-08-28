@@ -1,3 +1,8 @@
+import HomeView from '@/views/HomeView.vue';
+import AboutView from '@/views/AboutView.vue';
+import EditView from '@/views/EditView.vue';
+import MapLibreGLJSPreview from '@/views/MapLibreGLJSPreview.vue';
+
 import { createRouter, createMemoryHistory } from 'vue-router';
 
 const router = createRouter({
@@ -6,7 +11,8 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('@/views/HomeView.vue'),
+      // build to a single js file if in tauri environment
+      component: (__TAURI_ENVIRONMENT__ ? HomeView : () => import('@/views/HomeView.vue')), 
       meta: {
         timeout: 5000
       }
@@ -14,7 +20,7 @@ const router = createRouter({
     {
       path: '/edit',
       name: 'edit',
-      component: () => import('@/views/EditView.vue'),
+      component: (__TAURI_ENVIRONMENT__ ? EditView : () => import('@/views/EditView.vue')),
       meta: {
         timeout: 5000
       }
@@ -22,12 +28,12 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      component: () => import('@/views/AboutView.vue'),
+      component: (__TAURI_ENVIRONMENT__ ? AboutView : () => import('@/views/AboutView.vue')),
     },
     {
       path: '/exp-maplibregljs',
       name: 'Preview - MapLibreGL JS',
-      component: () => import('@/views/MapLibreGLJSPreview.vue'),
+      component: (__TAURI_ENVIRONMENT__ ? MapLibreGLJSPreview : () => import('@/views/MapLibreGLJSPreview.vue')),
     }
   ]
 });
