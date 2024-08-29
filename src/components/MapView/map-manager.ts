@@ -159,14 +159,13 @@ export class MapManager {
     private initialiseGeolocation() {
         GeoLocation.UpdateService.addListener((newLocation) => {
             if (!this.map) return;
-            if (!this.trackingMode.value) return;
 
             this.map.setCentre(newLocation, this.trackingMode.value);
-            this.map.gotoCentre();
+            if(this.trackingMode.value) this.map.gotoCentre();
             this.emit("update:centre", { ...newLocation });
         });
 
-        GeoLocation.UpdateService.worker.addHandler("error", (_: any, error: any) => {
+        GeoLocation.UpdateService.addHandler("error", (_: any, error: any) => {
             this.message.error(`Fail to update your location, reason: "${error.message}".`, 3000);
         }, true);
     }

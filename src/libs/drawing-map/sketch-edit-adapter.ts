@@ -5,9 +5,9 @@ import * as ComponentProxyConversion from "@/libs/drawing-map/components-proxies
 
 type AdaptHandlerType = { type: string; id: number, handler: () => void };
 
-import BrowserPlatform from "@/utils/platform";
+import PlatformInfo from "@/utils/platform";
 
-const isMac = BrowserPlatform.os === "Mac OS";
+const isMac = PlatformInfo.os === "Mac OS";
 
 /**
  * Adapter for the SketchEdit, allowing to use the drawing backend from the SketchEdit component

@@ -2,7 +2,7 @@
 import { NButton, NSwitch, NElement, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Add, Remove } from "@vicons/ionicons5";
-import { ref, reactive, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 
 import { BingMapBackend } from "@/libs/map-backends/bing-maps/bing-map-backend";
 import type { MapPluginConstructor } from "@/libs/map-backends/plugin";
@@ -40,10 +40,10 @@ const props = defineProps<PropsType>();
 
 const emit = defineEmits(["ready", "update:zoom", "update:centre", "update:viewCentre", "update:mapType"]);
 
-const manager = reactive(new MapManager(props, emit, messageEmitter, "bing"));
+const manager = (new MapManager(props, emit, messageEmitter, "bing"));
 onMounted(() => {
     manager.mount();
-    manager.trackingMode = !!props.tracking;
+    manager.trackingMode.value = !!props.tracking;
 });
 </script>
 
@@ -52,17 +52,17 @@ onMounted(() => {
         <div :id="manager.id" class="bing-map-container">
         </div>
         <div class="nav-toolbox">
-            <n-button strong secondary circle type="primary" @click="manager.zoom += 1">
+            <n-button strong secondary circle type="primary" @click="manager.zoom.value += 1">
                 <Icon :size="iconSize">
                     <add />
                 </Icon>
             </n-button>
-            <n-button strong secondary circle type="primary" @click="manager.zoom -= 1">
+            <n-button strong secondary circle type="primary" @click="manager.zoom.value -= 1">
                 <Icon :size="iconSize">
                     <remove />
                 </Icon>
             </n-button>
-            <n-switch v-model:value="manager.trackingMode" size="small" />
+            <n-switch v-model:value="manager.trackingMode.value" size="small" />
         </div>
     </n-element>
 </template>

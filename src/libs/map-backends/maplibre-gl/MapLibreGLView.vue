@@ -2,7 +2,7 @@
 import { NButton, NSwitch, NElement, NSlider, NPopover, useMessage } from "naive-ui";
 import { Icon } from '@vicons/utils';
 import { Rotate360, ZoomIn, ZoomOut } from "@vicons/tabler";
-import { ref, reactive, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 
 import MapCompass from "@/components/MapCompass.vue";
 import MapManager from "@/components/MapView/map-manager";
@@ -34,10 +34,10 @@ const props = defineProps<{
 }>();
 const emit = defineEmits(["ready", "update:zoom", "update:centre", "update:viewCentre", "update:mapType"]);
 
-const manager = reactive(new MapManager(props, emit, messageEmitter, "maplibregl"));
+const manager = (new MapManager(props, emit, messageEmitter, "maplibregl"));
 onMounted(() => {
     manager.mount();
-    manager.trackingMode = !!props.tracking;
+    manager.trackingMode.value = !!props.tracking;
 });
 
 </script>
@@ -47,12 +47,12 @@ onMounted(() => {
         <div :id="manager.id" class="maplibregl-map-container">
         </div>
         <div class="nav-toolbox">
-            <n-button strong secondary circle type="primary" @click="manager.zoom += 1">
+            <n-button strong secondary circle type="primary" @click="manager.zoom.value += 1">
                 <Icon :size="iconSize - 2">
                     <ZoomIn />
                 </Icon>
             </n-button>
-            <n-button strong secondary circle type="primary" @click="manager.zoom -= 1">
+            <n-button strong secondary circle type="primary" @click="manager.zoom.value -= 1">
                 <Icon :size="iconSize - 2">
                     <ZoomOut />
                 </Icon>
@@ -68,7 +68,7 @@ onMounted(() => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider vertical v-model:value="manager.bearing" :min="0" :max="360" style="height: 16em;"
+                <div><n-slider vertical v-model:value="manager.bearing.value" :min="0" :max="360" style="height: 16em;"
                         :tooltip="true" placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
             <n-popover placement="left" trigger="hover" class="mapview-tooltip-popover-input">
@@ -83,15 +83,15 @@ onMounted(() => {
                         </Icon>
                     </n-button>
                 </template>
-                <div><n-slider v-model:value="manager.pitch" :min="0" :max="60" vertical style="height: 8em;" :tooltip="true"
+                <div><n-slider v-model:value="manager.pitch.value" :min="0" :max="60" vertical style="height: 8em;" :tooltip="true"
                         placement="left" :format-tooltip="(value: number) => `${value}°`" /></div>
             </n-popover>
-            <n-switch v-model:value="manager.trackingMode" size="small" />
+            <n-switch v-model:value="manager.trackingMode.value" size="small" />
 
         </div>
 
         <div class="compass-container">
-            <MapCompass v-model:bearing="manager.bearing" :size="iconSize * 2" :pitch="manager.pitch" />
+            <MapCompass v-model:bearing="manager.bearing.value" :size="iconSize * 2" :pitch="manager.pitch.value" />
         </div>
     </n-element>
 </template>
