@@ -79,7 +79,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 				</n-list>
 			</template>
 			<template #footer>
-				<n-p :depth="3">
+				<n-p :depth="3" style="max-height: 10em; overflow-y: auto; font-size: 0.85em;">
 					Please note that the map data provided may contain <b>inaccuracies or controversial content</b>, 
 					particularly regarding territorial boundaries. Due to <b>resource limitations</b>, we are 
 					currently unable to use higher-quality data, but we are <b>actively seeking</b> better sources 
