@@ -6,12 +6,15 @@
     "main"
   ],
   "permissions": [
-    "core:default",
+    "core:app:default",
+    "geolocation:default",
     "geolocation:allow-check-permissions",
     "geolocation:allow-clear-permissions",
     "geolocation:allow-clear-positions",
     "geolocation:allow-clear-watch",
     "geolocation:allow-get-current-position",
-    "geolocation:allow-watch-position"
+    "geolocation:allow-watch-position",
+    "notification:default",
+    "notification:allow-is-permission-granted"
   ]
 }
