@@ -11,6 +11,8 @@
 	-webkit-user-select: none;
 	-ms-user-select: none;
 
+	cursor: default;
+
 	display: grid;
 	grid-template-columns: 100%;
 	grid-template-rows: var(--nav-bar-height) auto;

@@ -86,11 +86,12 @@ export default {
 
 <style scoped>
 .main-layout {
-	grid-column: 1;
-	grid-row: 2;
-
-	margin: 2em;
+	margin-left: 16px;
+	margin-right: 16px;
+	margin-bottom: 8px;
 	margin-top: 1em;
+
+	position: relative;
 
 	overflow: auto;
 }

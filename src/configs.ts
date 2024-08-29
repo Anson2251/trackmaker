@@ -4,6 +4,7 @@ import { initBingMapsDrawingModule } from '@/libs/map-backends/bing-maps/plugins
 import { initBingMapsGeojsonModule } from "@/utils/geojson";
 
 import creditInfo from "@/assets/credits.json";
+import dataProviderInfo from "@/assets/data-provider.json";
 
 export const modules: moduleItem[] = [
 	{
@@ -38,5 +39,14 @@ export type CreditItem = {
 	homepage?: string
 	license?: string
 }
+
+export type DataProviderItem = {
+	id: string
+	name: string
+	url: string
+	license?: string
+}
+
+export const dataProviders: DataProviderItem[] = dataProviderInfo;
 
 export const credits: CreditItem[] = creditInfo;
