@@ -1,6 +1,17 @@
 import type { GeographicPointType, LocationResponseErrorType } from "../definitions";
 
 export namespace BrowserGeolocationBackend {
+    export async function isCurrentlyAvailable(): Promise<boolean> {
+        try {
+            const result = await navigator.permissions.query({ name: 'geolocation' });
+            if (result.state === 'granted') return Promise.resolve(true);
+            else return Promise.resolve(false);
+        }
+        catch {
+            return Promise.resolve(false);
+        }
+    }
+
     export function getCurrentPosition() {
         return new Promise<GeographicPointType>((resolve, reject: (reason: LocationResponseErrorType) => void) => {
             navigator.geolocation.getCurrentPosition(
@@ -18,7 +29,7 @@ export namespace BrowserGeolocationBackend {
 
     export function watchPosition(callback: (location: GeographicPointType) => void) {
         return new Promise<number>((resolve, reject) => {
-            if(!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
+            if (!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
             resolve(navigator.geolocation.watchPosition(
                 (position) => callback({
                     latitude: position.coords.latitude,
@@ -35,3 +46,5 @@ export namespace BrowserGeolocationBackend {
         navigator.geolocation.clearWatch(channelId);
     }
 }
+
+export default BrowserGeolocationBackend;

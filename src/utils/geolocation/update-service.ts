@@ -1,5 +1,8 @@
 import type { GeographicPointType } from "./definitions";
-import { Driver as UpdaterDriver } from "./update-worker-driver";
+import { cloneDeep } from "lodash-es";
+import BrowserGeolocationBackend from "./backends/browser-gps";
+import TauriGeolocationBackend from "./backends/tauri-gps";
+import IPGeolocationBackend from "./backends/ip";
 
 type HandlerItemType = {
     id: number
@@ -9,146 +12,96 @@ type HandlerItemType = {
     once: boolean
 }
 
-/** A wrapper around the location-updating worker */
-export class Updater {
-    worker: Worker;
-    interval: number;
-    handlers: HandlerItemType[] = [];
-    geoLocationPresent: GeographicPointType = {
-        latitude: 0,
-        longitude: 0
+const handlers: HandlerItemType[] = [];
+
+function addLocationHandler(type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean = false) {
+    const handler: HandlerItemType = {
+        id: (handlers.length > 0 ? handlers[handlers.length - 1].id : 0) + 1,
+        type,
+        callback,
+        triggered: false,
+        once,
     };
-    running = false;
-    locationInitialised = false;
+    handlers.push(handler);
+    return handler.id;
+}
 
-    /** @param {number} interval - The update interval in milliseconds */
-    constructor(interval: number){
-        this.worker = UpdaterDriver.createUpdater();
-        this.interval = interval;
+function triggerHandler(type: HandlerItemType['type'], ...args: any[]) {
+    handlers
+        .filter((handler) => handler.type === type && !(handler.once && handler.triggered))
+        .forEach((handler) => {
+            handler.triggered = true;
+            handler.callback(cloneDeep(presentLocation), ...args);
+        });
+}
 
-        this.worker.onmessage = this.onMessage.bind(this);
+function removeHandler(id: number) {
+    handlers.splice(handlers.findIndex((handler) => handler.id === id), 1);
+}
+
+let presentLocation: GeographicPointType = { latitude: 0, longitude: 0 };
+let serviceRunning = false;
+let initialised = false;
+
+let currentBackend: "ip" | "browser" | "tauri" = "ip";
+
+export const backends = {
+    ip: IPGeolocationBackend,
+    browser: BrowserGeolocationBackend,
+    tauri: TauriGeolocationBackend
+};
+
+export namespace UpdateService {
+    /** Get the current geographic location */
+    export function getPresent() {
+        return cloneDeep(presentLocation);
     }
 
-    /**
-     * Handles the incoming message event from the worker.
-     * @param {MessageEvent} event - The message event containing the data.
-     */
-    onMessage(event: MessageEvent) {
-        switch(event.data.msg) {
-            case "location": {
-                this.update(event.data.data);
-                break;
-            }
-            case "error": {
-                console.error("[geolocation-update-service] Failed to get location: " + event.data.data.message);
-                this.executeHandlers("error", event.data.data);
-                this.stop();
-                break;
-            }
-            case "location-request": {
-                UpdaterDriver.responseLocation(this.worker);
-                break;
-            }
+    /** Whether the updater service is running */
+    export const isStarted = () => serviceRunning;
+
+    /** Whether the default value in the worker has been overwritten */
+    export const isInitialised = () => initialised;
+
+    export async function decideBackend() {
+        if(__TAURI_ENVIRONMENT__){
+            return await TauriGeolocationBackend.isCurrentlyAvailable() ? "tauri" : "ip";
+        }
+        else {
+            return await BrowserGeolocationBackend.isCurrentlyAvailable() ? "browser" : "ip";
         }
     }
 
-    /**
-     * Starts the updater service if it is not already running.
-     *
-     * Handlers with type "start" will be triggered.
-     * @return This function does not return anything.
-     */
-    start(): void {
-        if(this.running) return;
-        this.running = true;
-        UpdaterDriver.startUpdater(this.worker, this.interval);
-        this.executeHandlers("start");
-    }
-
-    /**
-     * Stops the updater service if it is currently running.
-     * 
-     * Handlers with type "stop" will be triggered.
-     * @return {void}
-     */
-    stop(): void {
-        if(!this.running) return;
-        this.running = false;
-        UpdaterDriver.stopUpdater(this.worker);
-        this.executeHandlers("stop");
-    }
-
-    /**
-     * Updates the current geographic location and triggers the "change" event handlers if the updater service is running.
-     * @param {GeographicPointType} geoLocation - The new geographic location to update to.
-     * @return {void} This function does not return anything.
-     */
-    update(geoLocation: GeographicPointType): void {
-        if(!this.running) return;
-        this.geoLocationPresent = { ...geoLocation };
-        this.locationInitialised = true;
-        this.executeHandlers("change");
-    }
-
-    /**
-     * Adds a handler to the list of handlers.
-     * @param {HandlerItemType['type']} type - The type of the handler.
-     * @param {HandlerItemType['callback']} callback - The callback function of the handler.
-     * @return {number} The ID of the added handler.
-     */
-    addHandler(type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean = false): number {
-        const id = this.handlers.length > 0 ? this.handlers[this.handlers.length - 1].id + 1 : 0;
-        this.handlers.push({ id: id, callback: callback, type: type, triggered: false, once: once });
-        return id;
-    }
-
-    /**
-     * Removes a handler based on the provided ID.
-     * @param {number} id - The ID of the handler to be removed.
-     */
-    removeHandler(id: number) {
-        this.handlers = this.handlers.filter((item) => item.id !== id);
-    }
-
-    /**
-     * Executes the callbacks of all the handlers with the specified type.
-     *
-     * @param {HandlerItemType['type']} type - The type of the handlers to execute.
-     */
-    private executeHandlers(type: HandlerItemType['type'], ...any: any[]) {
-        this.handlers.filter((item) => (item.type === type) && !(item.triggered && item.once)).forEach(item => {
-            item.callback(this.geoLocationPresent, ...any);
-            item.triggered = true;
-        });
-    }
-}
-
-export namespace UpdateService {
-    /** The location-updating worker instance */
-    export const worker = new Updater(200);
-
-    /** Get the current geographic location */
-    export const getPresent = () => worker.geoLocationPresent;
-
-    /** Whether the updater service is running */
-    export const isStarted = () => worker.running;
-
-    /** Whether the default value in the worker has been overwritten */
-    export const isInitialised = () => worker.locationInitialised;
-
     /** Start the updater service */
-    export const start = () => worker.start();
+    export async function start(){
+        currentBackend = await decideBackend();
+        let handler = -1;
+
+        if(!serviceRunning){
+            serviceRunning = true;
+            handler = await backends[currentBackend].watchPosition((location) => {
+                initialised = true;
+                presentLocation = location;
+                triggerHandler("change");
+            });
+        }
+
+        return handler;
+    }
 
     /** Stop the updater service */
-    export const stop = () => worker.stop();
+    export function stop(handler: number){
+        serviceRunning = false;
+        backends[currentBackend].clearWatch(handler);
+    }
 
     /** Add a handler to the service. It will be triggered on "change" */
-    export const addListener = (callback: (location: GeographicPointType) => void) => worker.addHandler("change", callback);
+    export const addListener = (callback: (location: GeographicPointType) => void) => addLocationHandler("change", callback);
 
-    export const addHandler = (type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean) => worker.addHandler(type, callback, once);
+    export const addHandler = (type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean) => addLocationHandler(type, callback, once);
     
     /** Remove a handler from the service 
      * @param {number} id - The ID of the handler to remove
     */
-    export const removeListener = (id: number) => UpdateService.worker.removeHandler(id);
+    export const removeListener = (id: number) => removeHandler(id);
 }

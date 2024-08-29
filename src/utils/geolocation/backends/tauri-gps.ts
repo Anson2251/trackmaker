@@ -4,6 +4,18 @@ import { type GeographicPointType, type LocationResponseErrorType, LocationRespo
 const InTauriEnvironment = __TAURI_ENVIRONMENT__;
 
 export namespace TauriGeolocationBackend {
+    export async function isCurrentlyAvailable(){
+        if(!InTauriEnvironment) return Promise.resolve(false);
+
+        const permission = await TauriGeolocation.checkPermissions();
+        if(permission.status === "ok") {
+            return Promise.resolve(permission.data.location === "granted");
+        }
+        else {
+            return Promise.resolve(false);
+        }
+    }
+
     export function requestPermissions(...types: TauriGeolocation.PermissionType[]): Promise<void> {
         return new Promise((resolve, reject) => {
             if(!InTauriEnvironment) reject({ code: LocationResponseErrorEnum.UNKNOWN, message: "Not in Tauri environment." });

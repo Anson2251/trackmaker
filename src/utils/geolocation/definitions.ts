@@ -17,3 +17,15 @@ export type LocationResponseType = {
         message: string;
     }
 };
+
+export type LocationResponseErrorType = {
+    code: LocationResponseErrorEnum;
+    message: string;
+}
+
+export enum LocationResponseErrorEnum {
+    PERMISSION_DENIED = 1,
+    POSITION_UNAVAILABLE = 2,
+    TIMEOUT = 3,
+    UNKNOWN = 4
+}

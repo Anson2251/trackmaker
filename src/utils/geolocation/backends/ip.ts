@@ -29,6 +29,16 @@ let lastLocation: GeographicPointType = {
 };
 
 export namespace IPGeolocationBackend {
+    export async function isCurrentlyAvailable(): Promise<boolean> {
+        try {
+            await fetch(ipApiURL);
+            return Promise.resolve(true);
+        }
+        catch {
+            return Promise.resolve(false);
+        }
+    }
+    
     export interface GeolocationInfoType {
         city: string;
         latitude: number;

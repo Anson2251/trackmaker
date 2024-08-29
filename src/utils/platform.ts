@@ -1,15 +1,17 @@
 import { UAParser } from 'ua-parser-js'; 
 
-export namespace BrowserPlatform {
+export namespace PlatformInfo {
     export const ua = new UAParser(navigator.userAgent);
     export const isMobile = ua.getDevice().type === "mobile";
     export const isTablet = ua.getDevice().type === "tablet";
     export const isUnknown = ua.getDevice().type === "";
 
-    export const browser = ua.getBrowser().name || "";
-    export const engine = ua.getEngine().name || "";
+    export const browser: "Tauri" | string = __TAURI_ENVIRONMENT__ ? "Tauri" : (ua.getBrowser().name || "");
+    export const engine: string = ua.getEngine().name || "";
     
-    export const os = ua.getOS().name || "";
+    export const os: string = ua.getOS().name || "";
 }
 
-export default BrowserPlatform;
+(window as any).BrowserPlatform = PlatformInfo;
+
+export default PlatformInfo;
