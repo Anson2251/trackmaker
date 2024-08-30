@@ -1,5 +1,5 @@
 <script setup>
-import { NH1, NP, NA, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement, NList, NListItem, NTag, NSpace } from "naive-ui";
+import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement, NList, NListItem, NTag, NSpace } from "naive-ui";
 import VueMarkdown from 'vue-markdown-render';
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
 import { credits, dataProviders } from "@/configs";
@@ -8,6 +8,7 @@ import { ref } from "vue";
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 
 import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declaration.md?raw";
+import aboutPageLicense from "@/assets/about-page-license.md?raw";
 </script>
 
 <template>
@@ -34,22 +35,7 @@ import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declarati
 						</template>
 						<div class="license-container">
 							<n-p :depth="2" class="trackmaker-license">
-								Copyright (C) 2024-Present Heyan Zhu and the Trackmaker contributors
-								<br><br>
-								This program is free software: you can redistribute it and/or modify
-								it under the terms of the GNU General Public License as published by
-								the Free Software Foundation, either version 3 of the License, or
-								(at your option) any later version.
-								<br><br>
-								This program is distributed in the hope that it will be useful,
-								but WITHOUT ANY WARRANTY; without even the implied warranty of
-								MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-								GNU General Public License for more details.
-								<br><br>
-								You should have received a copy of the GNU General Public License
-								along with this program. If not, see
-								<n-a href="https://www.gnu.org/licenses/"
-									style="text-wrap: wrap;">https://www.gnu.org/licenses/</n-a>.
+								<VueMarkdown :source="aboutPageLicense" />
 							</n-p>
 						</div>
 					</n-collapse-item>
@@ -111,8 +97,7 @@ import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declarati
 						<template #header>
 							<n-space :inline="true">
 								{{ credit.name }}
-								<n-tag v-if="credit.license" round type="info" size="small">Open
-									Source</n-tag>
+								<n-tag v-if="credit.license" round type="info" size="small">{{ credit.licenseType }}</n-tag>
 							</n-space>
 						</template>
 						<template #header-extra>
@@ -184,7 +169,8 @@ import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declarati
 
 .license-container {
 	text-align: start;
-	padding: 12px;
+	padding-left: 12px;
+	padding-right: 12px;
 	border-radius: var(--n-border-radius);
 
 	background-color: rgba(128, 128, 128, 0.1);
@@ -192,8 +178,6 @@ import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declarati
 }
 
 .trackmaker-license {
-	white-space: pre-wrap;
-
 	user-select: text;
 	cursor: auto;
 	-webkit-user-select: auto;

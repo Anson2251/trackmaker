@@ -37,6 +37,7 @@ export type CreditItem = {
 	description: string
 	url: string
 	homepage?: string
+	licenseType?: string
 	license?: string
 }
 
