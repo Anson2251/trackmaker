@@ -1,10 +1,13 @@
 <script setup>
 import { NH1, NP, NA, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement, NList, NListItem, NTag, NSpace } from "naive-ui";
+import VueMarkdown from 'vue-markdown-render';
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
 import { credits, dataProviders } from "@/configs";
 import { ref } from "vue";
 
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
+
+import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declaration.md?raw";
 </script>
 
 <template>
@@ -79,12 +82,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 				</n-list>
 			</template>
 			<template #footer>
-				<n-p :depth="3" style="max-height: 10em; overflow-y: auto; font-size: 0.85em;">
-					Please note that the map data provided may contain <b>inaccuracies or controversial content</b>, 
-					particularly regarding territorial boundaries. Due to <b>resource limitations</b>, we are 
-					currently unable to use higher-quality data, but we are <b>actively seeking</b> better sources 
-					and will update the map as soon as feasible. We apologise for any inconvenience or offence this may cause.
-				</n-p>
+				<vue-markdown :source="mapDataInaccuracyDeclaration" class="map-data-inaccuracy-md"/>
 			</template>
 		</n-card>
 
@@ -139,6 +137,12 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 	</div>
 
 </template>
+
+<style>
+.map-data-inaccuracy-md * {
+	white-space: normal;
+}
+</style>
 
 <style scoped>
 .container {

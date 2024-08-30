@@ -36,6 +36,10 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 ## Notice
 
+### About the inaccurate map data
+
+The map data we used may **contain inaccuracies or controversial content**, particularly regarding territorial boundaries. Due to **resource limitations**, we are currently unable to use higher-quality data, but we are actively **seeking better sources** and will update the application as soon as feasible.
+
 ### About the Online Demo
 
 This project is still under development. Many features are being implemented.
