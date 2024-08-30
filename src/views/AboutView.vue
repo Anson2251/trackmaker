@@ -43,7 +43,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 			</template>
 		</n-card>
 		<!--data-providers-->
-		<n-card hoverable class="data-provider-card-container" content-style="overflow: auto">
+		<n-card hoverable class="data-provider-card-container" content-style="overflow: auto" footer-style="overflow-y: auto;">
 			<template #header>
 				Data Sources
 			</template>
@@ -68,7 +68,9 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 				</n-list>
 			</template>
 			<template #footer>
-				<vue-markdown :source="mapDataInaccuracyDeclaration" class="map-data-inaccuracy-md"/>
+				<n-p>
+					<vue-markdown :source="mapDataInaccuracyDeclaration" class="map-data-inaccuracy-md"/>
+				</n-p>
 			</template>
 		</n-card>
 
@@ -126,16 +128,12 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 <style>
 .map-data-inaccuracy-md * {
 	white-space: normal;
+	display: inline;
 }
 </style>
 
 <style scoped>
 .container {
-	display: grid;
-	grid-template-columns: 2fr 3fr;
-	grid-template-rows: auto minmax(0, 1fr);
-	gap: 16px;
-
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -146,19 +144,52 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 	margin: 0;
 }
 
-.project-card-container {
-	grid-row: 1 / 2;
-	grid-column: 1 / 3;
+@media screen and (max-width: 800px) {
+	.container {
+		display: grid;
+		grid-template-columns: auto;
+		grid-template-rows: auto auto auto;
+		gap: 16px;
+	}
+
+	.project-card-container {
+		grid-row: 1 / 2;
+		grid-column: 1 / 2;
+	}
+
+	.data-provider-card-container {
+		grid-row: 2 / 3;
+		grid-column: 1 / 2;
+	}
+
+	.credits-card-container {
+		grid-row: 3 / 4;
+		grid-column: 1 / 2;
+	}
 }
 
-.data-provider-card-container {
-	grid-row: 2 / 3;
-	grid-column: 1 / 2;
-}
+@media screen and (min-width: 800px) {
+	.container {
+		display: grid;
+		grid-template-columns: 2fr 3fr;
+		grid-template-rows: auto minmax(0, 1fr);
+		gap: 16px;
+	}
 
-.credits-card-container {
-	grid-row: 2 / 3;
-	grid-column: 2 / 3;
+	.project-card-container {
+		grid-row: 1 / 2;
+		grid-column: 1 / 3;
+	}
+
+	.data-provider-card-container {
+		grid-row: 2 / 3;
+		grid-column: 1 / 2;
+	}
+
+	.credits-card-container {
+		grid-row: 2 / 3;
+		grid-column: 2 / 3;
+	}
 }
 
 :root {
