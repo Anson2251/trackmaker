@@ -28,7 +28,7 @@ onMounted(() => {
     const compassContainer = document.querySelector(".map-compass") as HTMLDivElement;
     compassContainer.onclick = () => emit("update:bearing", 0);
     if (compassContainer) {
-        compassContainer.addEventListener("mousewheel", (event) => {
+        compassContainer.addEventListener("wheel", (event) => {
             event.preventDefault();
             const newDeg = (props.bearing + ((event as any).deltaY * wheelOrientationAcceleration)) % 360;
             emit("update:bearing", Math.round(newDeg >= 0 ? newDeg : 360 + newDeg));
