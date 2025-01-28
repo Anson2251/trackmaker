@@ -1,9 +1,0 @@
-noscript {
-    text-align: center;
-}
-noscript > h1 {
-    color: red;
-}
-noscript > h2, strong {
-    display: block;
-}
