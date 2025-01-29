@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FreeIPApiCurrency {
@@ -41,11 +41,14 @@ pub struct FreeIPApiGeolocation {
 #[derive(Serialize, Clone, Debug)]
 pub struct Coordinate {
     pub latitude: f64,
-    pub longitude: f64
+    pub longitude: f64,
 }
 
 impl Coordinate {
     pub fn new(longitude: f64, latitude: f64) -> Self {
-        Self { longitude, latitude }
+        Self {
+            longitude,
+            latitude,
+        }
     }
 }

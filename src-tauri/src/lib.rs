@@ -1,14 +1,16 @@
 mod modules;
 
+use modules::geolocation;
+
 #[tauri::command]
-async fn get_geolocation() -> Option<modules::geolocation::types::Coordinate> {
-    let location = modules::geolocation::providers::ip().await;
+async fn get_geolocation() -> Option<geolocation::types::Coordinate> {
+    let location = geolocation::providers::ip().await;
     match location {
-        Ok(location) => Some(location),
+        Ok(location) => Some(geolocation::converter::wgs84_to_gcj02(&location)),
         Err(e) => {
             println!("{}", e.to_string());
             None
-        },
+        }
     }
 }
 
@@ -22,10 +24,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            get_geolocation
-        ])
+        .invoke_handler(tauri::generate_handler![greet, get_geolocation])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

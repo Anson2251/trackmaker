@@ -1,5 +1,5 @@
-use anyhow::Result;
 use super::types::{Coordinate, FreeIPApiGeolocation};
+use anyhow::Result;
 
 const FREE_IP_API_BASE_URL: &str = "https://freeipapi.com/api/json";
 
