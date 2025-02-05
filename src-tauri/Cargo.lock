@@ -4658,6 +4658,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "geolocation",
+ "isahc",
  "reqwest",
  "serde",
  "serde_json",

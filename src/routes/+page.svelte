@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { MapLibre } from "svelte-maplibre";
+	import "../app.css";
+	import { MapLibre, ControlGroup, ControlButton } from "svelte-maplibre";
+	import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
+	import { TerraDraw, TerraDrawRectangleMode } from "terra-draw";
+	import { Map } from "maplibre-gl";
 	import { invoke } from "@tauri-apps/api/core";
 	import { Card } from "flowbite-svelte";
 
@@ -10,25 +14,38 @@
 
 	async function getGeolocation() {
 		location = await invoke("get_geolocation");
-		console.log(location);
+		if (location == null) {
+			console.error(
+				"Fail to get the location via https://freeipapi.com/api/json",
+			);
+		}
 	}
+
+	function initPlugins(map: Map) {
+		const draw = new TerraDraw({
+			adapter: new TerraDrawMapLibreGLAdapter({ map }),
+			modes: [new TerraDrawRectangleMode()],
+		});
+		draw.start();
+		draw.setMode("rectangle");
+	}
+
 	getGeolocation();
 </script>
 
-<Card
-	style="padding: 0; overflow: hidden; position: fixed; top: 2em; left: 2em; right : 2em; bottom: 2em;"
->
+<Card padding="none" class="overflow-hidden" style="margin: 2em">
+	<h3 class="text-xl font-bold mb-4">Map with TerraDraw</h3>
 	<MapLibre
+		class="map"
+		onload={initPlugins}
 		center={[location.longitude, location.latitude]}
 		zoom={7}
-		class="map"
 		standardControls
 		style={`https://api.maptiler.com/maps/basic-v2/style.json?key=${__MAP_TILER_KEY__}`}
 	/>
 </Card>
 
 <style>
-	@import "tailwindcss";
 	:global(.map) {
 		height: 500px;
 	}

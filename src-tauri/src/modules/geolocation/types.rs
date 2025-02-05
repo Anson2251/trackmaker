@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use isahc;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FreeIPApiCurrency {
@@ -52,3 +53,40 @@ impl Coordinate {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum GeolocationProviderError {
+    InetError(reqwest::Error),
+    LookupError(isahc::Error),
+    ParseError(std::num::ParseFloatError)
+}
+
+impl std::fmt::Display for GeolocationProviderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GeolocationProviderError::InetError(e) => write!(f, "InetError: {}", e),
+            GeolocationProviderError::LookupError(e) => write!(f, "LookupError: {}", e),
+            GeolocationProviderError::ParseError(e) => write!(f, "ParseError: {}", e)
+        }
+    }
+}
+
+impl From<reqwest::Error> for GeolocationProviderError {
+    fn from(err: reqwest::Error) -> Self {
+        GeolocationProviderError::InetError(err)
+    }
+}
+
+impl From<isahc::Error> for GeolocationProviderError {
+    fn from(err: isahc::Error) -> Self {
+        GeolocationProviderError::LookupError(err)
+    }
+}
+
+impl From<std::num::ParseFloatError> for GeolocationProviderError {
+	fn from(err: std::num::ParseFloatError) -> Self {
+		GeolocationProviderError::ParseError(err)
+	}
+}
+
+impl std::error::Error for GeolocationProviderError {}
