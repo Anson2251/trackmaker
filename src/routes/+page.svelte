@@ -9,7 +9,10 @@
 		GeolocateControl,
 		FullscreenControl,
 		ScaleControl,
+		GeoJSON,
+		LineLayer,
 	} from "svelte-maplibre";
+	import type { Feature } from 'geojson';
 	import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 	import {
 		TerraDraw,
@@ -22,7 +25,6 @@
 		TerraDrawFreehandMode,
 	} from "terra-draw";
 	import { Map } from "maplibre-gl";
-	import { invoke } from "@tauri-apps/api/core";
 	import { Card } from "flowbite-svelte";
 	import {
 		IconMapPin,
@@ -31,27 +33,34 @@
 		IconLine,
 		IconPolygon,
 		IconHandFinger,
+		IconScribble,
+		IconPlayerRecordFilled,
+		IconSquareFilled,
+		IconBackspace,
 	} from "@tabler/icons-svelte";
+	import { onMount } from "svelte";
 	import {
-		injectCustomGeolocationProvider,
-		IPGeolocation,
-		locateTauri,
-	} from "../lib/geolocation";
+		injectTauriGeolocationProvider,
+		locate,
+		type Coordinate,
+	} from "$lib/geolocation";
+	import type { Result } from "neverthrow";
 
-	injectCustomGeolocationProvider(IPGeolocation);
-	locateTauri()
-		.then((coordinate) => {
-			location.latitude = coordinate.latitude;
-			location.longitude = coordinate.longitude;
-		})
-		.catch((error) => {
-			console.error("Error locating via Tauri API:", error);
-		});
+	if (__IN_TAURI__) {
+		onMount(injectTauriGeolocationProvider);
+	}
 
-	let location = $state<{ latitude: number; longitude: number }>({
-		latitude: 50,
-		longitude: 20,
+	let location = $state<Coordinate>({
+		latitude: 0,
+		longitude: 0,
 	});
+
+	onMount(() =>
+		locate().map((position) => {
+			location.latitude = position.coords.latitude;
+			location.longitude = position.coords.longitude;
+		}),
+	);
 
 	type drawerModesItem = {
 		mode: any;
@@ -86,14 +95,93 @@
 			icon: IconLine,
 		},
 		{
-			mode: new TerraDrawSelectMode(),
+			mode: new TerraDrawSelectMode({
+				// Allow manual deselection of features
+				allowManualDeselection: true, // this defaults to true - allows users to deselect by clicking on the map
+
+				// Enable editing tools by Feature
+				flags: {
+					// Point
+					point: {
+						feature: {
+							draggable: true,
+						},
+					},
+
+					// Polygon
+					polygon: {
+						feature: {
+							draggable: true,
+							coordinates: {
+								midpoints: true,
+								draggable: true,
+								deletable: true,
+							},
+						},
+					},
+
+					// Line
+					linestring: {
+						feature: {
+							draggable: true,
+							coordinates: {
+								midpoints: true,
+								draggable: true,
+								deletable: true,
+							},
+						},
+					},
+
+					// Freehand
+					freehand: {
+						feature: {
+							draggable: true,
+							coordinates: {
+								midpoints: true,
+								draggable: true,
+								deletable: true,
+							},
+						},
+					},
+
+					// Circle
+					circle: {
+						feature: {
+							draggable: true,
+							coordinates: {
+								midpoints: true,
+								draggable: true,
+								deletable: true,
+							},
+						},
+					},
+
+					// Rectangle
+					rectangle: {
+						feature: {
+							draggable: true,
+							coordinates: {
+								midpoints: true,
+								draggable: true,
+								deletable: true,
+							},
+						},
+					},
+				},
+			}),
 			name: "TerraDraw: Select",
 			icon: IconHandFinger,
+		},
+		{
+			mode: new TerraDrawFreehandMode(),
+			name: "TerraDraw: Free Hand",
+			icon: IconScribble,
 		},
 	];
 
 	let map: Map | null = null;
 	let draw: TerraDraw | null = null;
+	let activeDrawMethod = $state<string>("select");
 
 	function initMap(mapInstance: Map) {
 		map = mapInstance;
@@ -101,6 +189,58 @@
 			adapter: new TerraDrawMapLibreGLAdapter({ map: mapInstance }),
 			modes: drawerModes.map((item) => item.mode),
 		});
+	}
+
+	let pathRecording = $state(false);
+	let path = $state<Coordinate[]>([]);
+	// const geojson = $derived({
+	// 	type: "Feature",
+	// 	geometry: {
+	// 		type: "LineString",
+	// 		coordinates: path.map((point) => [point.longitude, point.latitude]),
+	// 	},
+	// 	properties: {}, // You can add properties here if needed
+	// });
+
+	const geojson: Feature = $derived({
+		type: "Feature",
+		properties: {
+			name: "Maine",
+		},
+		geometry: {
+			type: "LineString",
+			coordinates:
+				path.map(p => ([p.longitude, p.latitude]))
+			,
+		},
+	});
+
+	let intervalId: number | NodeJS.Timeout | undefined = undefined;
+
+	function changeRecordState() {
+		pathRecording = !pathRecording;
+
+		if (pathRecording) {
+			intervalId = window.setInterval(async () => {
+				const newPoint: Result<Coordinate, GeolocationPositionError> =
+					await locate().map((t) => ({
+						latitude: t.coords.latitude,
+						longitude: t.coords.longitude,
+					}));
+				newPoint.match(
+					(p) => path.push(p),
+					() => {
+						window.clearInterval(intervalId);
+						pathRecording = false;
+						console.error("Fail to record the path");
+					},
+				);
+			}, 1000);
+		} else {
+			window.clearInterval(intervalId);
+			pathRecording = false;
+			console.log(geojson);
+		}
 	}
 </script>
 
@@ -115,7 +255,8 @@
 			onload={initMap}
 			center={[location.longitude, location.latitude]}
 			zoom={7}
-			style={`https://api.maptiler.com/maps/basic-v2/style.json?key=${__MAP_TILER_KEY__}`}
+			style={/*`https://api.maptiler.com/maps/basic-v2/style.json?key=${__MAP_TILER_KEY__}`*/"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+			hash
 		>
 			{#snippet children()}
 				<NavigationControl />
@@ -126,19 +267,72 @@
 					<ControlGroup>
 						{#each drawerModes as item}
 							<ControlButton
+								class={item.mode.mode == activeDrawMethod
+									? "bg-blue-200 rounded-sm transition-colors"
+									: ""}
 								icon={true}
 								center={true}
 								title={item.name}
 								onclick={() => {
-									draw?.start();
-									draw?.setMode(item.mode.mode);
+									if (activeDrawMethod == item.mode.mode) {
+										draw?.setMode("select");
+										activeDrawMethod = "select";
+									} else {
+										activeDrawMethod = item.mode.mode;
+										draw?.start();
+										draw?.setMode(item.mode.mode);
+									}
 								}}
 							>
-								<item.icon />
+								<item.icon class="stroke-stone-800" size={20} />
 							</ControlButton>
 						{/each}
 					</ControlGroup>
+
+					<ControlGroup>
+						<ControlButton
+							icon={true}
+							onclick={changeRecordState}
+							title={pathRecording
+								? "Recording…"
+								: "Track Recorder"}
+						>
+							{#if pathRecording}
+								<IconSquareFilled
+									size={16}
+									class="stroke-red-700 fill-red-600"
+								/>
+							{:else}
+								<IconPlayerRecordFilled
+									size={20}
+									class="stroke-sky-800 fill-sky-700"
+								/>
+							{/if}
+						</ControlButton>
+						{#if path.length > 0 && !pathRecording}
+							<ControlButton
+								icon={true}
+								class="stroke-red-700 hover:bg-red-700 hover:stroke-white rounded-sm transition-all"
+								onclick={() => (path = [])}
+							>
+								<IconBackspace
+									class="stroke-inherit"
+									size={20}
+								/>
+							</ControlButton>
+						{/if}
+					</ControlGroup>
 				</Control>
+				<GeoJSON id="maine" data={geojson}>
+					<LineLayer
+					  paint={{
+						'line-width': 5,
+						'line-dasharray': [5, 2],
+						'line-color': '#008800',
+						'line-opacity': 0.8,
+					  }}
+					/>
+				  </GeoJSON>
 			{/snippet}
 		</MapLibre>
 	</Card>

@@ -9,13 +9,17 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
+    "tauri": "IN_TAURI=true tauri"
   },
   "license": "MIT",
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-store": "^2.2.0",
+    "@types/geojson": "^7946.0.16",
+    "geojson": "^0.5.0",
     "maplibre-gl": "^5.1.0",
+    "neverthrow": "^8.1.1",
     "svelte-maplibre": "1.0.0-next.11",
     "terra-draw": "^1.1.0",
     "terra-draw-maplibre-gl-adapter": "^1.0.1",

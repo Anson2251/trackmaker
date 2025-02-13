@@ -6,15 +6,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const host = process.env.TAURI_DEV_HOST;
+const inTauri = process.env.IN_TAURI === "true";
+
+console.log(`Using host ${host}`);
+console.log(`In Tauri mode: ${inTauri}`)
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
 	plugins: [
-		sveltekit(),
 		tailwindcss(),
+		sveltekit(),
 	],
 	define: {
 		__MAP_TILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
+		__IN_TAURI__: JSON.stringify(inTauri ? true : false)
 	},
 
 	// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

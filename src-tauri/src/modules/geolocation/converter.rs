@@ -14,7 +14,6 @@ fn is_outside_china(coordinate: &Coordinate) -> bool {
         || (coordinate.latitude < 0.8293 || coordinate.latitude > 55.8271)
 }
 
-
 fn transform_lat(lng: f64, lat: f64) -> f64 {
     let mut ret =
         -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * lng.abs().sqrt();
