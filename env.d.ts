@@ -12,7 +12,7 @@ declare interface Window {
     MapCount: number;
 }
 
-declare const __BING_MAPS_KEY__: string;
+
 declare const __MAPTILER_KEY__: string;
 declare const __BING_MAPS_KEY_TAURI__: string;
 

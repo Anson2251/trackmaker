@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { RouterView, RouterLink } from 'vue-router';
 import { h, ref } from "vue";
 
@@ -6,70 +6,30 @@ import { NMenu, type MenuOption } from "naive-ui";
 import { useOsTheme, darkTheme, NConfigProvider, NGlobalStyle, NMessageProvider } from 'naive-ui';
 
 let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
-
-export default {
-	components: {
-		NMenu,
-		NConfigProvider,
-		RouterView,
-		NGlobalStyle,
-		NMessageProvider
+const menuOptions: MenuOption[] = [
+	{
+		label: () =>
+			h(
+				RouterLink,
+				{
+					to: "/",
+				},
+				{ default: () => 'Tracker' }
+			),
+		key: 'tracker',
 	},
-
-	setup() {
-		const menuOptions: MenuOption[] = [
-			{
-				label: () =>
-					h(
-						RouterLink,
-						{
-							to: "/",
-						},
-						{ default: () => 'Home' }
-					),
-				key: 'home',
-			},
-			{
-				label: () =>
-					h(
-						RouterLink,
-						{
-							to: "/edit",
-						},
-						{ default: () => 'Edit' }
-					),
-				key: 'edit',
-			},
-			{
-				label: () =>
-					h(
-						RouterLink,
-						{
-							to: "/about",
-						},
-						{ default: () => 'About' }
-					),
-				key: 'about',
-			},
-			{
-				label: () =>
-					h(
-						RouterLink,
-						{
-							to: "/exp-maplibregljs",
-						},
-						{ default: () => 'Preview MapLibreGLJS' }
-					),
-				key: 'exp-maplibregljs',
-			},
-		];
-
-		return {
-			theme,
-			menuOptions
-		};
-	},
-};
+	{
+		label: () =>
+			h(
+				RouterLink,
+				{
+					to: "/about",
+				},
+				{ default: () => 'About' }
+			),
+		key: 'about',
+	}
+];
 </script>
 
 <template>

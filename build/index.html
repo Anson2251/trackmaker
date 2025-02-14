@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="./favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>TRACKMAKER</title>
+		<style>
+			html,
+			body {
+				padding: 0;
+				margin: 0;
+
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+		</style>
+		
+		<link rel="modulepreload" href="./app/immutable/entry/start.BgRL_mtm.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/D8EFsxGM.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/CsmaOZ4j.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/BZIi0YQr.js">
+		<link rel="modulepreload" href="./app/immutable/entry/app.BLUJSD7-.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/BbIt8eS0.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/ChQi-XAK.js">
+		<link rel="modulepreload" href="./app/immutable/chunks/BolaXwac.js">
+	</head>
+	<body class="bg-white dark:bg-gray-900">
+		<div style="display: contents">
+			
+			<script>
+				{
+					__sveltekit_1ji6smw = {
+						base: new URL(".", location).pathname.slice(0, -1)
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("./app/immutable/entry/start.BgRL_mtm.js"),
+						import("./app/immutable/entry/app.BLUJSD7-.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		
+		</div>
+	</body>
+</html>

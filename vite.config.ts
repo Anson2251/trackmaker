@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url';
-import { promises as fs } from 'fs';
+import dotenv from 'dotenv';
 
 import { defineConfig } from 'vite';
 import viteCompression from 'vite-plugin-compression';
@@ -18,75 +18,10 @@ const compression = viteCompression({
 	deleteOriginFile: false
 });
 
-type CredentialItemType = {
-	name: string,
-	type: "string" | "number"
-}
-const credentialItems: CredentialItemType[] = [
-	{
-		name: "BING_MAPS_KEY",
-		type: "string"
-	},
-	{
-		name: "MAPTILER_KEY",
-		type: "string"
-	},
-	{
-		name: "BING_MAPS_KEY_TAURI",
-		type: "string",
-	}
-];
-
-const credentialFileDefaultPath = "./credentials-config.json";
-
-async function checkFileExist(filePath: string): Promise<boolean> {
-	try {
-		await fs.access(filePath);
-		return Promise.resolve(true);
-	} catch (error) {
-		return Promise.resolve(false);
-	}
-}
-
-async function readFile(filePath: string): Promise<string> {
-	try {
-		const config = await fs.readFile(filePath, {
-			encoding: "utf-8"
-		});
-		return Promise.resolve(config);
-	} catch (err) {
-		return Promise.reject(`Cannot read from the file "${filePath}"`);
-	}
-}
-
-async function getCredentials(credentialFilePath: string) {
-	if (credentialFilePath !== credentialFileDefaultPath) {
-		console.log(`Using credential configuration file: ${credentialFilePath}`);
-	}
-	const credentialFileExist = await checkFileExist(credentialFilePath);
-	const credentialFileContent: Record<string, string | number> = credentialFileExist ? JSON.parse(await readFile(credentialFilePath)) : {};
-	const finalCredential: Record<string, string> = {};
-
-	credentialItems.forEach(item => {
-		let value: string | number | undefined = process.env[item.name] || credentialFileContent[item.name] || undefined;
-
-		if (typeof value === "undefined") {
-			console.warn("\x1b[33m%s\x1b[0m", `Credential item "${item.name}" cannot be found in the environment or the "${credentialFilePath}"`);
-			value = "";
-		}
-
-		if (item.type === "string") value = String(value);
-		else if (item.type === "number") value = Number(value);
-
-		finalCredential[`__${item.name}__`] = JSON.stringify(value);
-	});
-
-	return finalCredential;
-}
+dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-	const credentialsConfigPath = process.env.CREDENTIALS_CONFIG_PATH || credentialFileDefaultPath;
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
 	const tauriEnv = !!JSON.parse((process.env.TAURI_ENVIRONMENT || "false").toLowerCase());
 
@@ -103,7 +38,8 @@ export default defineConfig(async () => {
 
 	return {
 		define: {
-			...(await getCredentials(credentialsConfigPath)),
+			__BING_MAPS_KEY__: "''",
+			__MAPTILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
 			__RELEASE_MODE__: releaseMode ? "true" : "false",
 			__TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
 		},
