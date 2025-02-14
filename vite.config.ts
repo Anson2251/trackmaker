@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-import tailwindcss from '@tailwindcss/vite'
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,7 +13,6 @@ console.log(`In Tauri mode: ${inTauri}`)
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
 	plugins: [
-		tailwindcss(),
 		sveltekit(),
 	],
 	define: {

@@ -3,12 +3,14 @@ import type { Store } from "./types";
 
 export class IndexedDBStore implements Store {
 	private db: IDBDatabase | null = null;
+	private initialised = false;
 
 	constructor(private dbName: string, private storeName: string) {
 		this.init();
 	}
 
-	private init(): Promise<void> {
+	init(): Promise<void> {
+		if (this.initialised) return Promise.resolve();
 		return new Promise((resolve, reject) => {
 			const request = indexedDB.open(this.dbName, 1);
 
@@ -71,6 +73,34 @@ export class IndexedDBStore implements Store {
 	async save(): Promise<Result<void, Error>> {
 		// IndexedDB automatically saves changes, so this is a no-op.
 		return ok(undefined);
+	}
+
+	async exportToJson(): Promise<Result<string, Error>> {
+		if (!this.db) {
+			return err(new Error('Database not initialized'));
+		}
+
+		return new Promise((resolve) => {
+			if (!this.db) {
+				resolve(err(new Error('Database has not been initialised')));
+				return;
+			}
+			const transaction = this.db.transaction(this.storeName, 'readonly');
+			const store = transaction.objectStore(this.storeName);
+			const request = store.getAll();
+
+			request.onsuccess = () => {
+				const data = request.result.reduce((acc, item, index) => {
+					acc[index] = item; // Use index as key or use a unique key if available
+					return acc;
+				}, {} as Record<string, any>);
+				resolve(ok(JSON.stringify(data, null, 2)));
+			};
+
+			request.onerror = () => {
+				resolve(err(new Error('Failed to export data to JSON')));
+			};
+		});
 	}
 }
 

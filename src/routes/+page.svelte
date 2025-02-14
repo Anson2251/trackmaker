@@ -1,5 +1,6 @@
 <script lang="ts">
 	import "../app.css";
+
 	import {
 		MapLibre,
 		ControlGroup,
@@ -12,7 +13,7 @@
 		GeoJSON,
 		LineLayer,
 	} from "svelte-maplibre";
-	import type { Feature } from 'geojson';
+	import type { Feature } from "geojson";
 	import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 	import {
 		TerraDraw,
@@ -37,6 +38,8 @@
 		IconPlayerRecordFilled,
 		IconSquareFilled,
 		IconBackspace,
+		IconDeviceFloppy,
+		IconUpload,
 	} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 	import {
@@ -45,6 +48,10 @@
 		type Coordinate,
 	} from "$lib/geolocation";
 	import type { Result } from "neverthrow";
+	import { storeGet, storeSet, storeInit } from "$lib/store";
+	import { fileSaveDialog, createTextFile, saveString } from "$lib/utilities";
+
+	import TextFileUploadModel from "../components/TextFileUploadModel.svelte";
 
 	if (__IN_TAURI__) {
 		onMount(injectTauriGeolocationProvider);
@@ -55,12 +62,23 @@
 		longitude: 0,
 	});
 
-	onMount(() =>
+	onMount(() => {
 		locate().map((position) => {
 			location.latitude = position.coords.latitude;
 			location.longitude = position.coords.longitude;
-		}),
-	);
+		});
+
+		storeInit().then(() =>
+			storeGet<Coordinate[]>("stored-path").then((res) =>
+				res.map((coords) => {
+					if (coords && coords.length !== 0) {
+						path = JSON.parse(JSON.stringify(coords));
+						console.info("Recovered the tracked path from store");
+					}
+				}),
+			),
+		);
+	});
 
 	type drawerModesItem = {
 		mode: any;
@@ -209,9 +227,7 @@
 		},
 		geometry: {
 			type: "LineString",
-			coordinates:
-				path.map(p => ([p.longitude, p.latitude]))
-			,
+			coordinates: path.map((p) => [p.longitude, p.latitude]),
 		},
 	});
 
@@ -239,9 +255,23 @@
 		} else {
 			window.clearInterval(intervalId);
 			pathRecording = false;
-			console.log(geojson);
+			console.log(path);
+			storeSet("stored-path", JSON.parse(JSON.stringify(path)));
 		}
 	}
+
+
+
+	async function savePath() {
+		if(__IN_TAURI__) {
+			const path = await fileSaveDialog("tracked-path-export", ["json"]);
+			console.log("saving to", path)
+			if(path) createTextFile(path, JSON.stringify(geojson));
+		}
+		else saveString(JSON.stringify(geojson), "application/json", "tracked-path-export");
+	}
+
+	let uploadModelOpened = $state(false);
 </script>
 
 <div class="map-container">
@@ -255,12 +285,12 @@
 			onload={initMap}
 			center={[location.longitude, location.latitude]}
 			zoom={7}
-			style={/*`https://api.maptiler.com/maps/basic-v2/style.json?key=${__MAP_TILER_KEY__}`*/"https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+			style={/*`https://api.maptiler.com/maps/basic-v2/style.json?key=${__MAP_TILER_KEY__}`*/ "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
 			hash
 		>
 			{#snippet children()}
 				<NavigationControl />
-				<GeolocateControl />
+				<GeolocateControl trackUserLocation={true}/>
 				<FullscreenControl />
 				<ScaleControl />
 				<Control class="flex flex-col gap-y-2">
@@ -320,25 +350,49 @@
 									size={20}
 								/>
 							</ControlButton>
+							<ControlButton
+								icon={true}
+								onclick={savePath}
+							>
+								<IconDeviceFloppy
+									class="stroke-stone-800"
+									size={20}
+								/>
+							</ControlButton>
+						{/if}
+						{#if path.length == 0 && !pathRecording}
+							<ControlButton
+								icon={true}
+								onclick={() => uploadModelOpened = !uploadModelOpened}
+							>
+								<IconUpload
+									class="stroke-stone-800"
+									size={20}
+								/>
+							</ControlButton>
 						{/if}
 					</ControlGroup>
 				</Control>
 				<GeoJSON id="maine" data={geojson}>
 					<LineLayer
-					  paint={{
-						'line-width': 5,
-						'line-dasharray': [5, 2],
-						'line-color': '#008800',
-						'line-opacity': 0.8,
-					  }}
+						paint={{
+							"line-width": 5,
+							"line-dasharray": [5, 2],
+							"line-color": "#008800",
+							"line-opacity": 0.8,
+						}}
 					/>
-				  </GeoJSON>
+				</GeoJSON>
 			{/snippet}
 		</MapLibre>
 	</Card>
 </div>
 
-<style>
+<div>
+<TextFileUploadModel opened={uploadModelOpened}/>
+</div>
+
+<style lang="postcss">
 	:global(.map) {
 		height: 100%;
 	}
