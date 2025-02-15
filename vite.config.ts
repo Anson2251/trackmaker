@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
 import viteCompression from 'vite-plugin-compression';
 
 import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite'
 import legacy from '@vitejs/plugin-legacy';
 
 const legacyLevel = ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12";
@@ -25,9 +26,10 @@ export default defineConfig(async () => {
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
 	const tauriEnv = !!JSON.parse((process.env.TAURI_ENVIRONMENT || "false").toLowerCase());
 
-	const plugins = [];
-
-	plugins.push(vue());
+	const plugins = [
+		vue(),
+		tailwindcss(),
+	];
 
 	if(!tauriEnv) {
 		if(releaseMode) {

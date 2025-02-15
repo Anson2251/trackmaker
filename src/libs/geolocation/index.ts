@@ -25,6 +25,10 @@ export function unwatch(id: number): void {
 }
 
 export function injectTauriGeolocationProvider(): void {
+	if(!__TAURI_ENVIRONMENT__) {
+		console.warn("This function can only be called in a Tauri environment.");
+		return;
+	}
 	if((navigator.geolocation as any)["injected"]) {
 		console.warn("The custom geolocation provider is already injected and cannot be injected again.")
 		return;

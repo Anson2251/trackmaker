@@ -1,29 +1,316 @@
 <script lang="ts" setup>
+import "tailwindcss"
+import { ref, onMounted, computed, type Component } from 'vue';
+import { Result } from 'neverthrow';
 import {
-	MglMap,
-	MglNavigationControl,
+    MglMap,
+    MglNavigationControl,
+    MglScaleControl,
+    MglGeolocateControl,
+    MglFullscreenControl,
+    MglCustomControl,
+    MglGeoJsonSource,
+    MglLineLayer,
 } from '@indoorequal/vue-maplibre-gl';
+import { NCard, useMessage } from "naive-ui";
+import {
+    TerraDraw,
+    TerraDrawRectangleMode,
+    TerraDrawPointMode,
+    TerraDrawSelectMode,
+    TerraDrawPolygonMode,
+    TerraDrawLineStringMode,
+    TerraDrawCircleMode,
+    TerraDrawFreehandMode,
+} from "terra-draw";
+import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter';
+import { Map } from "maplibre-gl";
+import {
+    MapPin,
+    Vector,
+    Circle,
+    Line,
+    Polygon,
+    HandFinger,
+    HandMove,
+    PlayerRecord,
+    Square,
+    Backspace,
+    DeviceFloppy,
+    Upload,
+} from "@vicons/tabler";
+import { Icon } from "@vicons/utils"
+import { injectTauriGeolocationProvider, locate, type Coordinate } from "@/libs/geolocation";
+import { storeGet, storeSet, storeInit } from "@/libs/store";
+import { fileSaveDialog, createTextFile, saveString } from "@/utils/utilities";
+import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
+import type { TerraDrawBaseDrawMode } from 'node_modules/terra-draw/dist/extend';
+import { reject } from "lodash-es";
 
-const center: [number, number] = [12.550343, 55.665957];
-const zoom = 8;
-
+const center = ref<[number, number]>([0, 0]);
+const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
+
+const location = ref<Coordinate>({ latitude: 0, longitude: 0 });
+const map = ref<Map | null>(null);
+const draw = ref<TerraDraw | null>(null);
+const activeDrawMethod = ref<string>("select");
+const pathRecording = ref(false);
+const path = ref<Coordinate[]>([]);
+const uploadModelOpened = ref(false);
+
+const message = useMessage();
+
+const geojsonSource = computed(() => ({
+    type: 'FeatureCollection',
+    features: [
+        {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'LineString',
+                coordinates: path.value.map(coord => [coord.longitude, coord.latitude]),
+            }
+        }
+    ]
+}));
+
+type DrawModes = {
+    mode: TerraDrawBaseDrawMode<any>,
+    name: string,
+    icon: Component
+};
+
+const drawerModes: DrawModes[] = [
+    {
+        mode: new TerraDrawRectangleMode(),
+        name: "TerraDraw: Rectangle",
+        icon: Vector,
+    },
+    {
+        mode: new TerraDrawPointMode(),
+        name: "TerraDraw: Point",
+        icon: MapPin,
+    },
+    {
+        mode: new TerraDrawPolygonMode(),
+        name: "TerraDraw: Polygon",
+        icon: Polygon,
+    },
+    {
+        mode: new TerraDrawCircleMode(),
+        name: "TerraDraw: Circle",
+        icon: Circle,
+    },
+    {
+        mode: new TerraDrawLineStringMode(),
+        name: "TerraDraw: Line String",
+        icon: Line,
+    },
+    {
+        mode: new TerraDrawSelectMode({
+            allowManualDeselection: true,
+            flags: {
+                point: { feature: { draggable: true } },
+                polygon: { feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } } },
+                linestring: { feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } } },
+                freehand: { feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } } },
+                circle: { feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } } },
+                rectangle: { feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } } },
+            },
+        }),
+        name: "TerraDraw: Select",
+        icon: HandFinger,
+    },
+    {
+        mode: new TerraDrawFreehandMode(),
+        name: "TerraDraw: Free Hand",
+        icon: HandMove,
+    },
+];
+
+let intervalId: number | NodeJS.Timeout | undefined = undefined;
+
+function initMap(event: any) {
+    map.value = event.map;
+    draw.value = new TerraDraw({
+        adapter: new TerraDrawMapLibreGLAdapter({ map: map.value }),
+        modes: drawerModes.map(item => item.mode as TerraDrawBaseDrawMode<any>),
+    });
+
+    draw.value.start();
+}
+
+function changeRecordState() {
+    pathRecording.value = !pathRecording.value;
+
+    if (pathRecording.value) {
+        intervalId = window.setInterval(async () => {
+            const newPoint: Result<Coordinate, GeolocationPositionError> =
+                await locate().map((t) => ({
+                    latitude: t.coords.latitude,
+                    longitude: t.coords.longitude,
+                }));
+            newPoint.match(
+                (p) => path.value.push(p),
+                () => {
+                    window.clearInterval(intervalId);
+                    pathRecording.value = false;
+                    message.error("Fail to record the path");
+                },
+            );
+        }, 1000);
+    } else {
+        window.clearInterval(intervalId);
+        pathRecording.value = false;
+        storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
+    }
+}
+
+async function savePath() {
+    if (__TAURI_ENVIRONMENT__) {
+        const path = await fileSaveDialog("tracked-path-export", ["json"]);
+        if (path) createTextFile(path, JSON.stringify(geojsonSource.value));
+    } else {
+        saveString(JSON.stringify(geojsonSource.value), "application/json", "tracked-path-export");
+    }
+}
+
+let loadTextFileDialogCallback = ref<((contents: string[]) => Promise<void>)>(async (_: string[]) => {})
+
+function loadFromText() {
+    return new Promise<string[]>((resolve, reject) => {
+        if(!__TAURI_ENVIRONMENT__) {
+            loadTextFileDialogCallback.value = async (contents: string[]) => {
+                if (contents.length === 0) {
+                    reject(new Error("No file selected"));
+                } else {
+                    resolve(contents);
+                }
+            };
+
+            uploadModelOpened.value = true;
+        } else {
+            message.error("Not implemented in Tauri environment");
+            reject(new Error("Not implemented in Tauri environment"));
+        }
+    })
+}
+
+function loadTrackFromFile() {
+    loadFromText().then((contents) => {
+        path.value = JSON.parse(contents[0]).features[0].geometry.coordinates.map((coord: number[]) => ({latitude: coord[1], longitude: coord[0] }));
+        storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
+    }).catch((error) => {
+        message.error(error);
+    });
+}
+
+onMounted(() => {
+    locate().map((position) => {
+        location.value.latitude = position.coords.latitude;
+        location.value.longitude = position.coords.longitude;
+    });
+
+    storeInit().then(() =>
+        storeGet<Coordinate[]>("stored-path").then((res) =>
+            res.map((coords) => {
+                if (coords && coords.length !== 0) {
+                    path.value = JSON.parse(JSON.stringify(coords));
+                    console.info("Recovered the tracked path from store");
+                }
+            }),
+        ),
+    );
+
+    draw.value?.start();
+});
 </script>
 
+<!-- TODO: add recover tailwindcss style-->
 <template>
-	<div class="map-layout">
-		<mgl-map :map-style="styleUrl" :center="center" :zoom="zoom" height="100%">
-			<mgl-navigation-control />
-		</mgl-map>
-	</div>
+    <n-card class="map-layout" content-style="padding: 0;">
+        <mgl-map :map-style="styleUrl" :center="[location.longitude, location.latitude]" :zoom="zoom" height="100%"
+            @map:load="initMap">
+            <mgl-navigation-control position="top-left" />
+            <mgl-geolocate-control position="top-left" :track-user-location="true" />
+            <mgl-fullscreen-control position="top-left" />
+            <mgl-scale-control position="bottom-left" />
+            <mgl-custom-control position="top-right">
+                <button v-for="item in drawerModes" :key="item.name"
+                    :class="['!flex justify-center items-center', item.mode.mode === activeDrawMethod ? '!bg-blue-200 rounded-sm transition-colors' : '']"
+                    :title="item.name" @click="() => {
+                        console.log('activeDrawMethod', activeDrawMethod);
+                        if (activeDrawMethod === item.mode.mode) {
+                            draw?.setMode('select');
+                            activeDrawMethod = 'select';
+                        } else {
+                            activeDrawMethod = item.mode.mode;
+                            draw?.start();
+                            draw?.setMode(item.mode.mode);
+                        }
+                    }">
+                    <icon :size="20">
+                        <component :is="item.icon" class="stroke-stone-800 text-stone-800" />
+                    </icon>
+                </button>
+            </mgl-custom-control>
+            <mgl-custom-control position="top-right">
+                <button
+                    :class="[
+                        '!flex justify-center items-center transition-all', 
+                        pathRecording ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700' : 'stroke-sky-800 fill-sky-700 text-sky-800']"
+                    :title="pathRecording ? 'Recording…' : 'Track Recorder'" @click="changeRecordState">
+                    <icon :size="20">
+                        <component :is="pathRecording ? Square : PlayerRecord" :size="pathRecording ? 16 : 20"
+                            class="stroke-inherit text-inherit" />
+                    </icon>
+                </button>
+                <button v-if="path.length > 0 && !pathRecording"
+                    class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
+                    @click="path = []">
+                    <icon :size="20">
+                        <Backspace class="stroke-inherit text-inherit" style="transform: translateX(-1.3px);"
+                            size="20" />
+                    </icon>
+                </button>
+                <button v-if="path.length > 0 && !pathRecording" class="!flex justify-center items-center"
+                    @click="savePath">
+                    <icon :size="20">
+                        <DeviceFloppy class="stroke-stone-800 text-stone-800" size="20" />
+                    </icon>
+                </button>
+                <button v-if="path.length === 0 && !pathRecording" class="!flex justify-center items-center"
+                    @click="loadTrackFromFile">
+                    <icon :size="20">
+                        <Upload class="stroke-stone-800 text-stone-800" size="20" />
+                    </icon>
+                </button>
+            </mgl-custom-control>
+            <mgl-geo-json-source source-id="geojson" :data="(geojsonSource as any)">
+                <mgl-line-layer layer-id="geojson" :layout="{
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                }" :paint="{
+                    'line-width': 5,
+                    'line-dasharray': [5, 2],
+                    'line-color': '#008800',
+                    'line-opacity': 0.8,
+                }" />
+            </mgl-geo-json-source>
+        </mgl-map>
+    </n-card>
+
+    <text-file-uploader-dialog v-model:show="uploadModelOpened" :types="['application/json', 'text/plain']" @confirm="loadTextFileDialogCallback"/>
 </template>
 
-<style>
+<style lang="css">
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 .map-layout {
-	width: 100%;
-	height: 100%;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 </style>

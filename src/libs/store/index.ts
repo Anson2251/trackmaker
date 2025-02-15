@@ -2,7 +2,7 @@ import type { Store } from "./types";
 import TauriStore from "./tauri-store";
 import IndexedDBStore from "./indexed-db";
 
-const instance: Store = __IN_TAURI__
+const instance: Store = __TAURI_ENVIRONMENT__
 	? (new TauriStore("user-data.json"))
 	: (new IndexedDBStore("user-data-db", "user-data"));
 
