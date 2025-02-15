@@ -21,6 +21,8 @@ const compression = viteCompression({
 
 dotenv.config();
 
+const host = process.env.TAURI_DEV_HOST;
+
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
@@ -31,8 +33,8 @@ export default defineConfig(async () => {
 		tailwindcss(),
 	];
 
-	if(!tauriEnv) {
-		if(releaseMode) {
+	if (!tauriEnv) {
+		if (releaseMode) {
 			plugins.push(compression);
 			plugins.push(legacy({ targets: legacyLevel }));
 		}
@@ -56,6 +58,29 @@ export default defineConfig(async () => {
 		build: {
 			chunkSizeWarningLimit: 2000,
 			outDir: "dist/trackmaker",
+		},
+
+		// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+		//
+		// 1. prevent vite from obscuring rust errors
+		clearScreen: false,
+		// 2. tauri expects a fixed port, fail if that port is not available
+		server: {
+			port: 1420,
+			strictPort: true,
+			host: host || false,
+			hmr: host
+				? {
+					protocol: "ws",
+					host,
+					port: 1421,
+				}
+				: undefined,
+			watch: {
+				// 3. tell vite to ignore watching `src-tauri`
+				ignored: ["**/src-tauri/**"],
+			},
+			sourcemap: true
 		},
 	};
 });

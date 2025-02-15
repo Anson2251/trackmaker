@@ -40,12 +40,11 @@ import {
     Upload,
 } from "@vicons/tabler";
 import { Icon } from "@vicons/utils"
-import { injectTauriGeolocationProvider, locate, type Coordinate } from "@/libs/geolocation";
+import { locate, type Coordinate } from "@/libs/geolocation";
 import { storeGet, storeSet, storeInit } from "@/libs/store";
-import { fileSaveDialog, createTextFile, saveString } from "@/utils/utilities";
+import { tauriFileSaveDialog, tauriCreateTextFile, saveString, tauriFileOpenDialog, tauriReadTextFile } from "@/utils/utilities";
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from 'node_modules/terra-draw/dist/extend';
-import { reject } from "lodash-es";
 
 const center = ref<[number, number]>([0, 0]);
 const zoom = ref(7);
@@ -170,8 +169,8 @@ function changeRecordState() {
 
 async function savePath() {
     if (__TAURI_ENVIRONMENT__) {
-        const path = await fileSaveDialog("tracked-path-export", ["json"]);
-        if (path) createTextFile(path, JSON.stringify(geojsonSource.value));
+        const path = await tauriFileSaveDialog("tracked-path-export", ["json"]);
+        if (path) tauriCreateTextFile(path, JSON.stringify(geojsonSource.value));
     } else {
         saveString(JSON.stringify(geojsonSource.value), "application/json", "tracked-path-export");
     }
@@ -180,7 +179,7 @@ async function savePath() {
 let loadTextFileDialogCallback = ref<((contents: string[]) => Promise<void>)>(async (_: string[]) => {})
 
 function loadFromText() {
-    return new Promise<string[]>((resolve, reject) => {
+    return new Promise<string[]>(async (resolve, reject) => {
         if(!__TAURI_ENVIRONMENT__) {
             loadTextFileDialogCallback.value = async (contents: string[]) => {
                 if (contents.length === 0) {
@@ -192,8 +191,13 @@ function loadFromText() {
 
             uploadModelOpened.value = true;
         } else {
-            message.error("Not implemented in Tauri environment");
-            reject(new Error("Not implemented in Tauri environment"));
+            const filePaths = await tauriFileOpenDialog(false, "tracked-path-export", ["txt", "json"])
+            if(!filePaths) return;
+            const contents: string[] = []
+            for (const filePath of filePaths) {
+                contents.push(await tauriReadTextFile(filePath))
+            }
+            resolve(contents);
         }
     })
 }
@@ -259,7 +263,7 @@ onMounted(() => {
             <mgl-custom-control position="top-right">
                 <button
                     :class="[
-                        '!flex justify-center items-center transition-all', 
+                        '!flex justify-center items-center transition-all hover:rounded-sm', 
                         pathRecording ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700' : 'stroke-sky-800 fill-sky-700 text-sky-800']"
                     :title="pathRecording ? 'Recording…' : 'Track Recorder'" @click="changeRecordState">
                     <icon :size="20">

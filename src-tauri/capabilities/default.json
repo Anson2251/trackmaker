@@ -11,7 +11,9 @@
     "store:default",
     "dialog:default",
     "dialog:allow-save",
+    "dialog:allow-open",
     "fs:default",
-    "fs:allow-app-write"
+    "fs:allow-app-write",
+    "fs:allow-app-read"
   ]
 }

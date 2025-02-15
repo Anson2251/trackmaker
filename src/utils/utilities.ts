@@ -1,8 +1,8 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { create } from '@tauri-apps/plugin-fs';
+import { save as saveDialog, open as openDialog } from '@tauri-apps/plugin-dialog';
+import { create, readTextFile } from '@tauri-apps/plugin-fs';
 
-export async function fileSaveDialog(name: string, extensions: string[]) {
-	return await save({
+export async function tauriFileSaveDialog(name: string, extensions: string[]) {
+	return await saveDialog({
 		filters: [
 			{
 				name: name,
@@ -12,7 +12,25 @@ export async function fileSaveDialog(name: string, extensions: string[]) {
 	});
 }
 
-export async function createTextFile(filePath: string, content: string) {
+export async function tauriFileOpenDialog(multiple = false, defaultName = "", extensions: string[] = []) {
+	const paths = await openDialog({
+		multiple: multiple,
+		filters: [{
+			name: defaultName,
+			extensions: extensions
+		}]
+	});
+
+	if(!paths) return [];
+	if(!Array.isArray(paths)) return [paths];
+	return paths as string[];
+}
+
+export async function tauriReadTextFile(filePath: string) {
+	return await readTextFile(filePath);
+}
+
+export async function tauriCreateTextFile(filePath: string, content: string) {
 	const file = await create(filePath);
 	await file.write(new TextEncoder().encode(content));
 	await file.close();
