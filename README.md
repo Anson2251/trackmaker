@@ -10,26 +10,29 @@ Enabling route planning and navigation for sports activities with map marking fe
 ---
 
 ## Todo
+
+- [ ] Bug fixes for the latest major version
 - [x] About page
 - [x] Get and track geolocation
 - [x] Add frameworks to load the module
-- [x] Basic Bing Maps support
-- [ ] MapLibre GL JS Support
-- [x] Customise touchpad behaviour for Bing Maps
+- [x] MapLibre GL JS Support
 - [x] Pushpin support
 - [x] Include the drawing module
-- [ ] Record and track the route
+- [x] Record and track the route
 - [ ] Edit routes
+- [ ] Implement keep alive feature for the web app
 
-    - [ ] Basic route editing page
+    - [ ] Pin with the note
+    - [ ] Multiple tracks with note/tags
+    - [x] Basic route editing page
     - [ ] Save the edit (of the shapes on the map)
     - [ ] Widgets for editing and modifying the information of the shapes
-    - [ ] Load and place the previous saves on the map
+    - [x] Load and place the previous saves on the map
     - [x] Manage saved routes (shapes)
 
 - [ ] History of drawing actions for using Redo and Undo
-- [ ] Export routes
-- [ ] Import routes
+- [x] Export routes
+- [x] Import routes
 - [ ] Share routes
 
 *Due to the re-implementation of certain functions, several features are temporarily unavailable, and their status has been changed to "to-do".*
