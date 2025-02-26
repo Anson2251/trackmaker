@@ -21,7 +21,8 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 						<n-image width="100" :src="logo" preview-disabled />
 					</div>
 					<n-h1>Trackmaker</n-h1>
-					<p>Enabling route planning and navigation for sports activities with map marking feature.</p>
+					<p>Enabling route planning and navigation for outdoor activities with map marking feature. 
+						Create tracks by tracing real-time motion. The created tracks can be shared with your friends and uploaded to DNE social platform. </p>
 				</div>
 			</template>
 			<template #footer>
