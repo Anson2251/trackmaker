@@ -140,17 +140,20 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 	left: 0;
 	right: 0;
 	bottom: 0;
-
+	width: 100%;
+	height: 100%;
 	padding: 0;
 	margin: 0;
+	box-sizing: border-box;
 }
 
 @media screen and (max-width: 800px) {
 	.container {
 		display: grid;
-		grid-template-columns: auto;
+		grid-template-columns: 1fr;
 		grid-template-rows: auto auto auto;
 		gap: 16px;
+		width: 100%;
 	}
 
 	.project-card-container {
@@ -175,6 +178,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
 		grid-template-columns: 2fr 3fr;
 		grid-template-rows: auto minmax(0, 1fr);
 		gap: 16px;
+		width: 100%;
 	}
 
 	.project-card-container {
