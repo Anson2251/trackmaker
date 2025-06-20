@@ -145,12 +145,6 @@ export class CartoSketchRouteItem {
         };
     }
 
-    exportAsBingMapsPrimitive(): Microsoft.Maps.Polyline {
-        return new Microsoft.Maps.Polyline(this.points.map((point) => {
-            return new Microsoft.Maps.Location(point.latitude, point.longitude);
-        }), this.properties);
-    }
-
     exportToStorage(): GeographicRouteItemType {
         return {
             name: this.name,

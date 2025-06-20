@@ -46,10 +46,11 @@ const menuOptions: MenuOption[] = [
 
 <style scoped>
 .main-layout {
-	margin-left: 16px;
-	margin-right: 16px;
-	margin-bottom: 8px;
-	margin-top: 1em;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-bottom: 16px;
+	padding-top: 1em;
+	box-sizing: border-box;
 
 	position: relative;
 

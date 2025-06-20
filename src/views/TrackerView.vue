@@ -50,6 +50,7 @@ const center = ref<[number, number]>([0, 0]);
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
+console.log(styleUrl)
 
 const location = ref<Coordinate>({ latitude: 0, longitude: 0 });
 const map = ref<Map | null>(null);
