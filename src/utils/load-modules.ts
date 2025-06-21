@@ -9,13 +9,13 @@ export const messageFormat = {
     "unloaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has not been loaded yet`,
     "loading": (...args: string[]) => `[loadModules] Module "${args[0]}" is loading`,
     "loaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded`,
-    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Track back: \n${args[1]}`,
+    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Track back: \n${JSON.stringify(args[1], null, 2)}`,
     "errorDetermined": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, asserted by another instance, skip`,
     "alreadyLoading": (...args: string[]) => `[loadModules] Module "${args[0]}" is already loading by another instance, skip`,
     "alreadyLoaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded by another instance, skip`,
-    "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${args[1]}`,
+    "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${JSON.stringify(args[1], null, 2)}`,
     "dependenciesReady": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies are ready`,
-    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${args[1]}`
+    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${JSON.stringify(args[1], null, 2)}`
 };
 
 /**

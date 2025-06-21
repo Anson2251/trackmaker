@@ -37,13 +37,13 @@ export interface GeolocationInfoType {
 export const ipApiURL = "https://ipapi.co/json/";
 
 export class IPGeolocationBackend implements GeolocationBackend {
-    async isCurrentlyAvailable(): Promise<boolean> {
+    async getPermissionStatus() {
         try {
             await fetch(ipApiURL);
-            return Promise.resolve(true);
+            return "granted"
         }
         catch {
-            return Promise.resolve(false);
+            return "denied"
         }
     }
 

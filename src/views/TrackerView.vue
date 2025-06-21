@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import { ref, onMounted, computed, inject, type Component } from "vue";
+import { ref, onMounted, computed, inject, type Component, watch } from "vue";
 import {
   MglMap,
   MglNavigationControl,
@@ -11,7 +11,7 @@ import {
   MglGeoJsonSource,
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
-import { NCard, useMessage } from "naive-ui";
+import { NCard, NText, useMessage } from "naive-ui";
 import {
   TerraDraw,
   TerraDrawRectangleMode,
@@ -53,10 +53,9 @@ import {
 } from "@/utils/utilities";
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
-import { useGeolocationStore } from "@/stores/geolocation";
+import { UpdateService } from "@/libs/geolocation/update-service";
 
-const locator = inject("geolocation") as ReturnType<typeof useGeolocationStore>;
-const center = ref<[number, number]>([0, 0]);
+const locator = inject("geolocation") as UpdateService;
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
@@ -179,22 +178,27 @@ function initMap(event: any) {
   draw.value.start();
 }
 
-function changeRecordState() {
+let watchingHandler = -1;
+async function changeRecordState() {
   pathRecording.value = !pathRecording.value;
 
   if (pathRecording.value) {
-    intervalId = window.setInterval(async () => {
-      const newPoint: GeographicPointType = await locator.getCurrentPosition();
-    //   newPoint.latitude += Math.random() * 1; // Simulate slight movement for demonstration
-    //   newPoint.longitude += Math.random() * 1; // Simulate slight
+    path.value.push(locator.presentLocation);
+    watchingHandler = locator.addListener((newPoint) => {
       path.value.push(newPoint);
-    }, 1000);
+    });
   } else {
-    window.clearInterval(intervalId);
-    pathRecording.value = false;
-    storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
+    if (watchingHandler !== -1) {
+      locator.removeListener(watchingHandler);
+      pathRecording.value = false;
+      watchingHandler = -1;
+    }
   }
 }
+
+watch(path, () => {
+  storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
+});
 
 async function savePath() {
   if (__TAURI_ENVIRONMENT__) {
@@ -247,16 +251,17 @@ function loadTrackFromFile() {
       path.value = JSON.parse(contents[0]).features[0].geometry.coordinates.map(
         (coord: number[]) => ({ latitude: coord[1], longitude: coord[0] })
       );
-      storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
     })
     .catch((error) => {
       message.error(error);
     });
 }
 
-onMounted(async () => {
-  location.value = await locator.getCurrentPosition();
+const locationReady = ref<boolean>(false);
 
+onMounted(async () => {
+  location.value = locator.presentLocation;
+  locationReady.value = true;
   storeInit().then(() =>
     storeGet<GeographicPointType[]>("stored-path").then((res) =>
       res.map((coords) => {
@@ -274,7 +279,7 @@ onMounted(async () => {
 
 <!-- TODO: add recover tailwindcss style-->
 <template>
-  <div style="width: 100%; height: 100%;">
+  <div style="width: 100%; height: 100%">
     <n-card class="map-layout" content-style="padding: 0;">
       <mgl-map
         :map-style="styleUrl"
@@ -282,6 +287,7 @@ onMounted(async () => {
         :zoom="zoom"
         height="100%"
         @map:load="initMap"
+        v-if="locationReady"
       >
         <mgl-navigation-control position="top-left" />
         <mgl-geolocate-control
@@ -390,6 +396,9 @@ onMounted(async () => {
           />
         </mgl-geo-json-source>
       </mgl-map>
+      <div v-else>
+        <n-text> We are finding your location... </n-text>
+      </div>
     </n-card>
 
     <text-file-uploader-dialog

@@ -1,24 +1,11 @@
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
-    async isCurrentlyAvailable(): Promise<boolean> {
-        try {
-            const result = await navigator.permissions.query({ name: 'geolocation' });
-            if (result.state === 'granted') {
-                try {
-                    this.getCurrentPosition();
-                    return Promise.resolve(true);
-                }
-                catch {
-                    console.log('gps unavailable')
-                    return Promise.resolve(false);
-                }
-            }
-            else return Promise.resolve(false);
-        }
-        catch {
-            return Promise.resolve(false);
-        }
+    async getPermissionStatus() {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        const status = result.state;
+        console.log("GPS permission status: ", status)
+        return status
     }
 
     getCurrentPosition() {

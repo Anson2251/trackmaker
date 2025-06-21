@@ -44,16 +44,29 @@ export class UpdateService {
     initialised = false;
     built = false
     backend: GeolocationBackend | undefined;
-    
-    async build() {
+
+    async build(promptCallback: (() => Promise<void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
-        this.backend = await gps.isCurrentlyAvailable() ? gps : new IPGeolocationBackend();
-        if (this.backend instanceof BrowserGeolocationBackend) {
-            console.log("Using GPS backend");
-        } else {
-            console.log("Using IP Geolocation backend");
+        let granted = await gps.getPermissionStatus();
+        if (granted === 'prompt') {
+            await promptCallback();
+            granted = await gps.getPermissionStatus();
+            console.log("Permission changed to", granted)
         }
-        if (__TAURI_ENVIRONMENT__) injectTauriGeolocationProvider();
+
+        let gpsAvailable = await (new Promise<boolean>((resolve) => navigator.geolocation.getCurrentPosition(() => resolve(true), () => resolve(false), { timeout: 5000 })));
+
+        if (granted === 'granted' && gpsAvailable) {
+            this.backend = gps;
+            if (__TAURI_ENVIRONMENT__) injectTauriGeolocationProvider();
+            console.log("Using GPS Geolocation backend");
+        }
+        else {
+            if (granted === 'granted') console.warn("GPS not available, or getting location timed out. Falling back to using IP Geolocation backend");
+            console.log("Using IP Geolocation backend");
+            this.backend = new IPGeolocationBackend();
+        }
+
         this.built = true;
     }
 
@@ -69,11 +82,13 @@ export class UpdateService {
     isInitialised = () => this.initialised;
 
     /** Start the updater service */
-    async start(){
+    async start() {
         let handler = -1;
         if (!this.backend) throw new Error("Backend not initialised");
 
-        if(!this.serviceRunning){
+        this.presentLocation = await this.backend.getCurrentPosition();
+
+        if (!this.serviceRunning) {
             this.serviceRunning = true;
             handler = await this.backend.watchPosition((location) => {
                 this.initialised = true;
@@ -81,12 +96,14 @@ export class UpdateService {
                 triggerHandler("change", this.presentLocation);
             });
         }
+        
+        triggerHandler("start", this.presentLocation);
 
         return handler;
     }
 
     /** Stop the updater service */
-    stop(handler: number){
+    stop(handler: number) {
         if (!this.backend) throw new Error("Backend not initialised")
         this.serviceRunning = false;
         this.backend.clearWatch(handler);
@@ -96,7 +113,7 @@ export class UpdateService {
     addListener = (callback: (location: GeographicPointType) => void) => addLocationHandler("change", callback);
 
     addHandler = (type: HandlerItemType['type'], callback: HandlerItemType['callback'], once: boolean) => addLocationHandler(type, callback, once);
-    
+
     /** Remove a handler from the service 
      * @param {number} id - The ID of the handler to remove
     */

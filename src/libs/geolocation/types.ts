@@ -31,7 +31,7 @@ export enum LocationResponseErrorEnum {
 }
 
 export interface GeolocationBackend {
-    isCurrentlyAvailable(): Promise<boolean>
+    getPermissionStatus(): Promise<"granted" | "denied" | "prompt" | "unknown">; 
     getCurrentPosition(): Promise<GeographicPointType> 
     watchPosition(callback: (location: GeographicPointType) => void): Promise<number>
     clearWatch(channelId: number): void

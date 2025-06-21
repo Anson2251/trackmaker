@@ -2,16 +2,25 @@ import type { moduleItem } from "@/utils/load-modules";
 
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
+import { UpdateService } from './libs/geolocation/update-service';
 
 export const modules: moduleItem[] = [
 	{
 		name: "trackmaker",
 		moduleInit: () => new Promise(resolve => resolve()),
-		dependencies: ["tauri-geolocation-provider-injection"]
+		dependencies: ["geolocation"]
 	},
 	{
-		name: "tauri-geolocation-provider-injection",
-		moduleInit: async (_) => {},
+		name: "geolocation",
+		moduleInit: async () => {
+			const updateService = new UpdateService();
+			await updateService.build(() => new Promise<void>((resolve) => {
+				if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), () => resolve());
+				else resolve();
+			}));
+			await updateService.start();
+			(window as any).UpdateService = updateService; // expose for debugging purposes
+		},
 		dependencies: []
 	}
 ];
