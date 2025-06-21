@@ -39,7 +39,10 @@ import {
   Upload,
 } from "@vicons/tabler";
 import { Icon } from "@vicons/utils";
-import { type GeographicPointType, type GeolocationBackend } from "@/libs/geolocation/types";
+import {
+  type GeographicPointType,
+  type GeolocationBackend,
+} from "@/libs/geolocation/types";
 import { storeGet, storeSet, storeInit } from "@/libs/store";
 import {
   tauriFileSaveDialog,
@@ -52,7 +55,7 @@ import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { useGeolocationStore } from "@/stores/geolocation";
 
-const locator = inject('geolocation') as ReturnType<typeof useGeolocationStore>;
+const locator = inject("geolocation") as ReturnType<typeof useGeolocationStore>;
 const center = ref<[number, number]>([0, 0]);
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
@@ -181,10 +184,10 @@ function changeRecordState() {
 
   if (pathRecording.value) {
     intervalId = window.setInterval(async () => {
-      const newPoint: GeographicPointType = await locator.getCurrentPosition()
+      const newPoint: GeographicPointType = await locator.getCurrentPosition();
       newPoint.latitude += Math.random() * 1; // Simulate slight movement for demonstration
       newPoint.longitude += Math.random() * 1; // Simulate slight
-      path.value.push(newPoint)
+      path.value.push(newPoint);
     }, 1000);
   } else {
     window.clearInterval(intervalId);
@@ -252,7 +255,7 @@ function loadTrackFromFile() {
 }
 
 onMounted(async () => {
-  location.value = await locator.getCurrentPosition()
+  location.value = await locator.getCurrentPosition();
 
   storeInit().then(() =>
     storeGet<GeographicPointType[]>("stored-path").then((res) =>
@@ -271,125 +274,130 @@ onMounted(async () => {
 
 <!-- TODO: add recover tailwindcss style-->
 <template>
-  <n-card class="map-layout" content-style="padding: 0;">
-    <mgl-map
-      :map-style="styleUrl"
-      :center="[location.longitude, location.latitude]"
-      :zoom="zoom"
-      height="100%"
-      @map:load="initMap"
-    >
-      <mgl-navigation-control position="top-left" />
-      <mgl-geolocate-control position="top-left" :track-user-location="true" />
-      <mgl-fullscreen-control position="top-left" />
-      <mgl-scale-control position="bottom-left" />
-      <mgl-custom-control position="top-right">
-        <button
-          v-for="item in drawerModes"
-          :key="item.name"
-          :class="[
-            '!flex justify-center items-center',
-            item.mode.mode === activeDrawMethod
-              ? '!bg-blue-200 rounded-sm transition-colors'
-              : '',
-          ]"
-          :title="item.name"
-          @click="
-            () => {
-              console.log('activeDrawMethod', activeDrawMethod);
-              if (activeDrawMethod === item.mode.mode) {
-                draw?.setMode('select');
-                activeDrawMethod = 'select';
-              } else {
-                activeDrawMethod = item.mode.mode;
-                draw?.start();
-                draw?.setMode(item.mode.mode);
-              }
-            }
-          "
-        >
-          <icon :size="20">
-            <component
-              :is="item.icon"
-              class="stroke-stone-800 text-stone-800"
-            />
-          </icon>
-        </button>
-      </mgl-custom-control>
-      <mgl-custom-control position="top-right">
-        <button
-          :class="[
-            '!flex justify-center items-center transition-all hover:rounded-sm',
-            pathRecording
-              ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
-              : 'stroke-sky-800 fill-sky-700 text-sky-800',
-          ]"
-          :title="pathRecording ? 'Recording…' : 'Track Recorder'"
-          @click="changeRecordState"
-        >
-          <icon :size="20">
-            <component
-              :is="pathRecording ? Square : PlayerRecord"
-              :size="pathRecording ? 16 : 20"
-              class="stroke-inherit text-inherit"
-            />
-          </icon>
-        </button>
-        <button
-          v-if="path.length > 0 && !pathRecording"
-          class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
-          @click="path = []"
-        >
-          <icon :size="20">
-            <Backspace
-              class="stroke-inherit text-inherit"
-              style="transform: translateX(-1.3px)"
-              size="20"
-            />
-          </icon>
-        </button>
-        <button
-          v-if="path.length > 0 && !pathRecording"
-          class="!flex justify-center items-center"
-          @click="savePath"
-        >
-          <icon :size="20">
-            <DeviceFloppy class="stroke-stone-800 text-stone-800" size="20" />
-          </icon>
-        </button>
-        <button
-          v-if="path.length === 0 && !pathRecording"
-          class="!flex justify-center items-center"
-          @click="loadTrackFromFile"
-        >
-          <icon :size="20">
-            <Upload class="stroke-stone-800 text-stone-800" size="20" />
-          </icon>
-        </button>
-      </mgl-custom-control>
-      <mgl-geo-json-source source-id="geojson" :data="(geojsonSource as any)">
-        <mgl-line-layer
-          layer-id="geojson"
-          :layout="{
-            'line-join': 'round',
-            'line-cap': 'round',
-          }"
-          :paint="{
-            'line-width': 5,
-            'line-dasharray': [5, 2],
-            'line-color': '#008800',
-            'line-opacity': 0.8,
-          }"
+  <div style="width: 100%; height: 100%;">
+    <n-card class="map-layout" content-style="padding: 0;">
+      <mgl-map
+        :map-style="styleUrl"
+        :center="[location.longitude, location.latitude]"
+        :zoom="zoom"
+        height="100%"
+        @map:load="initMap"
+      >
+        <mgl-navigation-control position="top-left" />
+        <mgl-geolocate-control
+          position="top-left"
+          :track-user-location="true"
         />
-      </mgl-geo-json-source>
-    </mgl-map>
-  </n-card>
+        <mgl-fullscreen-control position="top-left" />
+        <mgl-scale-control position="bottom-left" />
+        <mgl-custom-control position="top-right">
+          <button
+            v-for="item in drawerModes"
+            :key="item.name"
+            :class="[
+              '!flex justify-center items-center',
+              item.mode.mode === activeDrawMethod
+                ? '!bg-blue-200 rounded-sm transition-colors'
+                : '',
+            ]"
+            :title="item.name"
+            @click="
+              () => {
+                console.log('activeDrawMethod', activeDrawMethod);
+                if (activeDrawMethod === item.mode.mode) {
+                  draw?.setMode('select');
+                  activeDrawMethod = 'select';
+                } else {
+                  activeDrawMethod = item.mode.mode;
+                  draw?.start();
+                  draw?.setMode(item.mode.mode);
+                }
+              }
+            "
+          >
+            <icon :size="20">
+              <component
+                :is="item.icon"
+                class="stroke-stone-800 text-stone-800"
+              />
+            </icon>
+          </button>
+        </mgl-custom-control>
+        <mgl-custom-control position="top-right">
+          <button
+            :class="[
+              '!flex justify-center items-center transition-all hover:rounded-sm',
+              pathRecording
+                ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
+                : 'stroke-sky-800 fill-sky-700 text-sky-800',
+            ]"
+            :title="pathRecording ? 'Recording…' : 'Track Recorder'"
+            @click="changeRecordState"
+          >
+            <icon :size="20">
+              <component
+                :is="pathRecording ? Square : PlayerRecord"
+                :size="pathRecording ? 16 : 20"
+                class="stroke-inherit text-inherit"
+              />
+            </icon>
+          </button>
+          <button
+            v-if="path.length > 0 && !pathRecording"
+            class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
+            @click="path = []"
+          >
+            <icon :size="20">
+              <Backspace
+                class="stroke-inherit text-inherit"
+                style="transform: translateX(-1.3px)"
+                size="20"
+              />
+            </icon>
+          </button>
+          <button
+            v-if="path.length > 0 && !pathRecording"
+            class="!flex justify-center items-center"
+            @click="savePath"
+          >
+            <icon :size="20">
+              <DeviceFloppy class="stroke-stone-800 text-stone-800" size="20" />
+            </icon>
+          </button>
+          <button
+            v-if="path.length === 0 && !pathRecording"
+            class="!flex justify-center items-center"
+            @click="loadTrackFromFile"
+          >
+            <icon :size="20">
+              <Upload class="stroke-stone-800 text-stone-800" size="20" />
+            </icon>
+          </button>
+        </mgl-custom-control>
+        <mgl-geo-json-source source-id="geojson" :data="(geojsonSource as any)">
+          <mgl-line-layer
+            layer-id="geojson"
+            :layout="{
+              'line-join': 'round',
+              'line-cap': 'round',
+            }"
+            :paint="{
+              'line-width': 5,
+              'line-dasharray': [5, 2],
+              'line-color': '#008800',
+              'line-opacity': 0.8,
+            }"
+          />
+        </mgl-geo-json-source>
+      </mgl-map>
+    </n-card>
 
-  <text-file-uploader-dialog
-    v-model:show="uploadModelOpened"
-    :types="['application/json', 'text/plain']"
-    @confirm="loadTextFileDialogCallback"
-  />
+    <text-file-uploader-dialog
+      v-model:show="uploadModelOpened"
+      :types="['application/json', 'text/plain']"
+      @confirm="loadTextFileDialogCallback"
+    />
+  </div>
 </template>
 
 <style lang="css">

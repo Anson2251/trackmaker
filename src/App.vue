@@ -54,11 +54,9 @@ onMounted(() => {
 			<n-menu :options="menuOptions" mode="horizontal" class="nav-bar" default-value="tracker" />
 			<div class="main-layout">
 				<router-view v-slot="{ Component, route }">
-                <transition name="fade">
+                <transition name="slide-fade" mode="out-in">
                   <keep-alive>
-					<div style="width: 100%; height: 100%;">
-                    <component :is="Component" :key="route.path"/>
-					</div>
+					<component :is="Component" :key="route.path"/>
                   </keep-alive>
                 </transition>
               </router-view>
@@ -69,13 +67,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease-in-out;
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.1s ease-out;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.slide-fade-enter-from {
+  /* transform: translateX(20px); */
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  /* transform: translateX(-20px); */
   opacity: 0;
 }
 
