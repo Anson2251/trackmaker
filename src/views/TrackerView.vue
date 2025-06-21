@@ -185,8 +185,8 @@ function changeRecordState() {
   if (pathRecording.value) {
     intervalId = window.setInterval(async () => {
       const newPoint: GeographicPointType = await locator.getCurrentPosition();
-      newPoint.latitude += Math.random() * 1; // Simulate slight movement for demonstration
-      newPoint.longitude += Math.random() * 1; // Simulate slight
+    //   newPoint.latitude += Math.random() * 1; // Simulate slight movement for demonstration
+    //   newPoint.longitude += Math.random() * 1; // Simulate slight
       path.value.push(newPoint);
     }, 1000);
   } else {
