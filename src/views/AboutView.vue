@@ -105,7 +105,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
         
         <n-p>Without the following (open source) projects, Trackmaker could not be built:</n-p>
         
-        <n-collapse accordion class="credits-list">
+        <n-collapse accordion class="credits-list" :trigger-areas="['arrow', 'main']">
           <n-collapse-item 
             v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))"
             :key="credit.id" 
