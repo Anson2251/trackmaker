@@ -15,7 +15,7 @@ export const modules: moduleItem[] = [
 		moduleInit: async () => {
 			const updateService = new UpdateService();
 			await updateService.build(() => new Promise<void>((resolve) => {
-				if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), () => resolve());
+				if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), () => resolve(), { enableHighAccuracy: false });
 				else resolve();
 			}));
 			await updateService.start();
