@@ -2,6 +2,10 @@ import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
     async getPermissionStatus() {
+        if (!navigator.permissions) {
+            console.error("navigator.permissions is not supported in this browser");
+            return "granted" // I don't know why some chrome based browsers on Android do ont have navigator.permissions
+        }
         const result = await navigator.permissions.query({ name: 'geolocation' });
         const status = result.state;
         console.log("GPS permission status: ", status)
