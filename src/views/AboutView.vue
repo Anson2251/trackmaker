@@ -130,7 +130,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
                 <n-p><strong>License:</strong></n-p>
                 <n-element tag="pre">{{ credit.license.trim().replace(/\n([\s]*)\n/,
 									"\n\n").split("\n\n").map((l) => l.split("\n").map((s) =>
-										s.trim()).join("")).join("\n\n") }}</n-element>
+										s.trim()).join(" ")).join("\n\n") }}</n-element>
               </div>
             </div>
             
