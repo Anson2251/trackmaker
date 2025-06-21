@@ -136,12 +136,12 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
             
             <template #header-extra>
               <div class="credit-links">
-                <a v-if="credit.homepage" >
+                <a v-if="credit.homepage" :href="credit.homepage">
                   <n-icon size=20>
                     <Link />
                   </n-icon>
                 </a>
-                <a :href="credit.url">
+                <a v-if="credit.url" :href="credit.url">
                   <n-icon size=24>
                     <logo-github v-if="credit.url.includes('github')" />
                     <DocumentTextOutline v-else />
