@@ -9,13 +9,13 @@ export const messageFormat = {
     "unloaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has not been loaded yet`,
     "loading": (...args: string[]) => `[loadModules] Module "${args[0]}" is loading`,
     "loaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded`,
-    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Track back: \n${JSON.stringify(args[1], null, 2)}`,
+    "error": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, Track back: \n${args[1]}`,
     "errorDetermined": (...args: string[]) => `[loadModules] Module "${args[0]}" failed to load, asserted by another instance, skip`,
     "alreadyLoading": (...args: string[]) => `[loadModules] Module "${args[0]}" is already loading by another instance, skip`,
     "alreadyLoaded": (...args: string[]) => `[loadModules] Module "${args[0]}" has been loaded by another instance, skip`,
-    "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${JSON.stringify(args[1], null, 2)}`,
+    "missingDependencies": (...args: string[]) => `[loadModules] Module "${args[0]}" is missing the following dependencies: ${args[1]}`,
     "dependenciesReady": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies are ready`,
-    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${JSON.stringify(args[1], null, 2)}`
+    "dependenciesFailure": (...args: string[]) => `[loadModules] Module "${args[0]}" dependencies failed to load. \n\n- Track back: \n${args[1]}`
 };
 
 /**
@@ -87,6 +87,7 @@ export async function loadModules(library: moduleItem[], moduleName: string, tim
         } catch (error) {
             // If loading the module fails, set the status to "error" and reject with an error message
             library[moduleIndex].status = "error";
+            console.log(messageFormat.error(module.name, error as string))
             return Promise.reject(messageFormat.error(module.name, error as string));
         }
     } catch (error) {
