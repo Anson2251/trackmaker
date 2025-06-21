@@ -1,4 +1,4 @@
-import { type GeographicPointType, LocationResponseErrorEnum } from "../definitions";
+import { type GeographicPointType, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
 import { cloneDeep, isEqual } from "lodash-es";
 
 type HandlerType = {
@@ -28,8 +28,16 @@ let lastLocation: GeographicPointType = {
     longitude: 0
 };
 
-export namespace IPGeolocationBackend {
-    export async function isCurrentlyAvailable(): Promise<boolean> {
+export interface GeolocationInfoType {
+        city: string;
+        latitude: number;
+        longitude: number;
+    }
+
+export const ipApiURL = "https://ipapi.co/json/";
+
+export class IPGeolocationBackend implements GeolocationBackend {
+    async isCurrentlyAvailable(): Promise<boolean> {
         try {
             await fetch(ipApiURL);
             return Promise.resolve(true);
@@ -38,25 +46,15 @@ export namespace IPGeolocationBackend {
             return Promise.resolve(false);
         }
     }
-    
-    export interface GeolocationInfoType {
-        city: string;
-        latitude: number;
-        longitude: number;
+
+    async fetchRaw(): Promise<Record<string, string | number>> {
+        const response = await fetch(ipApiURL);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
     }
 
-    export const ipApiURL = "https://freeipapi.com/api/json";
-
-    export function fetchRaw(): Promise<Record<string, string | number>> {
-        return new Promise((resolve, reject) => {
-            fetch(ipApiURL)
-                .then(async (response) => resolve(await response.json()))
-                .catch((err) => reject(err));
-        });
-    }
-
-    export async function getInfo(): Promise<GeolocationInfoType> {
-        const response = await fetchRaw();
+    async getInfo(): Promise<GeolocationInfoType> {
+        const response = await this.fetchRaw();
         return {
             city: response.cityName as string,
             latitude: response.latitude as number,
@@ -64,33 +62,31 @@ export namespace IPGeolocationBackend {
         };
     }
 
-    export async function getCurrentPosition(): Promise<GeographicPointType> {
-        const info = await getInfo();
+    async getCurrentPosition(): Promise<GeographicPointType> {
+        const info = await this.getInfo();
         return {
             latitude: info.latitude,
             longitude: info.longitude
         };
     }
 
-    export function watchPosition(callback: (location: GeographicPointType) => void) {
+    watchPosition(callback: (location: GeographicPointType) => void) {
         const id = addHandler(callback);
 
         return new Promise<number>((resolve) => {
             if (watchHandler === -1) {
                 const update = () => {
-                    getCurrentPosition()
+                    this.getCurrentPosition()
                         .then((location) => {
-                            if(isEqual(location, lastLocation)) return;
-                            handlers.forEach((handler) => {
-                                handler.callback(location);
-                            });
+                            if (isEqual(location, lastLocation)) return;
+                            handlers.forEach((handler) => handler.callback(location));
                             lastLocation = cloneDeep(location);
                         })
                         .catch((err) => {
                             throw new Error(`Error while watching the geolocation [IP]. Code: ${LocationResponseErrorEnum.UNKNOWN}, Msg: ${err}`);
                         });
                 };
-                watchHandler = setInterval(() => update(), 20000);
+                watchHandler = setInterval(() => update(), 20000) as unknown as number;
                 update();
             }
 
@@ -98,7 +94,7 @@ export namespace IPGeolocationBackend {
         });
     }
 
-    export function clearWatch(channelId: number) {
+    clearWatch(channelId: number) {
         removeHandler(channelId);
         if (handlers.length === 0) {
             clearInterval(watchHandler);

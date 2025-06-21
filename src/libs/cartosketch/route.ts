@@ -1,6 +1,6 @@
 import { v4 as uuidV4 } from "uuid";
-import type { GeographicPointType } from "../../utils/geolocation";
 import { cloneDeep } from "lodash-es";
+import { type GeographicPointType } from '../../libs/geolocation/types';
 
 import type {
     GeographicRouteGeoJSON,

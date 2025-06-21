@@ -1,16 +1,20 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from 'vue-router';
-import { h, ref, type Component } from "vue";
+import { h, ref, type Component, provide, onMounted } from "vue";
 import { Map, InfoCircle } from '@vicons/tabler';
 
 import { NMenu, type MenuOption } from "naive-ui";
 import { useOsTheme, darkTheme, NConfigProvider, NGlobalStyle, NMessageProvider, NIcon } from 'naive-ui';
+import { useGeolocationStore } from './stores/geolocation';
 
 let theme = ref((useOsTheme().value === "dark") ? darkTheme : null);
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
 }
+
+const locator = useGeolocationStore();
+provide('geolocation', locator);
 
 const menuOptions: MenuOption[] = [
 	{
@@ -38,6 +42,10 @@ const menuOptions: MenuOption[] = [
 		icon: renderIcon(InfoCircle),
 	}
 ];
+
+onMounted(() => {
+	locator.service.build();
+})
 </script>
 
 <template>
@@ -48,7 +56,9 @@ const menuOptions: MenuOption[] = [
 				<router-view v-slot="{ Component, route }">
                 <transition name="fade">
                   <keep-alive>
+					<div style="width: 100%; height: 100%;">
                     <component :is="Component" :key="route.path"/>
+					</div>
                   </keep-alive>
                 </transition>
               </router-view>

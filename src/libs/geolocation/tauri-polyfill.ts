@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type {GeolocationProviderLike, GeolocationProviderLikeConstructor, Position} from "./types"
+import { type Position } from './types'
 
 /*
 This file contains the custom geolocation functionality for the Tauri application.
@@ -21,6 +21,25 @@ export async function locateTauri(handlerName: string): Promise<Position> {
 		heading: null,
 		speed: null
 	}
+}
+
+export function injectTauriGeolocationProvider(): void {
+	if(!__TAURI_ENVIRONMENT__) {
+		console.warn("This function can only be called in a Tauri environment.");
+		return;
+	}
+	if((navigator.geolocation as any)["injected"]) {
+		console.warn("The custom geolocation provider is already injected and cannot be injected again.")
+		return;
+	}
+	(navigator.geolocation as any)["injected"] = true;
+
+	const locatorInstance = new MyGeolocation("get_geolocation");
+
+	navigator.geolocation.watchPosition = locatorInstance.watchPosition.bind(locatorInstance);
+	navigator.geolocation.clearWatch = locatorInstance.clearWatch.bind(locatorInstance);
+	navigator.geolocation.getCurrentPosition = locatorInstance.getCurrentPosition.bind(locatorInstance);
+	console.info("Tauri geolocation provider injected successfully.")
 }
 
 export class MyGeolocation implements Geolocation {

@@ -1,10 +1,19 @@
-import type { GeographicPointType, LocationResponseErrorType } from "../definitions";
+import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
 
-export namespace BrowserGeolocationBackend {
-    export async function isCurrentlyAvailable(): Promise<boolean> {
+export class BrowserGeolocationBackend implements GeolocationBackend {
+    async isCurrentlyAvailable(): Promise<boolean> {
         try {
             const result = await navigator.permissions.query({ name: 'geolocation' });
-            if (result.state === 'granted') return Promise.resolve(true);
+            if (result.state === 'granted') {
+                try {
+                    this.getCurrentPosition();
+                    return Promise.resolve(true);
+                }
+                catch {
+                    console.log('gps unavailable')
+                    return Promise.resolve(false);
+                }
+            }
             else return Promise.resolve(false);
         }
         catch {
@@ -12,7 +21,7 @@ export namespace BrowserGeolocationBackend {
         }
     }
 
-    export function getCurrentPosition() {
+    getCurrentPosition() {
         return new Promise<GeographicPointType>((resolve, reject: (reason: LocationResponseErrorType) => void) => {
             navigator.geolocation.getCurrentPosition(
                 (position) => resolve({
@@ -27,7 +36,7 @@ export namespace BrowserGeolocationBackend {
         });
     }
 
-    export function watchPosition(callback: (location: GeographicPointType) => void) {
+    watchPosition(callback: (location: GeographicPointType) => void) {
         return new Promise<number>((resolve, reject) => {
             if (!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
             resolve(navigator.geolocation.watchPosition(
@@ -42,7 +51,7 @@ export namespace BrowserGeolocationBackend {
         });
     }
 
-    export async function clearWatch(channelId: number) {
+    clearWatch(channelId: number) {
         navigator.geolocation.clearWatch(channelId);
     }
 }

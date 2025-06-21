@@ -1,3 +1,43 @@
+export interface GeographicPointType {
+    latitude: number;
+    longitude: number;
+}
+
+export interface GeoJSONPointType {
+    type: "Point",
+    /** [Longitude, Latitude] */
+    coordinates: [number, number]
+}
+
+export type LocationResponseType = {
+    status: boolean;
+    location: GeographicPointType;
+    error: {
+        code: number;
+        message: string;
+    }
+};
+
+export type LocationResponseErrorType = {
+    code: LocationResponseErrorEnum;
+    message: string;
+}
+
+export enum LocationResponseErrorEnum {
+    PERMISSION_DENIED = 1,
+    POSITION_UNAVAILABLE = 2,
+    TIMEOUT = 3,
+    UNKNOWN = 4
+}
+
+export interface GeolocationBackend {
+    isCurrentlyAvailable(): Promise<boolean>
+    getCurrentPosition(): Promise<GeographicPointType> 
+    watchPosition(callback: (location: GeographicPointType) => void): Promise<number>
+    clearWatch(channelId: number): void
+}
+
+
 export interface Position {
 	readonly latitude: number;
 	readonly longitude: number;
@@ -36,3 +76,4 @@ export interface GeolocationProviderLike {
 export interface GeolocationProviderLikeConstructor {
 	new (handlerName: string): GeolocationProviderLike;
 }
+

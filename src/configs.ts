@@ -11,14 +11,7 @@ export const modules: moduleItem[] = [
 	},
 	{
 		name: "tauri-geolocation-provider-injection",
-		moduleInit: async (_) => {
-			if (__TAURI_ENVIRONMENT__) {
-				import("@/libs/geolocation/index.ts").then(({ injectTauriGeolocationProvider }) => {
-					injectTauriGeolocationProvider();
-				});
-			}
-			return;
-		},
+		moduleInit: async (_) => {},
 		dependencies: []
 	}
 ];

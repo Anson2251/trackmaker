@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import { ref, onMounted, computed, type Component } from "vue";
-import { Result } from "neverthrow";
+import { ref, onMounted, computed, inject, type Component } from "vue";
 import {
   MglMap,
   MglNavigationControl,
@@ -40,7 +39,7 @@ import {
   Upload,
 } from "@vicons/tabler";
 import { Icon } from "@vicons/utils";
-import { locate, type Coordinate } from "@/libs/geolocation";
+import { type GeographicPointType, type GeolocationBackend } from "@/libs/geolocation/types";
 import { storeGet, storeSet, storeInit } from "@/libs/store";
 import {
   tauriFileSaveDialog,
@@ -51,19 +50,20 @@ import {
 } from "@/utils/utilities";
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
+import { useGeolocationStore } from "@/stores/geolocation";
 
+const locator = inject('geolocation') as ReturnType<typeof useGeolocationStore>;
 const center = ref<[number, number]>([0, 0]);
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
-console.log(styleUrl);
 
-const location = ref<Coordinate>({ latitude: 0, longitude: 0 });
+const location = ref<GeographicPointType>({ latitude: 0, longitude: 0 });
 const map = ref<Map | null>(null);
 const draw = ref<TerraDraw | null>(null);
 const activeDrawMethod = ref<string>("select");
 const pathRecording = ref(false);
-const path = ref<Coordinate[]>([]);
+const path = ref<GeographicPointType[]>([]);
 const uploadModelOpened = ref(false);
 
 const message = useMessage();
@@ -181,19 +181,10 @@ function changeRecordState() {
 
   if (pathRecording.value) {
     intervalId = window.setInterval(async () => {
-      const newPoint: Result<Coordinate, GeolocationPositionError> =
-        await locate().map((t) => ({
-          latitude: t.coords.latitude,
-          longitude: t.coords.longitude,
-        }));
-      newPoint.match(
-        (p) => path.value.push(p),
-        () => {
-          window.clearInterval(intervalId);
-          pathRecording.value = false;
-          message.error("Fail to record the path");
-        }
-      );
+      const newPoint: GeographicPointType = await locator.getCurrentPosition()
+      newPoint.latitude += Math.random() * 1; // Simulate slight movement for demonstration
+      newPoint.longitude += Math.random() * 1; // Simulate slight
+      path.value.push(newPoint)
     }, 1000);
   } else {
     window.clearInterval(intervalId);
@@ -260,14 +251,11 @@ function loadTrackFromFile() {
     });
 }
 
-onMounted(() => {
-  locate().map((position) => {
-    location.value.latitude = position.coords.latitude;
-    location.value.longitude = position.coords.longitude;
-  });
+onMounted(async () => {
+  location.value = await locator.getCurrentPosition()
 
   storeInit().then(() =>
-    storeGet<Coordinate[]>("stored-path").then((res) =>
+    storeGet<GeographicPointType[]>("stored-path").then((res) =>
       res.map((coords) => {
         if (coords && coords.length !== 0) {
           path.value = JSON.parse(JSON.stringify(coords));

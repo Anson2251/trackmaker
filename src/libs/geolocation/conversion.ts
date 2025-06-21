@@ -1,4 +1,4 @@
-import type { GeoJSONPointType, GeographicPointType } from "./definitions";
+import type { GeoJSONPointType, GeographicPointType } from "./types";
 import gcoord from "gcoord";
 import { cloneDeep } from "lodash-es";
 
