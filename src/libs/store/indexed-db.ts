@@ -1,4 +1,3 @@
-import { Result, ok, err } from 'neverthrow';
 import type { Store } from "./types";
 
 export class IndexedDBStore implements Store {
@@ -32,58 +31,55 @@ export class IndexedDBStore implements Store {
 		});
 	}
 
-	async set(key: string, value: any): Promise<Result<void, Error>> {
+	async set(key: string, value: any): Promise<void> {
 		if (!this.db) {
-			return err(new Error('Database not initialized'));
+			return Promise.reject('Database not initialized');
 		}
 
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			if (!this.db) {
-				resolve(err(new Error('Database has not been initialised')));
-				return;
+				return Promise.reject('Database has not been initialised');
 			}
 			const transaction = this.db.transaction(this.storeName, 'readwrite');
 			const store = transaction.objectStore(this.storeName);
 			const request = store.put(value, key);
 
-			request.onsuccess = () => resolve(ok(undefined));
-			request.onerror = () => resolve(err(new Error('Failed to set value')));
+			request.onsuccess = () => resolve();
+			request.onerror = () => reject('Failed to set value');
 		});
 	}
 
-	async get<T>(key: string): Promise<Result<T | null, Error>> {
+	async get<T>(key: string): Promise<T | null> {
 		if (!this.db) {
-			return err(new Error('Database not initialized'));
+			return Promise.reject('Database not initialized');
 		}
 
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			if (!this.db) {
-				resolve(err(new Error('Database has not been initialised')));
+				reject('Database has not been initialised');
 				return;
 			}
 			const transaction = this.db.transaction(this.storeName, 'readonly');
 			const store = transaction.objectStore(this.storeName);
 			const request = store.get(key);
 
-			request.onsuccess = () => resolve(ok(request.result as T | null));
-			request.onerror = () => resolve(err(new Error('Failed to get value')));
+			request.onsuccess = () => resolve(request.result as T | null);
+			request.onerror = () => reject('Failed to get value');
 		});
 	}
 
-	async save(): Promise<Result<void, Error>> {
+	async save(): Promise<void> {
 		// IndexedDB automatically saves changes, so this is a no-op.
-		return ok(undefined);
 	}
 
-	async exportToJson(): Promise<Result<string, Error>> {
+	async exportToJson(): Promise<string> {
 		if (!this.db) {
-			return err(new Error('Database not initialized'));
+			return Promise.reject('Database not initialized');
 		}
 
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			if (!this.db) {
-				resolve(err(new Error('Database has not been initialised')));
-				return;
+				return Promise.reject('Database has not been initialised');
 			}
 			const transaction = this.db.transaction(this.storeName, 'readonly');
 			const store = transaction.objectStore(this.storeName);
@@ -94,11 +90,11 @@ export class IndexedDBStore implements Store {
 					acc[index] = item; // Use index as key or use a unique key if available
 					return acc;
 				}, {} as Record<string, any>);
-				resolve(ok(JSON.stringify(data, null, 2)));
+				resolve(JSON.stringify(data, null, 2));
 			};
 
 			request.onerror = () => {
-				resolve(err(new Error('Failed to export data to JSON')));
+				reject('Failed to export data to JSON');
 			};
 		});
 	}

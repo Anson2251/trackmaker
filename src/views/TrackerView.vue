@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import { ref, onMounted, computed, inject, type Component, watch } from "vue";
+import {
+  ref,
+  onMounted,
+  computed,
+  inject,
+  type Component,
+  useTemplateRef,
+} from "vue";
 import {
   MglMap,
   MglNavigationControl,
@@ -11,7 +18,17 @@ import {
   MglGeoJsonSource,
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
-import { NCard, NText, NSpin, NAlert, useMessage } from "naive-ui";
+import {
+  NList,
+  NListItem,
+  NButton,
+  NCard,
+  NText,
+  NSpin,
+  NAlert,
+  useMessage,
+  useThemeVars,
+} from "naive-ui";
 import {
   TerraDraw,
   TerraDrawRectangleMode,
@@ -37,13 +54,15 @@ import {
   Backspace,
   DeviceFloppy,
   Upload,
+  Route,
 } from "@vicons/tabler";
 import { Icon } from "@vicons/utils";
 import {
   type GeographicPointType,
   type GeolocationBackend,
 } from "@/libs/geolocation/types";
-import { storeGet, storeSet, storeInit } from "@/libs/store";
+import { useRouteStore } from "@/store/route-store";
+import { storeInit } from "@/libs/store";
 import {
   tauriFileSaveDialog,
   tauriCreateTextFile,
@@ -55,6 +74,8 @@ import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { UpdateService } from "@/libs/geolocation/update-service";
 
+const message = useMessage();
+const theme = useThemeVars();
 const locator = inject("geolocation") as UpdateService;
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
@@ -65,10 +86,18 @@ const map = ref<Map | null>(null);
 const draw = ref<TerraDraw | null>(null);
 const activeDrawMethod = ref<string>("select");
 const pathRecording = ref(false);
-const path = ref<GeographicPointType[]>([]);
+const routeStore = useRouteStore();
+
+const path = computed(() => {
+  if (!routeStore.currentRouteId) return [];
+  const route = routeStore.routes.find(
+    (r) => r.id === routeStore.currentRouteId
+  );
+  return route?.points || [];
+});
 const uploadModelOpened = ref(false);
 
-const message = useMessage();
+const routeDrawer = useTemplateRef("route-drawer");
 
 const geojsonSource = computed(() => ({
   type: "FeatureCollection",
@@ -166,7 +195,7 @@ const drawerModes: DrawModes[] = [
   },
 ];
 
-let intervalId: number | NodeJS.Timeout | undefined = undefined;
+const routeDrawerWidth = computed(() => routeDrawer.value?.clientWidth);
 
 function initMap(event: any) {
   map.value = event.map;
@@ -180,29 +209,35 @@ function initMap(event: any) {
 
 let watchingHandler = -1;
 async function changeRecordState() {
-  pathRecording.value = !pathRecording.value;
+  try {
+    pathRecording.value = !pathRecording.value;
 
-  if (pathRecording.value) {
-    path.value.push(locator.presentLocation);
-    watchingHandler = locator.addListener((newPoint) => {
-      path.value.push(newPoint);
-    });
-  } else {
-    if (watchingHandler !== -1) {
-      locator.removeListener(watchingHandler);
-      pathRecording.value = false;
-      watchingHandler = -1;
+    if (pathRecording.value) {
+      if (!routeStore.currentRouteId) {
+        const newRoute = await routeStore.addRoute({
+          points: [locator.presentLocation],
+        });
+        routeStore.currentRouteId = newRoute.id;
+      } else {
+        await routeStore.addPointToRoute(
+          routeStore.currentRouteId,
+          locator.presentLocation
+        );
+      }
+      watchingHandler = locator.addListener((newPoint) => {
+        routeStore.addPointToRoute(routeStore.currentRouteId!, newPoint);
+      });
+    } else {
+      if (watchingHandler !== -1) {
+        locator.removeListener(watchingHandler);
+        pathRecording.value = false;
+        watchingHandler = -1;
+      }
     }
+  } catch (err) {
+    console.error(err);
   }
 }
-
-watch(
-  path,
-  () => {
-    storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
-  },
-  { deep: true }
-);
 
 async function savePath() {
   if (__TAURI_ENVIRONMENT__) {
@@ -252,14 +287,34 @@ function loadFromText() {
 function loadTrackFromFile() {
   loadFromText()
     .then((contents) => {
-      path.value = JSON.parse(contents[0]).features[0].geometry.coordinates.map(
-        (coord: number[]) => ({ latitude: coord[1], longitude: coord[0] })
-      );
+      const points = JSON.parse(
+        contents[0]
+      ).features[0].geometry.coordinates.map((coord: number[]) => ({
+        latitude: coord[1],
+        longitude: coord[0],
+      }));
+
+      routeStore.addRoute({ points });
     })
     .catch((error) => {
       message.error(error);
     });
 }
+
+const isRouteDrawerOpen = ref(false);
+const toggleRouteDrawer = () => {
+  console.log(isRouteDrawerOpen.value);
+  if (isRouteDrawerOpen.value) {
+    isRouteDrawerOpen.value = false;
+    map.value?.easeTo({ padding: { left: 0 }, duration: 1000 });
+    return;
+  }
+  isRouteDrawerOpen.value = true;
+  map.value?.easeTo({
+    padding: { left: routeDrawerWidth.value || 500 },
+    duration: 1000,
+  });
+};
 
 const initialLocateError = ref("");
 
@@ -271,24 +326,20 @@ onMounted(async () => {
     initialLocateError.value = (err as any).message ?? String(err);
   }
   locationReady.value = true;
-  storeInit().then(() =>
-    storeGet<GeographicPointType[]>("stored-path").then((res) =>
-      res.map((coords) => {
-        if (coords && coords.length !== 0) {
-          path.value = JSON.parse(JSON.stringify(coords));
-          console.info("Recovered the tracked path from store");
-        }
-      })
-    )
-  );
+  await storeInit();
+  await routeStore.init();
 
   draw.value?.start();
 });
+
+const drawerCssWidth = computed(
+  () => `${0 - (routeDrawerWidth.value ?? 500)}px`
+);
 </script>
 
 <!-- TODO: add recover tailwindcss style-->
 <template>
-  <div style="width: 100%; height: 100%">
+  <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
     <n-card class="map-layout" content-style="padding: 0;">
       <transition name="map-load">
         <div
@@ -342,6 +393,14 @@ onMounted(async () => {
                 </icon>
               </button>
             </mgl-custom-control>
+            <mgl-custom-control position="bottom-left">
+              <button
+                :class="'!flex justify-center items-center transition-all hover:rounded-sm stroke-sky-800 fill-sky-700 text-sky-800'"
+                @click="toggleRouteDrawer"
+              >
+                <icon :size="24"><route /></icon>
+              </button>
+            </mgl-custom-control>
             <mgl-custom-control position="top-right">
               <button
                 :class="[
@@ -364,7 +423,10 @@ onMounted(async () => {
               <button
                 v-if="path.length > 0 && !pathRecording"
                 class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
-                @click="path = []"
+                @click="
+                  routeStore.currentRouteId &&
+                    routeStore.deleteRoute(routeStore.currentRouteId)
+                "
               >
                 <icon :size="20">
                   <Backspace
@@ -446,6 +508,56 @@ onMounted(async () => {
       :types="['application/json', 'text/plain']"
       @confirm="loadTextFileDialogCallback"
     />
+
+    <transition name="slide-fade">
+      <div class="route-drawer" ref="route-drawer" v-if="isRouteDrawerOpen">
+        <div class="p-4" style="height: 100%;">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-content: center;
+              height: 4em;
+            "
+          >
+            <p class="text-lg font-bold mb-4">Routes</p>
+            <n-button
+              @click="
+                async () => {
+                  try {
+                    const route = await routeStore.addRoute({ points: [] });
+                    routeStore.currentRouteId = route.id;
+                  } catch (e) {
+                    console.log(e);
+                  }
+                }
+              "
+              class="mb-4 p-2 bg-blue-500 text-white rounded"
+            >
+              New Route
+            </n-button>
+          </div>
+          <div class="route-list">
+            <div
+              v-for="route in routeStore.routes"
+              :key="route.id"
+              @click="
+                () => {
+                  routeStore.currentRouteId = route.id;
+                }
+              "
+              :class="[
+                'route-list-item',
+                ...(route.id === routeStore.currentRouteId ? ['active'] : []),
+              ]"
+            >
+              <div>Route {{ route.id.slice(0, 6) }}</div>
+              <div>{{ route.points.length }} points</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -466,5 +578,67 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.route-drawer {
+  position: absolute;
+  padding-left: 48px;
+  padding-bottom: 32px;
+  box-sizing: border-box;
+
+  bottom: 0;
+  left: 1px;
+
+  top: 0;
+  width: 30%;
+  min-width: 20em;
+  max-width: 40em;
+
+  transition: right, left 1s linear;
+
+  background-color: v-bind("theme.modalColor");
+  box-shadow: v-bind("theme.boxShadow1");
+  border-radius: v-bind("theme.borderRadius");
+}
+
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 1s;
+}
+
+.slide-fade-enter-from {
+  transform: translateX(v-bind("drawerCssWidth"));
+  /* opacity: 0; */
+}
+
+.slide-fade-leave-to {
+  transform: translateX(v-bind("drawerCssWidth"));
+  /* opacity: 0; */
+}
+
+.route-list {
+  max-height: calc(100% - 4em);
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.route-list-item {
+  width: 100%;
+  height: fit-content;
+  padding: 8px 12px;
+  transition: background-color 0.1s ease-in-out;
+
+  border-radius: v-bind("theme.borderRadius");
+}
+
+.route-list-item:hover:not(.active) {
+  background-color: v-bind("theme.hoverColor");
+}
+
+.route-list-item.active {
+  background-color: v-bind("theme.actionColor");
 }
 </style>

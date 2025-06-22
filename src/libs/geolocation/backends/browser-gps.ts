@@ -50,6 +50,16 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                 }
             ));
         });
+        // return new Promise<number>((resolve) => {
+        //     setInterval(() => {
+        //         console.log("Mock GPS")
+        //         callback({
+        //             latitude: Math.random() * 180 - 90,
+        //             longitude: Math.random() * 360 - 180
+        //         })
+        //     }, 1000)
+        //     resolve(1)
+        // })
     }
 
     clearWatch(channelId: number) {
