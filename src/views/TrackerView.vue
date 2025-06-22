@@ -196,9 +196,13 @@ async function changeRecordState() {
   }
 }
 
-watch(path, () => {
-  storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
-});
+watch(
+  path,
+  () => {
+    storeSet("stored-path", JSON.parse(JSON.stringify(path.value)));
+  },
+  { deep: true }
+);
 
 async function savePath() {
   if (__TAURI_ENVIRONMENT__) {
