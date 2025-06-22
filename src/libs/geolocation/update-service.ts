@@ -2,6 +2,7 @@ import type { GeographicPointType, GeolocationBackend } from "./types";
 import BrowserGeolocationBackend from "./backends/browser-gps";
 import IPGeolocationBackend from "./backends/ip";
 import { injectTauriGeolocationProvider } from "./tauri-polyfill";
+import { isEqual } from "lodash-es";
 
 type HandlerItemType = {
     id: number
@@ -41,7 +42,6 @@ function removeHandler(id: number) {
 export class UpdateService {
     presentLocation: GeographicPointType = { latitude: 0, longitude: 0 };
     serviceRunning = false;
-    initialised = false;
     built = false
     backend: GeolocationBackend | undefined;
 
@@ -75,23 +75,36 @@ export class UpdateService {
         return Object.freeze(this.presentLocation);
     }
 
+    async refresh() {
+        if (!this.built) throw new Error("Geolocation service not built");
+        if (!this.backend) throw new Error("Backend not initialised");
+        if (!this.serviceRunning) throw new Error("Updater service not running");
+
+        const newLocation = await this.backend.getCurrentPosition();
+        if (isEqual(newLocation, this.presentLocation)) return Object.freeze(newLocation);
+        this.presentLocation = newLocation;
+        triggerHandler("change", newLocation);
+        return Object.freeze(newLocation)
+    }
+
     /** Whether the updater service is running */
     isStarted = () => this.serviceRunning;
-
-    /** Whether the default value in the worker has been overwritten */
-    isInitialised = () => this.initialised;
 
     /** Start the updater service */
     async start() {
         let handler = -1;
         if (!this.backend) throw new Error("Backend not initialised");
 
-        this.presentLocation = await this.backend.getCurrentPosition();
+        try {
+            this.presentLocation = await this.backend.getCurrentPosition();
+        }
+        catch (e) {
+            console.warn("Fail to get initial location, using default location")
+        }
 
         if (!this.serviceRunning) {
             this.serviceRunning = true;
             handler = await this.backend.watchPosition((location) => {
-                this.initialised = true;
                 this.presentLocation = location;
                 triggerHandler("change", this.presentLocation);
             });

@@ -11,7 +11,7 @@ import {
   MglGeoJsonSource,
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
-import { NCard, NText, useMessage } from "naive-ui";
+import { NCard, NText, NSpin, NAlert, useMessage } from "naive-ui";
 import {
   TerraDraw,
   TerraDrawRectangleMode,
@@ -257,10 +257,15 @@ function loadTrackFromFile() {
     });
 }
 
-const locationReady = ref<boolean>(false);
+const initialLocateError = ref("");
 
+const locationReady = ref<boolean>(false);
 onMounted(async () => {
-  location.value = locator.presentLocation;
+  try {
+    location.value = await locator.refresh()!;
+  } catch (err) {
+    initialLocateError.value = String(err);
+  }
   locationReady.value = true;
   storeInit().then(() =>
     storeGet<GeographicPointType[]>("stored-path").then((res) =>
@@ -281,124 +286,155 @@ onMounted(async () => {
 <template>
   <div style="width: 100%; height: 100%">
     <n-card class="map-layout" content-style="padding: 0;">
-      <mgl-map
-        :map-style="styleUrl"
-        :center="[location.longitude, location.latitude]"
-        :zoom="zoom"
-        height="100%"
-        @map:load="initMap"
-        v-if="locationReady"
-      >
-        <mgl-navigation-control position="top-left" />
-        <mgl-geolocate-control
-          position="top-left"
-          :track-user-location="true"
-        />
-        <mgl-fullscreen-control position="top-left" />
-        <mgl-scale-control position="bottom-left" />
-        <mgl-custom-control position="top-right">
-          <button
-            v-for="item in drawerModes"
-            :key="item.name"
-            :class="[
-              '!flex justify-center items-center',
-              item.mode.mode === activeDrawMethod
-                ? '!bg-blue-200 rounded-sm transition-colors'
-                : '',
-            ]"
-            :title="item.name"
-            @click="
-              () => {
-                console.log('activeDrawMethod', activeDrawMethod);
-                if (activeDrawMethod === item.mode.mode) {
-                  draw?.setMode('select');
-                  activeDrawMethod = 'select';
-                } else {
-                  activeDrawMethod = item.mode.mode;
-                  draw?.start();
-                  draw?.setMode(item.mode.mode);
-                }
-              }
-            "
+      <transition name="map-load">
+        <div
+          v-if="locationReady && !initialLocateError"
+          style="width: 100%; height: 100%"
+        >
+          <mgl-map
+            :map-style="styleUrl"
+            :center="[location.longitude, location.latitude]"
+            :zoom="zoom"
+            height="100%"
+            @map:load="initMap"
           >
-            <icon :size="20">
-              <component
-                :is="item.icon"
-                class="stroke-stone-800 text-stone-800"
+            <mgl-navigation-control position="top-left" />
+            <mgl-geolocate-control
+              position="top-left"
+              :track-user-location="true"
+            />
+            <mgl-fullscreen-control position="top-left" />
+            <mgl-scale-control position="bottom-left" />
+            <mgl-custom-control position="top-right">
+              <button
+                v-for="item in drawerModes"
+                :key="item.name"
+                :class="[
+                  '!flex justify-center items-center',
+                  item.mode.mode === activeDrawMethod
+                    ? '!bg-blue-200 rounded-sm transition-colors'
+                    : '',
+                ]"
+                :title="item.name"
+                @click="
+                  () => {
+                    console.log('activeDrawMethod', activeDrawMethod);
+                    if (activeDrawMethod === item.mode.mode) {
+                      draw?.setMode('select');
+                      activeDrawMethod = 'select';
+                    } else {
+                      activeDrawMethod = item.mode.mode;
+                      draw?.start();
+                      draw?.setMode(item.mode.mode);
+                    }
+                  }
+                "
+              >
+                <icon :size="20">
+                  <component
+                    :is="item.icon"
+                    class="stroke-stone-800 text-stone-800"
+                  />
+                </icon>
+              </button>
+            </mgl-custom-control>
+            <mgl-custom-control position="top-right">
+              <button
+                :class="[
+                  '!flex justify-center items-center transition-all hover:rounded-sm',
+                  pathRecording
+                    ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
+                    : 'stroke-sky-800 fill-sky-700 text-sky-800',
+                ]"
+                :title="pathRecording ? 'Recording…' : 'Track Recorder'"
+                @click="changeRecordState"
+              >
+                <icon :size="20">
+                  <component
+                    :is="pathRecording ? Square : PlayerRecord"
+                    :size="pathRecording ? 16 : 20"
+                    class="stroke-inherit text-inherit"
+                  />
+                </icon>
+              </button>
+              <button
+                v-if="path.length > 0 && !pathRecording"
+                class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
+                @click="path = []"
+              >
+                <icon :size="20">
+                  <Backspace
+                    class="stroke-inherit text-inherit"
+                    style="transform: translateX(-1.3px)"
+                    size="20"
+                  />
+                </icon>
+              </button>
+              <button
+                v-if="path.length > 0 && !pathRecording"
+                class="!flex justify-center items-center"
+                @click="savePath"
+              >
+                <icon :size="20">
+                  <DeviceFloppy
+                    class="stroke-stone-800 text-stone-800"
+                    size="20"
+                  />
+                </icon>
+              </button>
+              <button
+                v-if="path.length === 0 && !pathRecording"
+                class="!flex justify-center items-center"
+                @click="loadTrackFromFile"
+              >
+                <icon :size="20">
+                  <Upload class="stroke-stone-800 text-stone-800" size="20" />
+                </icon>
+              </button>
+            </mgl-custom-control>
+            <mgl-geo-json-source
+              source-id="geojson"
+              :data="(geojsonSource as any)"
+            >
+              <mgl-line-layer
+                layer-id="geojson"
+                :layout="{
+                  'line-join': 'round',
+                  'line-cap': 'round',
+                }"
+                :paint="{
+                  'line-width': 5,
+                  'line-dasharray': [5, 2],
+                  'line-color': '#008800',
+                  'line-opacity': 0.8,
+                }"
               />
-            </icon>
-          </button>
-        </mgl-custom-control>
-        <mgl-custom-control position="top-right">
-          <button
-            :class="[
-              '!flex justify-center items-center transition-all hover:rounded-sm',
-              pathRecording
-                ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
-                : 'stroke-sky-800 fill-sky-700 text-sky-800',
-            ]"
-            :title="pathRecording ? 'Recording…' : 'Track Recorder'"
-            @click="changeRecordState"
-          >
-            <icon :size="20">
-              <component
-                :is="pathRecording ? Square : PlayerRecord"
-                :size="pathRecording ? 16 : 20"
-                class="stroke-inherit text-inherit"
-              />
-            </icon>
-          </button>
-          <button
-            v-if="path.length > 0 && !pathRecording"
-            class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
-            @click="path = []"
-          >
-            <icon :size="20">
-              <Backspace
-                class="stroke-inherit text-inherit"
-                style="transform: translateX(-1.3px)"
-                size="20"
-              />
-            </icon>
-          </button>
-          <button
-            v-if="path.length > 0 && !pathRecording"
-            class="!flex justify-center items-center"
-            @click="savePath"
-          >
-            <icon :size="20">
-              <DeviceFloppy class="stroke-stone-800 text-stone-800" size="20" />
-            </icon>
-          </button>
-          <button
-            v-if="path.length === 0 && !pathRecording"
-            class="!flex justify-center items-center"
-            @click="loadTrackFromFile"
-          >
-            <icon :size="20">
-              <Upload class="stroke-stone-800 text-stone-800" size="20" />
-            </icon>
-          </button>
-        </mgl-custom-control>
-        <mgl-geo-json-source source-id="geojson" :data="(geojsonSource as any)">
-          <mgl-line-layer
-            layer-id="geojson"
-            :layout="{
-              'line-join': 'round',
-              'line-cap': 'round',
-            }"
-            :paint="{
-              'line-width': 5,
-              'line-dasharray': [5, 2],
-              'line-color': '#008800',
-              'line-opacity': 0.8,
-            }"
-          />
-        </mgl-geo-json-source>
-      </mgl-map>
-      <div v-else>
-        <n-text> We are finding your location... </n-text>
-      </div>
+            </mgl-geo-json-source>
+          </mgl-map>
+        </div>
+        <div
+          v-else
+          style="
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-content: center;
+          "
+        >
+          <n-spin v-if="!initialLocateError" size="large">
+            <template #description>
+              <n-text> Getting your location, please wait a moment... </n-text>
+            </template>
+          </n-spin>
+          <n-alert v-else title="Error getting location" type="error">
+            Fail to locate your device. Please try again later
+            <div>
+              <br />
+              <b>Error Message: </b><br /><code>{{ initialLocateError }}</code>
+            </div>
+          </n-alert>
+        </div>
+      </transition>
     </n-card>
 
     <text-file-uploader-dialog
@@ -411,6 +447,16 @@ onMounted(async () => {
 
 <style lang="css">
 @import "maplibre-gl/dist/maplibre-gl.css";
+
+.map-load-enter-active,
+.map-load-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.map-load-enter-from,
+.map-load-leave-to {
+  opacity: 0;
+}
 
 .map-layout {
   width: 100%;

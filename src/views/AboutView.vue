@@ -55,9 +55,9 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
                 <n-tag type="info" round size="small">GPL</n-tag>
               </n-space>
             </template>
-            <div class="license-content">
+            <code class="license-content">
               {{ aboutPageLicense }}
-            </div>
+            </code>
           </n-collapse-item>
         </n-collapse>
       </n-card>

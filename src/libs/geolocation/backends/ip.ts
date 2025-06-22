@@ -29,10 +29,10 @@ let lastLocation: GeographicPointType = {
 };
 
 export interface GeolocationInfoType {
-        city: string;
-        latitude: number;
-        longitude: number;
-    }
+    city: string;
+    latitude: number;
+    longitude: number;
+}
 
 export const ipApiURL = "https://ipapi.co/json/";
 
@@ -47,10 +47,23 @@ export class IPGeolocationBackend implements GeolocationBackend {
         }
     }
 
-    async fetchRaw(): Promise<Record<string, string | number>> {
-        const response = await fetch(ipApiURL);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
+    async fetchRaw(timeout = 10000): Promise<Record<string, string | number>> {
+        const fetchingPromise = new Promise<any>(async (resolve, reject) => {
+            try {
+                const response = await fetch(ipApiURL);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                resolve(response.json());
+            }
+            catch {
+                reject(new Error("Failed to fetch IP geolocation data"));
+            }
+        })
+        
+        const timeoutPromise = new Promise<void>((_, reject) => {
+            setTimeout(() => reject(new Error("Request IP geolocation data timed out")), timeout);
+        })
+
+        return Promise.race([fetchingPromise, timeoutPromise]);
     }
 
     async getInfo(): Promise<GeolocationInfoType> {
