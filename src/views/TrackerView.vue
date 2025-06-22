@@ -268,7 +268,7 @@ onMounted(async () => {
   try {
     location.value = await locator.refresh()!;
   } catch (err) {
-    initialLocateError.value = String(err);
+    initialLocateError.value = (err as any).message ?? String(err);
   }
   locationReady.value = true;
   storeInit().then(() =>

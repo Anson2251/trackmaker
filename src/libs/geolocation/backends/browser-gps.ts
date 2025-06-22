@@ -42,12 +42,12 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                 }),
                 (error) => {
                     throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
-                }, 
+                },
                 {
-                enableHighAccuracy: false,
-                timeout: 5000,
-                maximumAge: Infinity
-            }
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: Infinity
+                }
             ));
         });
     }
