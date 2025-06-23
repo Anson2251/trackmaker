@@ -5,6 +5,7 @@ import {
   darkTheme,
   lightTheme,
   NDialogProvider,
+  NModalProvider,
   NConfigProvider,
   NGlobalStyle,
   NMessageProvider,
@@ -22,10 +23,12 @@ let theme = ref(osThemeValueRef.value === "dark" ? darkTheme : lightTheme);
     :inline-theme-disabled="true"
   >
     <n-dialog-provider>
-      <n-message-provider :placement="'bottom-right'">
-		<layout />
-        <n-global-style />
-      </n-message-provider>
+      <n-modal-provider>
+        <n-message-provider :placement="'bottom-right'">
+          <layout />
+          <n-global-style />
+        </n-message-provider>
+      </n-modal-provider>
     </n-dialog-provider>
   </n-config-provider>
 </template>

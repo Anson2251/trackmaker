@@ -44,6 +44,7 @@ interface Point {
 
 interface Route {
   id: string;
+  name: string;
   points: Point[];
 }
 

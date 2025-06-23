@@ -19,9 +19,6 @@ import {
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
 import {
-  NList,
-  NListItem,
-  NButton,
   NCard,
   NText,
   NSpin,
@@ -73,6 +70,7 @@ import {
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { UpdateService } from "@/libs/geolocation/update-service";
+import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 
 const message = useMessage();
 const theme = useThemeVars();
@@ -97,7 +95,7 @@ const path = computed(() => {
 });
 const uploadModelOpened = ref(false);
 
-const routeDrawer = useTemplateRef("route-drawer");
+
 
 const geojsonSource = computed(() => ({
   type: "FeatureCollection",
@@ -195,10 +193,11 @@ const drawerModes: DrawModes[] = [
   },
 ];
 
-const routeDrawerWidth = computed(() => routeDrawer.value?.clientWidth);
-
 function initMap(event: any) {
   map.value = event.map;
+  map.value?.on('click', () => {
+    isRouteDrawerOpen.value = false;
+  })
   draw.value = new TerraDraw({
     adapter: new TerraDrawMapLibreGLAdapter({ map: map.value }),
     modes: drawerModes.map((item) => item.mode as TerraDrawBaseDrawMode<any>),
@@ -216,6 +215,7 @@ async function changeRecordState() {
       if (!routeStore.currentRouteId) {
         const newRoute = await routeStore.addRoute({
           points: [locator.presentLocation],
+          name: 'New Route'
         });
         routeStore.currentRouteId = newRoute.id;
       } else {
@@ -294,16 +294,16 @@ function loadTrackFromFile() {
         longitude: coord[0],
       }));
 
-      routeStore.addRoute({ points });
+      routeStore.addRoute({ points, name: 'Newly Imported Route'});
     })
     .catch((error) => {
       message.error(error);
     });
 }
 
+const routeDrawerWidth = ref(0);
 const isRouteDrawerOpen = ref(false);
 const toggleRouteDrawer = () => {
-  console.log(isRouteDrawerOpen.value);
   if (isRouteDrawerOpen.value) {
     isRouteDrawerOpen.value = false;
     map.value?.easeTo({ padding: { left: 0 }, duration: 1000 });
@@ -311,7 +311,7 @@ const toggleRouteDrawer = () => {
   }
   isRouteDrawerOpen.value = true;
   map.value?.easeTo({
-    padding: { left: routeDrawerWidth.value || 500 },
+    padding: { left: routeDrawerWidth.value },
     duration: 1000,
   });
 };
@@ -331,10 +331,6 @@ onMounted(async () => {
 
   draw.value?.start();
 });
-
-const drawerCssWidth = computed(
-  () => `${0 - (routeDrawerWidth.value ?? 500)}px`
-);
 </script>
 
 <!-- TODO: add recover tailwindcss style-->
@@ -509,61 +505,15 @@ const drawerCssWidth = computed(
       @confirm="loadTextFileDialogCallback"
     />
 
-    <transition name="slide-fade">
-      <div class="route-drawer" ref="route-drawer" v-if="isRouteDrawerOpen">
-        <div class="p-4" style="height: 100%;">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-content: center;
-              height: 4em;
-            "
-          >
-            <p class="text-lg font-bold mb-4">Routes</p>
-            <n-button
-              @click="
-                async () => {
-                  try {
-                    const route = await routeStore.addRoute({ points: [] });
-                    routeStore.currentRouteId = route.id;
-                  } catch (e) {
-                    console.log(e);
-                  }
-                }
-              "
-              class="mb-4 p-2 bg-blue-500 text-white rounded"
-            >
-              New Route
-            </n-button>
-          </div>
-          <div class="route-list">
-            <div
-              v-for="route in routeStore.routes"
-              :key="route.id"
-              @click="
-                () => {
-                  routeStore.currentRouteId = route.id;
-                }
-              "
-              :class="[
-                'route-list-item',
-                ...(route.id === routeStore.currentRouteId ? ['active'] : []),
-              ]"
-            >
-              <div>Route {{ route.id.slice(0, 6) }}</div>
-              <div>{{ route.points.length }} points</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
+    <tracker-view-route-drawer v-model:show="isRouteDrawerOpen" @update:width="(width) => routeDrawerWidth = width"/>
   </div>
 </template>
 
-<style lang="css">
+<style>
 @import "maplibre-gl/dist/maplibre-gl.css";
+</style>
 
+<style scoped>
 .map-load-enter-active,
 .map-load-leave-active {
   transition: opacity 0.3s ease;
@@ -578,65 +528,5 @@ const drawerCssWidth = computed(
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
-
-.route-drawer {
-  position: absolute;
-  padding-left: 48px;
-  padding-bottom: 32px;
-  box-sizing: border-box;
-
-  bottom: 0;
-  left: 0px;
-
-  top: 0;
-  width: 30%;
-  min-width: 20em;
-  max-width: 40em;
-
-  transition: right, left 1s linear;
-
-  background-color: v-bind("theme.modalColor");
-  box-shadow: 10px 4px 15px 3px rgba(0,0,0,0.1),2px 2px 6px 0px rgba(0,0,0,0.2);
-  border-radius: v-bind("theme.borderRadius");
-}
-
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 1s;
-}
-
-.slide-fade-enter-from {
-  transform: translateX(v-bind("drawerCssWidth"));
-  /* opacity: 0; */
-}
-
-.slide-fade-leave-to {
-  transform: translateX(v-bind("drawerCssWidth"));
-  /* opacity: 0; */
-}
-
-.route-list {
-  max-height: calc(100% - 4em);
-  overflow-y: auto;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.route-list-item {
-  width: 100%;
-  height: fit-content;
-  padding: 8px 12px;
-  transition: background-color 0.1s ease-in-out;
-}
-
-.route-list-item:hover:not(.active) {
-  background-color: v-bind("theme.hoverColor");
-}
-
-.route-list-item.active {
-  background-color: v-bind("theme.actionColor");
 }
 </style>
