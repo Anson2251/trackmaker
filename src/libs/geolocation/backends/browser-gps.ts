@@ -25,7 +25,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                 }),
                 {
                     enableHighAccuracy: false,
-                    timeout: 5000,
+                    timeout: 30000,
                     maximumAge: Infinity
                 }
             );
@@ -45,7 +45,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                 },
                 {
                     enableHighAccuracy: false,
-                    timeout: 5000,
+                    timeout: 30000,
                     maximumAge: Infinity
                 }
             ));

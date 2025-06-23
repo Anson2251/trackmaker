@@ -16,6 +16,10 @@ export const modules: moduleItem[] = [
 			try {
 				const updateService = new UpdateService();
 				await updateService.build(() => new Promise<void>((resolve) => {
+					if (__TAURI_ENVIRONMENT__) {
+						resolve() // need to implement the permissions request logic for tauri environment
+						return;
+					}
 					if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), () => resolve(), { enableHighAccuracy: false });
 					else resolve();
 				}));

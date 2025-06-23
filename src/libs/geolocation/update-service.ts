@@ -44,6 +44,7 @@ export class UpdateService {
     serviceRunning = false;
     built = false
     backend: GeolocationBackend | undefined;
+    usingGPS: boolean = false;
 
     async build(promptCallback: (() => Promise<void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
@@ -58,8 +59,14 @@ export class UpdateService {
 
         if (granted === 'granted' && gpsAvailable) {
             this.backend = gps;
-            if (__TAURI_ENVIRONMENT__) injectTauriGeolocationProvider();
             console.log("Using GPS Geolocation backend");
+            this.usingGPS = true
+        }
+        else if (__TAURI_ENVIRONMENT__) {
+            this.backend = gps;
+            const method = await injectTauriGeolocationProvider();
+            this.usingGPS = method === 'gps'
+            console.log("Using Tauri's Geolocation backend", method);
         }
         else {
             if (granted === 'granted') console.warn("GPS not available, or getting location timed out. Falling back to using IP Geolocation backend");
@@ -109,7 +116,7 @@ export class UpdateService {
                 triggerHandler("change", this.presentLocation);
             });
         }
-        
+
         triggerHandler("start", this.presentLocation);
 
         return handler;

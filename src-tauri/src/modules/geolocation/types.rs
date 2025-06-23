@@ -39,7 +39,7 @@ pub struct FreeIPApiGeolocation {
     pub tlds: Vec<String>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Coordinate {
     pub latitude: f64,
     pub longitude: f64,

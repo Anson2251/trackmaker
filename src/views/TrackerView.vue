@@ -6,7 +6,6 @@ import {
   computed,
   inject,
   type Component,
-  useTemplateRef,
 } from "vue";
 import {
   MglMap,
@@ -19,6 +18,7 @@ import {
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
 import {
+  NPopover,
   NCard,
   NText,
   NSpin,
@@ -56,7 +56,6 @@ import {
 import { Icon } from "@vicons/utils";
 import {
   type GeographicPointType,
-  type GeolocationBackend,
 } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
 import { storeInit } from "@/libs/store";
@@ -94,8 +93,6 @@ const path = computed(() => {
   return route?.points || [];
 });
 const uploadModelOpened = ref(false);
-
-
 
 const geojsonSource = computed(() => ({
   type: "FeatureCollection",
@@ -195,9 +192,9 @@ const drawerModes: DrawModes[] = [
 
 function initMap(event: any) {
   map.value = event.map;
-  map.value?.on('click', () => {
+  map.value?.on("click", () => {
     isRouteDrawerOpen.value = false;
-  })
+  });
   draw.value = new TerraDraw({
     adapter: new TerraDrawMapLibreGLAdapter({ map: map.value }),
     modes: drawerModes.map((item) => item.mode as TerraDrawBaseDrawMode<any>),
@@ -215,8 +212,9 @@ async function changeRecordState() {
       if (!routeStore.currentRouteId) {
         const newRoute = await routeStore.addRoute({
           points: [locator.presentLocation],
-          name: 'New Route'
+          name: "New Route",
         });
+        openDrawerTooltip();
         routeStore.currentRouteId = newRoute.id;
       } else {
         await routeStore.addPointToRoute(
@@ -293,8 +291,8 @@ function loadTrackFromFile() {
         latitude: coord[1],
         longitude: coord[0],
       }));
-
-      routeStore.addRoute({ points, name: 'Newly Imported Route'});
+      
+      routeStore.addRoute({ points, name: "Newly Imported Route" }).then(openDrawerTooltip);
     })
     .catch((error) => {
       message.error(error);
@@ -306,15 +304,24 @@ const isRouteDrawerOpen = ref(false);
 const toggleRouteDrawer = () => {
   if (isRouteDrawerOpen.value) {
     isRouteDrawerOpen.value = false;
-    map.value?.easeTo({ padding: { left: 0 }, duration: 1000 });
+    map.value?.easeTo({ padding: { left: 0 }, duration: 500 });
     return;
   }
   isRouteDrawerOpen.value = true;
   map.value?.easeTo({
     padding: { left: routeDrawerWidth.value },
-    duration: 1000,
+    duration: 500,
   });
 };
+
+const drawerTooltipOpened = ref(false)
+const openDrawerTooltip = () => {
+  if (drawerTooltipOpened.value) return;
+  drawerTooltipOpened.value = true;
+  setTimeout(() => {
+    drawerTooltipOpened.value = false;
+  }, 3000);
+}
 
 const initialLocateError = ref("");
 
@@ -353,6 +360,7 @@ onMounted(async () => {
             <mgl-geolocate-control
               position="top-left"
               :track-user-location="true"
+              v-if="locator.usingGPS"
             />
             <mgl-fullscreen-control position="top-left" />
             <mgl-scale-control position="bottom-left" />
@@ -390,12 +398,18 @@ onMounted(async () => {
               </button>
             </mgl-custom-control>
             <mgl-custom-control position="bottom-left">
-              <button
-                :class="'!flex justify-center items-center transition-all hover:rounded-sm stroke-sky-800 fill-sky-700 text-sky-800'"
-                @click="toggleRouteDrawer"
-              >
-                <icon :size="24"><route /></icon>
-              </button>
+              <n-popover trigger="manual" :show="drawerTooltipOpened">
+                <template #trigger>
+                  <button
+                    :class="'!flex justify-center items-center transition-all hover:rounded-sm stroke-sky-800 fill-sky-700 text-sky-800'"
+                    @click="toggleRouteDrawer"
+                  >
+                    <icon :size="24"><route /></icon>
+                  </button>
+                </template>
+                <span>New Route added! Click Here to check it out</span
+                >
+              </n-popover>
             </mgl-custom-control>
             <mgl-custom-control position="top-right">
               <button
@@ -505,7 +519,10 @@ onMounted(async () => {
       @confirm="loadTextFileDialogCallback"
     />
 
-    <tracker-view-route-drawer v-model:show="isRouteDrawerOpen" @update:width="(width) => routeDrawerWidth = width"/>
+    <tracker-view-route-drawer
+      v-model:show="isRouteDrawerOpen"
+      @update:width="(width) => (routeDrawerWidth = width)"
+    />
   </div>
 </template>
 

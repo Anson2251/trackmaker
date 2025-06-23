@@ -11,26 +11,29 @@ This file contains the custom geolocation functionality for the Tauri applicatio
  * THIS FUNCTION **WOULD NOT VALIDATE** THE RETURN VALUES FROM THE GIVEN TAURI HANDLER.
  * @returns Promise<Coordinates>
  */
-export async function locateTauri(handlerName: string): Promise<Position> {
-	const location = await (invoke(handlerName) as Promise<{ latitude: number; longitude: number }>);
+export async function locateTauri(handlerName: string): Promise<{ point: Position, method: string }> {
+	const location = await (invoke(handlerName) as Promise<{ point: { latitude: number; longitude: number }, method: string }>);
 	return {
-		...location,
-		altitude: null,
-		accuracy: 0,
-		altitudeAccuracy: null,
-		heading: null,
-		speed: null
+		point: {
+			...location.point,
+			altitude: null,
+			accuracy: 0,
+			altitudeAccuracy: null,
+			heading: null,
+			speed: null
+		},
+		method: location.method
 	}
 }
 
-export function injectTauriGeolocationProvider(): void {
-	if(!__TAURI_ENVIRONMENT__) {
+export async function injectTauriGeolocationProvider(): Promise<string | null> {
+	if (!__TAURI_ENVIRONMENT__) {
 		console.warn("This function can only be called in a Tauri environment.");
-		return;
+		return null;
 	}
-	if((navigator.geolocation as any)["injected"]) {
+	if ((navigator.geolocation as any)["injected"]) {
 		console.warn("The custom geolocation provider is already injected and cannot be injected again.")
-		return;
+		return null;
 	}
 	(navigator.geolocation as any)["injected"] = true;
 
@@ -40,6 +43,7 @@ export function injectTauriGeolocationProvider(): void {
 	navigator.geolocation.clearWatch = locatorInstance.clearWatch.bind(locatorInstance);
 	navigator.geolocation.getCurrentPosition = locatorInstance.getCurrentPosition.bind(locatorInstance);
 	console.info("Tauri geolocation provider injected successfully.")
+	return (await locateTauri('get_geolocation')).method
 }
 
 export class MyGeolocation implements Geolocation {
@@ -67,14 +71,14 @@ export class MyGeolocation implements Geolocation {
 		errorCallback?: PositionErrorCallback,
 		options?: PositionOptions
 	): number {
+		const maximumAge = (Number.isFinite(options?.maximumAge) && (options?.maximumAge as number) > 0 ? options?.maximumAge : 10000) ?? 10000;
 		const watchId = window.setInterval(() => {
 			this.handleLocationRequest()
 				.then(successCallback)
 				.catch(error => {
 					errorCallback?.(this.createPositionError(error) as any);
 				});
-		}, options?.maximumAge || 1000);
-
+		}, maximumAge);
 		this.watchCallbacks.set(watchId, watchId);
 		return watchId;
 	}
@@ -90,7 +94,7 @@ export class MyGeolocation implements Geolocation {
 		try {
 			const position = await locateTauri(this.tauriHandlerName);
 			const coord = {
-				...position,
+				...position.point,
 				altitude: null,
 				accuracy: 0,
 				altitudeAccuracy: null,

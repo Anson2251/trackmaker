@@ -30,20 +30,34 @@ const show = defineModel("show", {
   default: false,
 });
 
-const showContextMenu = ref(false);
+const showItemContextMenu = ref(false);
+const showRouteContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const selectedRoute = ref<Route | null>(null);
 const showRenameDialog = ref(false);
 const newRouteName = ref("");
 
-const menuOptions = [
+const listMenuOptions = [
+  {
+    label: 'New Route',
+    key: 'new',
+    props: {
+      onClick: () => {
+        showRouteContextMenu.value = false;
+        routeStore.addRoute({name: 'Untitled Route', points: []})
+      }
+    }
+  },
+]
+
+const itemMenuOptions = [
   {
     label: 'Rename',
     key: 'rename',
     props: {
       onClick: () => {
-        showContextMenu.value = false;
+        showItemContextMenu.value = false;
         if (selectedRoute.value?.id) {
           newRouteName.value = selectedRoute.value.name || '';
           showRenameDialog.value = true;
@@ -57,20 +71,35 @@ const menuOptions = [
     key: 'delete',
     props: {
       onClick: () => {
-        showContextMenu.value = false;
+        showItemContextMenu.value = false;
         if (selectedRoute.value) {
           routeStore.deleteRoute(selectedRoute.value.id);
         }
       }
     }
-  }
+  },
+  {
+    key: 'divider-1',
+    type: 'divider'
+  },
+  ...listMenuOptions,
 ];
 
-function showRouteContextMenu(e: MouseEvent, route: Route) {
+
+
+function openItemContextMenu(e: MouseEvent, route: Route) {
+  e.preventDefault()
   selectedRoute.value = route;
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
-  showContextMenu.value = true;
+  showItemContextMenu.value = true;
+}
+
+function openRouteContextMenu(e: MouseEvent) {
+  e.preventDefault()
+  contextMenuX.value = e.clientX;
+  contextMenuY.value = e.clientY;
+  showRouteContextMenu.value = true;
 }
 
 async function handleRename() {
@@ -85,7 +114,7 @@ async function handleRename() {
 
 <template>
   <transition name="slide">
-    <div class="route-drawer" ref="route-drawer" v-show="show">
+    <div class="route-drawer" ref="route-drawer" v-show="show" @click="routeStore.currentRouteId = null" @contextmenu="(e) => openRouteContextMenu(e)">
       <div class="p-4" style="height: 100%">
         <div
           style="
@@ -96,32 +125,21 @@ async function handleRename() {
           "
         >
           <p class="text-lg font-bold mb-4">Routes</p>
-          <n-button
-          @click="
-              async () => {
-                try {
-                  const route = await routeStore.addRoute({ points: [], name: 'Untitled Route' });
-                  routeStore.currentRouteId = route.id;
-                } catch (e) {
-                  console.log(e);
-                }
-              }
-            "
-            class="mb-4 p-2 bg-blue-500 text-white rounded"
-          >
-            New Route
-          </n-button>
         </div>
         <div class="route-list">
           <div
             v-for="route in routeStore.routes"
             :key="route.id"
             @click="
-              () => {
+              (e) => {
+                e.stopPropagation()
                 routeStore.currentRouteId = route.id;
               }
             "
-            @contextmenu.prevent="(e) => showRouteContextMenu(e, route)"
+            @contextmenu.prevent="(e) => {
+              e.stopPropagation();
+              openItemContextMenu(e, route)
+            }"
             :class="[
               'route-list-item',
               ...(route.id === routeStore.currentRouteId ? ['active'] : []),
@@ -136,11 +154,19 @@ async function handleRename() {
   </transition>
 
   <n-dropdown
-    :show="showContextMenu"
+    :show="showItemContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="menuOptions"
-    @clickoutside="showContextMenu = false"
+    :options="itemMenuOptions"
+    @clickoutside="showItemContextMenu = false"
+  />
+
+  <n-dropdown
+    :show="showRouteContextMenu"
+    :x="contextMenuX"
+    :y="contextMenuY"
+    :options="listMenuOptions"
+    @clickoutside="showRouteContextMenu = false"
   />
 
   <n-modal
@@ -172,8 +198,6 @@ async function handleRename() {
   top: 0;
   width: v-bind(drawerWidth);
 
-  transition: right, left 1s linear;
-
   background-color: v-bind("theme.modalColor");
   box-shadow: 10px 4px 15px 3px rgba(0, 0, 0, 0.1),
     2px 2px 6px 0px rgba(0, 0, 0, 0.2);
@@ -184,14 +208,14 @@ async function handleRename() {
 .slide-leave-to {
   transform: translateX(v-bind("drawerTranslation"));
   opacity: 0.8;
-  transition: all 1s;
+  transition: all 0.5s;
 }
 
 .slide-leave-from,
 .slide-enter-to {
   transform: translateX(0px);
   opacity: 1;
-  transition: all 1s;
+  transition: all 0.5s;
 }
 
 .route-list {
