@@ -339,7 +339,7 @@ const drawerCssWidth = computed(
 
 <!-- TODO: add recover tailwindcss style-->
 <template>
-  <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
+  <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
     <n-card class="map-layout" content-style="padding: 0;">
       <transition name="map-load">
         <div
@@ -587,7 +587,7 @@ const drawerCssWidth = computed(
   box-sizing: border-box;
 
   bottom: 0;
-  left: 1px;
+  left: 0px;
 
   top: 0;
   width: 30%;
@@ -597,7 +597,7 @@ const drawerCssWidth = computed(
   transition: right, left 1s linear;
 
   background-color: v-bind("theme.modalColor");
-  box-shadow: v-bind("theme.boxShadow1");
+  box-shadow: 10px 4px 15px 3px rgba(0,0,0,0.1),2px 2px 6px 0px rgba(0,0,0,0.2);
   border-radius: v-bind("theme.borderRadius");
 }
 
@@ -630,8 +630,6 @@ const drawerCssWidth = computed(
   height: fit-content;
   padding: 8px 12px;
   transition: background-color 0.1s ease-in-out;
-
-  border-radius: v-bind("theme.borderRadius");
 }
 
 .route-list-item:hover:not(.active) {
