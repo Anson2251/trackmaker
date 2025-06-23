@@ -4,6 +4,7 @@ import { useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
 import { NButton, NDropdown, NModal, NInput } from "naive-ui";
 import type { Route } from "@/libs/store/types";
+import { clamp } from "lodash-es";
 
 const emit = defineEmits<{
     (e: 'update:width', value: number): void;
@@ -13,7 +14,7 @@ const routeStore = useRouteStore();
 const theme = useThemeVars();
 
 const routeDrawer = useTemplateRef("route-drawer");
-const routeDrawerWidth = computed(() => Math.round((routeDrawer.value?.parentElement?.clientWidth ?? 2000) * 0.4));
+const routeDrawerWidth = computed(() => Math.min(clamp(Math.round((routeDrawer.value?.parentElement?.clientWidth ?? 2000) * 0.4), 320, 640), (routeDrawer.value?.parentElement?.clientWidth ?? Infinity) - 48));
 const drawerTranslation = computed(
   () => `${-16 - (routeDrawerWidth.value)}px`
 );
@@ -170,8 +171,6 @@ async function handleRename() {
 
   top: 0;
   width: v-bind(drawerWidth);
-  min-width: 20em;
-  max-width: 40em;
 
   transition: right, left 1s linear;
 
