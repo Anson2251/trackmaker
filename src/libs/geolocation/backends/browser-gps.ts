@@ -1,4 +1,7 @@
+import { isEqual, reject } from "lodash-es";
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
+
+const watchCompatibilityMode = false
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
     async getPermissionStatus() {
@@ -32,24 +35,43 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         });
     }
 
-    watchPosition(callback: (location: GeographicPointType) => void) {
-        return new Promise<number>((resolve, reject) => {
-            if (!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
-            resolve(navigator.geolocation.watchPosition(
-                (position) => callback({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                }),
-                (error) => {
-                    throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
-                },
-                {
-                    enableHighAccuracy: false,
-                    timeout: 30000,
-                    maximumAge: Infinity
-                }
-            ));
-        });
+    watchPosition(callback: (location: Readonly<GeographicPointType>) => void) {
+        if (watchCompatibilityMode) {
+            return new Promise<number>((resolve, reject) => {
+                this.getCurrentPosition()
+                    .then(() => {
+                        let previousLocation: GeographicPointType | null = null
+                        resolve(setInterval(async () => {
+                            this.getCurrentPosition().then(newLocation => {
+                                if (previousLocation && isEqual(previousLocation, newLocation)) return
+                                previousLocation = newLocation
+                                callback(Object.freeze(newLocation))
+                            })
+                        }, 5000) as unknown as number)
+                    })
+                    .catch(reject)
+            })
+        }
+        else {
+            return new Promise<number>((resolve, reject) => {
+                if (!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
+                resolve(navigator.geolocation.watchPosition(
+                    (position) => callback({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    }),
+                    (error) => {
+                        throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
+                    },
+                    {
+                        enableHighAccuracy: false,
+                        timeout: 30000,
+                        maximumAge: Infinity
+                    }
+                ));
+            });
+        }
+
         // return new Promise<number>((resolve) => {
         //     setInterval(() => {
         //         console.log("Mock GPS")

@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import {
-  ref,
-  onMounted,
-  computed,
-  inject,
-  type Component,
-} from "vue";
+import { ref, onMounted, computed, inject, type Component } from "vue";
 import {
   MglMap,
   MglNavigationControl,
@@ -37,7 +31,7 @@ import {
   TerraDrawFreehandMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import { Map } from "maplibre-gl";
+import { Map, Marker } from "maplibre-gl";
 import {
   MapPin,
   Vector,
@@ -54,9 +48,7 @@ import {
   Route,
 } from "@vicons/tabler";
 import { Icon } from "@vicons/utils";
-import {
-  type GeographicPointType,
-} from "@/libs/geolocation/types";
+import { type GeographicPointType } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
 import { storeInit } from "@/libs/store";
 import {
@@ -94,22 +86,41 @@ const path = computed(() => {
 });
 const uploadModelOpened = ref(false);
 
-const geojsonSource = computed(() => ({
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: path.value.map((coord) => [
-          coord.longitude,
-          coord.latitude,
-        ]),
-      },
-    },
-  ],
-}));
+const singlePointMarker = new Marker();
+const geojsonSource = computed<any>(() => {
+  if (path.value.length > 1) {
+    singlePointMarker.remove();
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: path.value.map((coord) => [
+              coord.longitude,
+              coord.latitude,
+            ]),
+          },
+        },
+      ],
+    };
+  } else {
+    if (path.value.length === 1) {
+      singlePointMarker.setLngLat([
+        path.value[0].longitude,
+        path.value[0].latitude,
+      ]);
+      const localMap = map.value;
+      if (localMap) singlePointMarker.addTo(localMap as any);
+    }
+    return {
+      type: "FeatureCollection",
+      features: [],
+    };
+  }
+});
 
 type DrawModes = {
   mode: TerraDrawBaseDrawMode<any>;
@@ -291,8 +302,10 @@ function loadTrackFromFile() {
         latitude: coord[1],
         longitude: coord[0],
       }));
-      
-      routeStore.addRoute({ points, name: "Newly Imported Route" }).then(openDrawerTooltip);
+
+      routeStore
+        .addRoute({ points, name: "Newly Imported Route" })
+        .then(openDrawerTooltip);
     })
     .catch((error) => {
       message.error(error);
@@ -314,14 +327,14 @@ const toggleRouteDrawer = () => {
   });
 };
 
-const drawerTooltipOpened = ref(false)
+const drawerTooltipOpened = ref(false);
 const openDrawerTooltip = () => {
   if (drawerTooltipOpened.value) return;
   drawerTooltipOpened.value = true;
   setTimeout(() => {
     drawerTooltipOpened.value = false;
   }, 3000);
-}
+};
 
 const initialLocateError = ref("");
 
@@ -329,6 +342,7 @@ const locationReady = ref<boolean>(false);
 onMounted(async () => {
   try {
     location.value = await locator.refresh()!;
+    if (!locator.usingGPS) message.warning('Using network location. Not real-time and may be inaccurate. Please enable GPS for real-time location.', { duration: 5000})
   } catch (err) {
     initialLocateError.value = (err as any).message ?? String(err);
   }
@@ -342,7 +356,7 @@ onMounted(async () => {
 
 <!-- TODO: add recover tailwindcss style-->
 <template>
-  <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
+  <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
     <n-card class="map-layout" content-style="padding: 0;">
       <transition name="map-load">
         <div
@@ -407,8 +421,7 @@ onMounted(async () => {
                     <icon :size="24"><route /></icon>
                   </button>
                 </template>
-                <span>New Route added! Click Here to check it out</span
-                >
+                <span>New Route added! Click Here to check it out</span>
               </n-popover>
             </mgl-custom-control>
             <mgl-custom-control position="top-right">
@@ -435,7 +448,9 @@ onMounted(async () => {
                 class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
                 @click="
                   routeStore.currentRouteId &&
-                    routeStore.deleteRoute(routeStore.currentRouteId)
+                    routeStore.updateRoute(routeStore.currentRouteId, {
+                      points: [],
+                    })
                 "
               >
                 <icon :size="20">
@@ -480,7 +495,6 @@ onMounted(async () => {
                 }"
                 :paint="{
                   'line-width': 5,
-                  'line-dasharray': [5, 2],
                   'line-color': '#008800',
                   'line-opacity': 0.8,
                 }"
