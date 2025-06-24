@@ -55,7 +55,14 @@ export class UpdateService {
             console.log("Permission changed to", granted)
         }
 
-        let gpsAvailable = await (new Promise<boolean>((resolve) => navigator.geolocation.getCurrentPosition(() => resolve(true), () => resolve(false), { timeout: 5000 })));
+        let gpsAvailable = await (new Promise<boolean>((resolve) =>
+            navigator.geolocation.getCurrentPosition(
+                () => resolve(true), () => resolve(false), {
+                enableHighAccuracy: false,
+                maximumAge: 30000,
+                timeout: 30000
+            }))
+        );
 
         if (granted === 'granted' && gpsAvailable) {
             this.backend = gps;
