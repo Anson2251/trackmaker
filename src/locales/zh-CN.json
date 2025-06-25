@@ -1,0 +1,54 @@
+{
+    "app": {
+        "title": "Trackmaker",
+        "loading": "加载中...",
+        "error": "错误：{message}"
+    },
+    "router": {
+        "tracker": "轨迹记录",
+        "about": "关于"
+    },
+    "trackerView": {
+        "locationLoading": "正在获取您的位置，请稍候...",
+        "locationError": "无法定位您的设备，请稍后重试",
+        "gpsWarning": "正在使用网络定位。非实时且可能不准确。请启用GPS获取实时定位。",
+        "nameNewlyImportedRoute": "新导入的路线",
+        "nameNewRoute": "新建路线",
+        "terraDrawTools": {
+            "rect": "矩形",
+            "point": "点",
+            "polygon": "多边形",
+            "line": "线段",
+            "circle": "圆形",
+            "select": "选择",
+            "draw": "自由绘制"
+        },
+        "uiRouteCheckoutTip": "已添加新路线！点击此处查看",
+        "uiRecordingStatus": {
+            "on": "记录中…",
+            "off": "轨迹记录器"
+        }
+    },
+    "aboutView": {
+        "sections": {
+            "project": "项目",
+            "dataSource": "数据来源",
+            "credits": "致谢"
+        },
+        "description": "为户外活动提供路线规划与导航功能，支持地图标注。通过实时运动轨迹创建路径，生成的轨迹可分享给好友。",
+        "creditIntro": "如果没有以下（开源）项目，Trackmaker将无法实现：",
+        "mapInaccuracyDeclaration": "请注意，当前提供的地图数据**可能存在不准确或有争议的内容**，特别是在领土边界方面。由于**资源限制**，我们暂时无法使用更高质量的数据，但正在积极**寻求更好的数据源**，并将在可行时立即更新应用。"
+    },
+    "components": {
+        "trackerViewRouteDrawer": {
+            "contextMenu": {
+                "new": "新建路线",
+                "rename": "重命名",
+                "delete": "删除"
+            },
+            "nameNewRoute": "未命名路线",
+            "routes": "路线列表",
+            "points": "{num} 个定位点"
+        }
+    }
+}

@@ -61,7 +61,7 @@ export class UpdateService {
                 enableHighAccuracy: false,
                 maximumAge: 30000,
                 timeout: 30000
-            }))
+            })) 
         );
 
         if (granted === 'granted' && gpsAvailable) {

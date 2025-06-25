@@ -2,11 +2,13 @@
 import { RouterView, RouterLink } from "vue-router";
 import { h, type Component, provide } from "vue";
 import { Map, InfoCircle } from "@vicons/tabler";
+import { useI18n } from "vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
 import { NIcon } from "naive-ui";
 import { UpdateService } from "./libs/geolocation/update-service";
 
+const { t } = useI18n();
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
@@ -22,7 +24,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/",
         },
-        { default: () => "Tracker" }
+        { default: () => t('router.tracker') }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -34,7 +36,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => "About" }
+        { default: () => t('router.about') }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),

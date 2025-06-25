@@ -1,6 +1,9 @@
-<script setup>
+∫<script setup>
 import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement, NList, NListItem, NTag, NSpace, NAnchor, NAnchorLink } from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
+import { useI18n } from "vue-i18n";
+
+const {t} = useI18n()
 
 const showAnchor = ref(false);
 const handleResize = () => {
@@ -19,8 +22,7 @@ import { credits, dataProviders } from "@/configs";
 
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 
-import mapDataInaccuracyDeclaration from "@/assets/map-data-inaccuracy-declaration.md?raw";
-import aboutPageLicense from "@/assets/about-page-license.md?raw";
+import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 </script>
 
 <template>
@@ -31,9 +33,9 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
       :show-rail="true"
       :show-background="true"
     >
-      <n-anchor-link title="Project" href="#project" />
-      <n-anchor-link title="Data Sources" href="#data-sources" />
-      <n-anchor-link title="Credits" href="#credits" />
+      <n-anchor-link :title="t('aboutView.sections.project')" href="#project" />
+      <n-anchor-link :title="t('aboutView.sections.dataSource')" href="#data-sources" />
+      <n-anchor-link :title="t('aboutView.sections.credits')" href="#credits" />
     </n-anchor>
     <!-- Project Section -->
     <section id="project" class="section project-section">
@@ -43,8 +45,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
           <n-h1>Trackmaker</n-h1>
         </div>
         <p class="project-description">
-          Enabling route planning and navigation for outdoor activities with map marking feature. 
-          Create tracks by tracing real-time motion. The created tracks can be shared with your friends and uploaded to DNE social platform.
+          {{ t('aboutView.description') }}
         </p>
         
         <n-collapse class="license-collapse">
@@ -67,7 +68,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
     <section id="data-sources" class="section data-sources">
       <n-card hoverable>
         <template #header>
-          Data Sources
+          {{ t('aboutView.sections.dataSource') }}
         </template>
         
         <n-list>
@@ -91,7 +92,7 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
         </n-list>
 
         <template #footer>
-          <VueMarkdown :source="mapDataInaccuracyDeclaration" class="map-data-inaccuracy-md"/>
+          <VueMarkdown :source="t('aboutView.mapInaccuracyDeclaration')" class="map-data-inaccuracy-md"/>
         </template>
       </n-card>
     </section>
@@ -100,10 +101,10 @@ import aboutPageLicense from "@/assets/about-page-license.md?raw";
     <section id="credits" class="section credits-section">
       <n-card hoverable>
         <template #header>
-          Credits
+          {{ t('aboutView.sections.credits') }}
         </template>
         
-        <n-p>Without the following (open source) projects, Trackmaker could not be built:</n-p>
+        <n-p>{{ t('aboutView.creditIntro') }}</n-p>
         
         <n-collapse accordion class="credits-list" :trigger-areas="['arrow', 'main']">
           <n-collapse-item 

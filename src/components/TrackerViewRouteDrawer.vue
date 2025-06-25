@@ -2,28 +2,36 @@
 import { computed, useTemplateRef, watch, ref } from "vue";
 import { useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
-import { NButton, NDropdown, NModal, NInput } from "naive-ui";
+import { NDropdown, NModal, NInput } from "naive-ui";
 import type { Route } from "@/libs/store/types";
 import { clamp } from "lodash-es";
+import { useI18n } from "vue-i18n";
+
+const {t} = useI18n()
 
 const emit = defineEmits<{
-    (e: 'update:width', value: number): void;
-}>()
+  (e: "update:width", value: number): void;
+}>();
 
 const routeStore = useRouteStore();
 const theme = useThemeVars();
 
 const routeDrawer = useTemplateRef("route-drawer");
-const routeDrawerWidth = computed(() => Math.min(clamp(Math.round((routeDrawer.value?.parentElement?.clientWidth ?? 2000) * 0.4), 320, 640), (routeDrawer.value?.parentElement?.clientWidth ?? Infinity) - 48));
-const drawerTranslation = computed(
-  () => `${-16 - (routeDrawerWidth.value)}px`
+const routeDrawerWidth = computed(() =>
+  Math.min(
+    clamp(
+      Math.round((routeDrawer.value?.parentElement?.clientWidth ?? 2000) * 0.4),
+      320,
+      640
+    ),
+    (routeDrawer.value?.parentElement?.clientWidth ?? Infinity) - 48
+  )
 );
+const drawerTranslation = computed(() => `${-16 - routeDrawerWidth.value}px`);
 
-watch(routeDrawerWidth, () => emit('update:width', routeDrawerWidth.value))
+watch(routeDrawerWidth, () => emit("update:width", routeDrawerWidth.value));
 
-const drawerWidth = computed(
-  () => `${routeDrawerWidth.value}px`
-);
+const drawerWidth = computed(() => `${routeDrawerWidth.value}px`);
 
 const show = defineModel("show", {
   type: Boolean,
@@ -40,55 +48,53 @@ const newRouteName = ref("");
 
 const listMenuOptions = [
   {
-    label: 'New Route',
-    key: 'new',
+    label:  t('components.trackerViewRouteDrawer.contextMenu.new'),
+    key: "new",
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute({name: 'Untitled Route', points: []})
-      }
-    }
+        routeStore.addRoute({ name: "Untitled Route", points: [] });
+      },
+    },
   },
-]
+];
 
 const itemMenuOptions = [
   {
-    label: 'Rename',
-    key: 'rename',
+    label: t('components.trackerViewRouteDrawer.contextMenu.rename'),
+    key: "rename",
     props: {
       onClick: () => {
         showItemContextMenu.value = false;
         if (selectedRoute.value?.id) {
-          newRouteName.value = selectedRoute.value.name || '';
+          newRouteName.value = selectedRoute.value.name || "";
           showRenameDialog.value = true;
-          console.log(showRenameDialog.value)
+          console.log(showRenameDialog.value);
         }
-      }
-    }
+      },
+    },
   },
   {
-    label: 'Delete',
-    key: 'delete',
+    label:  t('components.trackerViewRouteDrawer.contextMenu.delete'),
+    key: "delete",
     props: {
       onClick: () => {
         showItemContextMenu.value = false;
         if (selectedRoute.value) {
           routeStore.deleteRoute(selectedRoute.value.id);
         }
-      }
-    }
+      },
+    },
   },
   {
-    key: 'divider-1',
-    type: 'divider'
+    key: "divider-1",
+    type: "divider",
   },
   ...listMenuOptions,
 ];
 
-
-
 function openItemContextMenu(e: MouseEvent, route: Route) {
-  e.preventDefault()
+  e.preventDefault();
   selectedRoute.value = route;
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
@@ -96,7 +102,7 @@ function openItemContextMenu(e: MouseEvent, route: Route) {
 }
 
 function openRouteContextMenu(e: MouseEvent) {
-  e.preventDefault()
+  e.preventDefault();
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
   showRouteContextMenu.value = true;
@@ -105,7 +111,7 @@ function openRouteContextMenu(e: MouseEvent) {
 async function handleRename() {
   if (selectedRoute.value && newRouteName.value.trim()) {
     await routeStore.updateRoute(selectedRoute.value.id, {
-      name: newRouteName.value.trim()
+      name: newRouteName.value.trim(),
     });
     showRenameDialog.value = false;
   }
@@ -114,7 +120,13 @@ async function handleRename() {
 
 <template>
   <transition name="slide">
-    <div class="route-drawer" ref="route-drawer" v-show="show" @click="routeStore.currentRouteId = null" @contextmenu="(e) => openRouteContextMenu(e)">
+    <div
+      class="route-drawer"
+      ref="route-drawer"
+      v-show="show"
+      @click="routeStore.currentRouteId = null"
+      @contextmenu="(e) => openRouteContextMenu(e)"
+    >
       <div class="p-4" style="height: 100%">
         <div
           style="
@@ -124,7 +136,7 @@ async function handleRename() {
             height: 4em;
           "
         >
-          <p class="text-lg font-bold mb-4">Routes</p>
+          <p class="text-lg font-bold mb-4">{{ t("components.trackerViewRouteDrawer.routes") }}</p>
         </div>
         <div class="route-list">
           <div
@@ -132,21 +144,23 @@ async function handleRename() {
             :key="route.id"
             @click="
               (e) => {
-                e.stopPropagation()
+                e.stopPropagation();
                 routeStore.currentRouteId = route.id;
               }
             "
-            @contextmenu.prevent="(e) => {
-              e.stopPropagation();
-              openItemContextMenu(e, route)
-            }"
+            @contextmenu.prevent="
+              (e) => {
+                e.stopPropagation();
+                openItemContextMenu(e, route);
+              }
+            "
             :class="[
               'route-list-item',
               ...(route.id === routeStore.currentRouteId ? ['active'] : []),
             ]"
           >
-            <div>{{ route.name ?? 'Untitled Route' }}</div>
-            <div>{{ route.points.length }} points</div>
+            <div>{{ route.name ?? t('components.trackerViewRouteDrawer.nameNewRoute') }}</div>
+            <div>{{ t('components.trackerViewRouteDrawer.points', {num: route.points.length}) }}</div>
           </div>
         </div>
       </div>

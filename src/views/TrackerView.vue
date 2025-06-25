@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import { ref, onMounted, computed, inject, type Component } from "vue";
+import { ref, onMounted, computed, inject, type Component, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   MglMap,
   MglNavigationControl,
@@ -31,7 +32,7 @@ import {
   TerraDrawFreehandMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import { Map, Marker } from "maplibre-gl";
+import { Map as Mgl, Marker } from "maplibre-gl";
 import {
   MapPin,
   Vector,
@@ -64,15 +65,16 @@ import { UpdateService } from "@/libs/geolocation/update-service";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 
 const message = useMessage();
-const theme = useThemeVars();
 const locator = inject("geolocation") as UpdateService;
+const { t } = useI18n();
+const i18n = useI18n();
 const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
 
 const location = ref<GeographicPointType>({ latitude: 0, longitude: 0 });
-const map = ref<Map | null>(null);
-const draw = ref<TerraDraw | null>(null);
+const map = shallowRef<Mgl | null>(null);
+const draw = shallowRef<TerraDraw | null>(null);
 const activeDrawMethod = ref<string>("select");
 const pathRecording = ref(false);
 const routeStore = useRouteStore();
@@ -131,27 +133,27 @@ type DrawModes = {
 const drawerModes: DrawModes[] = [
   {
     mode: new TerraDrawRectangleMode(),
-    name: "TerraDraw: Rectangle",
+    name: t('trackerView.terraDrawTools.rect'),
     icon: Vector,
   },
   {
     mode: new TerraDrawPointMode(),
-    name: "TerraDraw: Point",
+    name: t('trackerView.terraDrawTools.point'),
     icon: MapPin,
   },
   {
     mode: new TerraDrawPolygonMode(),
-    name: "TerraDraw: Polygon",
+    name: t('trackerView.terraDrawTools.polygon'),
     icon: Polygon,
   },
   {
     mode: new TerraDrawCircleMode(),
-    name: "TerraDraw: Circle",
+    name: t('trackerView.terraDrawTools.circle'),
     icon: Circle,
   },
   {
     mode: new TerraDrawLineStringMode(),
-    name: "TerraDraw: Line String",
+    name: t('trackerView.terraDrawTools.line'),
     icon: Line,
   },
   {
@@ -191,18 +193,31 @@ const drawerModes: DrawModes[] = [
         },
       },
     }),
-    name: "TerraDraw: Select",
+    name: t('trackerView.terraDrawTools.select'),
     icon: HandFinger,
   },
   {
     mode: new TerraDrawFreehandMode(),
-    name: "TerraDraw: Free Hand",
+    name: t('trackerView.terraDrawTools.draw'),
     icon: HandMove,
   },
 ];
 
+const changeMapLanguage = (map: Mgl) => {
+  const language = i18n.locale.value === 'zh-CN' ? 'zh' : 'en'
+  const layers = ['City labels', 'Road labels', 'Station labels', 'Airport labels', 'Continent labels', 'Country labels']
+
+  for (const layer of layers) {
+    map.setLayoutProperty(layer, 'text-field', [
+        'get',
+        `name:${language}`
+    ]);
+  }
+}
+
 function initMap(event: any) {
   map.value = event.map;
+  if (map.value) changeMapLanguage(map.value as any)
   map.value?.on("click", () => {
     isRouteDrawerOpen.value = false;
   });
@@ -223,7 +238,7 @@ async function changeRecordState() {
       if (!routeStore.currentRouteId) {
         const newRoute = await routeStore.addRoute({
           points: [locator.presentLocation],
-          name: "New Route",
+          name: t("trackerView.nameNewRoute"),
         });
         openDrawerTooltip();
         routeStore.currentRouteId = newRoute.id;
@@ -304,7 +319,7 @@ function loadTrackFromFile() {
       }));
 
       routeStore
-        .addRoute({ points, name: "Newly Imported Route" })
+        .addRoute({ points, name: t("trackerView.nameNewlyImportedRoute") })
         .then(openDrawerTooltip);
     })
     .catch((error) => {
@@ -342,7 +357,7 @@ const locationReady = ref<boolean>(false);
 onMounted(async () => {
   try {
     location.value = await locator.refresh()!;
-    if (!locator.usingGPS) message.warning('Using network location. Not real-time and may be inaccurate. Please enable GPS for real-time location.', { duration: 5000})
+      if (!locator.usingGPS) message.warning(t('trackerView.gpsWarning'), { duration: 5000})
   } catch (err) {
     initialLocateError.value = (err as any).message ?? String(err);
   }
@@ -421,7 +436,7 @@ onMounted(async () => {
                     <icon :size="24"><route /></icon>
                   </button>
                 </template>
-                <span>New Route added! Click Here to check it out</span>
+                <span>{{ t('trackerView.uiRouteCheckoutTip') }}</span>
               </n-popover>
             </mgl-custom-control>
             <mgl-custom-control position="top-right">
@@ -432,7 +447,7 @@ onMounted(async () => {
                     ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
                     : 'stroke-sky-800 fill-sky-700 text-sky-800',
                 ]"
-                :title="pathRecording ? 'Recording…' : 'Track Recorder'"
+                :title="pathRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off')"
                 @click="changeRecordState"
               >
                 <icon :size="20">
@@ -513,16 +528,15 @@ onMounted(async () => {
         >
           <n-spin v-if="!initialLocateError" size="large">
             <template #description>
-              <n-text> Getting your location, please wait a moment... </n-text>
+              <n-text>{{ t('trackerView.locationLoading') }}</n-text>
             </template>
           </n-spin>
-          <n-alert v-else title="Error getting location" type="error">
-            Fail to locate your device. Please try again later
-            <div>
-              <br />
-              <b>Error Message: </b><br /><code>{{ initialLocateError }}</code>
-            </div>
-          </n-alert>
+        <n-alert v-else :title="t('app.error')" type="error">
+          <div>
+            <br />
+            <b>{{ t('app.error') }}: </b><br /><code>{{ initialLocateError }}</code>
+          </div>
+        </n-alert>
         </div>
       </transition>
     </n-card>

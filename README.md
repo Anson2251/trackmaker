@@ -34,6 +34,7 @@ Enabling route planning and navigation for sports activities with map marking fe
 - [x] Export routes
 - [x] Import routes
 - [ ] Share routes
+- [ ] Setting page (including theme, language (map & UI), geolocation watch compatibility mode)
 
 *Due to the re-implementation of certain functions, several features are temporarily unavailable, and their status has been changed to "to-do".*
 

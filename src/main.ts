@@ -2,6 +2,7 @@ import './assets/main.css';
 
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { i18n } from '@/locales';
 
 import App from './App.vue';
 import router from './router';
@@ -14,6 +15,7 @@ import { DeviceOrientationService } from '@/utils/device-orientation-service';
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
+app.use(i18n);
 
 loadModules(modules, "trackmaker", 30000, !__RELEASE_MODE__).then(() => {
     DeviceOrientationService.start();
@@ -35,5 +37,3 @@ loadModules(modules, "trackmaker", 30000, !__RELEASE_MODE__).then(() => {
         document.getElementById("loading-error")!.style.display = "flex";
     }
 });
-
-

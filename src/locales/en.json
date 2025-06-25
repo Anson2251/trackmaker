@@ -1,0 +1,54 @@
+{
+    "app": {
+        "title": "Trackmaker",
+        "loading": "Loading...",
+        "error": "Error: {message}"
+    },
+    "router": {
+        "tracker": "Tracker",
+        "about": "About"
+    },
+    "trackerView": {
+        "locationLoading": "Getting your location, please wait a moment...",
+        "locationError": "Fail to locate your device. Please try again later",
+        "gpsWarning": "Using network location. Not real-time and may be inaccurate. Please enable GPS for real-time location.",
+        "nameNewlyImportedRoute": "Newly Imported Route",
+        "nameNewRoute": "New Route",
+        "terraDrawTools": {
+            "rect": "Rectangle",
+            "point": "Point",
+            "polygon": "Polygon",
+            "line": "Line String",
+            "circle": "Circle",
+            "select": "Select",
+            "draw": "Free Hand"
+        },
+        "uiRouteCheckoutTip": "New Route added! Click Here to check it out",
+        "uiRecordingStatus": {
+            "on": "Recording…",
+            "off": "Track Recorder"
+        }
+    },
+    "aboutView": {
+        "sections": {
+            "project": "Project",
+            "dataSource": "Data Sources",
+            "credits": "Credits"
+        },
+        "description": "Enabling route planning and navigation for outdoor activities with map marking feature. Create tracks by tracing real-time motion. The created tracks can be shared with your friends and uploaded to DNE social platform.",
+        "creditIntro": "Without the following (open source) projects, Trackmaker could not be built:",
+        "mapInaccuracyDeclaration": "Please note that the map data provided may **contain inaccuracies or controversial content**, particularly regarding territorial boundaries. Due to **resource limitations**, we are currently unable to use higher-quality data, but we are actively **seeking better sources** and will update the application as soon as feasible."
+    },
+    "components": {
+        "trackerViewRouteDrawer": {
+            "contextMenu": {
+                "new": "New Route",
+                "rename": "Rename",
+                "delete": "Delete"
+            },
+            "nameNewRoute": "Untitled Route",
+            "routes": "Routes",
+            "points": "{num} points"
+        }
+    }
+}

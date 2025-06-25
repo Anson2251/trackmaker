@@ -1,1 +1,0 @@
-Please note that the map data provided may **contain inaccuracies or controversial content**, particularly regarding territorial boundaries. Due to **resource limitations**, we are currently unable to use higher-quality data, but we are actively **seeking better sources** and will update the application as soon as feasible.
