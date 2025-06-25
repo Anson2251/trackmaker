@@ -12,6 +12,7 @@ Enabling route planning and navigation for sports activities with map marking fe
 ## Todo
 
 - [ ] Bug fixes for the latest major version
+- [ ] Dead Reckoning (DR) system for better geolocation accuracy
 - [x] About page
 - [x] Get and track geolocation
 - [x] Add frameworks to load the module
