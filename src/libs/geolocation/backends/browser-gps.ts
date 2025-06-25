@@ -27,9 +27,9 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                     message: error.message
                 }),
                 {
-                    enableHighAccuracy: false,
-                    timeout: 30000,
-                    maximumAge: Infinity
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 5000
                 }
             );
         });
@@ -64,9 +64,9 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                         throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
                     },
                     {
-                        enableHighAccuracy: false,
-                        timeout: 30000,
-                        maximumAge: Infinity
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 5000
                     }
                 ));
             });
