@@ -1,17 +1,35 @@
-import { UAParser } from 'ua-parser-js'; 
+import { UAParser } from 'ua-parser-js';
 
-export namespace PlatformInfo {
-    export const ua = new UAParser(navigator.userAgent);
-    export const isMobile = ua.getDevice().type === "mobile";
-    export const isTablet = ua.getDevice().type === "tablet";
-    export const isUnknown = typeof ua.getDevice().type === "undefined";
+export class PlatformInfo {
+    private parser: UAParser;
 
-    export const browser: "Tauri" | string = __TAURI_ENVIRONMENT__ ? "Tauri" : (ua.getBrowser().name || "");
-    export const engine: string = ua.getEngine().name || "";
-    
-    export const os: string = ua.getOS().name || "";
+    constructor() {
+        this.parser = new UAParser(navigator.userAgent);
+    }
+
+    public get isMobile(): boolean {
+        return this.parser.getDevice().type === "mobile";
+    }
+
+    public get isTablet(): boolean {
+        return this.parser.getDevice().type === "tablet";
+    }
+
+    public get isUnknown(): boolean {
+        return typeof this.parser.getDevice().type === "undefined";
+    }
+
+    public get browser(): "Tauri" | string {
+        return __TAURI_ENVIRONMENT__ ? "Tauri" : (this.parser.getBrowser().name || "");
+    }
+
+    public get engine(): string {
+        return this.parser.getEngine().name || "";
+    }
+
+    public get os(): string {
+        return this.parser.getOS().name || "";
+    }
 }
-
-(window as any).BrowserPlatform = PlatformInfo;
 
 export default PlatformInfo;

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, provide } from "vue";
 import Layout from "./Layout.vue";
 import {
   darkTheme,
@@ -11,6 +11,9 @@ import {
   NMessageProvider,
   useOsTheme,
 } from "naive-ui";
+import PlatformInfo from "./utils/platform";
+
+provide("platformInfo", new PlatformInfo());
 
 const osThemeValueRef = useOsTheme();
 let theme = ref(osThemeValueRef.value === "dark" ? darkTheme : lightTheme);

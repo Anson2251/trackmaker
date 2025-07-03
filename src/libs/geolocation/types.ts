@@ -27,7 +27,9 @@ export enum LocationResponseErrorEnum {
     PERMISSION_DENIED = 1,
     POSITION_UNAVAILABLE = 2,
     TIMEOUT = 3,
-    UNKNOWN = 4
+    UNKNOWN = 4,
+    IOS_HTTPS_REQUIRED = 5,
+    FIREFOX_PERMISSION_ISSUE = 6
 }
 
 export interface GeolocationBackend {
@@ -76,4 +78,3 @@ export interface GeolocationProviderLike {
 export interface GeolocationProviderLikeConstructor {
 	new (handlerName: string): GeolocationProviderLike;
 }
-

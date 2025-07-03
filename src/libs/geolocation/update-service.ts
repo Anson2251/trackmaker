@@ -1,8 +1,10 @@
 import type { GeographicPointType, GeolocationBackend } from "./types";
+import { LocationResponseErrorEnum } from "./types";
 import BrowserGeolocationBackend from "./backends/browser-gps";
 import IPGeolocationBackend from "./backends/ip";
 import { injectTauriGeolocationProvider } from "./tauri-polyfill";
 import { isEqual } from "lodash-es";
+import PlatformInfo from '@/utils/platform';
 
 type HandlerItemType = {
     id: number
@@ -48,37 +50,49 @@ export class UpdateService {
 
     async build(promptCallback: (() => Promise<void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
-        let granted = await gps.getPermissionStatus();
-        if (granted === 'prompt') {
-            await promptCallback();
-            granted = await gps.getPermissionStatus();
-            console.log("Permission changed to", granted)
+        const platform = new PlatformInfo();
+        
+        try {
+            let granted = await gps.getPermissionStatus();
+            if (granted === 'prompt') {
+                await promptCallback();
+                granted = await gps.getPermissionStatus();
+                console.log("Permission changed to", granted);
+            }
+
+            if (granted === 'granted') {
+                // Try to get current position to verify GPS functionality
+                await gps.getCurrentPosition();
+                this.backend = gps;
+                console.log("Using GPS Geolocation backend");
+                this.usingGPS = true;
+                this.built = true;
+                return;
+            }
+        } catch (error: any) {
+            console.error("GPS backend initialization failed:", error.message);
+            
+            // Handle iOS HTTPS requirement error specifically
+            if (error.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
+                console.error("iOS requires HTTPS for geolocation. Falling back to IP geolocation.");
+            }
         }
 
-        let gpsAvailable = await (new Promise<boolean>((resolve) =>
-            navigator.geolocation.getCurrentPosition(
-                () => resolve(true), () => resolve(false), {
-                enableHighAccuracy: false,
-                maximumAge: 30000,
-                timeout: 30000
-            })) 
-        );
-
-        if (granted === 'granted' && gpsAvailable) {
-            this.backend = gps;
-            console.log("Using GPS Geolocation backend");
-            this.usingGPS = true
-        }
-        else if (__TAURI_ENVIRONMENT__) {
-            this.backend = gps;
-            const method = await injectTauriGeolocationProvider();
-            this.usingGPS = method === 'gps'
-            console.log("Using Tauri's Geolocation backend", method);
-        }
-        else {
-            if (granted === 'granted') console.warn("GPS not available, or getting location timed out. Falling back to using IP Geolocation backend");
-            console.log("Using IP Geolocation backend");
+        // Fallback to Tauri or IP geolocation
+        if (__TAURI_ENVIRONMENT__) {
+            try {
+                this.backend = gps;
+                const method = await injectTauriGeolocationProvider();
+                this.usingGPS = method === 'gps';
+                console.log("Using Tauri's Geolocation backend", method);
+            } catch (error) {
+                console.error("Tauri geolocation failed, falling back to IP:", error);
+                this.backend = new IPGeolocationBackend();
+                console.log("Using IP Geolocation backend");
+            }
+        } else {
             this.backend = new IPGeolocationBackend();
+            console.log("Using IP Geolocation backend");
         }
 
         this.built = true;
@@ -89,16 +103,30 @@ export class UpdateService {
         return Object.freeze(this.presentLocation);
     }
 
-    async refresh() {
+    async refresh(): Promise<Readonly<GeographicPointType>> {
         if (!this.built) throw new Error("Geolocation service not built");
         if (!this.backend) throw new Error("Backend not initialised");
         if (!this.serviceRunning) throw new Error("Updater service not running");
 
-        const newLocation = await this.backend.getCurrentPosition();
-        if (isEqual(newLocation, this.presentLocation)) return Object.freeze(newLocation);
-        this.presentLocation = newLocation;
-        triggerHandler("change", newLocation);
-        return Object.freeze(newLocation)
+        try {
+            const newLocation = await this.backend.getCurrentPosition();
+            if (isEqual(newLocation, this.presentLocation)) return Object.freeze(newLocation);
+            this.presentLocation = newLocation;
+            triggerHandler("change", newLocation);
+            return Object.freeze(newLocation);
+        } catch (error: any) {
+            console.error("GPS refresh failed:", error.message);
+            
+            // Automatic fallback to IP geolocation on timeout or iOS HTTPS error
+            if (error.code === LocationResponseErrorEnum.TIMEOUT || 
+                error.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
+                console.warn("Falling back to IP geolocation");
+                this.backend = new IPGeolocationBackend();
+                return this.refresh();
+            }
+            
+            throw error;
+        }
     }
 
     /** Whether the updater service is running */

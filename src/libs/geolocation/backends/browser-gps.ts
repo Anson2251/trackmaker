@@ -1,21 +1,76 @@
 import { isEqual, reject } from "lodash-es";
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
+import { LocationResponseErrorEnum } from "../types";
+import PlatformInfo from '@/utils/platform';
 
 const watchCompatibilityMode = false
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
+    private platform = new PlatformInfo();
+    
+    private get isIOS() {
+        return this.platform.os.toLowerCase().includes('ios');
+    }
+    
+    private get isFirefox() {
+        return this.platform.browser.toLowerCase().includes('firefox');
+    }
+    
+    private validateEnvironment() {
+        if (this.isIOS && window.location.protocol !== 'https:') {
+            throw {
+                code: LocationResponseErrorEnum.IOS_HTTPS_REQUIRED,
+                message: "Geolocation requires HTTPS on iOS"
+            };
+        }
+    }
+    
+    private getOptions() {
+        return {
+            enableHighAccuracy: !this.isIOS,
+            timeout: this.isIOS ? 60000 : 20000,
+            maximumAge: this.isIOS ? 0 : 5000
+        };
+    }
     async getPermissionStatus() {
+        if (this.isFirefox) {
+            return new Promise<"granted" | "denied" | "prompt" | "unknown">((resolve) => {
+                navigator.geolocation.getCurrentPosition(
+                    () => resolve("granted"),
+                    (error) => {
+                        if (error.code === error.PERMISSION_DENIED) {
+                            resolve("denied");
+                        } else {
+                            resolve("prompt");
+                        }
+                    },
+                    {
+                        timeout: 5000
+                    }
+                );
+            });
+        }
+
         if (!navigator.permissions) {
             console.error("navigator.permissions is not supported in this browser");
-            return "granted" // I don't know why some chrome based browsers on Android do ont have navigator.permissions
+            return "granted";
         }
+        
         const result = await navigator.permissions.query({ name: 'geolocation' });
         const status = result.state;
-        console.log("GPS permission status: ", status)
-        return status
+        console.log("GPS permission status: ", status);
+        return status;
     }
 
     getCurrentPosition() {
+        try {
+            this.validateEnvironment();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+        
+        const options = this.getOptions();
+        
         return new Promise<GeographicPointType>((resolve, reject: (reason: LocationResponseErrorType) => void) => {
             navigator.geolocation.getCurrentPosition(
                 (position) => resolve({
@@ -26,35 +81,44 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                     code: error.code,
                     message: error.message
                 }),
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 5000
-                }
+                options
             );
         });
     }
 
     watchPosition(callback: (location: Readonly<GeographicPointType>) => void) {
+        try {
+            this.validateEnvironment();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+        
+        const options = this.getOptions();
+        
         if (watchCompatibilityMode) {
             return new Promise<number>((resolve, reject) => {
                 this.getCurrentPosition()
                     .then(() => {
-                        let previousLocation: GeographicPointType | null = null
-                        resolve(setInterval(async () => {
+                        let previousLocation: GeographicPointType | null = null;
+                        const interval = setInterval(async () => {
                             this.getCurrentPosition().then(newLocation => {
-                                if (previousLocation && isEqual(previousLocation, newLocation)) return
-                                previousLocation = newLocation
-                                callback(Object.freeze(newLocation))
-                            })
-                        }, 5000) as unknown as number)
+                                if (previousLocation && isEqual(previousLocation, newLocation)) return;
+                                previousLocation = newLocation;
+                                callback(Object.freeze(newLocation));
+                            }).catch(() => { /* ignore errors in interval */ });
+                        }, 5000);
+                        resolve(interval as unknown as number);
                     })
-                    .catch(reject)
-            })
+                    .catch(reject);
+            });
         }
         else {
             return new Promise<number>((resolve, reject) => {
-                if (!navigator.geolocation) reject(new Error("Geolocation is not supported by this browser."));
+                if (!navigator.geolocation) {
+                    reject(new Error("Geolocation is not supported by this browser."));
+                    return;
+                }
+                
                 resolve(navigator.geolocation.watchPosition(
                     (position) => callback({
                         latitude: position.coords.latitude,
@@ -63,25 +127,10 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                     (error) => {
                         throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
                     },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 20000,
-                        maximumAge: 5000
-                    }
+                    options
                 ));
             });
         }
-
-        // return new Promise<number>((resolve) => {
-        //     setInterval(() => {
-        //         console.log("Mock GPS")
-        //         callback({
-        //             latitude: Math.random() * 180 - 90,
-        //             longitude: Math.random() * 360 - 180
-        //         })
-        //     }, 1000)
-        //     resolve(1)
-        // })
     }
 
     clearWatch(channelId: number) {
