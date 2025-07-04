@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./fonts/barlow.css";
 
 #app {
 	width: 100%;
@@ -21,6 +22,7 @@
 }
 
 :root {
+	font-family: 'Barlow', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	--nav-bar-height: 3em;
 }
 

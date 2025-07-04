@@ -17,6 +17,11 @@ provide("platformInfo", new PlatformInfo());
 
 const osThemeValueRef = useOsTheme();
 let theme = ref(osThemeValueRef.value === "dark" ? darkTheme : lightTheme);
+let themeOverride = {
+  common: {
+    fontFamily: 'Barlow, ' + theme.value.common.fontFamily
+  }
+}
 </script>
 
 <template>
@@ -24,6 +29,7 @@ let theme = ref(osThemeValueRef.value === "dark" ? darkTheme : lightTheme);
     :theme="theme"
     :abstract="true"
     :inline-theme-disabled="true"
+    :theme-overrides="themeOverride"
   >
     <n-dialog-provider>
       <n-modal-provider>
