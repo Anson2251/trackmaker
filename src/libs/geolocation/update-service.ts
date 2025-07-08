@@ -4,7 +4,6 @@ import BrowserGeolocationBackend from "./backends/browser-gps";
 import IPGeolocationBackend from "./backends/ip";
 import { injectTauriGeolocationProvider } from "./tauri-polyfill";
 import { isEqual } from "lodash-es";
-import PlatformInfo from '@/utils/platform';
 
 type HandlerItemType = {
     id: number
@@ -48,7 +47,7 @@ export class UpdateService {
     backend: GeolocationBackend | undefined;
     usingGPS: boolean = false;
 
-    async build(promptCallback: (() => Promise<void>) = async () => { }) {
+    async build(promptCallback: (() => Promise<boolean | void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
 
         if (__TAURI_ENVIRONMENT__) {
@@ -67,10 +66,16 @@ export class UpdateService {
         }
 
         let granted = await gps.getPermissionStatus();
-        if (granted === 'prompt' || granted === 'denied') {
-            await promptCallback();
-            granted = await gps.getPermissionStatus();
+        if (granted !== 'granted') {
+            const grantedState = await promptCallback();
+            if (grantedState) granted = "granted";
+            else granted = await gps.getPermissionStatus();
             console.log("Permission changed to", granted);
+        }
+
+        const useIpGeolocationBackend = () => {
+            this.backend = new IPGeolocationBackend();
+            console.log("Using IP Geolocation backend");
         }
 
         if (granted === 'granted') {
@@ -80,7 +85,6 @@ export class UpdateService {
                     this.backend = gps;
                     console.log("Using GPS Geolocation backend");
                     this.usingGPS = true;
-                    this.built = true;
                 })
                 .catch((error) => {
                     alert("GPS permission granted but current position retrieval failed. Falling back to IP geolocation.\nError Message: " + error.message)
@@ -90,21 +94,18 @@ export class UpdateService {
                     if (error.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
                         console.error("iOS requires HTTPS for geolocation. Falling back to IP geolocation.");
                     }
-                    this.backend = new IPGeolocationBackend();
-                    console.log("Using IP Geolocation backend");
+
+                    useIpGeolocationBackend()
+                })
+                .finally(() => {
                     this.built = true;
                 })
-
             return;
         }
         else {
-            this.backend = new IPGeolocationBackend();
-            console.log("Using IP Geolocation backend");
+            useIpGeolocationBackend()
             this.built = true;
         }
-
-        this.built = true;
-
     }
 
     /** Get the current geographic location */

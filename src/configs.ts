@@ -15,16 +15,29 @@ export const modules: moduleItem[] = [
 		moduleInit: async () => {
 			try {
 				const updateService = new UpdateService();
-				await updateService.build(() => new Promise<void>((resolve) => {
+				await updateService.build(() => new Promise<boolean | void>((resolve) => {
 					if (__TAURI_ENVIRONMENT__) {
 						resolve() // need to implement the permissions request logic for tauri environment
 						return;
 					}
-					if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), (e) => alert("Fail to initialise geolocation module.\nError Message: " + e.message), { enableHighAccuracy: false, timeout: 30000, maximumAge: Infinity });
+					if (confirm("This app requires access to your location to track your movements.")) {
+						navigator.geolocation.getCurrentPosition( // request the permission
+							() => resolve(true),
+							(e) => {
+								alert("Fail to initialise geolocation module.\nError Message: " + e.message)
+								resolve()
+							},
+							{
+								enableHighAccuracy: false,
+								timeout: 30000,
+								maximumAge: Infinity
+							}
+						);
+					}
 					else resolve();
 				}));
 				await updateService.start();
-				
+
 				(window as any).UpdateService = updateService; // expose for debugging purposes
 			}
 			catch (error) {

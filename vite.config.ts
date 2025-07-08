@@ -7,6 +7,7 @@ import viteCompression from 'vite-plugin-compression';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite'
 import legacy from '@vitejs/plugin-legacy';
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 const legacyLevel = ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12";
 
@@ -31,6 +32,7 @@ export default defineConfig(async () => {
 	const plugins = [
 		vue(),
 		tailwindcss(),
+		basicSsl()
 	];
 
 	if (!tauriEnv) {
