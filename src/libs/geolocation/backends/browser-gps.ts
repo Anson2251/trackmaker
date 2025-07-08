@@ -12,10 +12,6 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         return this.platform.os.toLowerCase().includes('ios');
     }
     
-    private get isFirefox() {
-        return this.platform.browser.toLowerCase().includes('firefox');
-    }
-    
     private validateEnvironment() {
         if (this.isIOS && window.location.protocol !== 'https:') {
             throw {
@@ -33,7 +29,8 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         };
     }
     async getPermissionStatus() {
-        if (this.isFirefox) {
+        if (!navigator.permissions) {
+            console.warn("navigator.permissions is not supported in this browser");
             return new Promise<"granted" | "denied" | "prompt" | "unknown">((resolve) => {
                 navigator.geolocation.getCurrentPosition(
                     () => resolve("granted"),
@@ -45,15 +42,12 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                         }
                     },
                     {
-                        timeout: 5000
+                        timeout: 5000,
+                        maximumAge: Infinity,
+                        enableHighAccuracy: false
                     }
                 );
             });
-        }
-
-        if (!navigator.permissions) {
-            console.error("navigator.permissions is not supported in this browser");
-            return "granted";
         }
         
         const result = await navigator.permissions.query({ name: 'geolocation' });
