@@ -19,7 +19,6 @@ import {
   NSpin,
   NAlert,
   useMessage,
-  useThemeVars,
 } from "naive-ui";
 import {
   TerraDraw,

@@ -1,13 +1,13 @@
 <script lang="ts" setup>
-import { computed, useTemplateRef, watch, ref } from "vue";
+import { ref } from "vue";
 import { useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
 import { NDropdown, NModal, NInput } from "naive-ui";
 import type { Route } from "@/libs/store/types";
-import { clamp } from "lodash-es";
 import { useI18n } from "vue-i18n";
+import MglDrawer from "./MglDrawer.vue";
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: "update:width", value: number): void;
@@ -15,23 +15,6 @@ const emit = defineEmits<{
 
 const routeStore = useRouteStore();
 const theme = useThemeVars();
-
-const routeDrawer = useTemplateRef("route-drawer");
-const routeDrawerWidth = computed(() =>
-  Math.min(
-    clamp(
-      Math.round((routeDrawer.value?.parentElement?.clientWidth ?? 2000) * 0.4),
-      320,
-      640
-    ),
-    (routeDrawer.value?.parentElement?.clientWidth ?? Infinity) - 48
-  )
-);
-const drawerTranslation = computed(() => `${-16 - routeDrawerWidth.value}px`);
-
-watch(routeDrawerWidth, () => emit("update:width", routeDrawerWidth.value));
-
-const drawerWidth = computed(() => `${routeDrawerWidth.value}px`);
 
 const show = defineModel("show", {
   type: Boolean,
@@ -48,7 +31,7 @@ const newRouteName = ref("");
 
 const listMenuOptions = [
   {
-    label:  t('components.trackerViewRouteDrawer.contextMenu.new'),
+    label: t('components.trackerViewRouteDrawer.contextMenu.new'),
     key: "new",
     props: {
       onClick: () => {
@@ -75,7 +58,7 @@ const itemMenuOptions = [
     },
   },
   {
-    label:  t('components.trackerViewRouteDrawer.contextMenu.delete'),
+    label: t('components.trackerViewRouteDrawer.contextMenu.delete'),
     key: "delete",
     props: {
       onClick: () => {
@@ -119,119 +102,45 @@ async function handleRename() {
 </script>
 
 <template>
-  <transition name="slide">
-    <div
-      class="route-drawer"
-      ref="route-drawer"
-      v-show="show"
-      @click="routeStore.currentRouteId = null"
-      @contextmenu="(e) => openRouteContextMenu(e)"
-    >
-      <div class="p-4" style="height: 100%">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-content: center;
-            height: 4em;
-          "
-        >
-          <p class="text-lg font-bold mb-4">{{ t("components.trackerViewRouteDrawer.routes") }}</p>
-        </div>
-        <div class="route-list">
-          <div
-            v-for="route in routeStore.routes"
-            :key="route.id"
-            @click="
-              (e) => {
-                e.stopPropagation();
-                routeStore.currentRouteId = route.id;
-              }
-            "
-            @contextmenu.prevent="
-              (e) => {
-                e.stopPropagation();
-                openItemContextMenu(e, route);
-              }
-            "
-            :class="[
-              'route-list-item',
-              ...(route.id === routeStore.currentRouteId ? ['active'] : []),
-            ]"
-          >
-            <div>{{ route.name ?? t('components.trackerViewRouteDrawer.nameNewRoute') }}</div>
-            <div>{{ t('components.trackerViewRouteDrawer.points', {num: route.points.length}) }}</div>
-          </div>
+  <mgl-drawer v-model:show=show @click="() => routeStore.currentRouteId = null"
+    @update:width="(w) => emit('update:width', w)" @contextmenu="(e) => openRouteContextMenu(e)">
+    <div class="p-4" style="height: 100%">
+      <p class="text-lg font-bold mb-4 ">{{ t("components.trackerViewRouteDrawer.routes") }}</p>
+      <div class="route-list">
+        <div v-for="route in routeStore.routes" :key="route.id" @click="
+          (e) => {
+            e.stopPropagation();
+            routeStore.currentRouteId = route.id;
+          }
+        " @contextmenu.prevent="
+          (e) => {
+            e.stopPropagation();
+            openItemContextMenu(e, route);
+          }
+        " :class="[
+        'route-list-item',
+        ...(route.id === routeStore.currentRouteId ? ['active'] : []),
+      ]">
+          <div>{{ route.name ?? t('components.trackerViewRouteDrawer.nameNewRoute') }}</div>
+          <div>{{ t('components.trackerViewRouteDrawer.points', { num: route.points.length }) }}</div>
         </div>
       </div>
     </div>
-  </transition>
+  </mgl-drawer>
 
-  <n-dropdown
-    :show="showItemContextMenu"
-    :x="contextMenuX"
-    :y="contextMenuY"
-    :options="itemMenuOptions"
-    @clickoutside="showItemContextMenu = false"
-  />
+  <n-dropdown :show="showItemContextMenu" :x="contextMenuX" :y="contextMenuY" :options="itemMenuOptions"
+    @clickoutside="showItemContextMenu = false" />
 
-  <n-dropdown
-    :show="showRouteContextMenu"
-    :x="contextMenuX"
-    :y="contextMenuY"
-    :options="listMenuOptions"
-    @clickoutside="showRouteContextMenu = false"
-  />
+  <n-dropdown :show="showRouteContextMenu" :x="contextMenuX" :y="contextMenuY" :options="listMenuOptions"
+    @clickoutside="showRouteContextMenu = false" />
 
-  <n-modal
-    preset="dialog"
-    v-model:show="showRenameDialog"
-    title="Rename Route"
-    positive-text="Save"
-    negative-text="Cancel"
-    @positive-click="handleRename"
-  >
-    <n-input
-      v-model:value="newRouteName"
-      placeholder="Enter new route name"
-      @keyup.enter="handleRename"
-    />
+  <n-modal preset="dialog" v-model:show="showRenameDialog" title="Rename Route" positive-text="Save"
+    negative-text="Cancel" @positive-click="handleRename">
+    <n-input v-model:value="newRouteName" placeholder="Enter new route name" @keyup.enter="handleRename" />
   </n-modal>
 </template>
 
 <style scoped>
-.route-drawer {
-  position: absolute;
-  padding-left: 48px;
-  padding-bottom: 32px;
-  box-sizing: border-box;
-
-  bottom: 0;
-  left: 0px;
-
-  top: 0;
-  width: v-bind(drawerWidth);
-
-  background-color: v-bind("theme.modalColor");
-  box-shadow: 10px 4px 15px 3px rgba(0, 0, 0, 0.1),
-    2px 2px 6px 0px rgba(0, 0, 0, 0.2);
-  border-radius: v-bind("theme.borderRadius");
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(v-bind("drawerTranslation"));
-  opacity: 0.8;
-  transition: all 0.5s;
-}
-
-.slide-leave-from,
-.slide-enter-to {
-  transform: translateX(0px);
-  opacity: 1;
-  transition: all 0.5s;
-}
-
 .route-list {
   max-height: calc(100% - 4em);
   overflow-y: auto;
@@ -245,7 +154,8 @@ async function handleRename() {
   width: 100%;
   height: fit-content;
   padding: 8px 12px;
-  transition: background-color 0.1s ease-in-out;
+  transition: background-color, border 0.1s ease-in-out;
+  border-radius: v-bind("theme.borderRadius");
 }
 
 .route-list-item:hover:not(.active) {
@@ -253,6 +163,8 @@ async function handleRename() {
 }
 
 .route-list-item.active {
-  background-color: v-bind("theme.actionColor");
+  background-color: v-bind("theme.primaryColorPressed");
+  color: v-bind("theme.bodyColor");
+  font-weight: 500;
 }
 </style>

@@ -13,6 +13,7 @@
 			padding: 0;
 			margin: 0;
 			height: 100%;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 		}
 
 		#splash,
@@ -53,17 +54,12 @@
 			content: "---"
 		}
 
-		@keyframes breathingLight {
+		@keyframes spinner {
 			0% {
-				opacity: 1;
+				transform: rotate(0deg);
 			}
-
-			50% {
-				opacity: 0.5;
-			}
-
 			100% {
-				opacity: 1;
+				transform: rotate(360deg);
 			}
 		}
 	</style>
@@ -75,8 +71,16 @@
 		<h2>Trackmaker requires <u>JavaScript</u></h2>
 		<strong>It seems the browser you are using does not support JavaScript (or it has been disabled).</strong>
 	</noscript>
+	
 	<div id="app"></div>
-	<div id="splash" style="animation: breathingLight 2s infinite;">Loading Trackmaker ...</div>
+	<div id="splash">
+		<svg style="animation: spinner 1s linear infinite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20" width="40" height="40">
+			<g fill="none">
+				<path d="M10 3a7 7 0 0 0-7 7a.5.5 0 0 1-1 0a8 8 0 1 1 8 8a.5.5 0 0 1 0-1a7 7 0 1 0 0-14z" fill="currentColor"></path>
+			</g>
+		</svg>
+		Loading Trackmaker ...
+	</div>
 	<div id="timeout" style="color: red; display: none;">
 		<p>Loading modules <b style="font-weight: bold;">Timeout</b></p>
 		<p>Please <u>check the Internet connection</u> and <u>refresh the page</u></p>
