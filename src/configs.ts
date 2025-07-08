@@ -20,7 +20,7 @@ export const modules: moduleItem[] = [
 						resolve() // need to implement the permissions request logic for tauri environment
 						return;
 					}
-					if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), () => resolve(), { enableHighAccuracy: false, timeout: 30000, maximumAge: Infinity });
+					if (confirm("This app requires access to your location to track your movements.")) navigator.geolocation.getCurrentPosition(() => resolve(), (e) => alert("Fail to initialise geolocation module.\nError Message: " + e.message), { enableHighAccuracy: false, timeout: 30000, maximumAge: Infinity });
 					else resolve();
 				}));
 				await updateService.start();

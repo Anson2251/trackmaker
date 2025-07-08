@@ -62,7 +62,7 @@ export class UpdateService {
 
             if (granted === 'granted') {
                 // Try to get current position to verify GPS functionality
-                await gps.getCurrentPosition();
+                await gps.getCurrentPosition()
                 this.backend = gps;
                 console.log("Using GPS Geolocation backend");
                 this.usingGPS = true;
@@ -70,6 +70,7 @@ export class UpdateService {
                 return;
             }
         } catch (error: any) {
+            alert("GPS permission granted but current position retrieval failed. Falling back to IP geolocation.\nError Message" + error.message)
             console.error("GPS backend initialization failed:", error.message);
             
             // Handle iOS HTTPS requirement error specifically
