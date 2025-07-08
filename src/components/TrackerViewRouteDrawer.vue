@@ -78,6 +78,10 @@ const itemMenuOptions = [
 
 function openItemContextMenu(e: MouseEvent, route: Route) {
   e.preventDefault();
+  if (showItemContextMenu.value) {
+    showItemContextMenu.value = false;
+    return;
+  }
   selectedRoute.value = route;
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
@@ -86,6 +90,10 @@ function openItemContextMenu(e: MouseEvent, route: Route) {
 
 function openRouteContextMenu(e: MouseEvent) {
   e.preventDefault();
+  if (showRouteContextMenu.value) {
+    showRouteContextMenu.value = false;
+    return;
+  }
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
   showRouteContextMenu.value = true;
@@ -129,10 +137,10 @@ async function handleRename() {
   </mgl-drawer>
 
   <n-dropdown :show="showItemContextMenu" :x="contextMenuX" :y="contextMenuY" :options="itemMenuOptions"
-    @clickoutside="showItemContextMenu = false" />
+    @clickoutside="showItemContextMenu = false" placement="bottom-start" trigger="manual"/>
 
   <n-dropdown :show="showRouteContextMenu" :x="contextMenuX" :y="contextMenuY" :options="listMenuOptions"
-    @clickoutside="showRouteContextMenu = false" />
+    @clickoutside="showRouteContextMenu = false" placement="bottom-start" trigger="manual"/>
 
   <n-modal preset="dialog" v-model:show="showRenameDialog" title="Rename Route" positive-text="Save"
     negative-text="Cancel" @positive-click="handleRename">
@@ -154,16 +162,18 @@ async function handleRename() {
   width: 100%;
   height: fit-content;
   padding: 8px 12px;
-  transition: background-color, border 0.1s ease-in-out;
+  border: 1px solid transparent;
   border-radius: v-bind("theme.borderRadius");
 }
 
 .route-list-item:hover:not(.active) {
   background-color: v-bind("theme.hoverColor");
+  transition: background-color 0.1s ease-in-out;
 }
 
 .route-list-item.active {
-  background-color: v-bind("theme.primaryColorPressed");
+  border: 1px solid v-bind("theme.primaryColorPressed");
+  background-color: v-bind("theme.primaryColor");
   color: v-bind("theme.bodyColor");
   font-weight: 500;
 }

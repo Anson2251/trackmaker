@@ -89,7 +89,7 @@ const uploadModelOpened = ref(false);
 
 const singlePointMarker = new Marker();
 const geojsonSource = computed<any>(() => {
-  if (path.value.length > 1) {
+  if (path.value.length > 1 || path.value.length === 0) {
     singlePointMarker.remove();
     return {
       type: "FeatureCollection",
