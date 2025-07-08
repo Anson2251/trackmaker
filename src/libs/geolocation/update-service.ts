@@ -67,7 +67,7 @@ export class UpdateService {
         }
 
         let granted = await gps.getPermissionStatus();
-        if (granted === 'prompt') {
+        if (granted === 'prompt' || granted === 'denied') {
             await promptCallback();
             granted = await gps.getPermissionStatus();
             console.log("Permission changed to", granted);
