@@ -97,6 +97,11 @@ export class UpdateService {
 
             return;
         }
+        else {
+            this.backend = new IPGeolocationBackend();
+            console.log("Using IP Geolocation backend");
+            this.built = true;
+        }
 
         this.built = true;
 
