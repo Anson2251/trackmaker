@@ -24,7 +24,7 @@ export const useRouteStore = defineStore('routes', {
         },
         async deleteRoute(id: string) {
             this.routes = this.routes.filter(r => r.id !== id);
-            this.currentRouteId = null
+            if (this.currentRouteId === id) this.currentRouteId = null
             await storeSet('routes', JSON.stringify(this.routes));
             await storeSave();
         },
