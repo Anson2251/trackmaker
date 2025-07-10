@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import "tailwindcss";
-import { ref, onMounted, computed, inject, type Component, shallowRef } from "vue";
+import { ref, onMounted, computed, inject, type Component, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   MglMap,
@@ -328,18 +328,8 @@ function loadTrackFromFile() {
 
 const routeDrawerWidth = ref(0);
 const isRouteDrawerOpen = ref(false);
-const toggleRouteDrawer = () => {
-  if (isRouteDrawerOpen.value) {
-    isRouteDrawerOpen.value = false;
-    map.value?.easeTo({ padding: { left: 0 }, duration: 500 });
-    return;
-  }
-  isRouteDrawerOpen.value = true;
-  map.value?.easeTo({
-    padding: { left: routeDrawerWidth.value },
-    duration: 500,
-  });
-};
+watch(isRouteDrawerOpen, (val) => map.value?.easeTo({ padding: { left: val ? routeDrawerWidth.value : 0 }, duration: 500 }))
+const toggleRouteDrawer = () => isRouteDrawerOpen.value = !isRouteDrawerOpen.value;
 
 const drawerTooltipOpened = ref(false);
 const openDrawerTooltip = () => {

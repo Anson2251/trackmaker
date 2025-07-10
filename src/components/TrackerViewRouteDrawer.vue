@@ -6,7 +6,7 @@ import { NDropdown, NModal, NInput } from "naive-ui";
 import type { Route } from "@/libs/store/types";
 import { useI18n } from "vue-i18n";
 import MglDrawer from "./MglDrawer.vue";
-import { clamp } from "lodash-es";
+import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
 
 const { t } = useI18n();
 
@@ -22,70 +22,13 @@ const show = defineModel("show", {
   default: false,
 });
 
-const swipeTransitionDuration = ref("0s");
-// Swipe handling
-const swipeState = ref<{
-  startX: number;
-  delta: number;
-  currentX: number;
-  containerWidth: number;
-  activeId: string | null;
-}>({
-  startX: 0,
-  delta: 0,
-  currentX: 0,
-  containerWidth: 0,
-  activeId: null,
-});
-
-function handleTouchStart(e: TouchEvent, routeId: string) {
-  if (swipeState.value.activeId !== routeId) clearSwipeState();
-  const touch = e.touches[0];
-  swipeState.value = {
-    startX: touch.clientX,
-    delta: swipeState.value.delta ?? 0,
-    currentX: touch.clientX,
-    containerWidth: (e.currentTarget as HTMLElement).offsetWidth,
-    activeId: routeId,
-  };
-}
-
-function handleTouchMove(e: TouchEvent) {
-  if (!swipeState.value.activeId) return;
-  swipeState.value.currentX = e.touches[0].clientX;
-  swipeState.value.delta += swipeState.value.startX - swipeState.value.currentX;
-  swipeState.value.delta = clamp(
-    swipeState.value.delta,
-    0,
-    swipeState.value.containerWidth
-  );
-
-  swipeState.value.startX = e.touches[0].clientX;
-}
-
-function handleTouchEnd() {
-  if (!swipeState.value.activeId) return;
-
-  swipeTransitionDuration.value = `${
-    (swipeState.value.delta / swipeState.value.containerWidth) * 0.3
-  }s`;
-  setTimeout(() => {
-    swipeTransitionDuration.value = "0s";
-  }, 300);
-
-  swipeState.value.delta =
-    swipeState.value.delta > swipeState.value.containerWidth * 0.5
-      ? swipeState.value.containerWidth
-      : 0;
-}
-
-const showItemContextMenu = ref(false);
 const showRouteContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const selectedRoute = ref<Route | null>(null);
 const showRenameDialog = ref(false);
 const newRouteName = ref("");
+const renameRouteId = ref<string | null>(null)
 
 const listMenuOptions = [
   {
@@ -106,11 +49,9 @@ const itemMenuOptions = [
     key: "rename",
     props: {
       onClick: () => {
-        showItemContextMenu.value = false;
         if (selectedRoute.value?.id) {
           newRouteName.value = selectedRoute.value.name || "";
           showRenameDialog.value = true;
-          console.log(showRenameDialog.value);
         }
       },
     },
@@ -120,7 +61,6 @@ const itemMenuOptions = [
     key: "delete",
     props: {
       onClick: () => {
-        showItemContextMenu.value = false;
         if (selectedRoute.value) {
           routeStore.deleteRoute(selectedRoute.value.id);
         }
@@ -134,20 +74,29 @@ const itemMenuOptions = [
   ...listMenuOptions,
 ];
 
-function openItemContextMenu(e: MouseEvent, route: Route) {
-  e.preventDefault();
-  if (showItemContextMenu.value) {
-    showItemContextMenu.value = false;
-    return;
-  }
-  selectedRoute.value = route;
-  contextMenuX.value = e.clientX;
-  contextMenuY.value = e.clientY;
-  showItemContextMenu.value = true;
-}
+const swipeActions = [
+  {
+    label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
+    name: "rename",
+    action: (id: string) => {
+      const route = routeStore.routes.find(r => r.id === id);
+      renameRouteId.value = id;
+      newRouteName.value = route?.name || "";
+      showRenameDialog.value = true;
+    },
+  },
+  {
+    label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
+    name: "rename",
+    action: (id: string) => routeStore.deleteRoute(id),
+    color: theme.value.errorColorSuppl,
+  },
+];
 
 function openRouteContextMenu(e: MouseEvent) {
+  e.stopPropagation();
   e.preventDefault();
+  renameRouteId.value = routeStore.currentRouteId;
   if (showRouteContextMenu.value) {
     showRouteContextMenu.value = false;
     return;
@@ -157,31 +106,10 @@ function openRouteContextMenu(e: MouseEvent) {
   showRouteContextMenu.value = true;
 }
 
-function handleRenameAction(route: Route) {
-  if (swipeState.value.delta === 0) return;
-  selectedRoute.value = route;
-  newRouteName.value = route.name || "";
-  showRenameDialog.value = true;
-}
-
-function handleDeleteAction(routeId: string) {
-  if (swipeState.value.delta === 0) return;
-  routeStore.deleteRoute(routeId);
-}
-
-function clearSwipeState() {
-  swipeState.value = {
-    startX: 0,
-    delta: 0,
-    currentX: 0,
-    containerWidth: 0,
-    activeId: null,
-  };
-}
-
-async function handleRename() {
+async function handleRename(routeId: string) {
+  console.log(routeId, newRouteName.value)
   if (selectedRoute.value && newRouteName.value.trim()) {
-    await routeStore.updateRoute(selectedRoute.value.id, {
+    await routeStore.updateRoute(routeId, {
       name: newRouteName.value.trim(),
     });
     showRenameDialog.value = false;
@@ -200,103 +128,32 @@ async function handleRename() {
       <p class="text-lg font-bold mb-4">
         {{ t("components.trackerViewRouteDrawer.routes") }}
       </p>
-      <div class="route-list">
-        <div
-          v-for="route in routeStore.routes"
-          :key="route.id"
-          @click="
-            (e) => {
-              e.stopPropagation();
-              console.log(swipeState.delta)
-              if (swipeState.delta > 5) return
-              clearSwipeState()
-              routeStore.currentRouteId = route.id;
-              console.log('route clicked', route.id)
-            }
-          "
-          @contextmenu.prevent="
-            (e) => {
-              e.stopPropagation();
-              openItemContextMenu(e, route);
-            }
-          "
-          @touchstart="handleTouchStart($event, route.id)"
-          @touchmove="handleTouchMove"
-          @touchend="handleTouchEnd"
-          :class="[
-            'route-list-item',
-            ...(route.id === routeStore.currentRouteId ? ['active'] : []),
-          ]"
-          :style="{
-            'touch-action': swipeState.activeId === route.id ? 'pan-y' : 'auto',
-          }"
-          :data-route-id="route.id"
-        >
-          <div class="swipe-container">
-            <div
-              class="content-col"
-              :style="{
-                transform: `translateX(${
-                  swipeState.activeId === route.id ? -swipeState.delta : 0
-                }px)`,
-                willChange:
-                  swipeState.activeId === route.id ? `transform` : 'auto',
-              }"
-            >
-              <div style="height: fit-content; padding: 8px 12px">
-                <div>
-                  {{
-                    route.name ??
-                    t("components.trackerViewRouteDrawer.nameNewRoute")
-                  }}
-                </div>
-                <div>
-                  {{
-                    t("components.trackerViewRouteDrawer.points", {
-                      num: route.points.length,
-                    })
-                  }}
-                </div>
-              </div>
+      <selectable-swipeable-menu-list
+        :items="routeStore.routes"
+        :selected-id="routeStore.currentRouteId"
+        :menu-options="itemMenuOptions"
+        :swipe-actions="swipeActions"
+        @select="(id) => (routeStore.currentRouteId = id)"
+      >
+        <template #item="{ item: route }">
+          <div style="height: fit-content; padding: 8px 12px">
+            <div>
+              {{
+                route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
+              }}
             </div>
-            <div
-              class="actions-col"
-              :style="{
-                width: `${
-                  swipeState.activeId === route.id ? swipeState.delta : 0
-                }px`,
-                willChange: swipeState.activeId === route.id ? `width` : 'auto',
-              }"
-            >
-              <button
-                class="menu-action"
-                @click="() => handleRenameAction(route)"
-              >
-                {{ t("components.trackerViewRouteDrawer.contextMenu.rename") }}
-              </button>
-              <button
-                class="menu-action"
-                @click="() => handleDeleteAction(route.id)"
-                :style="{ background: theme.errorColorSuppl }"
-              >
-                {{ t("components.trackerViewRouteDrawer.contextMenu.delete") }}
-              </button>
+            <div>
+              {{
+                t("components.trackerViewRouteDrawer.points", {
+                  num: route.points.length,
+                })
+              }}
             </div>
           </div>
-        </div>
-      </div>
+        </template>
+      </selectable-swipeable-menu-list>
     </div>
   </mgl-drawer>
-
-  <n-dropdown
-    :show="showItemContextMenu"
-    :x="contextMenuX"
-    :y="contextMenuY"
-    :options="itemMenuOptions"
-    @clickoutside="showItemContextMenu = false"
-    placement="bottom-start"
-    trigger="manual"
-  />
 
   <n-dropdown
     :show="showRouteContextMenu"
@@ -314,12 +171,12 @@ async function handleRename() {
     title="Rename Route"
     positive-text="Save"
     negative-text="Cancel"
-    @positive-click="handleRename"
+    @positive-click="() => {if (renameRouteId) handleRename(renameRouteId)}"
   >
     <n-input
       v-model:value="newRouteName"
       placeholder="Enter new route name"
-      @keyup.enter="handleRename"
+      @keyup.enter="() => {if (renameRouteId) handleRename(renameRouteId)}"
     />
   </n-modal>
 </template>
@@ -370,27 +227,6 @@ async function handleRename() {
   background-color: v-bind("theme.primaryColor");
   color: v-bind("theme.bodyColor");
   font-weight: 500;
-}
-
-.content-col {
-  position: relative;
-  transition: transform v-bind("swipeTransitionDuration") ease-out;
-
-  height: 100%;
-  right: 0;
-  left: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.actions-col {
-  transition: width v-bind("swipeTransitionDuration") ease-out;
-  position: absolute;
-  display: flex;
-  right: 0;
-  align-items: center;
 }
 
 .menu-action {

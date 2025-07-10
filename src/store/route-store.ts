@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { storeGet, storeSet, storeSave } from '../libs/store';
 import type { Route, Point } from '../libs/store/types';
 import { ref } from 'vue';
-import { isEqual } from 'lodash-es';
+import { isEqual, cloneDeep, isString } from 'lodash-es';
 
 export const useRouteStore = defineStore('routes', {
     state: () => ({
@@ -13,19 +13,19 @@ export const useRouteStore = defineStore('routes', {
     actions: {
         async init() {
             const result = await storeGet<Route[]>('routes');
-            if (result) this.routes = JSON.parse(result);
+            if (result) this.routes = isString(result) ? JSON.parse(result) : result;
         },
         async addRoute(route: Omit<Route, 'id'>) {
             const newRoute = { ...route, id: uuidv4() };
             this.routes.push(newRoute);
-            await storeSet('routes', JSON.stringify(this.routes));
+            await storeSet('routes', cloneDeep(this.routes));
             await storeSave();
             return newRoute;
         },
         async deleteRoute(id: string) {
             this.routes = this.routes.filter(r => r.id !== id);
             if (this.currentRouteId === id) this.currentRouteId = null
-            await storeSet('routes', JSON.stringify(this.routes));
+            await storeSet('routes', cloneDeep(this.routes));
             await storeSave();
         },
         async addPointToRoute(id: string, point: Point) {
@@ -34,7 +34,7 @@ export const useRouteStore = defineStore('routes', {
             if (route.points.length > 0 && isEqual(route.points[route.points.length - 1], point)) return;
             if (route) {
                 route.points.push(point);
-                await storeSet('routes', JSON.stringify(this.routes));
+                await storeSet('routes', cloneDeep(this.routes));
                 await storeSave();
             }
         },
@@ -42,7 +42,7 @@ export const useRouteStore = defineStore('routes', {
             const route = this.routes.find(r => r.id === id);
             if (route) {
                 Object.assign(route, updates);
-                await storeSet('routes', JSON.stringify(this.routes));
+                await storeSet('routes', cloneDeep(this.routes));
                 await storeSave();
             }
         }
