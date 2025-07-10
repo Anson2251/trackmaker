@@ -141,7 +141,7 @@ async function handleRename(routeId: string) {
         "
       >
         <template #item="{ item: route }">
-          <div style="height: fit-content; padding: 8px 12px">
+          <div style="height: fit-content; padding: 8px 12px; text-align: left;">
             <div>
               {{
                 route.name ??
