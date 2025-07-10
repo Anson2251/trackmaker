@@ -28,7 +28,7 @@ const contextMenuY = ref(0);
 const selectedRoute = ref<Route | null>(null);
 const showRenameDialog = ref(false);
 const newRouteName = ref("");
-const renameRouteId = ref<string | null>(null)
+const renameRouteId = ref<string | null>(null);
 
 const listMenuOptions = [
   {
@@ -79,7 +79,7 @@ const swipeActions = [
     label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
     name: "rename",
     action: (id: string) => {
-      const route = routeStore.routes.find(r => r.id === id);
+      const route = routeStore.routes.find((r) => r.id === id);
       renameRouteId.value = id;
       newRouteName.value = route?.name || "";
       showRenameDialog.value = true;
@@ -87,7 +87,7 @@ const swipeActions = [
   },
   {
     label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
-    name: "rename",
+    name: "delete",
     action: (id: string) => routeStore.deleteRoute(id),
     color: theme.value.errorColorSuppl,
   },
@@ -107,8 +107,7 @@ function openRouteContextMenu(e: MouseEvent) {
 }
 
 async function handleRename(routeId: string) {
-  console.log(routeId, newRouteName.value)
-  if (selectedRoute.value && newRouteName.value.trim()) {
+  if (newRouteName.value.trim()) {
     await routeStore.updateRoute(routeId, {
       name: newRouteName.value.trim(),
     });
@@ -134,12 +133,19 @@ async function handleRename(routeId: string) {
         :menu-options="itemMenuOptions"
         :swipe-actions="swipeActions"
         @select="(id) => (routeStore.currentRouteId = id)"
+        @contextmenu="
+          (_, item) => {
+            renameRouteId = item?.id ?? null;
+            selectedRoute = item ?? null;
+          }
+        "
       >
         <template #item="{ item: route }">
           <div style="height: fit-content; padding: 8px 12px">
             <div>
               {{
-                route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
+                route.name ??
+                t("components.trackerViewRouteDrawer.nameNewRoute")
               }}
             </div>
             <div>
@@ -171,12 +177,20 @@ async function handleRename(routeId: string) {
     title="Rename Route"
     positive-text="Save"
     negative-text="Cancel"
-    @positive-click="() => {if (renameRouteId) handleRename(renameRouteId)}"
+    @positive-click="
+      () => {
+        if (renameRouteId) handleRename(renameRouteId);
+      }
+    "
   >
     <n-input
       v-model:value="newRouteName"
       placeholder="Enter new route name"
-      @keyup.enter="() => {if (renameRouteId) handleRename(renameRouteId)}"
+      @keyup.enter="
+        () => {
+          if (renameRouteId) handleRename(renameRouteId);
+        }
+      "
     />
   </n-modal>
 </template>

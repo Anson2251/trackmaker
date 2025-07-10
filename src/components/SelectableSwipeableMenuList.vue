@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useThemeVars } from "naive-ui";
 import { NDropdown } from "naive-ui";
 import { clamp } from "lodash-es";
+import type { Route } from "@/libs/store/types";
 
 const props = defineProps<{
   items: Array<{ id: string; [key: string]: any }>;
@@ -18,7 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "select", id: string): void;
-  (e: "contextmenu", event: MouseEvent, item?: any): void;
+  (e: "contextmenu", event: MouseEvent, item?: Route): void;
 }>();
 
 const theme = useThemeVars();
@@ -121,7 +122,7 @@ function openItemContextMenu(e: MouseEvent, item: any) {
       v-for="item in props.items"
       :key="item.id"
       @click="handleItemClick($event, item)"
-      @contextmenu.prevent="openItemContextMenu($event, item)"
+      @contextmenu.prevent="(e) => openItemContextMenu(e, item)"
       @touchstart="handleTouchStart($event, item.id)"
       @touchmove="handleTouchMove"
       @touchend="handleTouchEnd"
