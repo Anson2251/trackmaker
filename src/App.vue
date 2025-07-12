@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, provide } from "vue";
+import { ref, provide, computed, onMounted } from "vue";
 import Layout from "./Layout.vue";
 import {
   darkTheme,
@@ -12,16 +12,26 @@ import {
   useOsTheme,
 } from "naive-ui";
 import PlatformInfo from "./utils/platform";
+import { useSettingsStore } from "./store/settings-store";
 
 provide("platformInfo", new PlatformInfo());
+const settings = useSettingsStore();
+onMounted(() => settings.init())
+provide("settings", settings);
 
 const osThemeValueRef = useOsTheme();
-let theme = ref(osThemeValueRef.value === "dark" ? darkTheme : lightTheme);
+let theme = computed(() => 
+  (settings.theme === "system" ? osThemeValueRef.value : settings.theme) ===
+    "dark"
+    ? darkTheme
+    : lightTheme
+);
 let themeOverride = {
   common: {
-    fontFamily: 'Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"'
-  }
-}
+    fontFamily:
+      'Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
+  },
+};
 </script>
 
 <template>

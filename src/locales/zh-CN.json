@@ -4,9 +4,22 @@
         "loading": "加载中...",
         "error": "错误：{message}"
     },
+    "settings": {
+        "title": "设置",
+        "appearance": {
+            "title": "外观",
+            "theme": "主题",
+            "options": {
+                "light": "浅色",
+                "dark": "深色",
+                "system": "跟随系统"
+            }
+        }
+    },
     "router": {
         "tracker": "轨迹记录",
-        "about": "关于"
+        "about": "关于",
+        "settings": "设置"
     },
     "trackerView": {
         "locationLoading": "正在获取您的位置，请稍候...",

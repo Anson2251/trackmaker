@@ -17,3 +17,4 @@ declare const __MAPTILER_KEY__: string;
 
 declare const __RELEASE_MODE__: boolean;
 declare const __TAURI_ENVIRONMENT__: boolean;
+declare const __MOST_RECENT_COMMIT__: string;

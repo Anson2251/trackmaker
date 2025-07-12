@@ -4,9 +4,22 @@
         "loading": "Loading...",
         "error": "Error: {message}"
     },
+    "settings": {
+        "title": "Settings",
+        "appearance": {
+            "title": "Appearance",
+            "theme": "Theme",
+            "options": {
+                "light": "Light",
+                "dark": "Dark",
+                "system": "System Default"
+            }
+        }
+    },
     "router": {
         "tracker": "Tracker",
-        "about": "About"
+        "about": "About",
+        "settings": "Settings"
     },
     "trackerView": {
         "locationLoading": "Getting your location, please wait a moment...",

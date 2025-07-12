@@ -1,5 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import dotenv from 'dotenv';
+import { exec } from 'child_process'
 
 import { defineConfig } from 'vite';
 import viteCompression from 'vite-plugin-compression';
@@ -8,6 +9,7 @@ import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite'
 import legacy from '@vitejs/plugin-legacy';
 import basicSsl from '@vitejs/plugin-basic-ssl'
+import { resolve } from 'node:path';
 
 const legacyLevel = ">0.3%, edge>=12, firefox>=57, chrome>=48, safari>=11, chromeAndroid>=48, iOS>=12";
 
@@ -20,6 +22,14 @@ const compression = viteCompression({
 	deleteOriginFile: false
 });
 
+const getMostRecentCommitId = () => new Promise<string>((resolve, reject) => {
+	exec("git rev-parse --short HEAD", (error, stdout, stderr) => {
+		if (error) reject(error)
+		if (stderr) reject(stderr)
+		resolve(stdout)
+	});
+})
+
 dotenv.config();
 
 const host = process.env.TAURI_DEV_HOST;
@@ -28,6 +38,7 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => {
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
 	const tauriEnv = !!JSON.parse((process.env.TAURI_ENVIRONMENT || "false").toLowerCase());
+	const commitId = await getMostRecentCommitId();
 
 	const plugins = [
 		vue(),
@@ -48,6 +59,7 @@ export default defineConfig(async () => {
 			__MAPTILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
 			__RELEASE_MODE__: releaseMode ? "true" : "false",
 			__TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
+			__MOST_RECENT_COMMIT__: JSON.stringify(commitId)
 		},
 		base: './',
 		plugins: plugins,
