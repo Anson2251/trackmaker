@@ -62,7 +62,9 @@ import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { UpdateService } from "@/libs/geolocation/update-service";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
+import { useSettingsStore } from "@/store/settings-store";
 
+const settings = useSettingsStore();
 const message = useMessage();
 const locator = inject("geolocation") as UpdateService;
 const { t } = useI18n();
@@ -202,8 +204,12 @@ const drawerModes: DrawModes[] = [
   },
 ];
 
-const changeMapLanguage = (map: Mgl) => {
-  const language = i18n.locale.value === 'zh-CN' ? 'zh' : 'en'
+watch([() => settings.settings.mapLanguage, () => i18n.locale.value], (v) => {
+  if (v && map.value) changeMapLanguage(map.value, v[0] === 'interface' ? v[1] : v[0])
+})
+
+const changeMapLanguage = (map: Mgl, lang: string) => {
+  const language = lang === 'zh-CN' ? 'zh' : 'en'
   const layers = ['City labels', 'Road labels', 'Station labels', 'Airport labels', 'Continent labels', 'Country labels']
 
   for (const layer of layers) {
@@ -216,7 +222,7 @@ const changeMapLanguage = (map: Mgl) => {
 
 function initMap(event: any) {
   map.value = event.map;
-  if (map.value) changeMapLanguage(map.value as any)
+  if (map.value) changeMapLanguage(map.value as any, i18n.locale.value)
   map.value?.on("click", () => {
     isRouteDrawerOpen.value = false;
   });

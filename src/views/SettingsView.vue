@@ -7,31 +7,100 @@ import {
   NListItem,
   NRadioGroup,
   NRadioButton,
-  NSelect
+  NSelect,
+  NSwitch
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
-import { computed, inject, onMounted, watch } from "vue";
+import {
+  computed,
+  inject,
+  onMounted,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { useWindowSize } from "@vueuse/core";
 
-const { width } = useWindowSize()
-const isNarrowScreen = computed(() => width.value < 640)
-const isExtremeNarrowScreen = computed(() => width.value < 480)
-const { t } = useI18n();
-const settingsStore = inject("settings") as ReturnType<typeof useSettingsStore>
+const { width } = useWindowSize();
+const isNarrowScreen = computed(() => width.value < 640);
+const isExtremeNarrowScreen = computed(() => width.value < 480);
+const { t, availableLocales } = useI18n();
+const a = useI18n();
+const settingsStore = inject("settings") as ReturnType<typeof useSettingsStore>;
 
-const configs = {
-  appearance: {
-    theme: {
-      type: "radio",
-      items: [
-        { value: "light", label: t("settings.appearance.options.light") },
-        { value: "dark", label: t("settings.appearance.options.dark") },
-        { value: "system", label: t("settings.appearance.options.system") },
-      ],
-    },
-  },
+type SettingItemTitle = keyof typeof settingsStore.settings;
+type SettingOption = {
+  value: string;
+  label: string;
 };
+type SettingItem =
+  | {
+      title: SettingItemTitle;
+      type: "radio";
+      items: SettingOption[];
+    }
+  | {
+      title: SettingItemTitle;
+      type: "select";
+      items: SettingOption[];
+    }
+| {
+    title: SettingItemTitle;
+    type: "checkbox";
+}
+;
+
+type Section = {
+  title: string;
+  items: SettingItem[];
+};
+
+type Config = Section[];
+
+const configs = computed<Config>(() => [
+  {
+    title: "appearance",
+    items: [
+      {
+        title: "theme",
+        type: "radio",
+        items: [
+          { value: "light", label: t("settings.appearance.theme.options.light") },
+          { value: "dark", label: t("settings.appearance.theme.options.dark") },
+          { value: "system", label: t("settings.appearance.theme.options.system") },
+        ],
+      },
+    ],
+  },
+  {
+    title: "geolocation",
+    items: [
+        {
+            title: "watchCompatibilityMode",
+            type: "checkbox",
+        }
+    ]
+  },
+  {
+    title: "language",
+    items: [
+      {
+        title: "interfaceLanguage",
+        type: "select",
+        items: availableLocales.map((l) => ({
+          value: l,
+          label: t(`settings.language.interfaceLanguage.options.${l}`),
+        })),
+      },
+      {
+        title: "mapLanguage",
+        type: "select",
+        items: availableLocales.map((l) => ({
+          value: l,
+          label: t(`settings.language.mapLanguage.options.${l}`),
+        })).concat([{value: 'interface', label: t("settings.language.mapLanguage.options.interface")}]),
+      }
+    ],
+  },
+]);
 
 onMounted(() => {
   settingsStore.init();
@@ -44,12 +113,12 @@ onMounted(() => {
       <div class="settings-content">
         <n-card
           id="appearance"
-          :title="$t(`settings.${section}.title`)"
-          v-for="(config, section) in configs"
-          :key="section"
+          :title="$t(`settings.${section.title}.title`)"
+          v-for="section in configs"
+          :key="section.title"
         >
           <n-list>
-            <n-list-item v-for="(item, key) in config">
+            <n-list-item v-for="item in section.items">
               <div
                 style="
                   display: flex;
@@ -59,30 +128,52 @@ onMounted(() => {
                 "
               >
                 <div style="white-space: nowrap">
-                  {{ $t(`settings.${section}.${key}`) }}
+                  {{ (item as any).items ? $t(`settings.${section.title}.${item.title}.title`) : $t(`settings.${section.title}.${item.title}`) }}
                 </div>
                 <div v-if="item.type === 'radio'">
-                <n-radio-group
-                  v-model:value="settingsStore[key]"
-                  v-if="!isNarrowScreen"
-                >
-                  <n-radio-button
-                    v-for="option in item.items"
-                    :key="option.value"
-                    :value="option.value"
-                    :label="$t(`settings.${section}.options.${option.value}`)"
-                    :checked="settingsStore.theme === option.value"
+                  <n-radio-group
+                    v-model:value="settingsStore.settings[item.title]"
+                    v-if="!isNarrowScreen"
+                  >
+                    <n-radio-button
+                      v-for="option in item.items"
+                      :key="option.value"
+                      :value="option.value"
+                      :label="option.label"
+                      :checked="
+                        settingsStore.settings[item.title] === option.value
+                      "
+                    />
+                  </n-radio-group>
+                  <n-select
+                    v-else
+                    :options="item.items"
+                    v-model:value="(settingsStore.settings[item.title] as any)"
+                    :consistent-menu-width="false"
                   />
-                </n-radio-group>
-                <n-select v-else :options="item.items" v-model:value="settingsStore[key]" :consistent-menu-width="false"/>
+                </div>
+                <div v-else-if="item.type === 'select'">
+                    <n-select
+                      :options="item.items"
+                      v-model:value="(settingsStore.settings[item.title] as any)"
+                      :consistent-menu-width="false"
+                    />
+                </div>
+                <div v-else-if="item.type === 'checkbox'">
+                    <n-switch v-model:value="settingsStore.settings[item.title]"/>
                 </div>
               </div>
             </n-list-item>
           </n-list>
         </n-card>
       </div>
-      <n-anchor :show-rail="true" class="settings-nav" v-if="!isExtremeNarrowScreen" style="width: 128px">
-        <n-anchor-link title="Appearance" href="#appearance" />
+      <n-anchor
+        :show-rail="true"
+        class="settings-nav"
+        v-if="!isExtremeNarrowScreen"
+        style="width: 128px"
+      >
+        <n-anchor-link v-for="section in configs" :key="section.title" :title="$t(`settings.${section.title}.title`)" :href="`#${section.title.toLowerCase()}`" />
       </n-anchor>
     </div>
   </div>
@@ -108,6 +199,9 @@ onMounted(() => {
 }
 
 .settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   flex: 1;
 }
 </style>

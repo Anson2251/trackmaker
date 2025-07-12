@@ -2,8 +2,7 @@ import { isEqual, reject } from "lodash-es";
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
 import { LocationResponseErrorEnum } from "../types";
 import PlatformInfo from '@/utils/platform';
-
-const watchCompatibilityMode = false
+import { useSettingsStore } from "@/store/settings-store";
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
     private platform = new PlatformInfo();
@@ -89,7 +88,8 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         
         const options = this.getOptions();
         
-        if (watchCompatibilityMode) {
+        const settings = useSettingsStore()
+        if (settings.settings.watchCompatibilityMode) {
             return new Promise<number>((resolve, reject) => {
                 this.getCurrentPosition()
                     .then(() => {

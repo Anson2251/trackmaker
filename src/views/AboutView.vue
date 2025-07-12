@@ -39,7 +39,7 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
     </n-anchor>
     <!-- Project Section -->
     <section id="project" class="section project-section">
-      <n-card hoverable>
+      <n-card>
         <div class="project-header">
           <n-image width="100" :src="logo" preview-disabled />
           <n-h1>Trackmaker</n-h1>
@@ -56,9 +56,9 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
                 <n-tag type="info" round size="small">GPL</n-tag>
               </n-space>
             </template>
-            <code class="license-content">
+            <div class="license-content">
               {{ aboutPageLicense }}
-            </code>
+            </div>
           </n-collapse-item>
         </n-collapse>
       </n-card>
@@ -66,7 +66,7 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 
     <!-- Data Sources Section -->
     <section id="data-sources" class="section data-sources">
-      <n-card hoverable>
+      <n-card>
         <template #header>
           {{ t('aboutView.sections.dataSource') }}
         </template>

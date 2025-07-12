@@ -8,11 +8,35 @@
         "title": "设置",
         "appearance": {
             "title": "外观",
-            "theme": "主题",
-            "options": {
-                "light": "浅色",
-                "dark": "深色",
-                "system": "跟随系统"
+            "theme": {
+                "title": "主题",
+                "options": {
+                    "light": "浅色",
+                    "dark": "深色",
+                    "system": "跟随系统"
+                }
+            }
+        },
+        "geolocation": {
+            "title": "位置",
+            "watchCompatibilityMode": "Geolocation Watch 兼容模式"
+        },
+        "language": {
+            "title": "语言",
+            "interfaceLanguage": {
+                "title": "界面语言",
+                "options": {
+                    "zh-CN": "中文（简体）",
+                    "en": "English"
+                }
+            },
+            "mapLanguage": {
+                "title": "地图语言",
+                "options": {
+                    "zh-CN": "中文（简体）",
+                    "en": "English",
+                    "interface": "跟随界面语言"
+                }
             }
         }
     },

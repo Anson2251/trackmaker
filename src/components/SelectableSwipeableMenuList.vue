@@ -72,14 +72,14 @@ function handleTouchEnd() {
   if (!swipeState.value.activeId) return;
 
   swipeTransitionDuration.value = `${
-    (swipeState.value.delta / swipeState.value.containerWidth) * 0.3
+    (swipeState.value.delta / (swipeState.value.containerWidth)) * 0.3
   }s`;
   setTimeout(() => {
     swipeTransitionDuration.value = "0s";
   }, 300);
 
   swipeState.value.delta =
-    swipeState.value.delta > swipeState.value.containerWidth * 0.5
+    swipeState.value.delta > swipeState.value.containerWidth * 0.4
       ? swipeState.value.containerWidth
       : 0;
 }
@@ -200,11 +200,9 @@ function openItemContextMenu(e: MouseEvent, item: any) {
 
 .menu-list-item {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   height: fit-content;
-  border: 1px solid transparent;
-  border-radius: v-bind("theme.borderRadius");
 }
 
 .menu-list-item:hover:not(.active) {
@@ -212,14 +210,11 @@ function openItemContextMenu(e: MouseEvent, item: any) {
   transition: background-color 0.1s ease-in-out;
 }
 
-.menu-list-item.active {
-  border: 1px solid v-bind("theme.primaryColorPressed");
-}
-
 .swipe-container {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  border-radius: v-bind("theme.borderRadius");
 }
 
 .actions-col,
@@ -250,6 +245,7 @@ function openItemContextMenu(e: MouseEvent, item: any) {
 
 .actions-col {
   transition: width v-bind("swipeTransitionDuration") ease-out;
+  color: white;
   position: absolute;
   display: flex;
   right: 0;

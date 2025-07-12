@@ -1,32 +1,33 @@
 import { defineStore } from 'pinia';
 import { storeGet, storeSet, storeSave } from '../libs/store';
-import { computed, ref } from 'vue';
-import { cloneDeep } from 'lodash-es';
+import { ref, watch } from 'vue';
 
-interface Settings {
+type Settings = {
     theme: 'light' | 'dark' | 'system';
+    interfaceLanguage: string;
+    mapLanguage: string;
+    watchCompatibilityMode: boolean
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-    const settings = ref({} as Settings);
+    const settings = ref<Settings>({
+        theme: 'system',
+        interfaceLanguage: 'en',
+        mapLanguage: 'interface',
+        watchCompatibilityMode: true
+    });
 
     async function init() {
         const saved = await storeGet<Settings>('settings');
-        settings.value = saved || { theme: 'system' };
+        settings.value = saved;
     }
 
     async function save() {
-        await storeSet('settings', cloneDeep(settings.value));
+        await storeSet('settings', JSON.parse(JSON.stringify(settings.value)));
         await storeSave();
     }
 
-    const theme = computed({
-        get: () => settings.value.theme,
-        set: (theme: Settings['theme']) => {
-            settings.value.theme = theme;
-            save()
-        }
-    })
-    
-    return { settings, init, theme };
+    watch(settings, save, { deep: true })
+
+    return { settings, init };
 });

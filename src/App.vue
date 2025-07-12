@@ -21,7 +21,7 @@ provide("settings", settings);
 
 const osThemeValueRef = useOsTheme();
 let theme = computed(() => 
-  (settings.theme === "system" ? osThemeValueRef.value : settings.theme) ===
+  (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===
     "dark"
     ? darkTheme
     : lightTheme

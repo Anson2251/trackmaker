@@ -8,11 +8,35 @@
         "title": "Settings",
         "appearance": {
             "title": "Appearance",
-            "theme": "Theme",
-            "options": {
-                "light": "Light",
-                "dark": "Dark",
-                "system": "System Default"
+            "theme": {
+                "title": "Theme",
+                "options": {
+                    "light": "Light",
+                    "dark": "Dark",
+                    "system": "System Default"
+                }
+            }
+        },
+        "geolocation": {
+            "title": "Geolocation",
+            "watchCompatibilityMode": "Geolocation Watch Compatibility Mode" 
+        },
+        "language": {
+            "title": "Language",
+            "interfaceLanguage": {
+                "title": "Interface Language",
+                "options": {
+                    "zh-CN": "中文（简体）",
+                    "en": "English"
+                }
+            },
+            "mapLanguage": {
+                "title": "Map Language",
+                "options": {
+                    "zh-CN": "中文（简体）",
+                    "en": "English",
+                    "interface": "Follow Interface Language"
+                }
             }
         }
     },

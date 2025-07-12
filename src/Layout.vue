@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from "vue-router";
-import { h, type Component, provide, computed, watch } from "vue";
+import { h, type Component, provide, computed, watch, ref } from "vue";
 import { Map, InfoCircle, Settings } from "@vicons/tabler";
 import { useI18n } from "vue-i18n";
 
@@ -8,13 +8,25 @@ import { NMenu, type MenuOption } from "naive-ui";
 import { NIcon, NText } from "naive-ui";
 import { useRoute } from "vue-router";
 import { UpdateService } from "./libs/geolocation/update-service";
+import { useSettingsStore } from "./store/settings-store";
+import { useWindowSize } from "@vueuse/core";
 
-const router =  useRoute()
+const router = useRoute();
+const settings = useSettingsStore();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
+
+settings.settings.interfaceLanguage =
+  settings.settings.interfaceLanguage ?? locale.value;
+watch(
+  () => settings.settings.interfaceLanguage,
+  (v) => {
+    if (v) locale.value = v;
+  }
+);
 
 const locator = (window as any).UpdateService as UpdateService;
 provide("geolocation", locator);
@@ -34,7 +46,19 @@ const menuOptions: MenuOption[] = [
   },
 ];
 
-const softwareOption: MenuOption[]  = [
+const softwareOption: MenuOption[] = [
+  {
+    label: () =>
+      h(
+        RouterLink,
+        {
+          to: "/settings",
+        },
+        { default: () => t("router.settings") }
+      ),
+    key: "settings",
+    icon: renderIcon(Settings),
+  },
   {
     label: () =>
       h(
@@ -47,44 +71,52 @@ const softwareOption: MenuOption[]  = [
     key: "about",
     icon: renderIcon(InfoCircle),
   },
-  {
-    label: () =>
-      h(
-        RouterLink,
-        {
-          to: "/settings",
-        },
-        { default: () => t("router.settings") }
-      ),
-    key: "settings",
-    icon: renderIcon(Settings),
-  }
-]
+];
 
-const currentRoute = computed(() => router.path.slice(1))
+const currentRoute = computed(() => router.path.slice(1));
 const commitId = __MOST_RECENT_COMMIT__;
 const devMode = !__RELEASE_MODE__;
+const { width, height } = useWindowSize();
+const horizontalScreen = computed(() => width.value > height.value);
 </script>
 
 <template>
-  <div class="app-layout">
-    <div class="nav-bar">
-    <n-menu
-      :options="menuOptions"
-      mode="vertical"
-      default-value="tracker"
-      :value="currentRoute"
-    />
-    <div class="software-info-menu">
+  <div :class="['app-layout', (horizontalScreen ? 'app-layout-horizontal' : 'app-layout-vertical')]">
+    <div class="nav-bar" v-if="horizontalScreen">
       <n-menu
-        :options="softwareOption"
-        mode="vertical"
+        :options="menuOptions"
+        default-value="tracker"
         :value="currentRoute"
+        :mode="horizontalScreen ? 'vertical' : 'horizontal'"
       />
-      <div style="width: 100%; text-align: center;" v-if="commitId">
-        <n-text depth="3">Commit: {{ devMode ? "DEV MODE" : commitId.toLocaleUpperCase() }}</n-text>
+      <div class="software-info-menu">
+        <div style="width: fit-content">
+        <n-menu
+          :options="softwareOption"
+          :mode="horizontalScreen ? 'vertical' : 'horizontal'"
+          :value="currentRoute"
+        /></div>
+        <div style="width: 100%; text-align: center; padding: 4px;" v-if="commitId">
+          <n-text depth="3">{{
+            devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
+          }}</n-text>
+        </div>
       </div>
     </div>
+    <div class="nav-bar" v-else>
+      <div>
+      <n-menu
+        :options="menuOptions.concat(softwareOption)"
+        default-value="tracker"
+        :value="currentRoute"
+        
+        :mode="horizontalScreen ? 'vertical' : 'horizontal'"
+      /></div>
+      <div style="width: 100%; text-align: center; padding: 4px;" v-if="commitId">
+          <n-text depth="3">{{
+            devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
+          }}</n-text>
+        </div>
     </div>
     <div class="main-layout">
       <router-view v-slot="{ Component }">
@@ -116,8 +148,6 @@ const devMode = !__RELEASE_MODE__;
 
 .app-layout {
   display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: "router main";
   gap: 8px;
   padding: 8px;
   box-sizing: border-box;
@@ -130,23 +160,54 @@ const devMode = !__RELEASE_MODE__;
 }
 
 .main-layout {
-  grid-area: main;
   box-sizing: border-box;
   position: relative;
   overflow: auto;
 }
 
 .nav-bar {
-  grid-area: router;
+  width: 100%;
+}
+
+.app-layout-horizontal {
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr;
+}
+
+.app-layout-horizontal .nav-bar {
+  grid-area: 1 / 1 / 2 / 2;
   display: flex;
-  flex-direction: column;
+  flex-wrap: nowrap;
+  flex-direction: v-bind("horizontalScreen ? 'column' : 'row'");
   justify-content: space-between;
-  height: 100%;
+}
+
+.app-layout-horizontal .main-layout {
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+.app-layout-vertical {
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+}
+
+.app-layout-vertical .nav-bar {
+  grid-area: 1 / 1 / 2 / 2;
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.app-layout-vertical .main-layout {
+  grid-area: 2 / 1 / 3 / 1
 }
 
 .software-info-menu {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  flex-direction: v-bind("horizontalScreen ? 'column' : 'row'");
+  flex-wrap: nowrap;
+  align-items: center;
+  
 }
 </style>
