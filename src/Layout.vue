@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from "vue-router";
-import { h, type Component, provide, computed, watch, ref } from "vue";
+import { h, type Component, provide, computed, watch } from "vue";
 import { Map, InfoCircle, Settings } from "@vicons/tabler";
 import { useI18n } from "vue-i18n";
 
@@ -42,7 +42,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/tracker",
         },
-        { default: () => (t("router.tracker")) }
+        { default: () => (isNarrowScreen.value ? "" : t("router.tracker")) }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -57,7 +57,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/settings",
         },
-        { default: () => (t("router.settings")) }
+        { default: () => (isNarrowScreen.value ? "" : t("router.settings")) }
       ),
     key: "settings",
     icon: renderIcon(Settings),
@@ -69,7 +69,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => (t("router.about")) }
+        { default: () => (isNarrowScreen.value ? "" : t("router.about")) }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),

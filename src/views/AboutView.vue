@@ -1,9 +1,29 @@
-∫<script setup>
-import { NH1, NP, NDivider, NImage, NCard, NCollapse, NCollapseItem, NIcon, NElement, NList, NListItem, NTag, NSpace, NAnchor, NAnchorLink } from "naive-ui";
+<script setup>
+import {
+  NH1,
+  NP,
+  NDivider,
+  NImage,
+  NCard,
+  NCollapse,
+  NCollapseItem,
+  NIcon,
+  NElement,
+  NList,
+  NListItem,
+  NTag,
+  NSpace,
+  NAnchor,
+  NAnchorLink,
+} from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
+import VueMarkdown from "vue-markdown-render";
+import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
+import { credits, dataProviders } from "@/configs";
+import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 
-const {t} = useI18n()
+const { t } = useI18n();
 
 const showAnchor = ref(false);
 const handleResize = () => {
@@ -11,18 +31,13 @@ const handleResize = () => {
 };
 onMounted(() => {
   handleResize();
-  window.addEventListener('resize', handleResize);
+  window.addEventListener("resize", handleResize);
 });
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
+  window.removeEventListener("resize", handleResize);
 });
-import VueMarkdown from 'vue-markdown-render';
-import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
-import { credits, dataProviders } from "@/configs";
 
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
-
-import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 </script>
 
 <template>
@@ -34,7 +49,10 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
       :show-background="true"
     >
       <n-anchor-link :title="t('aboutView.sections.project')" href="#project" />
-      <n-anchor-link :title="t('aboutView.sections.dataSource')" href="#data-sources" />
+      <n-anchor-link
+        :title="t('aboutView.sections.dataSource')"
+        href="#data-sources"
+      />
       <n-anchor-link :title="t('aboutView.sections.credits')" href="#credits" />
     </n-anchor>
     <!-- Project Section -->
@@ -45,9 +63,9 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
           <n-h1>Trackmaker</n-h1>
         </div>
         <p class="project-description">
-          {{ t('aboutView.description') }}
+          {{ t("aboutView.description") }}
         </p>
-        
+
         <n-collapse class="license-collapse">
           <n-collapse-item title="License" name="license">
             <template #header>
@@ -68,9 +86,9 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
     <section id="data-sources" class="section data-sources">
       <n-card>
         <template #header>
-          {{ t('aboutView.sections.dataSource') }}
+          {{ t("aboutView.sections.dataSource") }}
         </template>
-        
+
         <n-list>
           <n-list-item v-for="provider in dataProviders" :key="provider.id">
             <template #default>
@@ -83,7 +101,7 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
             </template>
             <template #suffix>
               <a :href="provider.url" class="external-link">
-                <n-icon size=24>
+                <n-icon size="24">
                   <Link />
                 </n-icon>
               </a>
@@ -92,7 +110,10 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
         </n-list>
 
         <template #footer>
-          <VueMarkdown :source="t('aboutView.mapInaccuracyDeclaration')" class="map-data-inaccuracy-md"/>
+          <VueMarkdown
+            :source="t('aboutView.mapInaccuracyDeclaration')"
+            class="map-data-inaccuracy-md"
+          />
         </template>
       </n-card>
     </section>
@@ -101,15 +122,21 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
     <section id="credits" class="section credits-section">
       <n-card hoverable>
         <template #header>
-          {{ t('aboutView.sections.credits') }}
+          {{ t("aboutView.sections.credits") }}
         </template>
-        
-        <n-p>{{ t('aboutView.creditIntro') }}</n-p>
-        
-        <n-collapse accordion class="credits-list" :trigger-areas="['arrow', 'main']">
-          <n-collapse-item 
-            v-for="credit in credits.sort((a, b) => a.name.localeCompare(b.name))"
-            :key="credit.id" 
+
+        <n-p>{{ t("aboutView.creditIntro") }}</n-p>
+
+        <n-collapse
+          accordion
+          class="credits-list"
+          :trigger-areas="['arrow', 'main']"
+        >
+          <n-collapse-item
+            v-for="credit in credits.sort((a, b) =>
+              a.name.localeCompare(b.name)
+            )"
+            :key="credit.id"
             :title="credit.name"
             :name="credit.id"
           >
@@ -121,29 +148,39 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
                 </n-tag>
               </n-space>
             </template>
-            
+
             <div class="credit-content">
               <p>{{ credit.description }}</p>
-              
+
               <n-divider v-if="credit.license" />
-              
+
               <div v-if="credit.license" class="license-text">
                 <n-p><strong>License:</strong></n-p>
-                <n-element tag="pre">{{ credit.license.trim().replace(/\n([\s]*)\n/,
-									"\n\n").split("\n\n").map((l) => l.split("\n").map((s) =>
-										s.trim()).join(" ")).join("\n\n") }}</n-element>
+                <n-element tag="pre">{{
+                  credit.license
+                    .trim()
+                    .replace(/\n([\s]*)\n/, "\n\n")
+                    .split("\n\n")
+                    .map((l) =>
+                      l
+                        .split("\n")
+                        .map((s) => s.trim())
+                        .join(" ")
+                    )
+                    .join("\n\n")
+                }}</n-element>
               </div>
             </div>
-            
+
             <template #header-extra>
               <div class="credit-links">
                 <a v-if="credit.homepage" :href="credit.homepage">
-                  <n-icon size=20>
+                  <n-icon size="20">
                     <Link />
                   </n-icon>
                 </a>
                 <a v-if="credit.url" :href="credit.url">
-                  <n-icon size=24>
+                  <n-icon size="24">
                     <logo-github v-if="credit.url.includes('github')" />
                     <DocumentTextOutline v-else />
                   </n-icon>
@@ -159,8 +196,8 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 
 <style scoped>
 .map-data-inaccuracy-md:deep(*) {
-	white-space: normal;
-	display: inline;
+  white-space: normal;
+  display: inline;
 }
 
 .about-view {
@@ -244,15 +281,15 @@ import aboutPageLicense from "@/assets/about-page-license.txt?raw";
     align-self: start;
     padding-left: 1rem;
   }
-  
+
   .project-section {
     grid-area: project;
   }
-  
+
   .data-sources {
     grid-area: data;
   }
-  
+
   .credits-section {
     grid-area: credits;
   }
