@@ -18,7 +18,6 @@ provide("platformInfo", new PlatformInfo());
 const settings = useSettingsStore();
 onMounted(() => settings.init())
 provide("settings", settings);
-
 const osThemeValueRef = useOsTheme();
 let theme = computed(() => 
   (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===

@@ -96,9 +96,5 @@ export default defineConfig(async () => {
 			},
 			sourcemap: true
 		},
-		esbuild: {
-			minifyIdentifiers: false,
-			keepNames: true,
-		},
 	};
 });

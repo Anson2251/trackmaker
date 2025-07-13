@@ -19,7 +19,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
     async function init() {
         const saved = await storeGet<Settings>('settings');
-        settings.value = saved;
+        if (saved) {
+            settings.value = { ...settings.value, ...saved };
+        }
     }
 
     async function save() {
