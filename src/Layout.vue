@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from "vue-router";
 import { h, type Component, provide, computed, watch } from "vue";
-import { Map, InfoCircle, Settings } from "@vicons/tabler";
+import { Map, InfoCircle, Settings, Menu as MenuIcon } from "@vicons/tabler";
 import { useI18n } from "vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
-import { NIcon, NText } from "naive-ui";
+import { NIcon, NText, NPopover, NButton } from "naive-ui";
 import { useRoute } from "vue-router";
 import { UpdateService } from "./libs/geolocation/update-service";
 import { useSettingsStore } from "./store/settings-store";
@@ -42,7 +42,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/tracker",
         },
-        { default: () => (isNarrowScreen.value ? "" : t("router.tracker")) }
+        { default: () => (t("router.tracker")) }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -57,7 +57,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/settings",
         },
-        { default: () => (isNarrowScreen.value ? "" : t("router.settings")) }
+        { default: () => (t("router.settings")) }
       ),
     key: "settings",
     icon: renderIcon(Settings),
@@ -69,7 +69,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => (isNarrowScreen.value ? "" : t("router.about")) }
+        { default: () => (t("router.about")) }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),
@@ -117,19 +117,22 @@ const isNarrowScreen = computed(() => width.value < 460);
       </div>
     </div>
     <div class="nav-bar" v-else>
-      <div style="min-width: 0;">
-        <n-menu
+      <n-popover :trigger="platform.isMobile ? 'click' : 'hover'" style="padding: 4px 0; transform: translateX(2px);" :placement="'bottom-start'">
+      <template #trigger>
+        <n-button style="width: 48px;">
+          <template #icon>
+            <n-icon><menu-icon /></n-icon>
+          </template>
+        </n-button>
+      </template>
+      <n-menu
           :options="menuOptions.concat(softwareOption)"
           default-value="tracker"
           :value="currentRoute"
-          responsive
-          dropdown-placement="bottom-start"
-          :mode="horizontalScreen ? 'vertical' : 'horizontal'"
-          :dropdown-props="{
-            trigger: platform.isMobile ? 'click' : 'hover'
-          }"
+          dropdown-placement="top-start"
+          :mode="'vertical'"
         />
-      </div>
+    </n-popover>
       <div
         style="width: 100%; text-align: center; padding: 4px"
         v-if="commitId"
