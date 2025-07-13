@@ -23,6 +23,7 @@ function renderIcon(icon: Component) {
 
 settings.settings.interfaceLanguage =
   settings.settings.interfaceLanguage ?? locale.value;
+locale.value = settings.settings.interfaceLanguage;
 watch(
   () => settings.settings.interfaceLanguage,
   (v) => {
