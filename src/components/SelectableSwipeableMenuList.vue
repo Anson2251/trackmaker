@@ -258,8 +258,8 @@ function toggleSelectCheckbox(itemId: string) {
     :show="showContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="props.menuOptions"
-    @clickoutside="showContextMenu = false"
+    :options="props.menuOptions.map(o => ({...o, label: o.label?.value ?? o.label }))"
+    @click="showContextMenu = false"
     placement="bottom-start"
     trigger="manual"
   />
