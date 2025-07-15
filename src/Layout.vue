@@ -81,7 +81,6 @@ const commitId = __MOST_RECENT_COMMIT__;
 const devMode = !__RELEASE_MODE__;
 const { width, height } = useWindowSize();
 const horizontalScreen = computed(() => width.value > height.value);
-const isNarrowScreen = computed(() => width.value < 460);
 </script>
 
 <template>
@@ -117,7 +116,7 @@ const isNarrowScreen = computed(() => width.value < 460);
       </div>
     </div>
     <div class="nav-bar" v-else>
-      <n-popover :trigger="platform.isMobile ? 'click' : 'hover'" style="padding: 4px 0; transform: translateX(2px);" :placement="'bottom-start'">
+      <n-popover :trigger="platform.isMobile ? 'click' : 'hover'" style="padding: 2px 0; transform: translateX(2px);" :placement="'bottom-start'">
       <template #trigger>
         <n-button style="width: 48px;">
           <template #icon>

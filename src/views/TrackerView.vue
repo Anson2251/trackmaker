@@ -22,24 +22,16 @@ import {
 } from "naive-ui";
 import {
   TerraDraw,
-  TerraDrawRectangleMode,
   TerraDrawPointMode,
   TerraDrawSelectMode,
-  TerraDrawPolygonMode,
   TerraDrawLineStringMode,
-  TerraDrawCircleMode,
-  TerraDrawFreehandMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import { Map as Mgl, Marker } from "maplibre-gl";
 import {
   MapPin,
-  Vector,
-  Circle,
   Line,
-  Polygon,
   HandFinger,
-  HandMove,
   PlayerRecord,
   Square,
   Backspace,
@@ -133,24 +125,9 @@ type DrawModes = {
 
 const drawerModes: DrawModes[] = [
   {
-    mode: new TerraDrawRectangleMode(),
-    name: t('trackerView.terraDrawTools.rect'),
-    icon: Vector,
-  },
-  {
     mode: new TerraDrawPointMode(),
     name: t('trackerView.terraDrawTools.point'),
     icon: MapPin,
-  },
-  {
-    mode: new TerraDrawPolygonMode(),
-    name: t('trackerView.terraDrawTools.polygon'),
-    icon: Polygon,
-  },
-  {
-    mode: new TerraDrawCircleMode(),
-    name: t('trackerView.terraDrawTools.circle'),
-    icon: Circle,
   },
   {
     mode: new TerraDrawLineStringMode(),
@@ -196,11 +173,6 @@ const drawerModes: DrawModes[] = [
     }),
     name: t('trackerView.terraDrawTools.select'),
     icon: HandFinger,
-  },
-  {
-    mode: new TerraDrawFreehandMode(),
-    name: t('trackerView.terraDrawTools.draw'),
-    icon: HandMove,
   },
 ];
 
@@ -367,7 +339,7 @@ onMounted(async () => {
 <!-- TODO: add recover tailwindcss style-->
 <template>
   <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
-    <n-card class="map-layout" content-style="padding: 0;">
+    <n-card class="map-layout" content-style="padding: 0;" hoverable>
       <transition name="map-load">
         <div
           v-if="locationReady && !initialLocateError"

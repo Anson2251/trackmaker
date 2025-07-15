@@ -85,7 +85,13 @@
             },
             "nameNewRoute": "Untitled Route",
             "routes": "Routes",
-            "points": "{num} points"
+            "points": "{num} points",
+            "deleteConfirmation": {
+                "title": "Route Delete",
+                "prompt": "Are you sure you want to delete the selected route?",
+                "yes": "Confirm",
+                "no": "Cancel"
+            }
         }
     }
 }

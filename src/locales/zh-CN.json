@@ -85,7 +85,13 @@
             },
             "nameNewRoute": "未命名路线",
             "routes": "路线列表",
-            "points": "{num} 个定位点"
+            "points": "{num} 个定位点",
+            "deleteConfirmation": {
+                "title": "删除路线",
+                "prompt": "您确定要删除选中的路线吗？",
+                "yes": "确认",
+                "no": "取消"
+            }
         }
     }
 }

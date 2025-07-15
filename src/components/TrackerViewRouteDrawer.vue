@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import { ref } from "vue";
-import { useThemeVars } from "naive-ui";
+import { computed, ref } from "vue";
+import { useDialog, useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
-import { NDropdown, NModal, NInput } from "naive-ui";
+import { NDropdown, NModal, NInput, NButton, NIcon } from "naive-ui";
 import type { Route } from "@/libs/store/types";
 import { useI18n } from "vue-i18n";
 import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
+import { Trash } from "@vicons/tabler";
 
 const { t } = useI18n();
+const dialog = useDialog();
 
 const emit = defineEmits<{
   (e: "update:width", value: number): void;
@@ -32,12 +34,12 @@ const renameRouteId = ref<string | null>(null);
 
 const listMenuOptions = [
   {
-    label: t("components.trackerViewRouteDrawer.contextMenu.new"),
+    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.new")),
     key: "new",
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute({ name: "Untitled Route", points: [] });
+        routeStore.addRoute({ name: t("components.trackerViewRouteDrawer.nameNewRoute"), points: [] });
       },
     },
   },
@@ -45,7 +47,7 @@ const listMenuOptions = [
 
 const itemMenuOptions = [
   {
-    label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
+    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.rename")),
     key: "rename",
     props: {
       onClick: () => {
@@ -57,7 +59,7 @@ const itemMenuOptions = [
     },
   },
   {
-    label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
+    label:computed(() => t("components.trackerViewRouteDrawer.contextMenu.delete")),
     key: "delete",
     props: {
       onClick: () => {
@@ -76,7 +78,7 @@ const itemMenuOptions = [
 
 const swipeActions = [
   {
-    label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
+    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.rename")),
     name: "rename",
     action: (id: string) => {
       const route = routeStore.routes.find((r) => r.id === id);
@@ -86,7 +88,7 @@ const swipeActions = [
     },
   },
   {
-    label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
+    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.delete")),
     name: "delete",
     action: (id: string) => routeStore.deleteRoute(id),
     color: theme.value.errorColorSuppl,
@@ -114,6 +116,22 @@ async function handleRename(routeId: string) {
     showRenameDialog.value = false;
   }
 }
+
+const selectedRouteIds = ref<string[]>([]);
+function handleRouteBatchDelete() {
+  dialog.warning({
+    title: t("components.trackerViewRouteDrawer.deleteConfirmation.title"),
+    content: t("components.trackerViewRouteDrawer.deleteConfirmation.prompt"),
+    positiveText: t("components.trackerViewRouteDrawer.deleteConfirmation.yes"),
+    negativeText: t("components.trackerViewRouteDrawer.deleteConfirmation.no"),
+    onPositiveClick: () => {
+      selectedRouteIds.value.forEach((r) => {
+        routeStore.deleteRoute(r);
+        selectedRouteIds.value = selectedRouteIds.value.filter(id => id !== r);
+      });
+    },
+  });
+}
 </script>
 
 <template>
@@ -124,15 +142,29 @@ async function handleRename(routeId: string) {
     @contextmenu="(e) => openRouteContextMenu(e)"
   >
     <div class="p-4" style="height: 100%">
-      <p class="text-lg font-bold mb-4">
-        {{ t("components.trackerViewRouteDrawer.routes") }}
-      </p>
+      <div style="width: 100%; display: flex; justify-content: space-between">
+        <p class="text-lg font-bold mb-4">
+          {{ t("components.trackerViewRouteDrawer.routes") }}
+        </p>
+        <n-button
+          strong
+          secondary
+          circle
+          type="error"
+          v-if="selectedRouteIds.length > 0"
+          @click="handleRouteBatchDelete"
+        >
+          <template #icon>
+            <n-icon :component="Trash" />
+          </template>
+        </n-button>
+      </div>
       <selectable-swipeable-menu-list
         :items="routeStore.routes"
-        :selected-id="routeStore.currentRouteId"
+        v-model:selection="(routeStore.currentRouteId as any)"
+        v-model:multiple-selection="selectedRouteIds"
         :menu-options="itemMenuOptions"
         :swipe-actions="swipeActions"
-        @select="(id) => (routeStore.currentRouteId = id)"
         @contextmenu="
           (_, item) => {
             renameRouteId = item?.id ?? null;
@@ -141,7 +173,7 @@ async function handleRename(routeId: string) {
         "
       >
         <template #item="{ item: route }">
-          <div style="height: fit-content; padding: 8px 12px; text-align: left;">
+          <div style="height: fit-content; padding: 8px 12px; text-align: left">
             <div>
               {{
                 route.name ??
@@ -165,7 +197,7 @@ async function handleRename(routeId: string) {
     :show="showRouteContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="listMenuOptions"
+    :options="listMenuOptions.map(o => ({...o, label: o.label.value }))"
     @clickoutside="showRouteContextMenu = false"
     placement="bottom-start"
     trigger="manual"

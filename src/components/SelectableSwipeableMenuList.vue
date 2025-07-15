@@ -1,48 +1,64 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { type Ref, ref, watch } from "vue";
 import { useThemeVars } from "naive-ui";
-import { NDropdown } from "naive-ui";
+import { NDropdown, NCheckbox } from "naive-ui";
 import { clamp } from "lodash-es";
 import type { Route } from "@/libs/store/types";
 
+type SwipeState = {
+  startX: number;
+  delta: number;
+  currentX: number;
+  containerWidth: number;
+  activeId: string | null;
+  leftMax: number;
+  rightMax: number;
+};
+
 const props = defineProps<{
   items: Array<{ id: string; [key: string]: any }>;
-  selectedId: string | null;
   menuOptions: Array<any>;
   swipeActions: Array<{
-    label: string;
+    label: string | Ref<string>;
     name: string;
     action: (id: string) => void;
     color?: string;
   }>;
 }>();
 
+const selection = defineModel("selection", {
+  type: String,
+  default: null,
+});
+
+const multipleSelection = defineModel("multipleSelection", {
+  type: Array as () => string[],
+  default: () => [] as string[],
+});
+
 const emit = defineEmits<{
-  (e: "select", id: string): void;
   (e: "contextmenu", event: MouseEvent, item?: Route): void;
 }>();
 
 const theme = useThemeVars();
 
 const swipeTransitionDuration = ref("0s");
-const swipeState = ref<{
-  startX: number;
-  delta: number;
-  currentX: number;
-  containerWidth: number;
-  activeId: string | null;
-}>({
+const swipeState = ref<SwipeState>({
   startX: 0,
   delta: 0,
   currentX: 0,
   containerWidth: 0,
   activeId: null,
+  leftMax: 0,
+  rightMax: 0,
 });
 
 const showContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const selectedItem = ref<any>(null);
+const leftSwipeMax = 120;
+const rightSwipeMax = 40;
 
 function handleTouchStart(e: TouchEvent, itemId: string) {
   if (swipeState.value.activeId !== itemId) clearSwipeState();
@@ -53,17 +69,20 @@ function handleTouchStart(e: TouchEvent, itemId: string) {
     currentX: touch.clientX,
     containerWidth: (e.currentTarget as HTMLElement).offsetWidth,
     activeId: itemId,
+    leftMax: leftSwipeMax < 0 ? swipeState.value.containerWidth : leftSwipeMax,
+    rightMax:
+      rightSwipeMax < 0 ? swipeState.value.containerWidth : rightSwipeMax,
   };
 }
 
 function handleTouchMove(e: TouchEvent) {
   if (!swipeState.value.activeId) return;
   swipeState.value.currentX = e.touches[0].clientX;
-  swipeState.value.delta += swipeState.value.startX - swipeState.value.currentX;
+  swipeState.value.delta += swipeState.value.currentX - swipeState.value.startX;
   swipeState.value.delta = clamp(
     swipeState.value.delta,
-    0,
-    swipeState.value.containerWidth
+    -swipeState.value.leftMax,
+    swipeState.value.rightMax
   );
   swipeState.value.startX = e.touches[0].clientX;
 }
@@ -72,32 +91,45 @@ function handleTouchEnd() {
   if (!swipeState.value.activeId) return;
 
   swipeTransitionDuration.value = `${
-    (swipeState.value.delta / (swipeState.value.containerWidth)) * 0.3
+    (Math.abs(swipeState.value.delta) / swipeState.value.containerWidth) * 0.3
   }s`;
   setTimeout(() => {
     swipeTransitionDuration.value = "0s";
   }, 300);
 
+  const threshold =
+    swipeState.value.delta < 0
+      ? swipeState.value.leftMax
+      : swipeState.value.rightMax;
   swipeState.value.delta =
-    swipeState.value.delta > swipeState.value.containerWidth * 0.4
-      ? swipeState.value.containerWidth
+    Math.abs(swipeState.value.delta) > threshold * 0.4
+      ? Math.sign(swipeState.value.delta) * threshold
       : 0;
+
+  // Only clear selection on tap (not swipe) if no delta movement
+  if (swipeState.value.delta === 0 && Math.abs(swipeState.value.delta) < 5) {
+    // Don't clear selection on tap - let the click handler manage selection
+  }
 }
 
 function handleItemClick(e: MouseEvent, item: any) {
   e.stopPropagation();
   if (swipeState.value.delta > 5) return;
   clearSwipeState();
-  emit("select", item.id);
+  if (selection.value !== item.id) selection.value = item.id;
+  console.log(selection.value)
 }
 
 function clearSwipeState() {
+  if (swipeState.value.delta > 0) return; // select checkbox opened
   swipeState.value = {
     startX: 0,
     delta: 0,
     currentX: 0,
     containerWidth: 0,
     activeId: null,
+    leftMax: 0,
+    rightMax: 0,
   };
 }
 
@@ -114,6 +146,17 @@ function openItemContextMenu(e: MouseEvent, item: any) {
   showContextMenu.value = true;
   emit("contextmenu", e, item);
 }
+
+function toggleSelectCheckbox(itemId: string) {
+  const newSelection = [...multipleSelection.value];
+  if (newSelection.includes(itemId)) {
+    const index = newSelection.indexOf(itemId);
+    newSelection.splice(index, 1);
+  } else {
+    newSelection.push(itemId);
+  }
+  multipleSelection.value = newSelection;
+}
 </script>
 
 <template>
@@ -126,10 +169,7 @@ function openItemContextMenu(e: MouseEvent, item: any) {
       @touchstart="handleTouchStart($event, item.id)"
       @touchmove="handleTouchMove"
       @touchend="handleTouchEnd"
-      :class="[
-        'menu-list-item',
-        ...(item.id === props.selectedId ? ['active'] : []),
-      ]"
+      :class="['menu-list-item', ...(item.id === selection ? ['active'] : [])]"
       :style="{
         'touch-action': swipeState.activeId === item.id ? 'pan-y' : 'auto',
       }"
@@ -139,9 +179,15 @@ function openItemContextMenu(e: MouseEvent, item: any) {
           class="content-col"
           :style="{
             transform: `translateX(${
-              swipeState.activeId === item.id ? -swipeState.delta : 0
+              swipeState.activeId === item.id || swipeState.delta > 0
+                ? swipeState.delta
+                : 0
             }px)`,
             willChange: swipeState.activeId === item.id ? `transform` : 'auto',
+            flexDirection:
+              swipeState.delta >= 0 || swipeState.activeId !== item.id
+                ? 'row'
+                : 'row-reverse',
           }"
         >
           <slot name="item" :item="item">
@@ -154,8 +200,14 @@ function openItemContextMenu(e: MouseEvent, item: any) {
           class="actions-col"
           :style="{
             width: `${
-              swipeState.activeId === item.id ? swipeState.delta : 0
+              swipeState.activeId === item.id && swipeState.delta < 0
+                ? -swipeState.delta
+                : 0
             }px`,
+            visibility:
+              swipeState.activeId === item.id && swipeState.delta < 0
+                ? 'visible'
+                : 'hidden',
             willChange: swipeState.activeId === item.id ? `width` : 'auto',
           }"
         >
@@ -173,6 +225,30 @@ function openItemContextMenu(e: MouseEvent, item: any) {
           >
             {{ action.label }}
           </button>
+        </div>
+        <div
+          class="select-col"
+          :style="{
+            width: `${swipeState.delta > 0 ? swipeState.delta : 0}px`,
+            backgroundColor:
+              selection === item.id ? theme.primaryColor : 'transparent',
+            visibility: swipeState.delta > 0 ? 'visible' : 'hidden',
+          }"
+        >
+          <div style="padding: 16px">
+            <n-checkbox
+              :checked="multipleSelection.includes(item.id)"
+              @update:checked="() => toggleSelectCheckbox(item.id)"
+              :style="{
+                border:
+                  selection === item.id
+                    ? `1px solid ${theme.bodyColor}`
+                    : 'none',
+                BorderRadius:
+                  selection === item.id ? theme.borderRadiusSmall : 'none',
+              }"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -214,9 +290,9 @@ function openItemContextMenu(e: MouseEvent, item: any) {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: v-bind("theme.borderRadius");
 }
 
+.select-col,
 .actions-col,
 .content-col {
   text-align: center;
@@ -239,7 +315,6 @@ function openItemContextMenu(e: MouseEvent, item: any) {
   left: 0;
   overflow: hidden;
   display: flex;
-  flex-direction: row;
   align-items: center;
 }
 
@@ -249,6 +324,15 @@ function openItemContextMenu(e: MouseEvent, item: any) {
   position: absolute;
   display: flex;
   right: 0;
+  align-items: center;
+}
+
+.select-col {
+  transition: width v-bind("swipeTransitionDuration") ease-out;
+  color: white;
+  position: absolute;
+  display: flex;
+  left: 0;
   align-items: center;
 }
 
