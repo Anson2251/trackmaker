@@ -15,6 +15,7 @@ import {
   NSpace,
   NAnchor,
   NAnchorLink,
+  useThemeVars,
 } from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,6 +23,8 @@ import VueMarkdown from "vue-markdown-render";
 import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
 import { credits, dataProviders } from "@/configs";
 import aboutPageLicense from "@/assets/about-page-license.txt?raw";
+
+const theme = useThemeVars();
 
 const { t } = useI18n();
 
@@ -38,6 +41,20 @@ onUnmounted(() => {
 });
 
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
+
+const processLicenseText = (s) =>
+  s
+    .trim()
+    .replace(/\n([\s]*)\n/, "\n\n")
+    .split("\n\n")
+    .map((l) =>
+      l
+        .split("\n")
+        .map((s) => s.trim())
+        .join(" ")
+    )
+    .join("\n\n")
+    .trim();
 </script>
 
 <template>
@@ -74,9 +91,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
                 <n-tag type="info" round size="small">GPL</n-tag>
               </n-space>
             </template>
-            <div class="license-content">
-              {{ aboutPageLicense }}
-            </div>
+            <vue-markdown :source="aboutPageLicense" class="license-text" />
           </n-collapse-item>
         </n-collapse>
       </n-card>
@@ -101,7 +116,7 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
             </template>
             <template #suffix>
               <a :href="provider.url" class="external-link">
-                <n-icon size="24">
+                <n-icon size="24" :color="theme.textColor1">
                   <Link />
                 </n-icon>
               </a>
@@ -110,9 +125,9 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
         </n-list>
 
         <template #footer>
-          <VueMarkdown
+          <vue-markdown
             :source="t('aboutView.mapInaccuracyDeclaration')"
-            class="map-data-inaccuracy-md"
+            class="markdown-resource"
           />
         </template>
       </n-card>
@@ -152,35 +167,25 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
             <div class="credit-content">
               <p>{{ credit.description }}</p>
 
-              <n-divider v-if="credit.license" />
+              <n-divider v-if="credit.license.trim()" />
 
-              <div v-if="credit.license" class="license-text">
+              <div v-if="credit.license">
                 <n-p><strong>License:</strong></n-p>
-                <n-element tag="pre">{{
-                  credit.license
-                    .trim()
-                    .replace(/\n([\s]*)\n/, "\n\n")
-                    .split("\n\n")
-                    .map((l) =>
-                      l
-                        .split("\n")
-                        .map((s) => s.trim())
-                        .join(" ")
-                    )
-                    .join("\n\n")
-                }}</n-element>
+                <div class="license-text">
+                  <pre>{{ processLicenseText(credit.license) }}</pre>
+                </div>
               </div>
             </div>
 
             <template #header-extra>
               <div class="credit-links">
                 <a v-if="credit.homepage" :href="credit.homepage">
-                  <n-icon size="20">
+                  <n-icon size="20" :color="theme.textColor1">
                     <Link />
                   </n-icon>
                 </a>
                 <a v-if="credit.url" :href="credit.url">
-                  <n-icon size="24">
+                  <n-icon size="24" :color="theme.textColor1">
                     <logo-github v-if="credit.url.includes('github')" />
                     <DocumentTextOutline v-else />
                   </n-icon>
@@ -195,11 +200,6 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
 </template>
 
 <style scoped>
-.map-data-inaccuracy-md:deep(*) {
-  white-space: normal;
-  display: inline;
-}
-
 .about-view {
   display: flex;
   flex-direction: column;
@@ -229,13 +229,6 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
   margin-top: 1rem;
 }
 
-.license-content {
-  padding: 0.5rem;
-  background: rgba(128, 128, 128, 0.05);
-  border-radius: 4px;
-  font-family: monospace;
-}
-
 .credits-list {
   margin-top: 1rem;
 }
@@ -244,22 +237,37 @@ const logo = ref(new URL("/favicon.svg", import.meta.url).href);
   padding: 0.5rem;
 }
 
-.license-text pre {
-  white-space: pre-wrap;
-  font-family: monospace;
+.license-text {
+  font-size: 12px;
+  font-family: monospace !important;
   background: rgba(128, 128, 128, 0.05);
-  padding: 1rem;
+  padding: 0px 12px;
   border-radius: 4px;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.license-text:deep(pre) {
+  white-space: pre-wrap;
 }
 
 .credit-links {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.credit-links:deep(a) {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .external-link {
   color: inherit;
   text-decoration: none;
+  display: block;
+  height: 24px;
 }
 
 @media (min-width: 700px) {

@@ -117,7 +117,7 @@ function handleItemClick(e: MouseEvent, item: any) {
   if (swipeState.value.delta > 5) return;
   clearSwipeState();
   if (selection.value !== item.id) selection.value = item.id;
-  console.log(selection.value)
+  console.log(selection.value);
 }
 
 function clearSwipeState() {
@@ -258,8 +258,11 @@ function toggleSelectCheckbox(itemId: string) {
     :show="showContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="props.menuOptions.map(o => ({...o, label: o.label?.value ?? o.label }))"
+    :options="
+      props.menuOptions.map((o) => ({ ...o, label: o.label?.value ?? o.label }))
+    "
     @click="showContextMenu = false"
+    @clickoutside="showContextMenu = false"
     placement="bottom-start"
     trigger="manual"
   />

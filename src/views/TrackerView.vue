@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import "tailwindcss";
 import { ref, onMounted, computed, inject, type Component, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -336,7 +335,6 @@ onMounted(async () => {
 });
 </script>
 
-<!-- TODO: add recover tailwindcss style-->
 <template>
   <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
     <n-card class="map-layout" content-style="padding: 0;" hoverable>
@@ -365,10 +363,9 @@ onMounted(async () => {
                 v-for="item in drawerModes"
                 :key="item.name"
                 :class="[
-                  '!flex justify-center items-center',
-                  item.mode.mode === activeDrawMethod
-                    ? '!bg-blue-200 rounded-sm transition-colors'
-                    : '',
+                  'btn-control',
+                  'btn-draw-mode',
+                  { active: item.mode.mode === activeDrawMethod }
                 ]"
                 :title="item.name"
                 @click="
@@ -388,7 +385,7 @@ onMounted(async () => {
                 <icon :size="20">
                   <component
                     :is="item.icon"
-                    class="stroke-stone-800 text-stone-800"
+                    class="btn-default"
                   />
                 </icon>
               </button>
@@ -397,7 +394,7 @@ onMounted(async () => {
               <n-popover trigger="manual" :show="drawerTooltipOpened">
                 <template #trigger>
                   <button
-                    :class="'!flex justify-center items-center transition-all hover:rounded-sm stroke-sky-800 fill-sky-700 text-sky-800'"
+                    class="btn-control btn-route-toggle"
                     @click="toggleRouteDrawer"
                   >
                     <icon :size="24"><route /></icon>
@@ -409,10 +406,9 @@ onMounted(async () => {
             <mgl-custom-control position="top-right">
               <button
                 :class="[
-                  '!flex justify-center items-center transition-all hover:rounded-sm',
-                  pathRecording
-                    ? 'hover:!bg-red-700 hover:stroke-white hover:text-white stroke-red-700 fill-red-600 text-red-700'
-                    : 'stroke-sky-800 fill-sky-700 text-sky-800',
+                  'btn-control',
+                  'btn-record',
+                  pathRecording ? 'recording' : 'not-recording'
                 ]"
                 :title="pathRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off')"
                 @click="changeRecordState"
@@ -427,7 +423,7 @@ onMounted(async () => {
               </button>
               <button
                 v-if="path.length > 0 && !pathRecording"
-                class="stroke-red-700 text-red-700 hover:!bg-red-700 hover:stroke-white hover:text-white hover:rounded-sm transition-all !flex justify-center items-center"
+                class="btn-control btn-clear"
                 @click="
                   routeStore.currentRouteId &&
                     routeStore.updateRoute(routeStore.currentRouteId, {
@@ -445,23 +441,23 @@ onMounted(async () => {
               </button>
               <button
                 v-if="path.length > 0 && !pathRecording"
-                class="!flex justify-center items-center"
+                class="btn-control"
                 @click="savePath"
               >
                 <icon :size="20">
                   <DeviceFloppy
-                    class="stroke-stone-800 text-stone-800"
+                    class="btn-default"
                     size="20"
                   />
                 </icon>
               </button>
               <button
                 v-if="path.length === 0 && !pathRecording"
-                class="!flex justify-center items-center"
+                class="btn-control"
                 @click="loadTrackFromFile"
               >
                 <icon :size="20">
-                  <Upload class="stroke-stone-800 text-stone-800" size="20" />
+                  <Upload class="btn-default" size="20" />
                 </icon>
               </button>
             </mgl-custom-control>
@@ -540,5 +536,79 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+/* Custom CSS classes to replace Tailwind utilities */
+.btn-control {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-draw-mode {
+  transition: background-color 0.2s ease, border-radius 0.2s ease;
+}
+
+.btn-draw-mode.active {
+  background-color: #bfdbfe;
+  border-radius: 0.125rem;
+}
+
+.btn-route-toggle {
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.btn-route-toggle:hover {
+  border-radius: 0.125rem;
+  stroke: #075985;
+  fill: #0369a1;
+  color: #075985;
+}
+
+.btn-record {
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.btn-record:hover {
+  border-radius: 0.125rem;
+}
+
+.btn-record.recording {
+  stroke: #b91c1c;
+  fill: #dc2626;
+  color: #b91c1c;
+}
+
+.btn-record.recording:hover {
+  background-color: #b91c1c;
+  stroke: #ffffff;
+  color: #ffffff;
+}
+
+.btn-record.not-recording {
+  stroke: #075985;
+  fill: #0369a1;
+  color: #075985;
+}
+
+.btn-clear {
+  stroke: #b91c1c;
+  color: #b91c1c;
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.btn-clear:hover {
+  background-color: #b91c1c;
+  stroke: #ffffff;
+  color: #ffffff;
+  border-radius: 0.125rem;
+}
+
+.btn-default {
+  stroke: #292524;
+  color: #292524;
 }
 </style>

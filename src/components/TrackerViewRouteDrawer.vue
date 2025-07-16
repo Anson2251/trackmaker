@@ -141,9 +141,9 @@ function handleRouteBatchDelete() {
     @update:width="(w) => emit('update:width', w)"
     @contextmenu="(e) => openRouteContextMenu(e)"
   >
-    <div class="p-4" style="height: 100%">
-      <div style="width: 100%; display: flex; justify-content: space-between">
-        <p class="text-lg font-bold mb-4">
+    <div class="drawer-container" style="height: 100%">
+      <div class="drawer-header">
+        <p class="drawer-title">
           {{ t("components.trackerViewRouteDrawer.routes") }}
         </p>
         <n-button
@@ -228,6 +228,22 @@ function handleRouteBatchDelete() {
 </template>
 
 <style scoped>
+.drawer-container {
+  padding: 1rem;
+}
+
+.drawer-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.drawer-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
 .route-list {
   max-height: calc(100% - 4em);
   overflow-y: auto;

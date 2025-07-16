@@ -67,17 +67,38 @@ const beforeUpload = (data: {
 }
 </script>
 
+<style scoped>
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.upload-icon {
+  opacity: 0.5;
+}
+</style>
+
 <template>
     <n-modal v-model:show="showModal" preset="dialog" title="Dialog">
         <template #header>
             File Upload
         </template>
         <template #default>
-            <div class="flex-col justify-center items-center gap-4 w-full">
+            <div class="upload-container">
                 <n-upload :multiple="props.multiple ?? false" @change="({ fileList }) => handleChange(fileList)"
                     @before-upload="beforeUpload">
                     <n-upload-dragger>
-                        <icon :size="36" name="upload" class="opacity-50">
+                        <icon :size="36" name="upload" class="upload-icon">
                             <component :is="props.icon ?? Upload" />
                         </icon>
                         <div>{{ props.prompt ?? 'Drag and drop a file here or click to upload' }}</div>
@@ -86,7 +107,7 @@ const beforeUpload = (data: {
             </div>
         </template>
         <template #action>
-            <div class="flex justify-end gap-4">
+            <div class="action-buttons">
                 <n-button @click="showModal = false">Cancel</n-button>
                 <n-button type="primary" @click="handleConfirm">Upload</n-button>
             </div>
