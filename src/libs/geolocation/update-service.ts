@@ -153,13 +153,12 @@ export class UpdateService {
             
             this.watchHandler = await this.backend!.watchPosition((location) => {
                 this.presentLocation = location;
-                if (!this.serviceRunning) {
-                    this.serviceRunning = true;
-                    triggerHandler("start", this.presentLocation);
-                    resolve(this.watchHandler)
-                }
                 triggerHandler("change", this.presentLocation);
             });
+
+            this.serviceRunning = true;
+            triggerHandler("start", this.presentLocation);
+            resolve(this.watchHandler)
         })
     }
 

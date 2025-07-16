@@ -323,7 +323,13 @@ const mapReady = ref<boolean>(false);
 onMounted(async () => {
   await storeInit();
   await routeStore.init();
-  location.value = locator.presentLocation;
+
+  try {
+    location.value = await locator.refresh()!;
+      if (!locator.usingGPS) message.warning(t('trackerView.gpsWarning'), { duration: 5000})
+  } catch (err) {
+    initialLocateError.value = (err as any).message ?? String(err);
+  }
   mapReady.value = true;
   draw.value?.start();
 });
