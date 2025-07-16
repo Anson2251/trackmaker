@@ -10,6 +10,10 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
     private get isIOS() {
         return this.platform.os.toLowerCase().includes('ios');
     }
+
+    private get isMobile() {
+        return this.platform.isMobile || this.platform.isTablet;
+    }
     
     private validateEnvironment() {
         if (this.isIOS && window.location.protocol !== 'https:') {
@@ -22,11 +26,12 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
     
     private getOptions() {
         return {
-            enableHighAccuracy: !this.isIOS,
-            timeout: this.isIOS ? 60000 : 20000,
-            maximumAge: this.isIOS ? 0 : 5000
+            enableHighAccuracy: !this.isMobile,
+            timeout: this.isMobile ? 20000 : 30000,
+            maximumAge: this.isMobile ? 5000 : 10000
         };
     }
+    
     async getPermissionStatus() {
         if (!navigator.permissions) {
             console.warn("navigator.permissions is not supported in this browser");

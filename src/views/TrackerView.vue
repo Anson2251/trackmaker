@@ -319,18 +319,12 @@ const openDrawerTooltip = () => {
 
 const initialLocateError = ref("");
 
-const locationReady = ref<boolean>(false);
+const mapReady = ref<boolean>(false);
 onMounted(async () => {
-  try {
-    location.value = await locator.refresh()!;
-      if (!locator.usingGPS) message.warning(t('trackerView.gpsWarning'), { duration: 5000})
-  } catch (err) {
-    initialLocateError.value = (err as any).message ?? String(err);
-  }
-  locationReady.value = true;
   await storeInit();
   await routeStore.init();
-
+  location.value = locator.presentLocation;
+  mapReady.value = true;
   draw.value?.start();
 });
 </script>
@@ -340,7 +334,7 @@ onMounted(async () => {
     <n-card class="map-layout" content-style="padding: 0;" hoverable>
       <transition name="map-load">
         <div
-          v-if="locationReady && !initialLocateError"
+          v-if="mapReady && !initialLocateError"
           style="width: 100%; height: 100%"
         >
           <mgl-map
@@ -491,7 +485,7 @@ onMounted(async () => {
         >
           <n-spin v-if="!initialLocateError" size="large">
             <template #description>
-              <n-text>{{ t('trackerView.locationLoading') }}</n-text>
+              <n-text>{{ t('trackerView.mapLoading') }}</n-text>
             </template>
           </n-spin>
         <n-alert v-else :title="t('app.error')" type="error">

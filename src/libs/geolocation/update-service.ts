@@ -46,6 +46,7 @@ export class UpdateService {
     built = false
     backend: GeolocationBackend | undefined;
     usingGPS: boolean = false;
+    watchHandler: number = -1;
 
     async build(promptCallback: (() => Promise<boolean | void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
@@ -67,6 +68,7 @@ export class UpdateService {
 
         let granted = await gps.getPermissionStatus();
         if (granted !== 'granted') {
+            console.log("GPS permission not granted, prompting user");
             const grantedState = await promptCallback();
             if (grantedState) granted = "granted";
             else granted = await gps.getPermissionStatus();
@@ -143,28 +145,22 @@ export class UpdateService {
     isStarted = () => this.serviceRunning;
 
     /** Start the updater service */
-    async start() {
-        let handler = -1;
+    start() {
         if (!this.backend) throw new Error("Backend not initialised");
+        return new Promise(async (resolve) => {
+            if (this.serviceRunning) return resolve(this.watchHandler)
 
-        try {
-            this.presentLocation = await this.backend.getCurrentPosition();
-        }
-        catch (e) {
-            console.warn("Fail to get initial location, using default location")
-        }
-
-        if (!this.serviceRunning) {
-            this.serviceRunning = true;
-            handler = await this.backend.watchPosition((location) => {
+            
+            this.watchHandler = await this.backend!.watchPosition((location) => {
                 this.presentLocation = location;
+                if (!this.serviceRunning) {
+                    this.serviceRunning = true;
+                    triggerHandler("start", this.presentLocation);
+                    resolve(this.watchHandler)
+                }
                 triggerHandler("change", this.presentLocation);
             });
-        }
-
-        triggerHandler("start", this.presentLocation);
-
-        return handler;
+        })
     }
 
     /** Stop the updater service */

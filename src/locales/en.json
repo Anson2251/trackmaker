@@ -46,7 +46,7 @@
         "settings": "Settings"
     },
     "trackerView": {
-        "locationLoading": "Getting your location, please wait a moment...",
+        "mapLoading": "Initialising the map, please wait a moment...",
         "locationError": "Fail to locate your device. Please try again later",
         "gpsWarning": "Using network location. Not real-time and may be inaccurate. Please enable GPS for real-time location.",
         "nameNewlyImportedRoute": "Newly Imported Route",

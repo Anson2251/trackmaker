@@ -15,7 +15,8 @@ export const modules: moduleItem[] = [
 		moduleInit: async () => {
 			try {
 				const updateService = new UpdateService();
-				await updateService.build(() => new Promise<boolean | void>((resolve) => {
+				console.time("Geolocation update service initialisation");
+				await updateService.build(() => new Promise<boolean | void>(async (resolve) => {
 					if (__TAURI_ENVIRONMENT__) {
 						resolve() // need to implement the permissions request logic for tauri environment
 						return;
@@ -36,9 +37,13 @@ export const modules: moduleItem[] = [
 					}
 					else resolve();
 				}));
+				console.timeEnd("Geolocation update service initialisation");
+				console.time("Geolocation update service start");
 				await updateService.start();
+				console.timeEnd("Geolocation update service start");
 
 				(window as any).UpdateService = updateService; // expose for debugging purposes
+				console.log("Geolocation module initialized successfully");
 			}
 			catch (error) {
 				return Promise.reject(error);

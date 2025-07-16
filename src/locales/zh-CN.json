@@ -46,7 +46,7 @@
         "settings": "设置"
     },
     "trackerView": {
-        "locationLoading": "正在获取您的位置，请稍候...",
+        "mapLoading": "正在初始化地图，请稍候...",
         "locationError": "无法定位您的设备，请稍后重试",
         "gpsWarning": "正在使用网络定位。非实时且可能不准确。请启用GPS获取实时定位。",
         "nameNewlyImportedRoute": "新导入的路线",
