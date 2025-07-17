@@ -37,12 +37,14 @@ export default defineConfig(async () => {
 
 	const plugins = [
 		vue(),
-		basicSsl()
 	];
 
 	if (!tauriEnv) {
 		if (releaseMode) {
 			plugins.push(compression);
+		}
+		else {
+			plugins.push(basicSsl());
 		}
 	}
 

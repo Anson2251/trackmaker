@@ -41,7 +41,6 @@ import {
 import { Icon } from "@vicons/utils";
 import { type GeographicPointType } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
-import { storeInit } from "@/libs/store";
 import {
   tauriFileSaveDialog,
   tauriCreateTextFile,
@@ -321,7 +320,6 @@ const initialLocateError = ref("");
 
 const mapReady = ref<boolean>(false);
 onMounted(async () => {
-  await storeInit();
   await routeStore.init();
 
   try {

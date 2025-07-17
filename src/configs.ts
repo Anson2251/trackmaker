@@ -3,12 +3,18 @@ import type { moduleItem } from "@/utils/load-modules";
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
 import { UpdateService } from './libs/geolocation/update-service';
+import { storeInit } from "@/libs/store";
+
 
 export const modules: moduleItem[] = [
 	{
 		name: "trackmaker",
 		moduleInit: () => new Promise(resolve => resolve()),
-		dependencies: ["geolocation"]
+		dependencies: ["geolocation", "storage"]
+	},
+	{
+		name: "storage",
+		moduleInit: storeInit
 	},
 	{
 		name: "geolocation",
