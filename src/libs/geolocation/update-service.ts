@@ -1,3 +1,5 @@
+/* eslint-disable no-async-promise-executor */
+
 import type { GeographicPointType, GeolocationBackend } from "./types";
 import { LocationResponseErrorEnum } from "./types";
 import BrowserGeolocationBackend from "./backends/browser-gps";
@@ -7,7 +9,7 @@ import { isEqual } from "lodash-es";
 
 type HandlerItemType = {
     id: number
-    callback: (geoLocation: GeographicPointType, ...any: any[]) => void
+    callback: (geoLocation: GeographicPointType, ...any: unknown[]) => void
     type: "change" | "error" | "start" | "stop"
     triggered: boolean
     once: boolean
@@ -27,7 +29,7 @@ function addLocationHandler(type: HandlerItemType['type'], callback: HandlerItem
     return handler.id;
 }
 
-function triggerHandler(type: HandlerItemType['type'], presentLocation: GeographicPointType, ...args: any[]) {
+function triggerHandler(type: HandlerItemType['type'], presentLocation: GeographicPointType, ...args: unknown[]) {
     handlers
         .filter((handler) => handler.type === type && !(handler.once && handler.triggered))
         .forEach((handler) => {
@@ -126,12 +128,13 @@ export class UpdateService {
             this.presentLocation = newLocation;
             triggerHandler("change", newLocation);
             return Object.freeze(newLocation);
-        } catch (error: any) {
-            console.error("GPS refresh failed:", error.message);
+        } catch (error: unknown) {
+            const res = error as GeolocationPositionError;
+            console.error("GPS refresh failed:", res.message);
 
             // Automatic fallback to IP geolocation on timeout or iOS HTTPS error
-            if (error.code === LocationResponseErrorEnum.TIMEOUT ||
-                error.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
+            if (res.code === LocationResponseErrorEnum.TIMEOUT ||
+                res.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
                 console.warn("Falling back to IP geolocation");
                 this.backend = new IPGeolocationBackend();
                 return this.refresh();

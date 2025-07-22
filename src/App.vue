@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { ref, provide, computed, onMounted } from "vue";
-import Layout from "./Layout.vue";
+import { provide, computed, onMounted } from "vue";
+import AppLayout from "./AppLayout.vue";
 import {
   darkTheme,
   lightTheme,
@@ -16,16 +16,16 @@ import { useSettingsStore } from "./store/settings-store";
 
 provide("platformInfo", new PlatformInfo());
 const settings = useSettingsStore();
-onMounted(() => settings.init())
+onMounted(() => settings.init());
 provide("settings", settings);
 const osThemeValueRef = useOsTheme();
-let theme = computed(() => 
+const theme = computed(() => 
   (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===
     "dark"
     ? darkTheme
     : lightTheme
 );
-let themeOverride = {
+const themeOverride = {
   common: {
     fontFamily:
       'Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
@@ -43,7 +43,7 @@ let themeOverride = {
     <n-dialog-provider>
       <n-modal-provider>
         <n-message-provider :placement="'bottom-right'">
-          <layout />
+          <app-layout />
           <n-global-style />
         </n-message-provider>
       </n-modal-provider>

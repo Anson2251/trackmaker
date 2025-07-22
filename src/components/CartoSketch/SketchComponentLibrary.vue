@@ -28,18 +28,39 @@ watch(props, () => {
 </script>
 
 <template>
-    <n-tabs type="line" name="sketchPropertiesEdit" size="small" default-value="unclassified" animated>
-        <n-tab-pane name="unclassified" tab="Unclassified">
-            <list-selector :list='props.components.unknowns.map(s => ({ value: s.value, label: s.label, }))'
-                v-model:value="selectedComponentID" />
-        </n-tab-pane>
-        <n-tab-pane name="routes" tab="Routes">
-            <list-selector :list='props.components.routes.map(s => ({ value: s.value, label: s.label }))'
-                v-model:value="selectedComponentID" />
-        </n-tab-pane>
-        <n-tab-pane name="drafts" tab="Drafts">
-            <list-selector :list='props.components.drafts.map(s => ({ value: s.value, label: s.label, }))'
-                v-model:value="selectedComponentID" />
-        </n-tab-pane>
-    </n-tabs>
+  <n-tabs
+    type="line"
+    name="sketchPropertiesEdit"
+    size="small"
+    default-value="unclassified"
+    animated
+  >
+    <n-tab-pane
+      name="unclassified"
+      tab="Unclassified"
+    >
+      <list-selector
+        v-model:value="selectedComponentID"
+        :list="props.components.unknowns.map(s => ({ value: s.value, label: s.label, }))"
+      />
+    </n-tab-pane>
+    <n-tab-pane
+      name="routes"
+      tab="Routes"
+    >
+      <list-selector
+        v-model:value="selectedComponentID"
+        :list="props.components.routes.map(s => ({ value: s.value, label: s.label }))"
+      />
+    </n-tab-pane>
+    <n-tab-pane
+      name="drafts"
+      tab="Drafts"
+    >
+      <list-selector
+        v-model:value="selectedComponentID"
+        :list="props.components.drafts.map(s => ({ value: s.value, label: s.label, }))"
+      />
+    </n-tab-pane>
+  </n-tabs>
 </template>

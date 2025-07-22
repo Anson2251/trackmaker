@@ -26,16 +26,18 @@ export async function locateTauri(handlerName: string): Promise<{ point: Positio
 	}
 }
 
+type GeolocationInjectedType = (typeof navigator)["geolocation"] & {injected: boolean};
+
 export async function injectTauriGeolocationProvider(): Promise<string | null> {
 	if (!__TAURI_ENVIRONMENT__) {
 		console.warn("This function can only be called in a Tauri environment.");
 		return null;
 	}
-	if ((navigator.geolocation as any)["injected"]) {
+	if ((navigator.geolocation as GeolocationInjectedType)["injected"]) {
 		console.warn("The custom geolocation provider is already injected and cannot be injected again.")
 		return null;
 	}
-	(navigator.geolocation as any)["injected"] = true;
+	(navigator.geolocation as GeolocationInjectedType)["injected"] = true;
 
 	const locatorInstance = new MyGeolocation("get_geolocation");
 
@@ -57,12 +59,13 @@ export class MyGeolocation implements Geolocation {
 	getCurrentPosition(
 		successCallback: PositionCallback,
 		errorCallback?: PositionErrorCallback,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		options?: PositionOptions
 	): void {
 		this.handleLocationRequest()
 			.then(successCallback)
 			.catch(error => {
-				errorCallback?.(this.createPositionError(error) as any);
+				errorCallback?.(this.createPositionError(error));
 			});
 	}
 
@@ -76,7 +79,7 @@ export class MyGeolocation implements Geolocation {
 			this.handleLocationRequest()
 				.then(successCallback)
 				.catch(error => {
-					errorCallback?.(this.createPositionError(error) as any);
+					errorCallback?.(this.createPositionError(error));
 				});
 		}, maximumAge);
 		this.watchCallbacks.set(watchId, watchId);

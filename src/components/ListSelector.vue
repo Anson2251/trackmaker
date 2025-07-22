@@ -32,14 +32,22 @@ watch(props, () => {
 </script>
 
 <template>
-    <n-element tag="div" class="radio-list">
-        <template #default>
-            <div v-for="(option, index) in computedList" :key="index" @click="selectOption(option.option)"
-                :class="`radio-item ${option.checked ? 'radio-item-checked' : ''}`" :data-checked="option.checked">
-                {{ option.option.label }}
-            </div>
-        </template>
-    </n-element>
+  <n-element
+    tag="div"
+    class="radio-list"
+  >
+    <template #default>
+      <div
+        v-for="(option, index) in computedList"
+        :key="index"
+        :class="`radio-item ${option.checked ? 'radio-item-checked' : ''}`"
+        :data-checked="option.checked"
+        @click="selectOption(option.option)"
+      >
+        {{ option.option.label }}
+      </div>
+    </template>
+  </n-element>
 </template>
 
 <style scoped>

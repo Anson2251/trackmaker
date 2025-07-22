@@ -24,29 +24,41 @@ function remove(id: string) {
 </script>
 
 <template>
-    <div class="container">
-        <n-list class="select-listview" hoverable>
-            <n-list-item v-for="sketch in props.list" :title="sketch.name" :key="sketch.id" @click="select(sketch.id)">
-                <template #prefix>
-                    <div style="height: 100%; width: 100%; display: flex; justify-items: center;">
-                        <n-icon size="20">
-                            <ShapesOutline />
-                        </n-icon>
-                    </div>
-                </template>
-                <template #suffix>
-                    <n-button quaternary circle @click.stop="remove(sketch.id)">
-                        <template #icon>
-                            <n-icon>
-                                <RemoveCircleOutline />
-                            </n-icon>
-                        </template>
-                    </n-button>
-                </template>
-                {{ sketch.name }}
-            </n-list-item>
-        </n-list>
-    </div>
+  <div class="container">
+    <n-list
+      class="select-listview"
+      hoverable
+    >
+      <n-list-item
+        v-for="sketch in props.list"
+        :key="sketch.id"
+        :title="sketch.name"
+        @click="select(sketch.id)"
+      >
+        <template #prefix>
+          <div style="height: 100%; width: 100%; display: flex; justify-items: center;">
+            <n-icon size="20">
+              <ShapesOutline />
+            </n-icon>
+          </div>
+        </template>
+        <template #suffix>
+          <n-button
+            quaternary
+            circle
+            @click.stop="remove(sketch.id)"
+          >
+            <template #icon>
+              <n-icon>
+                <RemoveCircleOutline />
+              </n-icon>
+            </template>
+          </n-button>
+        </template>
+        {{ sketch.name }}
+      </n-list-item>
+    </n-list>
+  </div>
 </template>
 
 <style scoped>

@@ -69,27 +69,36 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
 </script>
 
 <template>
-	<n-drawer v-model:show="activeSelectorFlag" :width="502" :placement="drawerSelectorPlacement" :auto-focus="false">
-		<n-drawer-content title="CartoSketch Library">
-			<template #footer>
-				<n-button-group>
-					<n-button v-for="item in buttonGroupItems" 
-						:secondary="item.secondary" 
-						:key="item.title"
-						:type="(item.type as Type)"
-						:title="item.title"
-						@click="item.callback"
-					>
-						<template #icon>
-							<n-icon :size="item.iconSize">
-								<component :is="item.icon" />
-							</n-icon>
-						</template>
-					</n-button>
-				</n-button-group>
-			</template>
-			<SketchSelector :list="list" @remove="(id: string) => emit('remove', id)"
-				@select="(id: string) => emit('select', id)" />
-		</n-drawer-content>
-	</n-drawer>
+  <n-drawer
+    v-model:show="activeSelectorFlag"
+    :width="502"
+    :placement="drawerSelectorPlacement"
+    :auto-focus="false"
+  >
+    <n-drawer-content title="CartoSketch Library">
+      <template #footer>
+        <n-button-group>
+          <n-button
+            v-for="item in buttonGroupItems" 
+            :key="item.title" 
+            :secondary="item.secondary"
+            :type="(item.type as Type)"
+            :title="item.title"
+            @click="item.callback"
+          >
+            <template #icon>
+              <n-icon :size="item.iconSize">
+                <component :is="item.icon" />
+              </n-icon>
+            </template>
+          </n-button>
+        </n-button-group>
+      </template>
+      <SketchSelector
+        :list="list"
+        @remove="(id: string) => emit('remove', id)"
+        @select="(id: string) => emit('select', id)"
+      />
+    </n-drawer-content>
+  </n-drawer>
 </template>

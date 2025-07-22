@@ -1,5 +1,16 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed, inject, type Component, shallowRef, watch } from "vue";
+/* eslint-disable no-async-promise-executor */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  ref,
+  onMounted,
+  computed,
+  inject,
+  type Component,
+  shallowRef,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import {
   MglMap,
@@ -11,14 +22,7 @@ import {
   MglGeoJsonSource,
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
-import {
-  NPopover,
-  NCard,
-  NText,
-  NSpin,
-  NAlert,
-  useMessage,
-} from "naive-ui";
+import { NPopover, NCard, NText, NSpin, NAlert, NIcon, useMessage } from "naive-ui";
 import {
   TerraDraw,
   TerraDrawPointMode,
@@ -38,7 +42,6 @@ import {
   Upload,
   Route,
 } from "@vicons/tabler";
-import { Icon } from "@vicons/utils";
 import { type GeographicPointType } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
 import {
@@ -124,12 +127,12 @@ type DrawModes = {
 const drawerModes: DrawModes[] = [
   {
     mode: new TerraDrawPointMode(),
-    name: t('trackerView.terraDrawTools.point'),
+    name: t("trackerView.terraDrawTools.point"),
     icon: MapPin,
   },
   {
     mode: new TerraDrawLineStringMode(),
-    name: t('trackerView.terraDrawTools.line'),
+    name: t("trackerView.terraDrawTools.line"),
     icon: Line,
   },
   {
@@ -169,30 +172,35 @@ const drawerModes: DrawModes[] = [
         },
       },
     }),
-    name: t('trackerView.terraDrawTools.select'),
+    name: t("trackerView.terraDrawTools.select"),
     icon: HandFinger,
   },
 ];
 
 watch([() => settings.settings.mapLanguage, () => i18n.locale.value], (v) => {
-  if (v && map.value) changeMapLanguage(map.value, v[0] === 'interface' ? v[1] : v[0])
-})
+  if (v && map.value)
+    changeMapLanguage(map.value, v[0] === "interface" ? v[1] : v[0]);
+});
 
 const changeMapLanguage = (map: Mgl, lang: string) => {
-  const language = lang === 'zh-CN' ? 'zh' : 'en'
-  const layers = ['City labels', 'Road labels', 'Station labels', 'Airport labels', 'Continent labels', 'Country labels']
+  const language = lang === "zh-CN" ? "zh" : "en";
+  const layers = [
+    "City labels",
+    "Road labels",
+    "Station labels",
+    "Airport labels",
+    "Continent labels",
+    "Country labels",
+  ];
 
   for (const layer of layers) {
-    map.setLayoutProperty(layer, 'text-field', [
-        'get',
-        `name:${language}`
-    ]);
+    map.setLayoutProperty(layer, "text-field", ["get", `name:${language}`]);
   }
-}
+};
 
 function initMap(event: any) {
   map.value = event.map;
-  if (map.value) changeMapLanguage(map.value as any, i18n.locale.value)
+  if (map.value) changeMapLanguage(map.value as any, i18n.locale.value);
   map.value?.on("click", () => {
     isRouteDrawerOpen.value = false;
   });
@@ -251,8 +259,8 @@ async function savePath() {
   }
 }
 
-let loadTextFileDialogCallback = ref<(contents: string[]) => Promise<void>>(
-  async (_: string[]) => {}
+const loadTextFileDialogCallback = ref<(contents: string[]) => Promise<void>>(
+  async () => {}
 );
 
 function loadFromText() {
@@ -304,8 +312,14 @@ function loadTrackFromFile() {
 
 const routeDrawerWidth = ref(0);
 const isRouteDrawerOpen = ref(false);
-watch(isRouteDrawerOpen, (val) => map.value?.easeTo({ padding: { left: val ? routeDrawerWidth.value : 0 }, duration: 500 }))
-const toggleRouteDrawer = () => isRouteDrawerOpen.value = !isRouteDrawerOpen.value;
+watch(isRouteDrawerOpen, (val) =>
+  map.value?.easeTo({
+    padding: { left: val ? routeDrawerWidth.value : 0 },
+    duration: 500,
+  })
+);
+const toggleRouteDrawer = () =>
+  (isRouteDrawerOpen.value = !isRouteDrawerOpen.value);
 
 const drawerTooltipOpened = ref(false);
 const openDrawerTooltip = () => {
@@ -324,9 +338,10 @@ onMounted(async () => {
 
   try {
     location.value = await locator.refresh()!;
-      if (!locator.usingGPS) message.warning(t('trackerView.gpsWarning'), { duration: 5000})
+    if (!locator.usingGPS)
+      message.warning(t("trackerView.gpsWarning"), { duration: 5000 });
   } catch (err) {
-    initialLocateError.value = (err as any).message ?? String(err);
+    initialLocateError.value = (err as GeolocationPositionError).message ?? String(err);
   }
   mapReady.value = true;
   draw.value?.start();
@@ -335,7 +350,11 @@ onMounted(async () => {
 
 <template>
   <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
-    <n-card class="map-layout" content-style="padding: 0;" hoverable>
+    <n-card
+      class="map-layout"
+      content-style="padding: 0;"
+      hoverable
+    >
       <transition name="map-load">
         <div
           v-if="mapReady && !initialLocateError"
@@ -350,9 +369,9 @@ onMounted(async () => {
           >
             <mgl-navigation-control position="top-left" />
             <mgl-geolocate-control
+              v-if="locator.usingGPS"
               position="top-left"
               :track-user-location="true"
-              v-if="locator.usingGPS"
             />
             <mgl-fullscreen-control position="top-left" />
             <mgl-scale-control position="bottom-left" />
@@ -363,7 +382,7 @@ onMounted(async () => {
                 :class="[
                   'btn-control',
                   'btn-draw-mode',
-                  { active: item.mode.mode === activeDrawMethod }
+                  { active: item.mode.mode === activeDrawMethod },
                 ]"
                 :title="item.name"
                 @click="
@@ -380,25 +399,30 @@ onMounted(async () => {
                   }
                 "
               >
-                <icon :size="20">
+                <n-icon :size="20">
                   <component
                     :is="item.icon"
                     class="btn-default"
                   />
-                </icon>
+                </n-icon>
               </button>
             </mgl-custom-control>
             <mgl-custom-control position="bottom-left">
-              <n-popover trigger="manual" :show="drawerTooltipOpened">
+              <n-popover
+                trigger="manual"
+                :show="drawerTooltipOpened"
+              >
                 <template #trigger>
                   <button
                     class="btn-control btn-route-toggle"
                     @click="toggleRouteDrawer"
                   >
-                    <icon :size="24"><route /></icon>
+                    <n-icon :size="24">
+                      <route />
+                    </n-icon>
                   </button>
                 </template>
-                <span>{{ t('trackerView.uiRouteCheckoutTip') }}</span>
+                <span>{{ t("trackerView.uiRouteCheckoutTip") }}</span>
               </n-popover>
             </mgl-custom-control>
             <mgl-custom-control position="top-right">
@@ -406,18 +430,22 @@ onMounted(async () => {
                 :class="[
                   'btn-control',
                   'btn-record',
-                  pathRecording ? 'recording' : 'not-recording'
+                  pathRecording ? 'recording' : 'not-recording',
                 ]"
-                :title="pathRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off')"
+                :title="
+                  pathRecording
+                    ? t('trackerView.uiRecordingStatus.on')
+                    : t('trackerView.uiRecordingStatus.off')
+                "
                 @click="changeRecordState"
               >
-                <icon :size="20">
+                <n-icon :size="20">
                   <component
                     :is="pathRecording ? Square : PlayerRecord"
                     :size="pathRecording ? 16 : 20"
                     class="stroke-inherit text-inherit"
                   />
-                </icon>
+                </n-icon>
               </button>
               <button
                 v-if="path.length > 0 && !pathRecording"
@@ -429,34 +457,37 @@ onMounted(async () => {
                     })
                 "
               >
-                <icon :size="20">
+                <n-icon :size="20">
                   <Backspace
                     class="stroke-inherit text-inherit"
                     style="transform: translateX(-1.3px)"
                     size="20"
                   />
-                </icon>
+                </n-icon>
               </button>
               <button
                 v-if="path.length > 0 && !pathRecording"
                 class="btn-control"
                 @click="savePath"
               >
-                <icon :size="20">
+                <n-icon :size="20">
                   <DeviceFloppy
                     class="btn-default"
                     size="20"
                   />
-                </icon>
+                </n-icon>
               </button>
               <button
                 v-if="path.length === 0 && !pathRecording"
                 class="btn-control"
                 @click="loadTrackFromFile"
               >
-                <icon :size="20">
-                  <Upload class="btn-default" size="20" />
-                </icon>
+                <n-icon :size="20">
+                  <Upload
+                    class="btn-default"
+                    size="20"
+                  />
+                </n-icon>
               </button>
             </mgl-custom-control>
             <mgl-geo-json-source
@@ -487,17 +518,26 @@ onMounted(async () => {
             place-content: center;
           "
         >
-          <n-spin v-if="!initialLocateError" size="large">
+          <n-spin
+            v-if="!initialLocateError"
+            size="large"
+          >
             <template #description>
-              <n-text>{{ t('trackerView.mapLoading') }}</n-text>
+              <n-text>{{ t("trackerView.mapLoading") }}</n-text>
             </template>
           </n-spin>
-        <n-alert v-else :title="t('app.error')" type="error">
-          <div>
-            <br />
-            <b>{{ t('app.error') }}: </b><br /><code>{{ initialLocateError }}</code>
-          </div>
-        </n-alert>
+          <n-alert
+            v-else
+            :title="t('app.error')"
+            type="error"
+          >
+            <div>
+              <br>
+              <b>{{ t("app.error") }}: </b><br><code>{{
+                initialLocateError
+              }}</code>
+            </div>
+          </n-alert>
         </div>
       </transition>
     </n-card>

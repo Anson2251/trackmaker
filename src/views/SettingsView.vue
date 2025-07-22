@@ -8,14 +8,10 @@ import {
   NRadioGroup,
   NRadioButton,
   NSelect,
-  NSwitch
+  NSwitch,
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
-import {
-  computed,
-  inject,
-  onMounted,
-} from "vue";
+import { computed, inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useWindowSize } from "@vueuse/core";
 
@@ -23,7 +19,6 @@ const { width } = useWindowSize();
 const isNarrowScreen = computed(() => width.value < 640);
 const isExtremeNarrowScreen = computed(() => width.value < 480);
 const { t, availableLocales } = useI18n();
-const a = useI18n();
 const settingsStore = inject("settings") as ReturnType<typeof useSettingsStore>;
 
 type SettingItemTitle = keyof typeof settingsStore.settings;
@@ -42,11 +37,10 @@ type SettingItem =
       type: "select";
       items: SettingOption[];
     }
-| {
-    title: SettingItemTitle;
-    type: "checkbox";
-}
-;
+  | {
+      title: SettingItemTitle;
+      type: "checkbox";
+    };
 
 type Section = {
   title: string;
@@ -63,9 +57,15 @@ const configs = computed<Config>(() => [
         title: "theme",
         type: "radio",
         items: [
-          { value: "light", label: t("settings.appearance.theme.options.light") },
+          {
+            value: "light",
+            label: t("settings.appearance.theme.options.light"),
+          },
           { value: "dark", label: t("settings.appearance.theme.options.dark") },
-          { value: "system", label: t("settings.appearance.theme.options.system") },
+          {
+            value: "system",
+            label: t("settings.appearance.theme.options.system"),
+          },
         ],
       },
     ],
@@ -73,11 +73,11 @@ const configs = computed<Config>(() => [
   {
     title: "geolocation",
     items: [
-        {
-            title: "watchCompatibilityMode",
-            type: "checkbox",
-        }
-    ]
+      {
+        title: "watchCompatibilityMode",
+        type: "checkbox",
+      },
+    ],
   },
   {
     title: "language",
@@ -93,11 +93,18 @@ const configs = computed<Config>(() => [
       {
         title: "mapLanguage",
         type: "select",
-        items: availableLocales.map((l) => ({
-          value: l,
-          label: t(`settings.language.mapLanguage.options.${l}`),
-        })).concat([{value: 'interface', label: t("settings.language.mapLanguage.options.interface")}]),
-      }
+        items: availableLocales
+          .map((l) => ({
+            value: l,
+            label: t(`settings.language.mapLanguage.options.${l}`),
+          }))
+          .concat([
+            {
+              value: "interface",
+              label: t("settings.language.mapLanguage.options.interface"),
+            },
+          ]),
+      },
     ],
   },
 ]);
@@ -112,13 +119,16 @@ onMounted(() => {
     <div class="settings-layout">
       <div class="settings-content">
         <n-card
-          id="appearance"
-          :title="$t(`settings.${section.title}.title`)"
           v-for="section in configs"
+          id="appearance"
           :key="section.title"
+          :title="$t(`settings.${section.title}.title`)"
         >
           <n-list>
-            <n-list-item v-for="item in section.items">
+            <n-list-item
+              v-for="item of section.items"
+              :key="item.title"
+            >
               <div
                 style="
                   display: flex;
@@ -128,15 +138,19 @@ onMounted(() => {
                 "
               >
                 <div style="white-space: nowrap">
-                  {{ (item as any).items ? $t(`settings.${section.title}.${item.title}.title`) : $t(`settings.${section.title}.${item.title}`) }}
+                  {{
+                    (item as any).items
+                      ? $t(`settings.${section.title}.${item.title}.title`)
+                      : $t(`settings.${section.title}.${item.title}`)
+                  }}
                 </div>
                 <div v-if="item.type === 'radio'">
                   <n-radio-group
-                    v-model:value="settingsStore.settings[item.title]"
                     v-if="!isNarrowScreen"
+                    v-model:value="settingsStore.settings[item.title]"
                   >
                     <n-radio-button
-                      v-for="option in item.items"
+                      v-for="option of item.items"
                       :key="option.value"
                       :value="option.value"
                       :label="option.label"
@@ -147,20 +161,22 @@ onMounted(() => {
                   </n-radio-group>
                   <n-select
                     v-else
-                    :options="item.items"
                     v-model:value="(settingsStore.settings[item.title] as any)"
+                    :options="item.items"
                     :consistent-menu-width="false"
                   />
                 </div>
                 <div v-else-if="item.type === 'select'">
-                    <n-select
-                      :options="item.items"
-                      v-model:value="(settingsStore.settings[item.title] as any)"
-                      :consistent-menu-width="false"
-                    />
+                  <n-select
+                    v-model:value="(settingsStore.settings[item.title] as any)"
+                    :options="item.items"
+                    :consistent-menu-width="false"
+                  />
                 </div>
                 <div v-else-if="item.type === 'checkbox'">
-                    <n-switch v-model:value="settingsStore.settings[item.title]"/>
+                  <n-switch
+                    v-model:value="settingsStore.settings[item.title]"
+                  />
                 </div>
               </div>
             </n-list-item>
@@ -168,12 +184,17 @@ onMounted(() => {
         </n-card>
       </div>
       <n-anchor
+        v-if="!isExtremeNarrowScreen"
         :show-rail="true"
         class="settings-nav"
-        v-if="!isExtremeNarrowScreen"
         style="width: 128px"
       >
-        <n-anchor-link v-for="section in configs" :key="section.title" :title="$t(`settings.${section.title}.title`)" :href="`#${section.title.toLowerCase()}`" />
+        <n-anchor-link
+          v-for="section in configs"
+          :key="section.title"
+          :title="$t(`settings.${section.title}.title`)"
+          :href="`#${section.title.toLowerCase()}`"
+        />
       </n-anchor>
     </div>
   </div>

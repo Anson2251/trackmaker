@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, useTemplateRef, watch, ref } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useThemeVars } from "naive-ui";
 import { clamp } from "lodash-es";
 
@@ -36,13 +36,13 @@ watch(routeDrawerWidth, () => emit("update:width", routeDrawerWidth.value));
 <template>
   <transition name="slide">
     <div
-      class="route-drawer"
-      ref="route-drawer"
       v-show="show"
+      ref="route-drawer"
+      class="route-drawer"
       @click="(e) => emit('click', e)"
       @contextmenu="(e) => emit('contextmenu', e)"
     >
-      <slot name="default"></slot>
+      <slot name="default" />
     </div>
   </transition>
 </template>

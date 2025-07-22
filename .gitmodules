@@ -1,3 +1,0 @@
-[submodule "src/types/MicrosoftMaps"]
-	path = src/types/MicrosoftMaps
-	url = https://github.com/microsoft/Bing-Maps-V8-TypeScript-Definitions.git

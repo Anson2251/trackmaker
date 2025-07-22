@@ -10,7 +10,7 @@ export interface Store {
    * @param value - The value to store. Can be of any type.
    * @returns A `Promise` that resolves to a `Result` object.
    */
-  set(key: string, value: any): Promise<void, Error>;
+  set(key: string, value: unknown): Promise<void, Error>;
 
   /**
    * Retrieves a value associated with a specific key from the store.

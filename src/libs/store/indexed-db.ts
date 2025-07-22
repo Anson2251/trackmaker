@@ -31,7 +31,7 @@ export class IndexedDBStore implements Store {
 		});
 	}
 
-	async set(key: string, value: any): Promise<void> {
+	async set(key: string, value: unknown): Promise<void> {
 		if (!this.db) {
 			return Promise.reject('Database not initialized');
 		}
@@ -89,7 +89,7 @@ export class IndexedDBStore implements Store {
 				const data = request.result.reduce((acc, item, index) => {
 					acc[index] = item; // Use index as key or use a unique key if available
 					return acc;
-				}, {} as Record<string, any>);
+				}, {} as Record<string, unknown>);
 				resolve(JSON.stringify(data, null, 2));
 			};
 

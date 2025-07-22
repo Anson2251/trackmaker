@@ -29,7 +29,7 @@ const adapter = new SketchEditAdapter<any>();
 
 const sketchList = ref<CartoSketchInfo[]>([]);
 
-let emptySelection = ref(false);
+const emptySelection = ref(false);
 // const selectedComponentID = ref<number | undefined>();
 // let selectedComponentConfigs = ref<Record<string, string | number | boolean>>({})
 
@@ -117,67 +117,110 @@ onMounted(() => {
 </script>
 
 <template>
-	<SelectorDrawer :list="sketchList" v-model:active="activeSelector" :placement="selectorPlacement" @new="newSketch"
-					@remove="removeCartoSketchFromList" @select="selectCartoSketchFromList"
-					@activeStateSync="(state: boolean) => { activeSelector = state }"
-					@import="showAlert('Not implemented')"/>
-	<n-split direction="horizontal" :max="0.8" :min="0.4" :default-size="0.7">
-		<template #1>
-			<n-card class="map-container" content-style="padding: 0">
-				<BingMapView v-show="emptySelection" :map-type="(localMapType as unknown as string)" :plugin="mapPlugins"
-						:lite-mode="props.liteMode"
-						:forceHiDPI="props.forceHighDpi"
-						@ready="mapReady"/>
-				<n-empty description="Map" v-if="!emptySelection" size="huge"
-						style="height: 100%; justify-content: center">
-					<template #icon>
-						<n-icon>
-							<MapIcon/>
-						</n-icon>
-					</template>
-				</n-empty>
-			</n-card>
-		</template>
-		<template #2>
-			<div class="edit-layout">
-				<n-card content-class="route-edit-tool-tip">
-					<div v-for="(item, index) in toolTipBarItems" :key="index" @click="item.callback"
-						:title="item.title" class="tool-tip-item">
-						<n-icon :size="item.iconSize">
-							<component :is="item.icon"/>
-						</n-icon>
-					</div>
-				</n-card>
+  <SelectorDrawer
+    v-model:active="activeSelector"
+    :list="sketchList"
+    :placement="selectorPlacement"
+    @new="newSketch"
+    @remove="removeCartoSketchFromList"
+    @select="selectCartoSketchFromList"
+    @active-state-sync="(state: boolean) => { activeSelector = state }"
+    @import="showAlert('Not implemented')"
+  />
+  <n-split
+    direction="horizontal"
+    :max="0.8"
+    :min="0.4"
+    :default-size="0.7"
+  >
+    <template #1>
+      <n-card
+        class="map-container"
+        content-style="padding: 0"
+      >
+        <BingMapView
+          v-show="emptySelection"
+          :map-type="(localMapType as unknown as string)"
+          :plugin="mapPlugins"
+          :lite-mode="props.liteMode"
+          :force-hi-d-p-i="props.forceHighDpi"
+          @ready="mapReady"
+        />
+        <n-empty
+          v-if="!emptySelection"
+          description="Map"
+          size="huge"
+          style="height: 100%; justify-content: center"
+        >
+          <template #icon>
+            <n-icon>
+              <MapIcon />
+            </n-icon>
+          </template>
+        </n-empty>
+      </n-card>
+    </template>
+    <template #2>
+      <div class="edit-layout">
+        <n-card content-class="route-edit-tool-tip">
+          <div
+            v-for="(item, index) in toolTipBarItems"
+            :key="index"
+            :title="item.title"
+            class="tool-tip-item"
+            @click="item.callback"
+          >
+            <n-icon :size="item.iconSize">
+              <component :is="item.icon" />
+            </n-icon>
+          </div>
+        </n-card>
 
-				<n-card class="draft-container">
-					<template #header v-if="emptySelection">
-						Components
-					</template>
-					<n-split direction="vertical" :max="0.8" :min="0.3" :default-size="0.7" v-if="emptySelection">
-						<template #1>
-							<!--							<SketchComponentLibrary :components="classifiedComponentNames"-->
-							<!--													v-model:value="selectedComponentName"/>-->
-						</template>
-						<template #2>
-							<!-- <PropertiesEdit /> -->
-						</template>
-					</n-split>
-					<n-empty description="No sketch selected" v-if="!emptySelection"
-							style="height: 100%; justify-content: center">
-						<template #icon>
-							<n-icon>
-<!--																<properties-edit :properties="{color: '#FF0000'}" />-->
-							</n-icon>
-						</template>
-						<template #extra>
-							<n-button size="small" @click="drawer.open()">Select a sketch</n-button>
-						</template>
-					</n-empty>
-				</n-card>
-			</div>
-		</template>
-	</n-split>
-
+        <n-card class="draft-container">
+          <template
+            v-if="emptySelection"
+            #header
+          >
+            Components
+          </template>
+          <n-split
+            v-if="emptySelection"
+            direction="vertical"
+            :max="0.8"
+            :min="0.3"
+            :default-size="0.7"
+          >
+            <template #1>
+              <!--							<SketchComponentLibrary :components="classifiedComponentNames"-->
+              <!--													v-model:value="selectedComponentName"/>-->
+            </template>
+            <template #2>
+              <!-- <PropertiesEdit /> -->
+            </template>
+          </n-split>
+          <n-empty
+            v-if="!emptySelection"
+            description="No sketch selected"
+            style="height: 100%; justify-content: center"
+          >
+            <template #icon>
+              <n-icon>
+                <!--																<properties-edit :properties="{color: '#FF0000'}" />-->
+              </n-icon>
+            </template>
+            <template #extra>
+              <n-button
+                size="small"
+                @click="drawer.open()"
+              >
+                Select a sketch
+              </n-button>
+            </template>
+          </n-empty>
+        </n-card>
+      </div>
+    </template>
+  </n-split>
 </template>
 
 <style>

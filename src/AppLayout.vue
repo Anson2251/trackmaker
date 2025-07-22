@@ -31,7 +31,8 @@ watch(
   }
 );
 
-const locator = (window as any).UpdateService as UpdateService;
+const locator = (window as { UpdateService?: UpdateService })
+  .UpdateService as UpdateService;
 provide("geolocation", locator);
 
 const menuOptions: MenuOption[] = [
@@ -42,7 +43,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/tracker",
         },
-        { default: () => (t("router.tracker")) }
+        { default: () => t("router.tracker") }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -57,7 +58,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/settings",
         },
-        { default: () => (t("router.settings")) }
+        { default: () => t("router.settings") }
       ),
     key: "settings",
     icon: renderIcon(Settings),
@@ -69,7 +70,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => (t("router.about")) }
+        { default: () => t("router.about") }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),
@@ -90,7 +91,10 @@ const horizontalScreen = computed(() => width.value > height.value);
       horizontalScreen ? 'app-layout-horizontal' : 'app-layout-vertical',
     ]"
   >
-    <div class="nav-bar" v-if="horizontalScreen">
+    <div
+      v-if="horizontalScreen"
+      class="nav-bar"
+    >
       <n-menu
         :options="menuOptions"
         default-value="tracker"
@@ -106,46 +110,61 @@ const horizontalScreen = computed(() => width.value > height.value);
           />
         </div>
         <div
-          style="width: 100%; text-align: center; padding: 4px"
           v-if="commitId"
+          style="width: 100%; text-align: center; padding: 4px"
         >
-          <n-text depth="3">{{
-            devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
-          }}</n-text>
+          <n-text depth="3">
+            {{
+              devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
+            }}
+          </n-text>
         </div>
       </div>
     </div>
-    <div class="nav-bar" v-else>
-      <n-popover :trigger="platform.isMobile ? 'click' : 'hover'" style="padding: 2px 0; transform: translateX(2px);" :placement="'bottom-start'">
-      <template #trigger>
-        <n-button style="width: 48px;">
-          <template #icon>
-            <n-icon><menu-icon /></n-icon>
-          </template>
-        </n-button>
-      </template>
-      <n-menu
+    <div
+      v-else
+      class="nav-bar"
+    >
+      <n-popover
+        :trigger="platform.isMobile ? 'click' : 'hover'"
+        style="padding: 2px 0; transform: translateX(2px)"
+        :placement="'bottom-start'"
+      >
+        <template #trigger>
+          <n-button style="width: 48px">
+            <template #icon>
+              <n-icon><menu-icon /></n-icon>
+            </template>
+          </n-button>
+        </template>
+        <n-menu
           :options="menuOptions.concat(softwareOption)"
           default-value="tracker"
           :value="currentRoute"
           dropdown-placement="top-start"
           :mode="'vertical'"
         />
-    </n-popover>
+      </n-popover>
       <div
-        style="width: 100%; text-align: center; padding: 4px"
         v-if="commitId"
+        style="width: 100%; text-align: center; padding: 4px"
       >
-        <n-text depth="3">{{
-          devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
-        }}</n-text>
+        <n-text depth="3">
+          {{ devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase() }}
+        </n-text>
       </div>
     </div>
     <div class="main-layout">
-      <router-view v-slot="{ Component }">
-        <transition name="slide-fade" mode="out-in">
+      <router-view v-slot="{ Component: component }">
+        <transition
+          name="slide-fade"
+          mode="out-in"
+        >
           <keep-alive>
-            <component :is="Component" :key="currentRoute" />
+            <component
+              :is="component"
+              :key="currentRoute" 
+            />
           </keep-alive>
         </transition>
       </router-view>

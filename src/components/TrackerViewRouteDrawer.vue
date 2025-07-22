@@ -141,17 +141,20 @@ function handleRouteBatchDelete() {
     @update:width="(w) => emit('update:width', w)"
     @contextmenu="(e) => openRouteContextMenu(e)"
   >
-    <div class="drawer-container" style="height: 100%">
+    <div
+      class="drawer-container"
+      style="height: 100%"
+    >
       <div class="drawer-header">
         <p class="drawer-title">
           {{ t("components.trackerViewRouteDrawer.routes") }}
         </p>
         <n-button
+          v-if="selectedRouteIds.length > 0"
           strong
           secondary
           circle
           type="error"
-          v-if="selectedRouteIds.length > 0"
           @click="handleRouteBatchDelete"
         >
           <template #icon>
@@ -160,9 +163,9 @@ function handleRouteBatchDelete() {
         </n-button>
       </div>
       <selectable-swipeable-menu-list
-        :items="routeStore.routes"
         v-model:selection="(routeStore.currentRouteId as any)"
         v-model:multiple-selection="selectedRouteIds"
+        :items="routeStore.routes"
         :menu-options="itemMenuOptions"
         :swipe-actions="swipeActions"
         @contextmenu="
@@ -177,7 +180,7 @@ function handleRouteBatchDelete() {
             <div>
               {{
                 route.name ??
-                t("components.trackerViewRouteDrawer.nameNewRoute")
+                  t("components.trackerViewRouteDrawer.nameNewRoute")
               }}
             </div>
             <div>
@@ -198,14 +201,14 @@ function handleRouteBatchDelete() {
     :x="contextMenuX"
     :y="contextMenuY"
     :options="listMenuOptions.map(o => ({...o, label: o.label.value }))"
-    @clickoutside="showRouteContextMenu = false"
     placement="bottom-start"
     trigger="manual"
+    @clickoutside="showRouteContextMenu = false"
   />
 
   <n-modal
-    preset="dialog"
     v-model:show="showRenameDialog"
+    preset="dialog"
     title="Rename Route"
     positive-text="Save"
     negative-text="Cancel"

@@ -8,7 +8,6 @@ import {
   NCollapse,
   NCollapseItem,
   NIcon,
-  NElement,
   NList,
   NListItem,
   NTag,
@@ -20,7 +19,7 @@ import {
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
-import { LogoGithub, Link, DocumentTextOutline } from "@vicons/ionicons5";
+import { BrandGithub, Link, FileText } from "@vicons/tabler";
 import { credits, dataProviders } from "@/configs";
 import aboutPageLicense from "@/assets/about-page-license.txt?raw";
 
@@ -55,6 +54,8 @@ const processLicenseText = (s) =>
     )
     .join("\n\n")
     .trim();
+
+const sideIconSize = ref(20);
 </script>
 
 <template>
@@ -65,18 +66,31 @@ const processLicenseText = (s) =>
       :show-rail="true"
       :show-background="true"
     >
-      <n-anchor-link :title="t('aboutView.sections.project')" href="#project" />
+      <n-anchor-link
+        :title="t('aboutView.sections.project')"
+        href="#project"
+      />
       <n-anchor-link
         :title="t('aboutView.sections.dataSource')"
         href="#data-sources"
       />
-      <n-anchor-link :title="t('aboutView.sections.credits')" href="#credits" />
+      <n-anchor-link
+        :title="t('aboutView.sections.credits')"
+        href="#credits"
+      />
     </n-anchor>
     <!-- Project Section -->
-    <section id="project" class="section project-section">
+    <section
+      id="project"
+      class="section project-section"
+    >
       <n-card>
         <div class="project-header">
-          <n-image width="100" :src="logo" preview-disabled />
+          <n-image
+            width="100"
+            :src="logo"
+            preview-disabled
+          />
           <n-h1>Trackmaker</n-h1>
         </div>
         <p class="project-description">
@@ -84,39 +98,68 @@ const processLicenseText = (s) =>
         </p>
 
         <n-collapse class="license-collapse">
-          <n-collapse-item title="License" name="license">
+          <n-collapse-item
+            title="License"
+            name="license"
+          >
             <template #header>
               <n-space>
                 <n-p>License</n-p>
-                <n-tag type="info" round size="small">GPL</n-tag>
+                <n-tag
+                  type="info"
+                  round
+                  size="small"
+                >
+                  GPL
+                </n-tag>
               </n-space>
             </template>
-            <vue-markdown :source="aboutPageLicense" class="license-text" />
+            <vue-markdown
+              :source="aboutPageLicense"
+              class="license-text"
+            />
           </n-collapse-item>
         </n-collapse>
       </n-card>
     </section>
 
     <!-- Data Sources Section -->
-    <section id="data-sources" class="section data-sources">
+    <section
+      id="data-sources"
+      class="section data-sources"
+    >
       <n-card>
         <template #header>
           {{ t("aboutView.sections.dataSource") }}
         </template>
 
         <n-list>
-          <n-list-item v-for="provider in dataProviders" :key="provider.id">
+          <n-list-item
+            v-for="provider in dataProviders"
+            :key="provider.id"
+          >
             <template #default>
               <n-space>
                 <n-p>{{ provider.name }}</n-p>
-                <n-tag v-if="provider.license" type="info" round size="small">
+                <n-tag
+                  v-if="provider.license"
+                  type="info"
+                  round
+                  size="small"
+                >
                   {{ provider.license }}
                 </n-tag>
               </n-space>
             </template>
             <template #suffix>
-              <a :href="provider.url" class="external-link">
-                <n-icon size="24" :color="theme.textColor1">
+              <a
+                :href="provider.url"
+                class="external-link"
+              >
+                <n-icon
+                  :size="sideIconSize"
+                  :color="theme.textColor1"
+                >
                   <Link />
                 </n-icon>
               </a>
@@ -134,7 +177,10 @@ const processLicenseText = (s) =>
     </section>
 
     <!-- Credits Section -->
-    <section id="credits" class="section credits-section">
+    <section
+      id="credits"
+      class="section credits-section"
+    >
       <n-card hoverable>
         <template #header>
           {{ t("aboutView.sections.credits") }}
@@ -158,7 +204,12 @@ const processLicenseText = (s) =>
             <template #header>
               <n-space>
                 {{ credit.name }}
-                <n-tag v-if="credit.license" round type="info" size="small">
+                <n-tag
+                  v-if="credit.license"
+                  round
+                  type="info"
+                  size="small"
+                >
                   {{ credit.licenseType }}
                 </n-tag>
               </n-space>
@@ -179,15 +230,27 @@ const processLicenseText = (s) =>
 
             <template #header-extra>
               <div class="credit-links">
-                <a v-if="credit.homepage" :href="credit.homepage">
-                  <n-icon size="20" :color="theme.textColor1">
+                <a
+                  v-if="credit.homepage"
+                  :href="credit.homepage"
+                >
+                  <n-icon
+                    :size="sideIconSize"
+                    :color="theme.textColor1"
+                  >
                     <Link />
                   </n-icon>
                 </a>
-                <a v-if="credit.url" :href="credit.url">
-                  <n-icon size="24" :color="theme.textColor1">
-                    <logo-github v-if="credit.url.includes('github')" />
-                    <DocumentTextOutline v-else />
+                <a
+                  v-if="credit.url"
+                  :href="credit.url"
+                >
+                  <n-icon
+                    :size="sideIconSize"
+                    :color="theme.textColor1"
+                  >
+                    <brand-github v-if="credit.url.includes('github')" />
+                    <file-text v-else />
                   </n-icon>
                 </a>
               </div>
@@ -259,15 +322,15 @@ const processLicenseText = (s) =>
 
 .credit-links:deep(a) {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: v-bind('`${sideIconSize}px`');
+  height: v-bind('`${sideIconSize}px`');
 }
 
 .external-link {
   color: inherit;
   text-decoration: none;
   display: block;
-  height: 24px;
+  height: v-bind('`${sideIconSize}px`');
 }
 
 @media (min-width: 700px) {

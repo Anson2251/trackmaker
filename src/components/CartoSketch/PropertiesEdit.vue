@@ -145,33 +145,64 @@ watch(propertiesEditview, () => {
 </script>
 
 <template>
-	<div style="height: 100%; width: 100%; overflow: auto;">
-		<n-list :show-divider="false" style="height: max-content; width: fit-content; min-width: 100%;">
-			<n-list-item style="text-align: center; padding: 0;" v-for="property in propertiesEditview"
-						:key="property.name">
-				<n-flex :align="'center'" justify="space-between" :wrap="false">
-					<p style="white-space: nowrap;">{{ property.label }}</p>
+  <div style="height: 100%; width: 100%; overflow: auto;">
+    <n-list
+      :show-divider="false"
+      style="height: max-content; width: fit-content; min-width: 100%;"
+    >
+      <n-list-item
+        v-for="property in propertiesEditview"
+        :key="property.name"
+        style="text-align: center; padding: 0;"
+      >
+        <n-flex
+          :align="'center'"
+          justify="space-between"
+          :wrap="false"
+        >
+          <p style="white-space: nowrap;">
+            {{ property.label }}
+          </p>
 
-					<n-radio-group v-if="property.type === 'radio'" :name="property.name"
-						:default-value="property.default" v-model:value="property.model.value">
-						<n-radio-button v-for="option in property.data.options" :key="option.value"
-										:label="option.label"
-										:value="option.value"/>
-					</n-radio-group>
+          <n-radio-group
+            v-if="property.type === 'radio'"
+            v-model:value="property.model.value"
+            :name="property.name"
+            :default-value="property.default"
+          >
+            <n-radio-button
+              v-for="option in property.data.options"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </n-radio-group>
 
-					<n-color-picker v-if="property.type === 'color'" v-model:value="(property.model.value as string)"
-									size="small" :show-alpha="false"/>
+          <n-color-picker
+            v-if="property.type === 'color'"
+            v-model:value="(property.model.value as string)"
+            size="small"
+            :show-alpha="false"
+          />
 
-					<n-input-number v-if="property.type === 'number'" v-model:value="(property.model.value as number)"
-									size="small" placeholder="Thickness" :min="0" :max="100"/>
+          <n-input-number
+            v-if="property.type === 'number'"
+            v-model:value="(property.model.value as number)"
+            size="small"
+            placeholder="Thickness"
+            :min="0"
+            :max="100"
+          />
 
-					<n-switch v-if="property.type === 'switch'" v-model:value="(property.model.value as boolean)"
-						size="medium"/>
-				</n-flex>
-			</n-list-item>
-		</n-list>
-	</div>
-
+          <n-switch
+            v-if="property.type === 'switch'"
+            v-model:value="(property.model.value as boolean)"
+            size="medium"
+          />
+        </n-flex>
+      </n-list-item>
+    </n-list>
+  </div>
 </template>
 
 <style scoped></style>

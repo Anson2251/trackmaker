@@ -14,11 +14,12 @@ export class TauriStore implements IStore {
 		this.store = await load(this.storePath, { autoSave: false });
 	}
 
-	async set(key: string, value: any): Promise<void> {
+	async set(key: string, value: unknown): Promise<void> {
 		if (!this.store) return Promise.reject("Tauri store not initialised");
 		try {
 			await this.store.set(key, value);
-		} catch (error) {
+		}
+		catch {
 			return Promise.reject('Failed to set value');
 		}
 	}
@@ -28,7 +29,8 @@ export class TauriStore implements IStore {
 		try {
 			const value = (await this.store.get<T>(key) as T);
 			return value;
-		} catch (error) {
+		}
+		catch {
 			return Promise.reject('Failed to get value');
 		}
 	}
@@ -37,7 +39,8 @@ export class TauriStore implements IStore {
 		if (!this.store) return Promise.reject("Tauri store not initialised");
 		try {
 			await this.store.save();
-		} catch (error) {
+		}
+		catch {
 			return Promise.reject('Failed to save store');
 		}
 	}
@@ -46,7 +49,7 @@ export class TauriStore implements IStore {
 		try {
 			if (!this.store) return Promise.reject("Tauri store not initialised");
 			const keys = await this.store.keys();
-			const data: Record<string, any> = {};
+			const data: Record<string, unknown> = {};
 
 			for (const key of keys) {
 				const value = await this.store.get(key);
@@ -54,7 +57,8 @@ export class TauriStore implements IStore {
 			}
 
 			return JSON.stringify(data, null, 2);
-		} catch (error) {
+		}
+		catch {
 			return Promise.reject('Failed to export data to JSON');
 		}
 	}

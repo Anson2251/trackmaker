@@ -1,25 +1,27 @@
 import { isString } from "lodash-es";
 
+type ArgType = string | number | boolean | object;
+
 export type moduleItem = {
     name: string,
-    moduleInit: (timeout: number, ...args: any) => Promise<void>,
+    moduleInit: (timeout: number, ...args: ArgType[]) => Promise<void>,
     dependencies?: string[]
     status?: "unloaded" | "loading" | "loaded" | "error"
 }
 
-const formatArg = (arg: any) => isString(arg) ? arg : JSON.stringify(arg); 
+const formatArg = (arg: ArgType) => isString(arg) ? arg : JSON.stringify(arg); 
 
 export const messageFormat = {
-    "unloaded": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" has not been loaded yet`,
-    "loading": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" is loading`,
-    "loaded": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded`,
-    "error": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" failed to load, Track back: \n${formatArg(args[1])}`,
-    "errorDetermined": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" failed to load, asserted by another instance, skip`,
-    "alreadyLoading": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" is already loading by another instance, skip`,
-    "alreadyLoaded": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded by another instance, skip`,
-    "missingDependencies": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" is missing the following dependencies: ${formatArg(args[1])}`,
-    "dependenciesReady": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies are ready`,
-    "dependenciesFailure": (...args: any[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies failed to load. \n\n- Track back: \n${formatArg(args[1])}`
+    "unloaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has not been loaded yet`,
+    "loading": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is loading`,
+    "loaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded`,
+    "error": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" failed to load, Track back: \n${formatArg(args[1])}`,
+    "errorDetermined": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" failed to load, asserted by another instance, skip`,
+    "alreadyLoading": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is already loading by another instance, skip`,
+    "alreadyLoaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded by another instance, skip`,
+    "missingDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is missing the following dependencies: ${formatArg(args[1])}`,
+    "dependenciesReady": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies are ready`,
+    "dependenciesFailure": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies failed to load. \n\n- Track back: \n${formatArg(args[1])}`
 };
 
 /**

@@ -10,7 +10,7 @@ import router from './router';
 import { loadModules } from './utils/load-modules';
 import { modules } from './configs';
 
-import { DeviceOrientationService } from '@/utils/device-orientation-service';
+// import { DeviceOrientationService } from '@/utils/device-orientation-service.ts.old';
 
 const app = createApp(App);
 app.use(createPinia());
@@ -18,7 +18,7 @@ app.use(router);
 app.use(i18n);
 
 loadModules(modules, "trackmaker", 30000, !__RELEASE_MODE__).then(() => {
-    DeviceOrientationService.start();
+    // DeviceOrientationService.start();
     app.mount('#app');
     document.getElementById("splash")?.remove();
 }).catch((e) => {

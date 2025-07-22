@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { type Ref, ref, watch } from "vue";
+import { type Ref, ref } from "vue";
 import { useThemeVars } from "naive-ui";
-import { NDropdown, NCheckbox } from "naive-ui";
+import { NDropdown, NCheckbox, type MenuOption } from "naive-ui";
 import { clamp } from "lodash-es";
-import type { Route } from "@/libs/store/types";
 
 type SwipeState = {
   startX: number;
@@ -15,9 +14,11 @@ type SwipeState = {
   rightMax: number;
 };
 
+type ListItemType = { id: string; [key: string]: unknown };
+
 const props = defineProps<{
-  items: Array<{ id: string; [key: string]: any }>;
-  menuOptions: Array<any>;
+  items: Array<ListItemType>;
+  menuOptions: Array<MenuOption & { label: string | Ref<string> }>;
   swipeActions: Array<{
     label: string | Ref<string>;
     name: string;
@@ -37,7 +38,7 @@ const multipleSelection = defineModel("multipleSelection", {
 });
 
 const emit = defineEmits<{
-  (e: "contextmenu", event: MouseEvent, item?: Route): void;
+  (e: "contextmenu", event: MouseEvent, item?: ListItemType): void;
 }>();
 
 const theme = useThemeVars();
@@ -56,7 +57,7 @@ const swipeState = ref<SwipeState>({
 const showContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
-const selectedItem = ref<any>(null);
+const selectedItem = ref<unknown | null>(null);
 const leftSwipeMax = 120;
 const rightSwipeMax = 40;
 
@@ -112,12 +113,11 @@ function handleTouchEnd() {
   }
 }
 
-function handleItemClick(e: MouseEvent, item: any) {
+function handleItemClick(e: MouseEvent, item: ListItemType) {
   e.stopPropagation();
   if (swipeState.value.delta > 5) return;
   clearSwipeState();
   if (selection.value !== item.id) selection.value = item.id;
-  console.log(selection.value);
 }
 
 function clearSwipeState() {
@@ -133,7 +133,7 @@ function clearSwipeState() {
   };
 }
 
-function openItemContextMenu(e: MouseEvent, item: any) {
+function openItemContextMenu(e: MouseEvent, item: ListItemType) {
   e.stopPropagation();
   e.preventDefault();
   if (showContextMenu.value) {
@@ -164,15 +164,15 @@ function toggleSelectCheckbox(itemId: string) {
     <div
       v-for="item in props.items"
       :key="item.id"
+      :class="['menu-list-item', ...(item.id === selection ? ['active'] : [])]"
+      :style="{
+        'touch-action': swipeState.activeId === item.id ? 'pan-y' : 'auto',
+      }"
       @click="handleItemClick($event, item)"
       @contextmenu.prevent="(e) => openItemContextMenu(e, item)"
       @touchstart="handleTouchStart($event, item.id)"
       @touchmove="handleTouchMove"
       @touchend="handleTouchEnd"
-      :class="['menu-list-item', ...(item.id === selection ? ['active'] : [])]"
-      :style="{
-        'touch-action': swipeState.activeId === item.id ? 'pan-y' : 'auto',
-      }"
     >
       <div class="swipe-container">
         <div
@@ -190,7 +190,10 @@ function toggleSelectCheckbox(itemId: string) {
                 : 'row-reverse',
           }"
         >
-          <slot name="item" :item="item">
+          <slot
+            name="item"
+            :item="item"
+          >
             <div style="height: fit-content; padding: 8px 12px">
               <div>{{ item.name ?? "Untitled" }}</div>
             </div>
@@ -215,13 +218,13 @@ function toggleSelectCheckbox(itemId: string) {
             v-for="action in props.swipeActions"
             :key="action.name"
             class="menu-action"
+            :style="{ background: action.color || theme.primaryColorSuppl }"
             @click="
               () => {
                 action.action(item.id);
                 swipeState.activeId = null;
               }
             "
-            :style="{ background: action.color || theme.primaryColorSuppl }"
           >
             {{ action.label }}
           </button>
@@ -238,7 +241,6 @@ function toggleSelectCheckbox(itemId: string) {
           <div style="padding: 16px">
             <n-checkbox
               :checked="multipleSelection.includes(item.id)"
-              @update:checked="() => toggleSelectCheckbox(item.id)"
               :style="{
                 border:
                   selection === item.id
@@ -247,6 +249,7 @@ function toggleSelectCheckbox(itemId: string) {
                 BorderRadius:
                   selection === item.id ? theme.borderRadiusSmall : 'none',
               }"
+              @update:checked="() => toggleSelectCheckbox(item.id)"
             />
           </div>
         </div>
@@ -259,12 +262,12 @@ function toggleSelectCheckbox(itemId: string) {
     :x="contextMenuX"
     :y="contextMenuY"
     :options="
-      props.menuOptions.map((o) => ({ ...o, label: o.label?.value ?? o.label }))
+      props.menuOptions.map((o) => ({ ...o, label: (o as MenuOption & {label: Ref<string>}).label?.value ?? o.label }))
     "
-    @click="showContextMenu = false"
-    @clickoutside="showContextMenu = false"
     placement="bottom-start"
     trigger="manual"
+    @click="showContextMenu = false"
+    @clickoutside="showContextMenu = false"
   />
 </template>
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import type { moduleItem } from "@/utils/load-modules";
 
 import creditInfo from "@/assets/credits.json";
@@ -48,7 +49,7 @@ export const modules: moduleItem[] = [
 				await updateService.start();
 				console.timeEnd("Geolocation update service start");
 
-				(window as any).UpdateService = updateService; // expose for debugging purposes
+				 (window as { UpdateService?: UpdateService }).UpdateService = updateService; // expose for debugging purposes
 				console.log("Geolocation module initialized successfully");
 			}
 			catch (error) {

@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual, reject } from "lodash-es";
+import { isEqual, reject } from "lodash-es";
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
 import { LocationResponseErrorEnum } from "../types";
 import PlatformInfo from '@/utils/platform';
@@ -99,7 +99,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
 
         const settings = useSettingsStore()
         if (settings.settings.watchCompatibilityMode) {
-            return new Promise<number>((resolve, reject) => {
+            return new Promise<number>((resolve) => {
                 let previousLocation: GeographicPointType | null = null;
 
                 resolve(setInterval(async () => {
@@ -112,7 +112,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
             });
         }
         else {
-            return new Promise<number>((resolve, reject) => {
+            return new Promise<number>((resolve) => {
                 resolve(navigator.geolocation.watchPosition(
                     (position) => callback({
                         latitude: position.coords.latitude,
