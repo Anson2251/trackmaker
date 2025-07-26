@@ -1,5 +1,5 @@
 /* eslint-disable no-async-promise-executor */
-import type { moduleItem } from "@/utils/load-modules";
+import type { ModuleItem } from "@/utils/load-modules";
 
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
@@ -7,18 +7,21 @@ import { UpdateService } from './libs/geolocation/update-service';
 import { storeInit } from "@/libs/store";
 
 
-export const modules: moduleItem[] = [
+export const modules: ModuleItem[] = [
 	{
 		name: "trackmaker",
+		displayName: "TrackMaker",
 		moduleInit: () => new Promise(resolve => resolve()),
 		dependencies: ["geolocation", "storage"]
 	},
 	{
 		name: "storage",
+		displayName: "Storage",
 		moduleInit: storeInit
 	},
 	{
 		name: "geolocation",
+		displayName: "Geolocation Service",
 		moduleInit: async () => {
 			try {
 				const updateService = new UpdateService();
@@ -49,7 +52,7 @@ export const modules: moduleItem[] = [
 				await updateService.start();
 				console.timeEnd("Geolocation update service start");
 
-				 (window as { UpdateService?: UpdateService }).UpdateService = updateService; // expose for debugging purposes
+				(window as Window & { UpdateService?: UpdateService }).UpdateService = updateService; // expose for debugging purposes
 				console.log("Geolocation module initialized successfully");
 			}
 			catch (error) {
