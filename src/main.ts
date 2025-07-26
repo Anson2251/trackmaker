@@ -1,22 +1,9 @@
 import './assets/main.css';
 
 import { createApp } from 'vue';
-import { createPinia } from 'pinia';
-import { i18n } from '@/locales';
-
-import App from './App.vue';
 import SplashScreen from './SplashScreen.vue';
-import router from './router';
+import { createPinia } from 'pinia';
 
-// import { DeviceOrientationService } from '@/utils/device-orientation-service.ts.old';
-
-const app = createApp(App);
-app.use(createPinia());
-app.use(router);
-app.use(i18n);
-
-const splashScreen = createApp(SplashScreen, {
-    app
-});
-
+const splashScreen = createApp(SplashScreen);
+splashScreen.use(createPinia())
 splashScreen.mount('#splash');
