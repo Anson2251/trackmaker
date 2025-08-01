@@ -1,7 +1,7 @@
 import { isNumber } from "lodash-es";
 
-function triggerHandlers(){
-    for(const handler of DeviceOrientationService.handlers) {
+function triggerHandlers() {
+    for (const handler of DeviceOrientationService.handlers) {
         handler.callback(DeviceOrientationService.bearing);
     }
 }
@@ -39,13 +39,13 @@ export namespace DeviceOrientationService {
     }
 
     export function start() {
-        if(started) return;
+        if (started) return;
         window.addEventListener('deviceorientation', updater, true);
         started = true;
     }
 
     export function stop() {
-        if(!started) return;
+        if (!started) return;
         window.removeEventListener('deviceorientation', updater, true);
         started = false;
     }

@@ -34,12 +34,17 @@ const renameRouteId = ref<string | null>(null);
 
 const listMenuOptions = [
   {
-    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.new")),
+    label: computed(() =>
+      t("components.trackerViewRouteDrawer.contextMenu.new")
+    ),
     key: "new",
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute({ name: t("components.trackerViewRouteDrawer.nameNewRoute"), points: [] });
+        routeStore.addRoute({
+          name: t("components.trackerViewRouteDrawer.nameNewRoute"),
+          points: [],
+        });
       },
     },
   },
@@ -47,7 +52,9 @@ const listMenuOptions = [
 
 const itemMenuOptions = [
   {
-    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.rename")),
+    label: computed(() =>
+      t("components.trackerViewRouteDrawer.contextMenu.rename")
+    ),
     key: "rename",
     props: {
       onClick: () => {
@@ -59,7 +66,9 @@ const itemMenuOptions = [
     },
   },
   {
-    label:computed(() => t("components.trackerViewRouteDrawer.contextMenu.delete")),
+    label: computed(() =>
+      t("components.trackerViewRouteDrawer.contextMenu.delete")
+    ),
     key: "delete",
     props: {
       onClick: () => {
@@ -78,7 +87,9 @@ const itemMenuOptions = [
 
 const swipeActions = [
   {
-    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.rename")),
+    label: computed(() =>
+      t("components.trackerViewRouteDrawer.contextMenu.rename")
+    ),
     name: "rename",
     action: (id: string) => {
       const route = routeStore.routes.find((r) => r.id === id);
@@ -88,7 +99,9 @@ const swipeActions = [
     },
   },
   {
-    label: computed(() => t("components.trackerViewRouteDrawer.contextMenu.delete")),
+    label: computed(() =>
+      t("components.trackerViewRouteDrawer.contextMenu.delete")
+    ),
     name: "delete",
     action: (id: string) => routeStore.deleteRoute(id),
     color: theme.value.errorColorSuppl,
@@ -127,7 +140,9 @@ function handleRouteBatchDelete() {
     onPositiveClick: () => {
       selectedRouteIds.value.forEach((r) => {
         routeStore.deleteRoute(r);
-        selectedRouteIds.value = selectedRouteIds.value.filter(id => id !== r);
+        selectedRouteIds.value = selectedRouteIds.value.filter(
+          (id) => id !== r
+        );
       });
     },
   });
@@ -137,6 +152,7 @@ function handleRouteBatchDelete() {
 <template>
   <mgl-drawer
     v-model:show="show"
+    :position="'left'"
     @click="() => (routeStore.currentRouteId = null)"
     @update:width="(w) => emit('update:width', w)"
     @contextmenu="(e) => openRouteContextMenu(e)"
@@ -179,8 +195,7 @@ function handleRouteBatchDelete() {
           <div style="height: fit-content; padding: 8px 12px; text-align: left">
             <div>
               {{
-                route.name ??
-                  t("components.trackerViewRouteDrawer.nameNewRoute")
+                route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
               }}
             </div>
             <div>
@@ -200,7 +215,7 @@ function handleRouteBatchDelete() {
     :show="showRouteContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="listMenuOptions.map(o => ({...o, label: o.label.value }))"
+    :options="listMenuOptions.map((o) => ({ ...o, label: o.label.value }))"
     placement="bottom-start"
     trigger="manual"
     @clickoutside="showRouteContextMenu = false"

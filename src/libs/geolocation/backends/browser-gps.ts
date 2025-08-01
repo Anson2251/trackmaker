@@ -39,7 +39,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
     async getPermissionStatus() {
         if (!navigator.permissions) {
             console.warn("navigator.permissions is not supported in this browser");
-            return new Promise<"granted" | "denied" | "prompt" | "unknown">((resolve) => {
+            return new Promise<"granted" | "denied" | "prompt">((resolve) => {
                 navigator.geolocation.getCurrentPosition(
                     () => resolve("granted"),
                     (error) => {

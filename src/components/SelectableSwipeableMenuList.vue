@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script lang="ts" setup generic="ListItemType extends { id: string; [key: string]: unknown }">
 import { type Ref, ref } from "vue";
 import { useThemeVars } from "naive-ui";
 import { NDropdown, NCheckbox, type MenuOption } from "naive-ui";
@@ -14,11 +14,10 @@ type SwipeState = {
   rightMax: number;
 };
 
-type ListItemType = { id: string; [key: string]: unknown };
 
 const props = defineProps<{
   items: Array<ListItemType>;
-  menuOptions: Array<MenuOption & { label: string | Ref<string> }>;
+  menuOptions: Array<MenuOption & { label?: string | Ref<string> }>;
   swipeActions: Array<{
     label: string | Ref<string>;
     name: string;

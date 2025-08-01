@@ -22,7 +22,15 @@ import {
   MglGeoJsonSource,
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
-import { NPopover, NCard, NText, NSpin, NAlert, NIcon, useMessage } from "naive-ui";
+import {
+  NPopover,
+  NCard,
+  NText,
+  NSpin,
+  NAlert,
+  NIcon,
+  useMessage,
+} from "naive-ui";
 import {
   TerraDraw,
   TerraDrawPointMode,
@@ -220,7 +228,7 @@ async function changeRecordState() {
     if (pathRecording.value) {
       if (!routeStore.currentRouteId) {
         const newRoute = await routeStore.addRoute({
-          points: [locator.presentLocation],
+          points: [locator.present],
           name: t("trackerView.nameNewRoute"),
         });
         openDrawerTooltip();
@@ -228,7 +236,7 @@ async function changeRecordState() {
       } else {
         await routeStore.addPointToRoute(
           routeStore.currentRouteId,
-          locator.presentLocation
+          locator.present
         );
       }
       watchingHandler = locator.addListener((newPoint) => {
@@ -341,7 +349,8 @@ onMounted(async () => {
     if (!locator.usingGPS)
       message.warning(t("trackerView.gpsWarning"), { duration: 5000 });
   } catch (err) {
-    initialLocateError.value = (err as GeolocationPositionError).message ?? String(err);
+    initialLocateError.value =
+      (err as GeolocationPositionError).message ?? String(err);
   }
   mapReady.value = true;
   draw.value?.start();

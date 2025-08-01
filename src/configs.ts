@@ -26,25 +26,16 @@ export const modules: ModuleItem[] = [
 			try {
 				const updateService = new UpdateService();
 				console.time("Geolocation update service initialise");
-				await updateService.build(() => new Promise<boolean | void>(async (resolve) => {
+				await updateService.build((status) => new Promise<boolean | void>(async (resolve) => {
 					if (__TAURI_ENVIRONMENT__) {
 						resolve() // need to implement the permissions request logic for tauri environment
 						return;
 					}
-					if (confirm("This app requires access to your location to track your movements.")) {
-						navigator.geolocation.getCurrentPosition( // request the permission
-							() => resolve(true),
-							(e) => {
-								alert("Fail to initialise geolocation module.\nError Message: " + e.message)
-								resolve()
-							},
-							{
-								enableHighAccuracy: false,
-								timeout: 30000,
-								maximumAge: Infinity
-							}
-						);
-					}
+					const confirmation = status === "prompt"
+						? "Later your browser will request permission to access your location."
+						: "This app requires access to your location to track your movements."
+					// chrome's lighthouse requires to have a prompt message for geolocation access
+                    if (confirm(confirmation)) resolve(true)
 					else resolve();
 				}));
 				console.timeEnd("Geolocation update service initialise");

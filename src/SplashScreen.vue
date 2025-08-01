@@ -154,33 +154,47 @@ onMounted(() => {
             alt="TrackMaker Logo"
             height="80"
             width="80"
-          />
+          >
         </div>
-        <h1 class="app-title">TrackMaker</h1>
+        <h1 class="app-title">
+          TrackMaker
+        </h1>
       </div>
 
-      <div v-if="!showError && !showTimeout" class="loading-section">
+      <div
+        v-if="!showError && !showTimeout"
+        class="loading-section"
+      >
         <div class="progress-container">
           <div class="progress-bar">
             <div
               class="progress-fill"
               :style="{ width: `${progressPercentage}%` }"
-            ></div>
+            />
           </div>
-          <div class="progress-text">{{ progressPercentage }}%</div>
+          <div class="progress-text">
+            {{ progressPercentage }}%
+          </div>
         </div>
 
         <div class="loading-details">
-          <p class="current-module">Loading: {{ currentModule }}</p>
+          <p class="current-module">
+            Loading: {{ currentModule }}
+          </p>
         </div>
 
         <div class="loading-animation">
-          <div class="spinner"></div>
+          <div class="spinner" />
         </div>
       </div>
 
-      <div v-if="showError" class="error-section">
-        <div class="error-icon">⚠️</div>
+      <div
+        v-if="showError"
+        class="error-section"
+      >
+        <div class="error-icon">
+          ⚠️
+        </div>
         <h2>Loading Error</h2>
         <div class="error-message">
           <div
@@ -194,15 +208,30 @@ onMounted(() => {
             <span v-else>{{ line }}</span>
           </div>
         </div>
-        <button class="retry-button" @click="handleRetry">Retry</button>
+        <button
+          class="retry-button"
+          @click="handleRetry"
+        >
+          Retry
+        </button>
       </div>
 
-      <div v-if="showTimeout" class="timeout-section">
-        <div class="timeout-icon">⏰</div>
+      <div
+        v-if="showTimeout"
+        class="timeout-section"
+      >
+        <div class="timeout-icon">
+          ⏰
+        </div>
         <h2>Connection Timeout</h2>
         <p>Unable to load required modules within the timeout period.</p>
         <p>Please check your internet connection and try again.</p>
-        <button class="retry-button" @click="handleRetry">Retry</button>
+        <button
+          class="retry-button"
+          @click="handleRetry"
+        >
+          Retry
+        </button>
       </div>
     </div>
   </div>

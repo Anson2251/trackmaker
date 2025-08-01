@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 import { type GeographicPointType, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
 import { cloneDeep, isEqual } from "lodash-es";
 
@@ -36,6 +37,8 @@ export interface GeolocationInfoType {
 
 export const ipApiURL = "https://ipapi.co/json/";
 
+type IpGeolocationData = Record<string, string | number>;
+
 export class IPGeolocationBackend implements GeolocationBackend {
     async getPermissionStatus() {
         try {
@@ -47,8 +50,9 @@ export class IPGeolocationBackend implements GeolocationBackend {
         }
     }
 
-    async fetchRaw(timeout = 10000): Promise<Record<string, string | number>> {
-        const fetchingPromise = new Promise<any>(async (resolve, reject) => {
+    
+    async fetchRaw(timeout = 10000): Promise<IpGeolocationData | void> {
+        const fetchingPromise = new Promise<IpGeolocationData>(async (resolve, reject) => {
             try {
                 const response = await fetch(ipApiURL);
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -68,6 +72,9 @@ export class IPGeolocationBackend implements GeolocationBackend {
 
     async getInfo(): Promise<GeolocationInfoType> {
         const response = await this.fetchRaw();
+        if (!response) {
+            throw new Error("Failed to fetch IP geolocation data");
+        }
         return {
             city: response.cityName as string,
             latitude: response.latitude as number,

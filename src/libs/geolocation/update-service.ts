@@ -43,14 +43,14 @@ function removeHandler(id: number) {
 }
 
 export class UpdateService {
-    presentLocation: GeographicPointType = { latitude: 0, longitude: 0 };
-    serviceRunning = false;
+    private presentLocation: GeographicPointType = { latitude: 0, longitude: 0 };
+    private serviceRunning = false;
     built = false
     backend: GeolocationBackend | undefined;
     usingGPS: boolean = false;
     watchHandler: number = -1;
 
-    async build(promptCallback: (() => Promise<boolean | void>) = async () => { }) {
+    async build(promptCallback: ((status: PermissionState) => Promise<boolean | void>) = async () => { }) {
         const gps = new BrowserGeolocationBackend();
 
         if (__TAURI_ENVIRONMENT__) {
@@ -65,55 +65,109 @@ export class UpdateService {
                 console.log("Using IP Geolocation backend");
             }
             this.built = true;
-            return
-        }
-
-        let granted = await gps.getPermissionStatus();
-        if (granted !== 'granted') {
-            console.log("GPS permission not granted, prompting user");
-            const grantedState = await promptCallback();
-            if (grantedState) granted = "granted";
-            else granted = await gps.getPermissionStatus();
-            console.log("Permission changed to", granted);
+            return;
         }
 
         const useIpGeolocationBackend = () => {
             this.backend = new IPGeolocationBackend();
             console.log("Using IP Geolocation backend");
-        }
-
-        if (granted === 'granted') {
-            // Try to get current position to verify GPS functionality
-            await gps.getCurrentPosition()
-                .then(() => {
-                    this.backend = gps;
-                    console.log("Using GPS Geolocation backend");
-                    this.usingGPS = true;
-                })
-                .catch((error) => {
-                    alert("GPS permission granted but current position retrieval failed. Falling back to IP geolocation.\nError Message: " + error.message)
-                    console.error("GPS backend initialization failed:", error.message);
-
-                    // Handle iOS HTTPS requirement error specifically
-                    if (error.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
-                        console.error("iOS requires HTTPS for geolocation. Falling back to IP geolocation.");
-                    }
-
-                    useIpGeolocationBackend()
-                })
-                .finally(() => {
-                    this.built = true;
-                })
-            return;
-        }
-        else {
-            useIpGeolocationBackend()
             this.built = true;
+        };
+
+        const handlePermissionState = async (state: PermissionState) => {
+            console.log(`Permission ${state}`);
+
+            switch (state) {
+                case 'granted': {
+                    // Try to get current position to verify GPS functionality
+                    try {
+                        await gps.getCurrentPosition();
+                        this.backend = gps;
+                        console.log("Using GPS Geolocation backend");
+                        this.usingGPS = true;
+                        this.built = true;
+                    } catch (error) {
+                        const err = error as { code?: number; message?: string };
+                        alert("GPS permission granted but current position retrieval failed. Falling back to IP geolocation.\nError Message: " + (err.message || 'Unknown error'));
+                        console.error("GPS backend initialization failed:", err.message);
+
+                        // Handle iOS HTTPS requirement error specifically
+                        if (err.code === LocationResponseErrorEnum.IOS_HTTPS_REQUIRED) {
+                            console.error("iOS requires HTTPS for geolocation. Falling back to IP geolocation.");
+                        }
+
+                        useIpGeolocationBackend();
+                    }
+                    break;
+                }
+
+                case 'prompt': {
+                    console.log("GPS permission prompt required, prompting user");
+                    const grantedState = await promptCallback(state);
+                    if (grantedState) {
+                        // User granted permission through prompt, try GPS
+                        return handlePermissionState('granted');
+                    } else {
+                        // User denied or cancelled prompt, check actual status
+                        const actualStatus = await gps.getPermissionStatus();
+                        if (actualStatus === 'granted') {
+                            return handlePermissionState('granted');
+                        } else {
+                            useIpGeolocationBackend();
+                        }
+                    }
+                    break;
+                }
+
+                case 'denied': {
+                    console.log("GPS permission denied, using IP geolocation");
+                    useIpGeolocationBackend();
+                    break;
+                }
+
+                default:
+                    console.log("Unknown permission state, using IP geolocation");
+                    useIpGeolocationBackend();
+                    break;
+            }
+        };
+
+        // Check if permissions API is supported
+        if ('permissions' in navigator) {
+            try {
+                const result = await navigator.permissions.query({ name: 'geolocation' });
+
+                // Handle initial permission state
+                await handlePermissionState(result.state);
+
+                // Add listener for permission changes
+                result.addEventListener('change', async () => {
+                    console.log("Permission state changed to:", result.state);
+                    if (result.state === 'granted') {
+                        // Re-initialize with GPS if permission granted
+                        await handlePermissionState('granted');
+                    } else if (result.state === 'denied') {
+                        // Switch to IP geolocation
+                        useIpGeolocationBackend();
+                    }
+                });
+
+            } catch (error) {
+                console.warn("Permissions API query failed, falling back to getPermissionStatus:", error);
+                // Fallback to legacy permission checking
+                const granted = await gps.getPermissionStatus();
+                await handlePermissionState(granted as PermissionState);
+            }
+        } else {
+            // Legacy browser support
+            console.warn("Permissions API not supported, using legacy permission checking");
+            const granted = await gps.getPermissionStatus();
+            await handlePermissionState(granted as PermissionState);
         }
     }
 
     /** Get the current geographic location */
-    getPresent() {
+    get present() {
         return Object.freeze(this.presentLocation);
     }
 
@@ -145,7 +199,9 @@ export class UpdateService {
     }
 
     /** Whether the updater service is running */
-    isStarted = () => this.serviceRunning;
+    get isStarted() {
+        return this.serviceRunning
+    };
 
     /** Start the updater service */
     start() {
@@ -153,7 +209,7 @@ export class UpdateService {
         return new Promise(async (resolve) => {
             if (this.serviceRunning) return resolve(this.watchHandler)
 
-            
+
             this.watchHandler = await this.backend!.watchPosition((location) => {
                 this.presentLocation = location;
                 triggerHandler("change", this.presentLocation);
