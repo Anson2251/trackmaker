@@ -1,4 +1,4 @@
-import { isString } from "lodash-es";
+import { isError, isString } from "lodash-es";
 
 type ArgType = string | number | boolean | object;
 type ModuleLoadingStatus = "unloaded" | "loading" | "loaded" | "error"
@@ -26,7 +26,7 @@ export type ModuleItem = {
     status?: ModuleLoadingStatus
 }
 
-const formatArg = (arg: ArgType) => isString(arg) ? arg : JSON.stringify(arg); 
+const formatArg = (arg: ArgType) => isString(arg) ? arg : JSON.stringify(arg);
 
 export const messageFormat = {
     "unloaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has not been loaded yet`,
@@ -37,6 +37,7 @@ export const messageFormat = {
     "alreadyLoading": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is already loading by another instance, skip`,
     "alreadyLoaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded by another instance, skip`,
     "missingDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is missing the following dependencies: ${formatArg(args[1])}`,
+    "loadDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is loading its dependencies (${args.slice(1).join(', ')})`,
     "dependenciesReady": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies are ready`,
     "dependenciesFailure": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies failed to load. \n\nTrackback: \n${formatArg(args[1])}`
 };
@@ -64,13 +65,13 @@ const defaultLogger: Logger = {
  * @return {Promise<void>} A promise that resolves once the modules are loaded or rejects on errors.
  */
 export async function loadModules(
-    libraryList: ModuleItem[], 
-    moduleName: string, 
-    loadTimeout: number = 10000, 
+    libraryList: ModuleItem[],
+    moduleName: string,
+    loadTimeout: number = 10000,
     options: LoadModulesOptions = {}
 ): Promise<void> {
     const { logger = defaultLogger, progressReporter, printLog = true } = options;
-    
+
     // Find the module in the library
     const module = libraryList.find((m) => m.name === moduleName);
     if (!module) throw new Error(`cannot exactly find module "${moduleName}" from the library`);
@@ -110,10 +111,11 @@ export async function loadModules(
 
     try {
         // Load all the dependencies
-        if (dependencyModules.length > 0) { 
+        if (dependencyModules.length > 0) {
+            logger.info(messageFormat.loadDependencies(module.name, dependencyModules.map(m => m.name)))
             const totalDeps = dependencyModules.length;
             let completedDeps = 0;
-            
+
             await Promise.all(
                 dependencyModules.map(async (m) => {
                     await loadModules(libraryList, m.name, loadTimeout, { logger, progressReporter, printLog });
@@ -139,9 +141,9 @@ export async function loadModules(
         } catch (error) {
             // If loading the module fails, set the status to "error" and reject with an error message
             libraryList[moduleIndex].status = "error";
-            const errorMessage = messageFormat.error(module.name, error as string);
+            const errorMessage = messageFormat.error(module.name, isString(error) ? error : (isError(error) ? error.message : JSON.stringify(error)));
             logger.error(errorMessage);
-            progressReporter?.onModuleError?.(module.displayName, error as Error);
+            progressReporter?.onModuleError?.(module.displayName, isString(error) ? new Error(error) : error as Error);
             return Promise.reject(errorMessage);
         }
     } catch (error) {
@@ -155,9 +157,9 @@ export async function loadModules(
 }
 
 export async function waitUntilModuleLoaded(
-    library: ModuleItem[], 
-    moduleName: string, 
-    timeout: number = 10000, 
+    library: ModuleItem[],
+    moduleName: string,
+    timeout: number = 10000,
     logger?: Logger
 ): Promise<void> {
     const startTime = Date.now();

@@ -1,15 +1,17 @@
 /// <reference types="vite/client" />
+/// <reference types="src/libs/geolocation/update-service" />
+/// <reference types="vue" />
 
 declare module '*.vue' {
-    import { DefineComponent } from 'vue';
+    import { DefineComponent} from 'vue';
 
     const componentOptions: DefineComponent<{}, {}, any>;
     export default componentOptions;
 }
 
 declare interface Window {
-    /** The count of the map component */
-    MapCount: number;
+    UpdateService?: UpdateService,
+    splashScreen?: App
 }
 
 

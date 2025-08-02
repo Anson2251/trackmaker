@@ -2,7 +2,8 @@ import { isEqual, reject } from "lodash-es";
 import type { GeographicPointType, GeolocationBackend, LocationResponseErrorType } from "../types";
 import { LocationResponseErrorEnum } from "../types";
 import PlatformInfo from '@/utils/platform';
-import { useSettingsStore } from "@/store/settings-store";
+import { storeGet } from "@/libs/store";
+import type { Settings } from "@/store/settings-store";
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
     private platform = new PlatformInfo();
@@ -68,37 +69,48 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         try {
             this.validateEnvironment();
         } catch (error) {
+            console.error("[geolocation] Environment validation failed");
             return Promise.reject(error);
         }
 
         const options = this.getOptions();
+        console.info("[geolocation] Requesting current position from GPS");
 
         return new Promise<GeographicPointType>((resolve, reject: (reason: LocationResponseErrorType) => void) => {
             navigator.geolocation.getCurrentPosition(
-                (position) => resolve({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                }),
-                (error) => reject({
-                    code: error.code,
-                    message: error.message
-                }),
+                (position) => {
+                    console.info("[geolocation] Successfully retrieved current position");
+                    resolve({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.error(`[geolocation] Failed to get current position: code ${error.code}`);
+                    reject({
+                        code: error.code,
+                        message: error.message
+                    });
+                },
                 options
             );
         });
     }
 
-    watchPosition(callback: (location: Readonly<GeographicPointType>) => void) {
+    async watchPosition(callback: (location: Readonly<GeographicPointType>) => void) {
         try {
             this.validateEnvironment();
         } catch (error) {
+            console.error("[geolocation] Environment validation failed for watch position");
             return Promise.reject(error);
         }
 
         const options = this.getOptions();
+        console.info("[geolocation] Starting position watch");
 
-        const settings = useSettingsStore()
-        if (settings.settings.watchCompatibilityMode) {
+        const compatibilityMode = (await storeGet<Settings>('settings'))?.watchCompatibilityMode as boolean ?? true;
+        if (compatibilityMode) {
+            console.info("[geolocation] Using compatibility mode for position watch");
             return new Promise<number>((resolve) => {
                 let previousLocation: GeographicPointType | null = null;
 
@@ -106,28 +118,38 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                     this.getCurrentPosition().then(newLocation => {
                         if (previousLocation && isEqual(previousLocation, newLocation)) return;
                         previousLocation = newLocation;
+                        console.info("[geolocation] Position updated via compatibility mode");
                         callback(Object.freeze(newLocation));
-                    }).catch((error) => { throw new Error(`Error while watching the geolocation in compatibility mode [GPS]. Code: ${error.code}, Msg: ${error.message}`); });
+                    }).catch((error) => {
+                        console.error("[geolocation] Error in compatibility mode watch:", error);
+                        throw new Error(`Error while watching the geolocation in compatibility mode [GPS]. Code: ${error.code}, Msg: ${error.message}`);
+                    });
                 }, 5000) as unknown as number);
             });
         }
         else {
             return new Promise<number>((resolve) => {
-                resolve(navigator.geolocation.watchPosition(
-                    (position) => callback({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    }),
+                const watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        console.info("[geolocation] Position updated via native watch");
+                        callback({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
                     (error) => {
+                        console.error("[geolocation] Error in native watch:", error);
                         throw new Error(`Error while watching the geolocation [GPS]. Code: ${error.code}, Msg: ${error.message}`);
                     },
                     options
-                ));
+                );
+                resolve(watchId);
             });
         }
     }
 
     clearWatch(channelId: number) {
+        console.info("[geolocation] Clearing position watch");
         navigator.geolocation.clearWatch(channelId);
     }
 }

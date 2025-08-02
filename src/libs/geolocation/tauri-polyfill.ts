@@ -30,21 +30,22 @@ type GeolocationInjectedType = (typeof navigator)["geolocation"] & {injected: bo
 
 export async function injectTauriGeolocationProvider(): Promise<string | null> {
 	if (!__TAURI_ENVIRONMENT__) {
-		console.warn("This function can only be called in a Tauri environment.");
+		console.warn("[geolocation] Cannot inject Tauri provider: not in Tauri environment");
 		return null;
 	}
 	if ((navigator.geolocation as GeolocationInjectedType)["injected"]) {
-		console.warn("The custom geolocation provider is already injected and cannot be injected again.")
+		console.warn("[geolocation] Tauri provider already injected");
 		return null;
 	}
 	(navigator.geolocation as GeolocationInjectedType)["injected"] = true;
 
+	console.info("[geolocation] Injecting Tauri geolocation provider");
 	const locatorInstance = new MyGeolocation("get_geolocation");
 
 	navigator.geolocation.watchPosition = locatorInstance.watchPosition.bind(locatorInstance);
 	navigator.geolocation.clearWatch = locatorInstance.clearWatch.bind(locatorInstance);
 	navigator.geolocation.getCurrentPosition = locatorInstance.getCurrentPosition.bind(locatorInstance);
-	console.info("Tauri geolocation provider injected successfully.")
+	console.info("[geolocation] Tauri geolocation provider injected successfully");
 	return (await locateTauri('get_geolocation')).method
 }
 
@@ -94,30 +95,33 @@ export class MyGeolocation implements Geolocation {
 	}
 
 	private async handleLocationRequest(): Promise<GeolocationPosition> {
-		try {
-			const position = await locateTauri(this.tauriHandlerName);
-			const coord = {
-				...position.point,
-				altitude: null,
-				accuracy: 0,
-				altitudeAccuracy: null,
-				heading: null,
-				speed: null,
-			}
-			const data = {
-				coords: {
-					...coord,
-					toJSON: () => JSON.stringify(coord)
-				},
-				timestamp: Date.now(),
-			}
-			return {
-				...data,
-				toJSON: () => JSON.stringify(data),
-			};
-		} catch (error) {
-			throw this.createPositionError(error as Error);
-		}
+	    console.info("[geolocation] Requesting position from Tauri");
+	    try {
+	        const position = await locateTauri(this.tauriHandlerName);
+	        console.info("[geolocation] Successfully retrieved position from Tauri");
+	        const coord = {
+	            ...position.point,
+	            altitude: null,
+	            accuracy: 0,
+	            altitudeAccuracy: null,
+	            heading: null,
+	            speed: null,
+	        }
+	        const data = {
+	            coords: {
+	                ...coord,
+	                toJSON: () => JSON.stringify(coord)
+	            },
+	            timestamp: Date.now(),
+	        }
+	        return {
+	            ...data,
+	            toJSON: () => JSON.stringify(data),
+	        };
+	    } catch (error) {
+	        console.error("[geolocation] Failed to get position from Tauri:", error);
+	        throw this.createPositionError(error as Error);
+	    }
 	}
 
 	private createPositionError(error: Error): GeolocationPositionError {

@@ -7,3 +7,4 @@ import { createPinia } from 'pinia';
 const splashScreen = createApp(SplashScreen);
 splashScreen.use(createPinia())
 splashScreen.mount('#splash');
+window.splashScreen = splashScreen;

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { storeGet, storeSet, storeSave } from '../libs/store';
 import { ref, watch } from 'vue';
 
-type Settings = {
+export type Settings = {
     theme: 'light' | 'dark' | 'system';
     interfaceLanguage: string;
     mapLanguage: string;

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, createApp } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { loadModules } from "./utils/load-modules";
 import { modules } from "./configs";
-import { createPinia } from "pinia";
 
 const loadingProgress = ref(0);
 const loadingMessage = ref("Initializing...");
@@ -13,21 +12,38 @@ const showError = ref(false);
 const showTimeout = ref(false);
 const errorMessage = ref("");
 
+// Theme detection
+const currentTheme = ref<'light' | 'dark'>('light');
+
+const detectTheme = () => {
+  try {
+    // If no saved theme, check system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      currentTheme.value = 'dark';
+    } else {
+      currentTheme.value = 'light';
+    }
+  } catch {
+    // Fallback to light theme if localStorage is not available
+    currentTheme.value = 'light';
+  }
+};
+
+// Apply theme to document
+const applyTheme = () => {
+  if (currentTheme.value === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+
+  // Diagnostic logging to validate CSS variables
+  console.info('[Splash Screen] Theme applied:', currentTheme.value);
+};
+
 const progressPercentage = computed(() => {
   return Math.round((loadingProgress.value / 100) * 100);
 });
-
-const mountApp = async () => {
-  const app = createApp((await import("./App.vue")).default);
-  app.use(createPinia());
-  app.use((await import("./router")).default);
-  app.use((await import("@/locales")).i18n);
-
-  const appContainer = document.getElementById("app");
-  if (appContainer) appContainer.style.display = "inherit";
-  document.getElementById("splash")?.remove();
-  app.mount("#app");
-};
 
 const logger = {
   info: (...args: unknown[]) => {
@@ -80,6 +96,10 @@ const handleRetry = () => {
 };
 
 onMounted(() => {
+  // Detect and apply theme
+  detectTheme();
+  applyTheme();
+
   document.getElementById("pre-splash")?.remove();
 
   // Count total modules including dependencies
@@ -104,6 +124,8 @@ onMounted(() => {
 
   totalModules.value = countModules("trackmaker");
 
+  console.log("=== Start Loading Modules ===")
+
   loadModules(modules, "trackmaker", 30000, {
     logger,
     progressReporter,
@@ -114,10 +136,7 @@ onMounted(() => {
       currentModule.value = "TrackMaker";
       loadingProgress.value = 100;
 
-      // Small delay to show completion
-      setTimeout(() => {
-        mountApp();
-      }, 1000);
+      console.log("=== All Modules Loaded ===")
     })
     .catch((e) => {
       const msg = String(e.toString());
@@ -138,7 +157,7 @@ onMounted(() => {
         showError.value = true;
       }
 
-      console.error("Failed to initialize all modules");
+      console.log("=== Failed to initialize all modules ===");
       console.error(e);
     });
 });
@@ -238,13 +257,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* CSS variables are now globally defined */
 .splash-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #d8e9fc 0%, #ffffff 50%, #e0fffb 100%);
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-middle) 50%, var(--bg-gradient-end) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,15 +285,15 @@ onMounted(() => {
   width: 80px;
   height: 80px;
   margin: 0 auto 1rem;
-  color: rgb(142, 142, 142);
+  color: var(--text-secondary);
   opacity: 0.9;
-  filter: drop-shadow(0px 1px 2px #5b5b5ba8) drop-shadow(0px 3px 8px #5b5b5b57);
+  filter: drop-shadow(0px 1px 2px var(--logo-shadow)) drop-shadow(0px 3px 8px var(--logo-shadow));
 }
 
 .app-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: rgb(75, 75, 75);
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -289,7 +309,7 @@ onMounted(() => {
 .progress-bar {
   width: 100%;
   height: 6px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--progress-bg);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -297,13 +317,13 @@ onMounted(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #31ba8c 0%, #00a32e 100%);
+  background: linear-gradient(90deg, var(--progress-fill-start) 0%, var(--progress-fill-end) 100%);
   transition: width 0.3s ease;
   border-radius: 3px;
 }
 
 .progress-text {
-  color: rgb(142, 142, 142);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -313,7 +333,7 @@ onMounted(() => {
 }
 
 .current-module {
-  color: rgb(103, 103, 103);
+  color: var(--text-tertiary);
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
@@ -327,8 +347,8 @@ onMounted(() => {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(144, 144, 144, 0.3);
-  border-top: 3px solid rgb(142, 142, 142);
+  border: 3px solid var(--spinner-border);
+  border-top: 3px solid var(--spinner-top);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -344,7 +364,7 @@ onMounted(() => {
 
 .error-section,
 .timeout-section {
-  color: rgb(107, 107, 107);
+  color: var(--text-quaternary);
 }
 
 .error-icon,
@@ -355,16 +375,16 @@ onMounted(() => {
 
 .error-section h2,
 .timeout-section h2 {
-  color: rgb(104, 104, 104);
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
 }
 
 .error-message {
-  color: rgba(105, 105, 105, 0.9);
+  color: var(--text-error);
   margin: 0 0 1.5rem 0;
   font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--error-bg);
   padding: 1rem;
   border-radius: 8px;
   max-height: 200px;
@@ -373,9 +393,9 @@ onMounted(() => {
 }
 
 .retry-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgb(142, 142, 142);
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
+  color: var(--button-text);
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   font-size: 1rem;
@@ -384,7 +404,8 @@ onMounted(() => {
 }
 
 .retry-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--button-bg);
+  opacity: 0.8;
   transform: translateY(-1px);
 }
 
