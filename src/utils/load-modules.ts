@@ -68,7 +68,9 @@ export async function loadModules(
     libraryList: ModuleItem[],
     moduleName: string,
     loadTimeout: number = 10000,
-    options: LoadModulesOptions = {}
+    options: LoadModulesOptions = {},
+    depth = 0,
+    totalSteps = 0
 ): Promise<void> {
     const { logger = defaultLogger, progressReporter, printLog = true } = options;
 
@@ -113,12 +115,12 @@ export async function loadModules(
         // Load all the dependencies
         if (dependencyModules.length > 0) {
             logger.info(messageFormat.loadDependencies(module.name, dependencyModules.map(m => m.name)))
-            const totalDeps = dependencyModules.length;
+            const totalDeps = depth === 0 ? dependencyModules.length : totalSteps;
             let completedDeps = 0;
 
             await Promise.all(
                 dependencyModules.map(async (m) => {
-                    await loadModules(libraryList, m.name, loadTimeout, { logger, progressReporter, printLog });
+                    await loadModules(libraryList, m.name, loadTimeout, { logger, progressReporter, printLog }, depth + 1, totalSteps);
                     completedDeps++;
                     progressReporter?.onOverallProgress?.(completedDeps, totalDeps);
                 })

@@ -238,7 +238,7 @@ export class UpdateService {
 
             console.info("[geolocation] Starting geolocation service");
             this.watchHandler = await this.backend!.watchPosition((location) => {
-                console.info("[geolocation] Position updated via watch");
+                console.info(`[geolocation TIME: ${(new Date()).toLocaleString()}] Position updated via watch`);
                 this.presentLocation = location;
                 triggerHandler("change", this.presentLocation);
             });
