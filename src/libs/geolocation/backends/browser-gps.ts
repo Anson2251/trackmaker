@@ -4,6 +4,7 @@ import { LocationResponseErrorEnum } from "../types";
 import PlatformInfo from '@/utils/platform';
 import { storeGet } from "@/libs/store";
 import type { Settings } from "@/store/settings-store";
+import { wgs2gcj } from "../conversion";
 
 export class BrowserGeolocationBackend implements GeolocationBackend {
     private platform = new PlatformInfo();
@@ -65,7 +66,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         return status;
     }
 
-    getCurrentPosition() {
+    async getCurrentPosition() {
         try {
             this.validateEnvironment();
         } catch (error) {
@@ -73,6 +74,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
             return Promise.reject(error);
         }
 
+        const geolocationCorrection = (await storeGet<Settings>('settings'))?.geolocationCorrection as boolean ?? false;
         const options = this.getOptions();
         console.info("[geolocation] Requesting current position from GPS");
 
@@ -80,7 +82,14 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     console.info("[geolocation] Successfully retrieved current position");
-                    resolve({
+                    if (geolocationCorrection) {
+                        const coord = wgs2gcj({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        })
+                        resolve(coord)
+                    }
+                    else resolve({
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude
                     });
@@ -109,6 +118,7 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
         console.info("[geolocation] Starting position watch");
 
         const compatibilityMode = (await storeGet<Settings>('settings'))?.watchCompatibilityMode as boolean ?? true;
+        const geolocationCorrection = (await storeGet<Settings>('settings'))?.geolocationCorrection as boolean ?? false;
         if (compatibilityMode) {
             console.info("[geolocation] Using compatibility mode for position watch");
             return new Promise<number>((resolve) => {
@@ -132,7 +142,11 @@ export class BrowserGeolocationBackend implements GeolocationBackend {
                 const watchId = navigator.geolocation.watchPosition(
                     (position) => {
                         console.info("[geolocation] Position updated via native watch");
-                        callback({
+                        if (geolocationCorrection) callback(wgs2gcj({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        }))
+                        else callback({
                             latitude: position.coords.latitude,
                             longitude: position.coords.longitude
                         });

@@ -6,7 +6,8 @@ export type Settings = {
     theme: 'light' | 'dark' | 'system';
     interfaceLanguage: string;
     mapLanguage: string;
-    watchCompatibilityMode: boolean
+    watchCompatibilityMode: boolean;
+    geolocationCorrection: boolean;
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -14,7 +15,8 @@ export const useSettingsStore = defineStore('settings', () => {
         theme: 'system',
         interfaceLanguage: 'en',
         mapLanguage: 'interface',
-        watchCompatibilityMode: true
+        watchCompatibilityMode: true,
+        geolocationCorrection: false,
     });
 
     async function init() {

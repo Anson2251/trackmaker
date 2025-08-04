@@ -19,7 +19,8 @@
         },
         "geolocation": {
             "title": "位置",
-            "watchCompatibilityMode": "Geolocation Watch 兼容模式"
+            "watchCompatibilityMode": "Geolocation Watch 兼容模式",
+            "geolocationCorrection": "地理位置纠偏 (WGS 与 GCJ 转换)"
         },
         "language": {
             "title": "语言",

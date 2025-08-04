@@ -6,8 +6,8 @@ const instance: Store = __TAURI_ENVIRONMENT__
 	? (new TauriStore("user-data.json"))
 	: (new IndexedDBStore("user-data-db", "user-data"));
 
-export const storeSet = instance.set.bind(instance);
-export const storeGet = instance.get.bind(instance);
-export const storeSave = instance.save.bind(instance);
-export const storeInit = instance.init.bind(instance);
-export const storeExportToJson = instance.exportToJson.bind(instance);
+export const storeSet: typeof instance.set = instance.set.bind(instance);
+export const storeGet: typeof instance.get = instance.get.bind(instance);
+export const storeSave: typeof instance.save = instance.save.bind(instance);
+export const storeInit: typeof instance.init = instance.init.bind(instance);
+export const storeExportToJson: typeof instance.exportToJson = instance.exportToJson.bind(instance);

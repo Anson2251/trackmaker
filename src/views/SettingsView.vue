@@ -77,6 +77,10 @@ const configs = computed<Config>(() => [
         title: "watchCompatibilityMode",
         type: "checkbox",
       },
+      {
+        title: "geolocationCorrection",
+        type: "checkbox",
+      }
     ],
   },
   {

@@ -19,7 +19,8 @@
         },
         "geolocation": {
             "title": "Geolocation",
-            "watchCompatibilityMode": "Geolocation Watch Compatibility Mode" 
+            "watchCompatibilityMode": "Geolocation Watch Compatibility Mode" ,
+            "geolocationCorrection": "Geolocation Correction (WGS to GCJ Conversion)"
         },
         "language": {
             "title": "Language",
