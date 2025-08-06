@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import { useDialog, useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
 import { NDropdown, NModal, NInput, NButton, NIcon } from "naive-ui";
-import type { Route } from "@/libs/store/types";
 import { useI18n } from "vue-i18n";
 import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
@@ -27,7 +26,7 @@ const show = defineModel("show", {
 const showRouteContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
-const selectedRoute = ref<Route | null>(null);
+const selectedRoute = ref<{ id: string; name: string; points: readonly unknown[] } | null>(null);
 const showRenameDialog = ref(false);
 const newRouteName = ref("");
 const renameRouteId = ref<string | null>(null);
@@ -41,10 +40,7 @@ const listMenuOptions = [
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute({
-          name: t("components.trackerViewRouteDrawer.nameNewRoute"),
-          points: [],
-        });
+        routeStore.addRoute(t("components.trackerViewRouteDrawer.nameNewRoute"));
       },
     },
   },

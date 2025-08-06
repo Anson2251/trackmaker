@@ -11,32 +11,57 @@ import type {
     GeoJSONPoint
 } from "@/libs/cartosketch/definitions";
 
-export class CartoSketchRoute {
+export class CartoSketchRouteCollection {
     readonly id: string;
     name: string;
-    readonly routes: CartoSketchRouteItem[];
+    routesInternal: CartoSketchRouteItem[];
     constructor(name: string, routes: CartoSketchRouteItem[] = [], id: string = uuidV4()) {
         this.id = id;
         this.name = name;
-        this.routes = routes;
+        this.routesInternal = routes;
     }
 
-    getRoutes(): Readonly<CartoSketchRouteItem[]> {
-        return Object.freeze(this.routes);
+    get routes() {
+        return cloneDeep(this.routesInternal);
     }
 
-    getRoute(id: string) {
-        return this.routes.find((route) => route.id === id);
+    set routes(routes: CartoSketchRouteItem[]){
+        this.routesInternal = cloneDeep(routes)
+    }
+
+    /**
+     * Finds a route by its ID.
+     * @param id - The ID of the route to find.
+     * @returns The route with the specified ID, or undefined if not found.
+     */
+    findRoute(id: string) {
+        return this.routesInternal.find((route) => route.id === id);
+    }
+
+    existRoute(id: string) {
+        return this.routesInternal.some((route) => route.id === id);
     }
 
     addRoute(route: CartoSketchRouteItem) {
-        this.routes.push(route);
+        if (this.existRoute(route.id)) throw new Error(`[CartoSketch.Route] Route ${route.id} already exist`)
+        this.routesInternal.push(cloneDeep(route));
+    }
+
+    updateRoute(route: CartoSketchRouteItem) {
+        const index = this.routesInternal.findIndex((r) => r.id === route.id);
+        if (index === -1) throw new Error(`[CartoSketch.Route] Route ${route.id} not found`);
+        this.routesInternal[index] = cloneDeep(route);
+    }
+
+    removeRoute(id: string) {
+        const index = this.routesInternal.findIndex((route) => route.id === id);
+        if (index !== -1) this.routesInternal.splice(index, 1);
     }
 
     exportAsGeoJSON(): GeographicRouteGeoJSON {
         return {
             type: "FeatureCollection",
-            features: this.routes.map((route) => route.exportAsGeoJSON())
+            features: this.routesInternal.map((route) => route.exportAsGeoJSON())
         };
     }
 
@@ -44,64 +69,11 @@ export class CartoSketchRoute {
         return {
             id: this.id,
             name: this.name,
-            routes: this.routes.map((route) => route.exportToStorage())
+            routes: this.routesInternal.map((route) => route.exportToStorage())
         };
     }
 }
 
-export namespace CartoSketchRoute {
-    export function create(name: string, routes: CartoSketchRouteItem[] = [], id = uuidV4()): CartoSketchRoute {
-        return new CartoSketchRoute(name, routes, id);
-    }
-
-    export function createItem(name: string, id = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}): CartoSketchRouteItem {
-        return new CartoSketchRouteItem(name, id, points, properties);
-    }
-
-
-    /**
-     * Imports a geojson object into a CartoSketchRoute object.
-     *
-     * @param geojson - The geojson object to import.
-     * @param [name] - The name of the route. If not provided, it will follow the id.
-     * @param [id] - The id of the route. If not provided, a unique id will be generated.
-     * @return The imported CartoSketchRoute object.
-     */
-    export function importFromGeoJSON(geojson: GeographicRouteGeoJSON | any, name?: string, id = uuidV4()): CartoSketchRoute {
-        if (geojson.feature) throw new Error("Multiple features should be contained");
-
-        name = name || id;
-
-        const collection = (geojson.features as GeographicRouteItemGeoJSON[]).map((feature: GeographicRouteItemGeoJSON, index: number) => {
-            return importItemFromGeoJSON(feature, `${name}-${index}`);
-        });
-
-        return new CartoSketchRoute(name, collection, id);
-    }
-
-    export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON | any, name?: string, id?: string): CartoSketchRouteItem {
-        if (geojson.features) throw new Error("[importItemFromGeoJSON] Only one feature is supported");
-
-        const properties = geojson.properties as GeographicRouteItemProperties;
-        const type = geojson.geometry.type as string;
-        const coordinates = geojson.geometry.coordinates as GeoJSONPoint[];
-
-        if (type !== "LineString") throw new Error(`[importItemFromGeoJSON] Unsupported geometry type for routes ${type}`);
-
-        id = id || uuidV4();
-        name = name || id;
-
-        return new CartoSketchRouteItem(name, id, coordinates.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPointType)), properties);
-    }
-
-    export function importItemFromStorage(data: GeographicRouteItemType): CartoSketchRouteItem {
-        return new CartoSketchRouteItem(data.name, data.id, data.points, data.properties);
-    }
-
-    export function readFromStorage(data: GeographicRouteType): CartoSketchRoute {
-        return new CartoSketchRoute(data.name, data.routes.map((route) => importItemFromStorage(route)), data.id);
-    }
-}
 
 export class CartoSketchRouteItem {
     name: string;
@@ -124,18 +96,24 @@ export class CartoSketchRouteItem {
     }
 
     getPoints() {
-        return Object.freeze(this.points);
+        return cloneDeep(this.points);
     }
 
     setProperties(properties: GeographicRouteItemProperties) {
-        const newProperties = cloneDeep(properties) as GeographicRouteItemProperties;
+        const newProperties = cloneDeep(properties)
         Object.assign(this.properties, newProperties);
     }
 
     exportAsGeoJSON(): GeographicRouteItemGeoJSON {
         return {
             type: "Feature",
-            properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
+            properties: {
+                ...this.properties,
+                description: JSON.stringify({
+                    name: this.name,
+                    id: this.id,
+                }),
+            },
             geometry: {
                 type: "LineString",
                 coordinates: this.points.map((point) => {
@@ -145,14 +123,64 @@ export class CartoSketchRouteItem {
         };
     }
 
+    /**
+     * Exports the current geographic route item to a storage-compatible format.
+     *
+     * @returns {GeographicRouteItemType} An object containing the route's data including:
+     * - name: The name of the route
+     * - id: The unique identifier of the route
+     * - properties: Additional properties/metadata of the route
+     * - points: The geographical points that make up the route
+     */
     exportToStorage(): GeographicRouteItemType {
-        return {
+        return cloneDeep({
             name: this.name,
             id: this.id,
             properties: this.properties,
             points: this.points
-        };
+        });
     }
 }
 
-export default CartoSketchRoute;
+
+
+/**
+ * Imports a geojson object into a CartoSketchRoute object.
+ *
+ * @param geojson - The geojson object to import.
+ * @param [name] - The name of the route. If not provided, it will follow the id.
+ * @param [id] - The id of the route. If not provided, a unique id will be generated.
+ * @return The imported CartoSketchRoute object.
+ */
+export function importCollectionFromGeoJSON(geojson: GeographicRouteGeoJSON, name?: string, id = uuidV4()): CartoSketchRouteCollection {
+    name = name ?? id;
+
+    const collection = (geojson.features as GeographicRouteItemGeoJSON[]).map((feature: GeographicRouteItemGeoJSON, index: number) => {
+        return importItemFromGeoJSON(feature, `${name}-${index}`);
+    });
+
+    return new CartoSketchRouteCollection(name, collection, id);
+}
+
+export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON, name?: string, id?: string): CartoSketchRouteItem {
+    const properties = geojson.properties as GeographicRouteItemProperties;
+    const type = geojson.geometry.type as string;
+    const coordinates = geojson.geometry.coordinates as GeoJSONPoint[];
+
+    if (type !== "LineString") throw new Error(`[importItemFromGeoJSON] Unsupported geometry type for routes ${type}`);
+
+    id = id ?? uuidV4();
+    name = name ?? id;
+
+    return new CartoSketchRouteItem(name, id, coordinates.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPointType)), properties);
+}
+
+
+export function importItemFromStorage(data: GeographicRouteItemType): CartoSketchRouteItem {
+    return new CartoSketchRouteItem(data.name, data.id, data.points, data.properties);
+}
+
+export function readCollectionFromStorage(data: GeographicRouteType): CartoSketchRouteCollection {
+    return new CartoSketchRouteCollection(data.name, data.routes.map((route) => importItemFromStorage(route)), data.id);
+}
+

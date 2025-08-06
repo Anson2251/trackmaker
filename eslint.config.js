@@ -11,7 +11,7 @@ export default typescriptEslint.config(
             '**/dist',
             "src/utils/input-device-preferences.ts",
             "src/utils/device-orientation-service.ts",
-            "src/libs/cartosketch/**/*.ts",
+            // "src/libs/cartosketch/**/*.ts",
             "src/components/CartoSketch/**/*"
         ]
     },

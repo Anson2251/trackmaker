@@ -1,5 +1,4 @@
-import type {GeographicPointType} from "@/utils/geolocation";
-
+import type { GeographicPointType } from "../geolocation/types";
 
 // ======= GENERAL =======
 
@@ -17,7 +16,7 @@ export type SupportedShapeType = "Polygon" | "LineString" | "Point";
 
 export type GeographicShape = {
     type: SupportedShapeType,
-    coordinates: GeoJSONPoint[];
+    coordinates: GeoJSONPoint[] | GeoJSONPoint;
 }
 
 
@@ -65,7 +64,8 @@ export type GeographicDraftItemProperties = {
 export type GeographicRouteItemProperties = {
     strokeColor?: string,
     strokeThickness?: number,
-    visible?: boolean
+    visible?: boolean,
+    description?: string,
 }
 
 export type GeographicRouteItemType = {
@@ -82,7 +82,7 @@ export type GeographicRouteItemGeoJSON = {
     geometry: {
         type: "LineString",
         /** the list of points which form the shape */
-        coordinates: Array<[number, number]>,
+        coordinates: [number, number][],
     },
 }
 

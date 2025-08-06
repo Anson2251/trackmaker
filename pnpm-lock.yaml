@@ -87,6 +87,9 @@ importers:
       '@tsconfig/node-lts':
         specifier: ^22.0.2
         version: 22.0.2
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12

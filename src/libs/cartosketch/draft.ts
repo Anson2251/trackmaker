@@ -7,7 +7,6 @@ import type {
     GeographicDraftItemProperties,
     GeographicDraftItemType,
     GeographicDraftType,
-    GeographicRouteItemProperties,
     GeographicShape,
     GeoJSONPoint,
     SupportedShapeType
@@ -26,7 +25,7 @@ export class CartoSketchDraft {
     }
 
     getDrafts(): Readonly<CartoSketchDraftItem[]> {
-        return Object.freeze(this.drafts);
+        return cloneDeep(this.drafts);
     }
 
     getDraft(id: string) {
@@ -53,16 +52,7 @@ export class CartoSketchDraft {
     }
 }
 
-export namespace CartoSketchDraft {
-    export function create(name: string, drafts: CartoSketchDraftItem[] = [], id = uuidV4()): CartoSketchDraft {
-        return new CartoSketchDraft(name, drafts, id);
-    }
-
-    export function createItem(name: string, id = uuidV4(), shape: GeographicShape, properties: GeographicDraftItemProperties = {}): CartoSketchDraftItem {
-        return new CartoSketchDraftItem(name, shape, id, properties);
-    }
-
-    /**
+/**
      * Create a new draft from the provided GeoJSON object, which only contains one feature.
      *
      * @param geojson - The GeoJSON object containing the draft information.
@@ -70,98 +60,91 @@ export namespace CartoSketchDraft {
      * @param id
      * @return A Promise that resolves to the new draft object.
      */
-    export function importItemFromGeoJSON(geojson: GeographicDraftItemGeoJSON | any, name?: string, id?: string): CartoSketchDraftItem {
-        if (Array.isArray(geojson.features))
-            throw new Error("[createDraftItemFromGeoJSON] Only one feature is supported");
+export function importItemFromGeoJSON(geojson: GeographicDraftItemGeoJSON, name?: string, id?: string): CartoSketchDraftItem {
+    const type = geojson.geometry.type as string;
+    const coordinates = Array.isArray(geojson.geometry.coordinates[0]) ? geojson.geometry.coordinates : [geojson.geometry.coordinates] as GeoJSONPoint[];
+    const title = geojson.properties.title as string;
 
-        const type = geojson.geometry.type as string;
-        const coordinates = Array.isArray(geojson.geometry.coordinates[0]) ? geojson.geometry.coordinates : [geojson.geometry.coordinates] as GeoJSONPoint[];
-        const title = geojson.properties.title as string;
+    if (!(type in supportedShapeTypes)) throw new Error(`Invalid or unsupported geometry type ${type} in feature ${title}`);
+    if (!coordinates) throw new Error(`No coordinates provided in feature ${title}`);
+    if (!title) throw new Error("No title provided");
 
-        if (!(type in supportedShapeTypes)) throw new Error(`Invalid or unsupported geometry type ${type} in feature ${title}`);
-        if (!coordinates) throw new Error(`No coordinates provided in feature ${title}`);
-        if (!title) throw new Error("No title provided");
+    const properties: GeographicDraftItemProperties = {
+        title: title,
+        subTitle: geojson.properties.subTitle || "",
+        label: geojson.properties.label || "",
+        fillColor: geojson.properties.fillColor || "",
+        strokeColor: geojson.properties.strokeColor || "",
+        strokeThickness: geojson.properties.strokeThickness || 1,
+        icon: geojson.properties.icon || "",
+        visible: geojson.properties.visible || true,
+    };
 
-        const properties: GeographicDraftItemProperties = {
-            title: title,
-            subTitle: geojson.properties.subTitle || "",
-            label: geojson.properties.label || "",
-            fillColor: geojson.properties.fillColor || "",
-            strokeColor: geojson.properties.strokeColor || "",
-            strokeThickness: geojson.properties.strokeThickness || 1,
-            icon: geojson.properties.icon || "",
-            visible: geojson.properties.visible || true,
-        };
+    const shape: GeographicShape = {
+        type: type as SupportedShapeType,
+        coordinates: coordinates,
+    };
 
-        const shape: GeographicShape = {
-            type: type as SupportedShapeType,
-            coordinates: coordinates,
-        };
-
-        return new CartoSketchDraftItem(name || title, shape, id, properties);
-    }
+    return new CartoSketchDraftItem(name || title, shape, id, properties);
+}
 
 
-    /**
-     * Import a draft which is in the form of GeoJSON based on the provided name and draft content.
-     * Newly imported draft will not be stored in the database
-     *
-     * @param geojson - The draft content to import.
-     * @param name
-     * @param id
-     * @return A promise that resolves to the imported draft.
-     */
-    export function importFromGeoJSON(geojson: any, name?: string, id = uuidV4()): CartoSketchDraft {
-        if (geojson.feature) throw new Error("[importFromGeoJSON] Multiple features should be contained");
+/**
+ * Import a draft which is in the form of GeoJSON based on the provided name and draft content.
+ * Newly imported draft will not be stored in the database
+ *
+ * @param geojson - The draft content to import.
+ * @param name
+ * @param id
+ * @return A promise that resolves to the imported draft.
+ */
+export function importFromGeoJSON(geojson: GeographicDraftGeoJSON, name?: string, id = uuidV4()): CartoSketchDraft {
+    const collection = geojson.features.map((feature, index: number) => {
+        return importItemFromGeoJSON(feature, `${name}-${index}`, undefined);
+    });
 
-        const collection = (geojson.features as GeographicDraftItemGeoJSON[]).map((feature: GeographicDraftItemGeoJSON, index: number) => {
-            return importItemFromGeoJSON(feature, `${name}-${index}`, undefined);
-        });
+    return new CartoSketchDraft(id, collection, id);
+}
 
-        return new CartoSketchDraft(id, collection, id);
-    }
+export function readItemFromStorage(data: GeographicDraftItemType): CartoSketchDraftItem {
+    return new CartoSketchDraftItem(data.name, data.shape, data.id, data.properties);
+}
 
-    export function readItemFromStorage(data: GeographicDraftItemType): CartoSketchDraftItem {
-        return new CartoSketchDraftItem(data.name, data.shape, data.id, data.properties);
-    }
-
-    export function readFromStorage(data: GeographicDraftType): CartoSketchDraft {
-        return new CartoSketchDraft(data.name, data.drafts.map((draft) => CartoSketchDraft.readItemFromStorage(draft)), data.id);
-    }
+export function readFromStorage(data: GeographicDraftType): CartoSketchDraft {
+    return new CartoSketchDraft(data.name, data.drafts.map((draft) => readItemFromStorage(draft)), data.id);
 }
 
 
 export class CartoSketchDraftItem {
     name: string;
     readonly id: string;
-    private shape: GeographicShape;
-    readonly properties: GeographicDraftItemProperties;
+    private shapeInternal: GeographicShape;
+    properties: GeographicDraftItemProperties;
 
     constructor(name: string, shapes: GeographicShape, id: string = uuidV4(), properties: GeographicDraftItemProperties = {}) {
         this.name = name;
         this.id = id;
-        this.shape = shapes;
+        this.shapeInternal = shapes;
         this.properties = properties;
     }
 
-    setShapes(shapes: GeographicShape) {
-        this.shape = shapes;
+    shape = {
+        get: () => cloneDeep(this.shapeInternal),
+        set: (shape: GeographicShape) => this.shapeInternal = cloneDeep(shape)
     }
 
-    getShapes() {
-        return Object.freeze(this.shape);
-    }
-
-    setProperties(properties: GeographicDraftItemProperties) {
-        const newProperties = cloneDeep(properties) as GeographicRouteItemProperties;
-        Object.assign(this.properties, newProperties);
+    setProperties(properties: Partial<GeographicDraftItemProperties>) {
+        this.properties = {
+            ...this.properties,
+            ...properties
+        }
     }
 
     exportAsGeoJSON(): GeographicDraftItemGeoJSON {
         return {
             type: "Feature",
             properties: Object.assign({}, this.properties, { name: this.name, id: this.id }),
-            geometry: this.shape
+            geometry: this.shapeInternal
         };
     }
 
@@ -170,7 +153,7 @@ export class CartoSketchDraftItem {
             name: this.name,
             id: this.id,
             properties: this.properties,
-            shape: this.shape
+            shape: this.shapeInternal
         };
     }
 }

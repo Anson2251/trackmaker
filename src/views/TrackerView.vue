@@ -99,7 +99,9 @@ const geojsonSource = computed<any>(() => {
       features: [
         {
           type: "Feature",
-          properties: {},
+          properties: {
+            description: routeStore.currentRouteId,
+          },
           geometry: {
             type: "LineString",
             coordinates: path.value.map((coord) => [
@@ -227,12 +229,10 @@ async function changeRecordState() {
 
     if (pathRecording.value) {
       if (!routeStore.currentRouteId) {
-        const newRoute = await routeStore.addRoute({
-          points: [locator.present],
-          name: t("trackerView.nameNewRoute"),
-        });
+        const newRoute = await routeStore.addRoute(t("trackerView.nameNewRoute"));
+        await routeStore.addPointToRoute(newRoute.id, locator.present);
         openDrawerTooltip();
-        routeStore.currentRouteId = newRoute.id;
+        routeStore.setCurrentRouteId(newRoute.id);
       } else {
         await routeStore.addPointToRoute(
           routeStore.currentRouteId,
@@ -299,23 +299,24 @@ function loadFromText() {
   });
 }
 
-function loadTrackFromFile() {
-  loadFromText()
-    .then((contents) => {
-      const points = JSON.parse(
-        contents[0]
-      ).features[0].geometry.coordinates.map((coord: number[]) => ({
-        latitude: coord[1],
-        longitude: coord[0],
-      }));
+async function loadTrackFromFile() {
+  try {
+    const contents = await loadFromText();
+    const points = JSON.parse(
+      contents[0]
+    ).features[0].geometry.coordinates.map((coord: number[]) => ({
+      latitude: coord[1],
+      longitude: coord[0],
+    }));
 
-      routeStore
-        .addRoute({ points, name: t("trackerView.nameNewlyImportedRoute") })
-        .then(openDrawerTooltip);
-    })
-    .catch((error) => {
-      message.error(error);
-    });
+    const newRoute = await routeStore.addRoute(t("trackerView.nameNewlyImportedRoute"));
+    for (const point of points) {
+      await routeStore.addPointToRoute(newRoute.id, point);
+    }
+    openDrawerTooltip();
+  } catch (error) {
+    message.error(String(error));
+  }
 }
 
 const routeDrawerWidth = ref(0);
@@ -461,9 +462,7 @@ onMounted(async () => {
                 class="btn-control btn-clear"
                 @click="
                   routeStore.currentRouteId &&
-                    routeStore.updateRoute(routeStore.currentRouteId, {
-                      points: [],
-                    })
+                    routeStore.clearRoutePoints(routeStore.currentRouteId)
                 "
               >
                 <n-icon :size="20">
