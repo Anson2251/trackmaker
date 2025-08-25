@@ -4,6 +4,7 @@ import { CartoSketchRouteCollection, CartoSketchRouteItem, readCollectionFromSto
 import { storeGet, storeSet, storeSave } from '../libs/store';
 import type { GeographicPointType } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
+import { GeographicGeneralMetaDefaultValue } from '../libs/cartosketch/definitions';
 
 export const useRouteStore = defineStore('routes', () => {
     const routeCollection = ref<CartoSketchRouteCollection | null>(null);
@@ -26,17 +27,16 @@ export const useRouteStore = defineStore('routes', () => {
             // Check if it's old format (array of routes) or new format
             if (Array.isArray(storedData)) {
                 // Old format - migrate to new format
-                const collection = new CartoSketchRouteCollection('Default Routes');
+                const meta = GeographicGeneralMetaDefaultValue();
+                meta.name = 'Default Routes';
+                const collection = new CartoSketchRouteCollection([], undefined, meta);
                 console.info("[RouteStore] Migrating old route data to new format")
                 for (const oldRoute of storedData) {
                     if (oldRoute && typeof oldRoute === 'object' && 'id' in oldRoute && 'name' in oldRoute && 'points' in oldRoute && Array.isArray(oldRoute.points)) {
                         const route = oldRoute as { id: string; name: string; points: { latitude: number; longitude: number }[] };
-                        const newRoute = new CartoSketchRouteItem(
-                            route.name,
-                            route.id,
-                            route.points,
-                            {}
-                        );
+                        const meta = GeographicGeneralMetaDefaultValue();
+                        meta.name = route.name || 'Untitled Route';
+                        const newRoute = new CartoSketchRouteItem(route.id, route.points, {}, meta);
                         collection.addRoute(newRoute);
                     }
                     else {
@@ -48,24 +48,34 @@ export const useRouteStore = defineStore('routes', () => {
                 await storeSet('routes', routeCollection.value.exportToStorage());
                 await storeSave();
                 console.info("[RouteStore] Route Migration complete")
-            } else if (storedData && typeof storedData === 'object' && 'id' in storedData && 'name' in storedData && 'routes' in storedData) {
+            } else if (storedData && typeof storedData === 'object' && 'id' in storedData && 'routes' in storedData) {
                 // New format
                 routeCollection.value = readCollectionFromStorage(storedData as ReturnType<CartoSketchRouteCollection['exportToStorage']>);
             } else {
                 // Invalid format, create empty collection
-                routeCollection.value = new CartoSketchRouteCollection('Default Routes');
+                const meta = GeographicGeneralMetaDefaultValue();
+                meta.name = 'Default Routes';
+                routeCollection.value = new CartoSketchRouteCollection([], undefined, meta);
+                await storeSet('routes', routeCollection.value.exportToStorage());
+                await storeSave();
             }
         } else {
-            routeCollection.value = new CartoSketchRouteCollection('Default Routes');
+            const meta = GeographicGeneralMetaDefaultValue();
+            meta.name = 'Default Routes';
+            routeCollection.value = new CartoSketchRouteCollection([], undefined, meta);
         }
     }
 
     async function addRoute(name: string, properties: GeographicRouteItemProperties = {}) {
         if (!routeCollection.value) {
-            routeCollection.value = new CartoSketchRouteCollection('Default Routes');
+            const meta = GeographicGeneralMetaDefaultValue();
+            meta.name = 'Default Routes';
+            routeCollection.value = new CartoSketchRouteCollection([], undefined, meta);
         }
 
-        const newRoute = new CartoSketchRouteItem(name, undefined, [], properties);
+        const meta = GeographicGeneralMetaDefaultValue();
+        meta.name = name;
+        const newRoute = new CartoSketchRouteItem(undefined, [], properties, meta);
         routeCollection.value.addRoute(newRoute);
 
         await storeSet('routes', routeCollection.value.exportToStorage());

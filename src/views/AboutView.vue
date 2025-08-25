@@ -267,8 +267,9 @@ const sideIconSize = ref(20);
   display: flex;
   flex-direction: column;
   max-width: 1200px;
+
   gap: 1rem;
-  margin: 0 auto;
+  margin: 0 8px;
 }
 
 .section {

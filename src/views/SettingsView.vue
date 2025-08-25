@@ -187,19 +187,20 @@ onMounted(() => {
           </n-list>
         </n-card>
       </div>
-      <n-anchor
-        v-if="!isExtremeNarrowScreen"
-        :show-rail="true"
-        class="settings-nav"
-        style="width: 128px"
-      >
-        <n-anchor-link
-          v-for="section in configs"
-          :key="section.title"
-          :title="$t(`settings.${section.title}.title`)"
-          :href="`#${section.title.toLowerCase()}`"
-        />
-      </n-anchor>
+      <div class="settings-nav">
+        <n-anchor
+          v-if="!isExtremeNarrowScreen"
+          :show-rail="true"
+          style="width: 128px"
+        >
+          <n-anchor-link
+            v-for="section in configs"
+            :key="section.title"
+            :title="$t(`settings.${section.title}.title`)"
+            :href="`#${section.title.toLowerCase()}`"
+          />
+        </n-anchor>
+      </div>
     </div>
   </div>
 </template>

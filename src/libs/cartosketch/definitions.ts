@@ -1,12 +1,49 @@
 import type { GeographicPointType } from "../geolocation/types";
 
+// ======= META =======
+
+export type GeographicGeneralMetaType = {
+    name: string;
+    description: string;
+    creation_timestamp: number;
+    modification_timestamp: number;
+    created_by: string,
+    modified_by: string,
+    tags: string[];
+}
+
+export function GeographicGeneralMetaDefaultValue(): GeographicGeneralMetaType {
+    return ({
+        name: "Untitled",
+        description: "A new geographic item",
+        creation_timestamp: Date.now(),
+        modification_timestamp: Date.now(),
+        created_by: "anonymous",
+        modified_by: "anonymous",
+        tags: []
+    });
+}
+
+export type GeographicSketchMetaType = GeographicGeneralMetaType & {
+    version: number;
+    signature?: string;
+};
+
+export function GeographicSketchMetaDefaultValue(): GeographicSketchMetaType {
+    return {
+        ...GeographicGeneralMetaDefaultValue(),
+        version: 1,
+        signature: undefined
+    };
+}
+
 // ======= GENERAL =======
 
 export type GeographicSketchType = {
-    id: string,
-    name: string,
-    routes: GeographicRouteType,
-    drafts: GeographicDraftType,
+    id: string;
+    meta: GeographicSketchMetaType;
+    routes: GeographicRouteType;
+    drafts: GeographicDraftType;
 }
 
 export type GeoJSONPoint = [number, number];
@@ -19,45 +56,41 @@ export type GeographicShape = {
     coordinates: GeoJSONPoint[] | GeoJSONPoint;
 }
 
-
 // ======= DRAFT =======
 
 export type GeographicDraftItemType = {
     id: string;
-    name: string
+    meta: GeographicGeneralMetaType,
     shape: GeographicShape,
     properties: GeographicDraftItemProperties,
 }
 
 export type GeographicDraftItemGeoJSON = {
     type: "Feature",
-    properties: GeographicDraftItemProperties,
+    properties: GeographicDraftItemProperties & GeographicGeneralMetaType,
     /** the shape inside the feature */
     geometry: GeographicShape
 }
 
 export type GeographicDraftType = {
-    id: string,
-    name: string,
+    id: string;
+    meta: GeographicGeneralMetaType,
     drafts: GeographicDraftItemType[]
 }
 
 export type GeographicDraftGeoJSON = {
     type: "FeatureCollection",
-    features: GeographicDraftItemGeoJSON[]
+    features: GeographicDraftItemGeoJSON[],
+    properties: GeographicGeneralMetaType
 }
 
 export type GeographicDraftItemProperties = {
-    title?: string,
-    subTitle?: string;
-    label?: string,
     fillColor?: string,
     strokeColor?: string,
     strokeThickness?: number,
     icon?: string,
     visible?: boolean
 }
-
 
 // ======= ROUTE =======
 
@@ -69,15 +102,15 @@ export type GeographicRouteItemProperties = {
 }
 
 export type GeographicRouteItemType = {
-    name: string,
     id: string,
+    meta: GeographicGeneralMetaType,
     properties: GeographicRouteItemProperties,
     points: GeographicPointType[]
 };
 
 export type GeographicRouteItemGeoJSON = {
     type: "Feature",
-    properties: GeographicRouteItemProperties,
+    properties: GeographicRouteItemProperties & GeographicGeneralMetaType,
     /** the shape inside the feature */
     geometry: {
         type: "LineString",
@@ -89,11 +122,12 @@ export type GeographicRouteItemGeoJSON = {
 export type GeographicRouteGeoJSON = {
     type: "FeatureCollection",
     /** the list of routes in the collection */
-    features: GeographicRouteItemGeoJSON[]
+    features: GeographicRouteItemGeoJSON[],
+    properties: GeographicGeneralMetaType
 }
 
 export type GeographicRouteType = {
     id: string;
-    name: string,
+    meta: GeographicGeneralMetaType,
     routes: GeographicRouteItemType[]
 };
