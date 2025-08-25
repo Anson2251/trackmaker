@@ -1,4 +1,5 @@
 import TrackerView from '@/views/TrackerView.vue';
+import SketchCentreView from '@/views/SketchCentreView.vue';
 import AboutView from '@/views/AboutView.vue';
 import SettingsView from '@/views/SettingsView.vue';
 
@@ -15,10 +16,15 @@ const router = createRouter({
       path: '/tracker',
       name: 'Tracker',
       // build to a single js file if in tauri environment
-      component: (__TAURI_ENVIRONMENT__ ? TrackerView : () => import('@/views/TrackerView.vue')), 
+      component: (__TAURI_ENVIRONMENT__ ? TrackerView : () => import('@/views/TrackerView.vue')),
       meta: {
         timeout: 5000
       }
+    },
+    {
+      path: '/sketch-centre',
+      name: 'sketchCentre',
+      component: (__TAURI_ENVIRONMENT__ ? SketchCentreView : () => import('@/views/SketchCentreView.vue')),
     },
     {
       path: '/about',

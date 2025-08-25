@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NList, NListItem, NIcon, NButton } from 'naive-ui';
 
-import { ShapesOutline, RemoveCircleOutline } from '@vicons/ionicons5';
+import { Shape, Trash } from '@vicons/tabler';
 
 const props = defineProps({
     list: {
@@ -38,7 +38,7 @@ function remove(id: string) {
         <template #prefix>
           <div style="height: 100%; width: 100%; display: flex; justify-items: center;">
             <n-icon size="20">
-              <ShapesOutline />
+              <shape />
             </n-icon>
           </div>
         </template>
@@ -50,7 +50,7 @@ function remove(id: string) {
           >
             <template #icon>
               <n-icon>
-                <RemoveCircleOutline />
+                <trash />
               </n-icon>
             </template>
           </n-button>

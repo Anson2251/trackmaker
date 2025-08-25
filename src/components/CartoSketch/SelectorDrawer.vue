@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NDrawer, NDrawerContent, NButtonGroup, NButton, NIcon, type DrawerPlacement } from 'naive-ui';
 
-import { CloseCircleOutline, AddCircleOutline } from '@vicons/ionicons5';
+import { Minus, Plus } from '@vicons/tabler';
 import { Upload } from '@vicons/tabler';
 
 import SketchSelector from './SketchSelector.vue';
@@ -35,7 +35,7 @@ const buttonGroupItems = [
 	},
 	{
 		title: "new",
-		icon: AddCircleOutline,
+		icon: Plus,
 		callback: () => emit('new'),
 		secondary: true,
 		iconSize: 20,
@@ -43,7 +43,7 @@ const buttonGroupItems = [
 	},
 	{
 		title: "close",
-		icon: CloseCircleOutline,
+		icon: Minus,
 		callback: () => { activeSelectorFlag.value = false; },
 		secondary: true,
 		iconSize: 20,
@@ -79,8 +79,8 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
       <template #footer>
         <n-button-group>
           <n-button
-            v-for="item in buttonGroupItems" 
-            :key="item.title" 
+            v-for="item in buttonGroupItems"
+            :key="item.title"
             :secondary="item.secondary"
             :type="(item.type as Type)"
             :title="item.title"

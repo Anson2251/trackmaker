@@ -43,6 +43,7 @@
     },
     "router": {
         "tracker": "Tracker",
+        "sketchCentre": "Sketch Centre",
         "about": "About",
         "settings": "Settings"
     },
@@ -93,6 +94,31 @@
                 "yes": "Confirm",
                 "no": "Cancel"
             }
+        }
+    },
+    "sketchCentreView": {
+        "title": "Sketch Centre",
+        "newSketch": "New Sketch",
+        "editSketch": "Edit Sketch",
+        "sketchName": "Sketch Name",
+        "sketchNamePlaceholder": "Enter sketch name",
+        "sketchDescription": "Description",
+        "sketchDescriptionPlaceholder": "Enter sketch description",
+        "noDescription": "No description",
+        "routes": "routes",
+        "drafts": "drafts",
+        "nameRequired": "Sketch name is required",
+        "sketchCreated": "Sketch created successfully",
+        "sketchDeleted": "Sketch deleted successfully",
+        "emptyState": "No sketches yet. Create your first sketch to get started!",
+        "createFirstSketch": "Create Your First Sketch",
+        "cancel": "Cancel",
+        "create": "Create",
+        "deleteConfirmation": {
+            "title": "Delete Sketch",
+            "prompt": "Are you sure you want to delete \"{name}\"?",
+            "yes": "Delete",
+            "no": "Cancel"
         }
     }
 }

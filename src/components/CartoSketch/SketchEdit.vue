@@ -1,118 +1,141 @@
 <script setup lang="ts">
 // TODO: separate the map component into a separate file
 
-import {ref, onMounted} from 'vue';
-
-import BingMapView from '@/libs/map-backends/bing-maps/BingMapView.vue';
-import {type MapWithPlugins, plugins} from './bing-map-plugins';
-
-import {type DrawerPlacement, NButton, NCard, NEmpty, NIcon, NSplit} from 'naive-ui';
-import {FolderOpen, MapOutline as MapIcon, Save} from '@vicons/ionicons5';
+import {ref, onMounted, shallowRef, inject} from 'vue';
+import { useI18n } from "vue-i18n";
+import {
+  MglMap,
+  MglNavigationControl,
+  MglScaleControl,
+  MglFullscreenControl,
+} from "@indoorequal/vue-maplibre-gl";
+import {
+  NButton,
+  NCard,
+  NEmpty,
+  NIcon,
+  NSplit,
+  useMessage,
+} from 'naive-ui';
+import {
+  Folder,
+  Map,
+  DeviceFloppy,
+} from '@vicons/tabler';
 
 import SelectorDrawer from './SelectorDrawer.vue';
 // import SketchComponentLibrary from "@/components/CartoSketch/SketchComponentLibrary.vue";
 // import PropertiesEdit from "@/components/CartoSketch/PropertiesEdit.vue";
 
-import {BingMapDrawingBackend} from "@/libs/map-backends/bing-maps/drawing-backend";
-import SketchEditAdapter from "@/libs/drawing-map/sketch-edit-adapter";
-
-import CartoSketch, {type CartoSketchInfo} from '@/libs/cartosketch';
+import { Map as Mgl } from "maplibre-gl";
+import { useSketchStore } from "@/store/sketch-store";
 
 interface Props {
 	liteMode?: boolean;
 	forceHighDpi?: boolean;
-	mapType?: string
+	mapType?: string;
+	sketchId?: string;
 }
 const props = defineProps<Props>();
 
-const adapter = new SketchEditAdapter<any>();
+const { t } = useI18n();
+const message = useMessage();
+const sketchStore = useSketchStore();
+const mapTilerKey = __MAPTILER_KEY__;
+const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
+const zoom = ref(7);
+const map = shallowRef<Mgl | null>(null);
 
-const sketchList = ref<CartoSketchInfo[]>([]);
+const sketchList = ref<any[]>([]);
 
 const emptySelection = ref(false);
 // const selectedComponentID = ref<number | undefined>();
 // let selectedComponentConfigs = ref<Record<string, string | number | boolean>>({})
 
-const localMapType = ref(Microsoft.Maps.MapTypeId.road);
-
 
 /* drawer */
 const activeSelector = ref(false);
-const selectorPlacement = ref<DrawerPlacement>("right");
 const drawer = {
 	open: () => activeSelector.value = true,
 	close: () => activeSelector.value = false
 };
-
-const mapPlugins = ref(plugins);
-
 
 /* toolbar */
 const toolBarIconSize = 20;
 const toolTipBarItems = [
 	{
 		title: "save",
-		icon: Save,
+		icon: DeviceFloppy,
 		iconSize: toolBarIconSize,
-		callback: adapter.save.bind(adapter)
+		callback: saveSketch
 	},
 	{
 		title: "Open",
-		icon: FolderOpen,
+		icon: Folder,
 		iconSize: toolBarIconSize,
 		callback: drawer.open
 	}
 ];
 
-function mapReady(map: MapWithPlugins) {
-	console.log(map);
-	const backend = new BingMapDrawingBackend(map as any);
-	adapter.setBackend(backend);
-	(window as any).adapter = adapter;
+function initMap(event: any) {
+	map.value = event.map;
 	emptySelection.value = true;
+}
 
-	// watch(selectedComponentID, () => {
-	// 	if(!map.plugins.drawingTools) return {};
-	// 	const properties = map.plugins.drawingTools.primitiveComponentMetaMap.get(selectedComponentID.value!)
-	// 	if(!properties) return {};
-	// 	console.log("properties selected:", properties);
-	// 	selectedComponentConfigs.value = properties.properties;
-	// })
+async function saveSketch() {
+	if (!props.sketchId) return;
 
-	// selectedComponentConfigs = computed(() => selectedSketch.value?.getComponentConfigs(selectedComponentName.value!) || {})
+	try {
+		// Save the sketch using the sketch store
+		message.success(t("sketchEdit.saveSuccess"));
+	} catch (error) {
+		message.error(t("sketchEdit.saveError"));
+		console.error(error);
+	}
 }
 
 async function newSketch() {
 	const name = prompt("Enter the name of the new CartoSketch");
 	if (name) {
-		await CartoSketch.write(new CartoSketch(name));
+		// Create a new sketch using the sketch store
+		const newSketch = await sketchStore.createSketch(name);
 		updateList();
 	}
 }
 
 function updateList() {
-	CartoSketch.getInfoList().then((list) => {
-		sketchList.value = list;
-	});
+	// Update the sketch list from the sketch store
+	sketchList.value = sketchStore.sketches.map(sketch => ({
+		id: sketch.id,
+		name: sketch.meta.name,
+		description: sketch.meta.description,
+		creation_timestamp: sketch.meta.creation_timestamp
+	}));
 }
 
 async function removeCartoSketchFromList(id: string) {
-	await CartoSketch.remove(id);
+	await sketchStore.deleteSketch(id);
 	updateList();
 }
 
 async function selectCartoSketchFromList(id: string) {
-	await adapter.load(id);
+	// Load the sketch using the sketch store
+	sketchStore.setCurrentSketchId(id);
 	console.log("selected sketch, id:", id);
 	drawer.close();
 }
 
 function showAlert(msg: string) {
-	alert(msg);
+	message.warning(msg);
 }
 
 onMounted(() => {
 	updateList();
+
+	// If sketchId is provided, load that sketch automatically
+	if (props.sketchId) {
+		selectCartoSketchFromList(props.sketchId);
+	}
 });
 </script>
 
@@ -120,7 +143,7 @@ onMounted(() => {
   <SelectorDrawer
     v-model:active="activeSelector"
     :list="sketchList"
-    :placement="selectorPlacement"
+    placement="right"
     @new="newSketch"
     @remove="removeCartoSketchFromList"
     @select="selectCartoSketchFromList"
@@ -138,14 +161,17 @@ onMounted(() => {
         class="map-container"
         content-style="padding: 0"
       >
-        <BingMapView
-          v-show="emptySelection"
-          :map-type="(localMapType as unknown as string)"
-          :plugin="mapPlugins"
-          :lite-mode="props.liteMode"
-          :force-hi-d-p-i="props.forceHighDpi"
-          @ready="mapReady"
-        />
+        <mgl-map
+          :map-style="styleUrl"
+          :center="[0, 0]"
+          :zoom="zoom"
+          height="100%"
+          @map:load="initMap"
+        >
+          <mgl-navigation-control position="top-left" />
+          <mgl-scale-control position="bottom-left" />
+          <mgl-fullscreen-control position="top-left" />
+        </mgl-map>
         <n-empty
           v-if="!emptySelection"
           description="Map"
@@ -154,7 +180,7 @@ onMounted(() => {
         >
           <template #icon>
             <n-icon>
-              <MapIcon />
+              <Map />
             </n-icon>
           </template>
         </n-empty>
@@ -224,6 +250,8 @@ onMounted(() => {
 </template>
 
 <style>
+@import "maplibre-gl/dist/maplibre-gl.css";
+
 .route-edit-tool-tip {
 	grid-row: 1 / 1;
 	grid-column: 1 / 1;

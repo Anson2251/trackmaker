@@ -43,6 +43,7 @@
     },
     "router": {
         "tracker": "轨迹记录",
+        "sketchCentre": "草图中心",
         "about": "关于",
         "settings": "设置"
     },
@@ -93,6 +94,31 @@
                 "yes": "确认",
                 "no": "取消"
             }
+        }
+    },
+    "sketchCentreView": {
+        "title": "草图中心",
+        "newSketch": "新建草图",
+        "editSketch": "编辑草图",
+        "sketchName": "草图名称",
+        "sketchNamePlaceholder": "输入草图名称",
+        "sketchDescription": "描述",
+        "sketchDescriptionPlaceholder": "输入草图描述",
+        "noDescription": "无描述",
+        "routes": "路线",
+        "drafts": "草稿",
+        "nameRequired": "草图名称不能为空",
+        "sketchCreated": "草图创建成功",
+        "sketchDeleted": "草图删除成功",
+        "emptyState": "暂无草图。创建您的第一个草图开始使用吧！",
+        "createFirstSketch": "创建您的第一个草图",
+        "cancel": "取消",
+        "create": "创建",
+        "deleteConfirmation": {
+            "title": "删除草图",
+            "prompt": "您确定要删除\"{name}\"吗？",
+            "yes": "删除",
+            "no": "取消"
         }
     }
 }

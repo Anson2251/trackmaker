@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from "vue-router";
 import { h, type Component, provide, computed, watch } from "vue";
-import { Map, InfoCircle, Settings, Menu as MenuIcon } from "@vicons/tabler";
+import { Map, InfoCircle, Settings, Menu as MenuIcon, MapPin } from "@vicons/tabler";
 import { useI18n } from "vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
@@ -47,6 +47,18 @@ const menuOptions: MenuOption[] = [
       ),
     key: "tracker",
     icon: renderIcon(Map),
+  },
+  {
+    label: () =>
+      h(
+        RouterLink,
+        {
+          to: "/sketch-centre",
+        },
+        { default: () => t("router.sketchCentre") }
+      ),
+    key: "sketchCentre",
+    icon: renderIcon(MapPin),
   },
 ];
 
@@ -163,7 +175,7 @@ const horizontalScreen = computed(() => width.value > height.value);
           <keep-alive>
             <component
               :is="component"
-              :key="currentRoute" 
+              :key="currentRoute"
             />
           </keep-alive>
         </transition>
