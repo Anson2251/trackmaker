@@ -12,7 +12,7 @@ export default typescriptEslint.config(
             "src/utils/input-device-preferences.ts",
             "src/utils/device-orientation-service.ts",
             // "src/libs/cartosketch/**/*.ts",
-            "src/components/CartoSketch/**/*"
+            // "src/components/CartoSketch/**/*"
         ]
     },
     {

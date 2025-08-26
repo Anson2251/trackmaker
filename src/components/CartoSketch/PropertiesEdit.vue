@@ -4,10 +4,26 @@ import {
 	NList, NListItem, NFlex, NColorPicker, NInputNumber,
 	NSwitch
 } from 'naive-ui';
-import {watch, ref, computed} from 'vue';
+import {watch, ref, computed, type Ref} from 'vue';
 
 type supportedOptionType = "color" | "number" | "switch" | "radio" | "string";
 type supportedDataType = string | number | boolean;
+
+interface RadioOption {
+	label: string;
+	value: string;
+}
+
+interface RadioData {
+	options: RadioOption[];
+}
+
+// Type guard to check if data is RadioData
+function isRadioData(data: OptionData): data is RadioData {
+	return (data as RadioData).options !== undefined;
+}
+
+type OptionData = Record<string, unknown> | RadioData;
 
 type OptionInfo = {
 	/** unique id for the option*/
@@ -15,7 +31,7 @@ type OptionInfo = {
 	label: string;
 	default: string | number | boolean;
 	type: supportedOptionType;
-	data: any;
+	data: OptionData;
 }
 
 const optionDB: Record<string, OptionInfo> = {
@@ -109,7 +125,19 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(['updateProperties']);
-let propertiesEditview = ref<any[]>([]);
+
+interface PropertyEditItem {
+	name: string;
+	label: string;
+	type: supportedOptionType;
+	default: string | number | boolean;
+	model: Ref<supportedDataType>;
+	data: OptionData;
+}
+
+const propertiesEditview = computed<PropertyEditItem[]>(() => {
+	return getConfigItems();
+});
 
 // const configTypes = ["color", "number", "switch", "radio"];
 // const keys = Object.keys(props.properties);
@@ -128,17 +156,14 @@ const getConfigItems = () => {
 };
 
 console.log(props);
-propertiesEditview = computed(() => {
-	console.log(props);
-	return getConfigItems();
-});
-
-getConfigItems();
 
 watch(propertiesEditview, () => {
-	const property: any = {};
+	const property: Record<string, supportedDataType> = {};
 	Object.keys(props.properties).forEach(key => {
-		property[key] = propertiesEditview.value.find(p => p.name === key)?.model.value;
+		const foundItem = propertiesEditview.value.find(p => p.name === key);
+		if (foundItem) {
+			property[key] = foundItem.model.value;
+		}
 	});
 	emit('updateProperties', property);
 }, {deep: true});
@@ -171,7 +196,7 @@ watch(propertiesEditview, () => {
             :default-value="property.default"
           >
             <n-radio-button
-              v-for="option in property.data.options"
+              v-for="option in (isRadioData(property.data) ? property.data.options : [])"
               :key="option.value"
               :label="option.label"
               :value="option.value"

@@ -86,12 +86,12 @@ export class CartoSketchRouteCollection {
         };
     }
 
-    exportToStorage(): GeographicRouteType {
-        return JSON.parse(JSON.stringify({
+    exportToStorage(): Readonly<GeographicRouteType> {
+        return Object.freeze({
             id: this.id,
             meta: this.meta,
             routes: this.routesInternal.map((route) => route.exportToStorage())
-        }));
+        });
     }
 }
 

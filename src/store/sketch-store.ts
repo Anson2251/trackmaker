@@ -109,7 +109,7 @@ export const useSketchStore = defineStore('sketches', () => {
         sketches.value = [sketch];
         currentSketchId.value = sketch.id;
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -119,7 +119,7 @@ export const useSketchStore = defineStore('sketches', () => {
         sketch.meta.name = name;
         sketches.value.push(sketch);
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
 
         return sketch;
@@ -141,7 +141,7 @@ export const useSketchStore = defineStore('sketches', () => {
             updates.tags.forEach(tag => sketch.addTag(tag));
         }
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -155,7 +155,7 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketchId.value = sketches.value.length > 0 ? sketches.value[0].id : null;
         }
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -179,7 +179,7 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketch.value.routes.routes.push(route.exportToStorage());
         }
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
 
         return route;
@@ -197,7 +197,7 @@ export const useSketchStore = defineStore('sketches', () => {
             currentRouteId.value = null;
         }
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -210,7 +210,7 @@ export const useSketchStore = defineStore('sketches', () => {
         route.points.push(point);
         route.meta.modification_timestamp = Date.now();
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -229,7 +229,7 @@ export const useSketchStore = defineStore('sketches', () => {
 
         route.meta.modification_timestamp = Date.now();
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -242,7 +242,7 @@ export const useSketchStore = defineStore('sketches', () => {
         route.points = [];
         route.meta.modification_timestamp = Date.now();
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 
@@ -284,7 +284,7 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketch.value.drafts.drafts.push(draftItem);
         }
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
 
         return draftItem;
@@ -319,7 +319,7 @@ export const useSketchStore = defineStore('sketches', () => {
 
         currentSketch.value.drafts.drafts.splice(index, 1);
 
-        await storeSet('sketches', JSON.parse(JSON.stringify(sketches.value.map(s => s.toStorage()))));
+        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();
     }
 

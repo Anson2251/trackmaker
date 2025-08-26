@@ -1,103 +1,105 @@
+import { cloneDeep } from "lodash-es";
 import type { Store } from "./types";
 
 export class IndexedDBStore implements Store {
-	private db: IDBDatabase | null = null;
-	private initialised = false;
+    private db: IDBDatabase | null = null;
+    private initialised = false;
 
-	constructor(private dbName: string, private storeName: string) {
-		this.init();
-	}
+    constructor(private dbName: string, private storeName: string) {
+        this.init();
+    }
 
-	init(): Promise<void> {
-		if (this.initialised) return Promise.resolve();
-		return new Promise((resolve, reject) => {
-			const request = indexedDB.open(this.dbName, 1);
+    init(): Promise<void> {
+        if (this.initialised) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, 1);
 
-			request.onupgradeneeded = (event) => {
-				const db = (event.target as IDBOpenDBRequest).result;
-				if (!db.objectStoreNames.contains(this.storeName)) {
-					db.createObjectStore(this.storeName);
-				}
-			};
+            request.onupgradeneeded = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains(this.storeName)) {
+                    db.createObjectStore(this.storeName);
+                }
+            };
 
-			request.onsuccess = (event) => {
-				this.db = (event.target as IDBOpenDBRequest).result;
-				resolve();
-			};
+            request.onsuccess = (event) => {
+                this.db = (event.target as IDBOpenDBRequest).result;
+                resolve();
+            };
 
-			request.onerror = (event) => {
-				reject((event.target as IDBOpenDBRequest).error);
-			};
-		});
-	}
+            request.onerror = (event) => {
+                reject((event.target as IDBOpenDBRequest).error);
+            };
+        });
+    }
 
-	async set(key: string, value: unknown): Promise<void> {
-		if (!this.db) {
-			return Promise.reject('Database not initialized');
-		}
+    async set(key: string, value: unknown): Promise<void> {
+        if (!this.db) {
+            return Promise.reject('Database not initialized');
+        }
 
-		return new Promise((resolve, reject) => {
-			if (!this.db) {
-				return Promise.reject('Database has not been initialised');
-			}
-			const transaction = this.db.transaction(this.storeName, 'readwrite');
-			const store = transaction.objectStore(this.storeName);
-			const request = store.put(value, key);
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return Promise.reject('Database has not been initialised');
+            }
+            const transaction = this.db.transaction(this.storeName, 'readwrite');
+            const store = transaction.objectStore(this.storeName);
 
-			request.onsuccess = () => resolve();
-			request.onerror = () => reject('Failed to set value');
-		});
-	}
+            const request = store.put(cloneDeep(value), key);
 
-	async get<T>(key: string): Promise<T | null> {
-		if (!this.db) {
-			return Promise.reject('Database not initialized');
-		}
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject('Failed to set value');
+        });
+    }
 
-		return new Promise((resolve, reject) => {
-			if (!this.db) {
-				reject('Database has not been initialised');
-				return;
-			}
-			const transaction = this.db.transaction(this.storeName, 'readonly');
-			const store = transaction.objectStore(this.storeName);
-			const request = store.get(key);
+    async get<T>(key: string): Promise<T | null> {
+        if (!this.db) {
+            return Promise.reject('Database not initialized');
+        }
 
-			request.onsuccess = () => resolve(request.result as T | null);
-			request.onerror = () => reject('Failed to get value');
-		});
-	}
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject('Database has not been initialised');
+                return;
+            }
+            const transaction = this.db.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.get(key);
 
-	async save(): Promise<void> {
-		// IndexedDB automatically saves changes, so this is a no-op.
-	}
+            request.onsuccess = () => resolve(request.result as T | null);
+            request.onerror = () => reject('Failed to get value');
+        });
+    }
 
-	async exportToJson(): Promise<string> {
-		if (!this.db) {
-			return Promise.reject('Database not initialized');
-		}
+    async save(): Promise<void> {
+        // IndexedDB automatically saves changes, so this is a no-op.
+    }
 
-		return new Promise((resolve, reject) => {
-			if (!this.db) {
-				return Promise.reject('Database has not been initialised');
-			}
-			const transaction = this.db.transaction(this.storeName, 'readonly');
-			const store = transaction.objectStore(this.storeName);
-			const request = store.getAll();
+    async exportToJson(): Promise<string> {
+        if (!this.db) {
+            return Promise.reject('Database not initialized');
+        }
 
-			request.onsuccess = () => {
-				const data = request.result.reduce((acc, item, index) => {
-					acc[index] = item; // Use index as key or use a unique key if available
-					return acc;
-				}, {} as Record<string, unknown>);
-				resolve(JSON.stringify(data, null, 2));
-			};
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return Promise.reject('Database has not been initialised');
+            }
+            const transaction = this.db.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
 
-			request.onerror = () => {
-				reject('Failed to export data to JSON');
-			};
-		});
-	}
+            request.onsuccess = () => {
+                const data = request.result.reduce((acc, item, index) => {
+                    acc[index] = item; // Use index as key or use a unique key if available
+                    return acc;
+                }, {} as Record<string, unknown>);
+                resolve(JSON.stringify(data, null, 2));
+            };
+
+            request.onerror = () => {
+                reject('Failed to export data to JSON');
+            };
+        });
+    }
 }
 
 export default IndexedDBStore;

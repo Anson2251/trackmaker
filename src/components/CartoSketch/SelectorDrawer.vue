@@ -94,7 +94,7 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
           </n-button>
         </n-button-group>
       </template>
-      <SketchSelector
+      <sketch-selector
         :list="list"
         @remove="(id: string) => emit('remove', id)"
         @select="(id: string) => emit('select', id)"

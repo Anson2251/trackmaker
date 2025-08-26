@@ -57,7 +57,7 @@ const menuOptions: MenuOption[] = [
         },
         { default: () => t("router.sketchCentre") }
       ),
-    key: "sketchCentre",
+    key: "sketch-centre",
     icon: renderIcon(MapPin),
   },
 ];

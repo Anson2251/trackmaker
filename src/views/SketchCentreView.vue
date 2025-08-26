@@ -32,6 +32,7 @@ import {
 import { useSketchStore } from "@/store/sketch-store";
 import { CartoSketch } from "@/libs/cartosketch";
 import SketchEdit from "@/components/CartoSketch/SketchEdit.vue";
+import { useWindowSize } from "@vueuse/core";
 
 const { t } = useI18n();
 const dialog = useDialog();
@@ -132,16 +133,9 @@ const deleteSketch = (sketchId: string) => {
   });
 };
 
+const {width: windowWidth} = useWindowSize();
 // Responsive grid columns based on screen size
-const gridCols = computed(() => {
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth < 640) return 1;
-    if (window.innerWidth < 1024) return 2;
-    return 3;
-  }
-  return 3;
-});
-
+const gridCols = computed(() => Math.floor(windowWidth.value / 360));
 onMounted(() => {
   loadSketches();
 });
@@ -362,10 +356,12 @@ onMounted(() => {
       :width="800"
       :placement="'right'"
       display-directive="show"
+      :height="'100%'"
     >
       <n-drawer-content
         :title="t('sketchCentreView.editSketch')"
         closable
+        :body-content-style="{ padding: 0, height: '100%' }"
       >
         <SketchEdit
           v-if="editingSketchId"
