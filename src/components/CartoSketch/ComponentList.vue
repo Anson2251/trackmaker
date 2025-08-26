@@ -2,6 +2,9 @@
 import { NList, NListItem, NIcon, NButton, NEmpty, NPopconfirm } from 'naive-ui';
 import { Shape, Route, Trash } from '@vicons/tabler';
 import type { SelectOption } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   components: SelectOption[];
@@ -46,7 +49,7 @@ const emit = defineEmits<{
               <n-icon><trash /></n-icon>
             </n-button>
           </template>
-          Delete this component?
+          {{ t('sketchEdit.deleteComponent') }}
         </n-popconfirm>
       </template>
     </n-list-item>
@@ -55,13 +58,13 @@ const emit = defineEmits<{
     v-if="components.length === 0"
     class="empty-state"
   >
-    <n-empty description="No components yet">
+    <n-empty :description="t('sketchEdit.noComponentsYet')">
       <template #extra>
         <n-button
           size="small"
           @click="emit('create')"
         >
-          Create Component
+          {{ t('sketchEdit.createComponent') }}
         </n-button>
       </template>
     </n-empty>

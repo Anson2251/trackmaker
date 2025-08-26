@@ -99,7 +99,7 @@ async function saveSketch() {
 }
 
 async function newSketch() {
-  const name = prompt("Enter the name of the new CartoSketch");
+  const name = prompt(t("sketchEdit.enterSketchName"));
   if (name) {
     await sketchStore.createSketch(name);
     activeSelector.value = false;
@@ -226,27 +226,27 @@ watch(
   <n-modal
     v-model:show="showCreateModal"
     preset="dialog"
-    title="Create New Component"
+    :title="t('sketchEdit.createNewComponent')"
   >
     <n-form>
       <div style="display: flex; flex-direction: row; gap: 8px">
         <n-formItem
-          label="Name"
+          :label="t('sketchEdit.name')"
           style="flex-grow: 1"
         >
           <n-input
             v-model:value="newComponentName"
-            placeholder="Enter component name"
+            :placeholder="t('sketchEdit.enterComponentName')"
           />
         </n-formItem>
-        <n-form-item label="Type">
+        <n-form-item :label="t('sketchEdit.type')">
           <n-select
             v-model:value="newComponentType"
             :consistent-menu-width="false"
 
             :options="[
-              { label: 'Draft (Shape)', value: 'draft' },
-              { label: 'Route (Path)', value: 'route' },
+              { label: t('sketchEdit.draftShape'), value: 'draft' },
+              { label: t('sketchEdit.routePath'), value: 'route' },
             ]"
           />
         </n-form-item>
@@ -254,14 +254,14 @@ watch(
     </n-form>
     <template #action>
       <n-button @click="showCreateModal = false">
-        Cancel
+        {{ t('sketchEdit.cancel') }}
       </n-button>
       <NButton
         type="primary"
         :disabled="!newComponentName.trim()"
         @click="createComponent"
       >
-        Create
+        {{ t('sketchEdit.create') }}
       </NButton>
     </template>
   </n-modal>
@@ -299,7 +299,7 @@ watch(
             <template #1>
               <n-card
                 style="height: 100%"
-                title="Components"
+                :title="t('sketchEdit.components')"
               >
                 <component-list
                   :components="componentOptions"
@@ -348,7 +348,7 @@ watch(
 
           <n-empty
             v-if="!hasSelection"
-            description="No sketch selected"
+            :description="t('sketchEdit.noSketchSelected')"
             size="huge"
             style="height: 100%; justify-content: center"
           >
@@ -362,7 +362,7 @@ watch(
                 size="small"
                 @click="activeSelector = true"
               >
-                Select a sketch
+                {{ t('sketchEdit.selectSketch') }}
               </n-button>
             </template>
           </n-empty>
@@ -372,7 +372,7 @@ watch(
         <template #2>
           <n-card
             class="component-info-container"
-            title="Properties"
+            :title="t('sketchEdit.properties')"
             content-style="min-height: 0; overflow: auto;"
           >
             <PropertiesPanel

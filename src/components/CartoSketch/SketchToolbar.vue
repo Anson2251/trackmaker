@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { NIcon, NFlex, NText, NTag } from 'naive-ui';
 import { DeviceFloppy, Folder, Plus } from '@vicons/tabler';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   sketchName?: string;
@@ -19,19 +22,19 @@ const emit = defineEmits<{
 const toolBarIconSize = 20;
 const toolTipBarItems = [
   {
-    title: "save",
+    title: t('sketchEdit.save'),
     icon: DeviceFloppy,
     iconSize: toolBarIconSize,
     callback: () => emit('save'),
   },
   {
-    title: "Open",
+    title: t('sketchEdit.open'),
     icon: Folder,
     iconSize: toolBarIconSize,
     callback: () => emit('open'),
   },
   {
-    title: "New Component",
+    title: t('sketchEdit.newComponent'),
     icon: Plus,
     iconSize: toolBarIconSize,
     callback: () => emit('create'),
@@ -45,7 +48,7 @@ const toolTipBarItems = [
     align="center"
   >
     <n-text strong>
-      {{ sketchName || "No Sketch Selected" }}
+      {{ sketchName || t('sketchEdit.noSketchSelectedToolbar') }}
     </n-text>
     <n-flex align="center">
       <n-tag
@@ -53,7 +56,7 @@ const toolTipBarItems = [
         type="info"
         size="small"
       >
-        {{ draftCount || 0 }} drafts, {{ routeCount || 0 }} routes
+        {{ draftCount || 0 }} {{ t('sketchEdit.drafts') }}, {{ routeCount || 0 }} {{ t('sketchEdit.routes') }}
       </n-tag>
       <div
         v-for="(item, index) in toolTipBarItems"

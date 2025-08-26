@@ -2,6 +2,9 @@
 import { NForm, NFormItem, NInput, NSwitch, NColorPicker, NInputNumber, NText, NTime, NTag, NEmpty } from 'naive-ui';
 import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
 import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   component: GeographicDraftItemType | CartoSketchRouteItem | null;
@@ -23,14 +26,14 @@ const emit = defineEmits<{
   >
     <n-form>
       <!-- Common Properties -->
-      <n-form-item label="Name">
+      <n-form-item :label="t('sketchEdit.name')">
         <NInput
           :value="component.meta.name"
           @update:value="(val) => emit('updateMeta', { name: val })"
         />
       </n-form-item>
 
-      <n-form-item label="Visible">
+      <n-form-item :label="t('sketchEdit.visible')">
         <n-switch
           :value="component.properties.visible !== false"
           @update:value="(val) => emit('updateProperties', { visible: val })"
@@ -39,21 +42,21 @@ const emit = defineEmits<{
 
       <!-- Draft-specific Properties -->
       <template v-if="type === 'draft'">
-        <n-form-item label="Fill Color">
+        <n-form-item :label="t('sketchEdit.fillColor')">
           <n-color-picker
             :value="(component as GeographicDraftItemType).properties.fillColor || '#007bff'"
             :show-alpha="false"
             @update:value="(val) => emit('updateProperties', { fillColor: val })"
           />
         </n-form-item>
-        <n-form-item label="Stroke Color">
+        <n-form-item :label="t('sketchEdit.strokeColor')">
           <n-color-picker
             :value="(component as GeographicDraftItemType).properties.strokeColor || '#0056b3'"
             :show-alpha="false"
             @update:value="(val) => emit('updateProperties', { strokeColor: val })"
           />
         </n-form-item>
-        <n-form-item label="Stroke Thickness">
+        <n-form-item :label="t('sketchEdit.strokeThickness')">
           <n-input-number
             :value="(component as GeographicDraftItemType).properties.strokeThickness || 2"
             :min="1"
@@ -65,14 +68,14 @@ const emit = defineEmits<{
 
       <!-- Route-specific Properties -->
       <template v-if="type === 'route'">
-        <n-form-item label="Stroke Color">
+        <n-form-item :label="t('sketchEdit.strokeColor')">
           <n-color-picker
             :value="(component as CartoSketchRouteItem).properties.strokeColor || '#28a745'"
             :show-alpha="false"
             @update:value="(val) => emit('updateProperties', { strokeColor: val })"
           />
         </n-form-item>
-        <n-form-item label="Stroke Thickness">
+        <n-form-item :label="t('sketchEdit.strokeThickness')">
           <NInputNumber
             :value="(component as CartoSketchRouteItem).properties.strokeThickness || 3"
             :min="1"
@@ -88,21 +91,21 @@ const emit = defineEmits<{
       class="metadata"
     >
       <div style="padding-top: 8px;">
-        Created:
+        {{ t('sketchEdit.created') }}
         <n-time
           :time="component.meta.creation_timestamp"
           type="datetime"
         />
       </div>
       <div>
-        Modified:
+        {{ t('sketchEdit.modified') }}
         <n-time
           :time="component.meta.modification_timestamp"
           type="datetime"
         />
       </div>
       <div v-if="component.meta.tags?.length">
-        Tags:
+        {{ t('sketchEdit.tags') }}
         <n-tag
           v-for="tag in component.meta.tags"
           :key="tag"
@@ -118,7 +121,7 @@ const emit = defineEmits<{
     v-else
     style="height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;"
   >
-    <n-empty description="Select a component to edit properties" />
+    <n-empty :description="t('sketchEdit.selectComponentToEdit')" />
   </div>
 </template>
 

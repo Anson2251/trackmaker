@@ -8,6 +8,9 @@ import SketchSelector from './SketchSelector.vue';
 
 import { watch, ref } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
 	active: {
@@ -26,7 +29,7 @@ const props = defineProps({
 
 const buttonGroupItems = [
 	{
-		title: "import",
+		title: t('sketchEdit.import'),
 		icon: Upload,
 		callback: () => { emit('import'); },
 		secondary: true,
@@ -34,7 +37,7 @@ const buttonGroupItems = [
 		type: "default"
 	},
 	{
-		title: "new",
+		title: t('sketchEdit.new'),
 		icon: Plus,
 		callback: () => emit('new'),
 		secondary: true,
@@ -42,7 +45,7 @@ const buttonGroupItems = [
 		type: "default"
 	},
 	{
-		title: "close",
+		title: t('sketchEdit.close'),
 		icon: Minus,
 		callback: () => { activeSelectorFlag.value = false; },
 		secondary: true,
@@ -75,7 +78,7 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
     :placement="drawerSelectorPlacement"
     :auto-focus="false"
   >
-    <n-drawer-content title="CartoSketch Library">
+    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary')">
       <template #footer>
         <n-button-group>
           <n-button
