@@ -1,1 +1,0 @@
-import{l as m,g as i}from"./Card-BAEXTjt4.js";import{i as t,g as s}from"./index-Dif3EidE.js";function u(){const o=t(m,null);return s(()=>{if(o===null)return i;const{mergedThemeRef:{value:r},mergedThemeOverridesRef:{value:e}}=o,n=(r==null?void 0:r.common)||i;return e!=null&&e.common?Object.assign({},n,e.common):n})}export{u};
