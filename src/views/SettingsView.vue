@@ -9,11 +9,17 @@ import {
   NRadioButton,
   NSelect,
   NSwitch,
+  NPerformantEllipsis,
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
 import { computed, inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useWindowSize } from "@vueuse/core";
+import PlatformInfo from "@/utils/platform";
+
+const platform = new PlatformInfo();
+
+const isMobile = computed(() => platform.isMobile)
 
 const { width } = useWindowSize();
 const isNarrowScreen = computed(() => width.value < 640);
@@ -139,15 +145,28 @@ onMounted(() => {
                   flex-direction: row;
                   justify-content: space-between;
                   align-items: center;
+                  min-width: 0;
                 "
               >
-                <div style="white-space: nowrap">
+                <n-performant-ellipsis
+                  style="white-space: nowrap"
+                  :tooltip="{
+                    trigger: isMobile ? 'click' : 'hover',
+                  }"
+                >
                   {{
                     (item as any).items
                       ? $t(`settings.${section.title}.${item.title}.title`)
                       : $t(`settings.${section.title}.${item.title}`)
                   }}
-                </div>
+                  <template #tooltip>
+                    {{
+                      (item as any).items
+                        ? $t(`settings.${section.title}.${item.title}.title`)
+                        : $t(`settings.${section.title}.${item.title}`)
+                    }}
+                  </template>
+                </n-performant-ellipsis>
                 <div v-if="item.type === 'radio'">
                   <n-radio-group
                     v-if="!isNarrowScreen"
@@ -187,9 +206,11 @@ onMounted(() => {
           </n-list>
         </n-card>
       </div>
-      <div class="settings-nav">
+      <div
+        v-if="!isExtremeNarrowScreen"
+        class="settings-nav"
+      >
         <n-anchor
-          v-if="!isExtremeNarrowScreen"
           :show-rail="true"
           style="width: 128px"
         >
@@ -206,6 +227,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.n-list-item:deep(div.n-list-item__main) {
+  min-width: 0;
+}
+
 .settings-view {
   padding: 8px;
   max-width: 1200px;
@@ -229,5 +254,6 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   flex: 1;
+  min-width: 0;
 }
 </style>

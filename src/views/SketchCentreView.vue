@@ -139,6 +139,8 @@ const gridCols = computed(() => Math.floor(windowWidth.value / 360));
 onMounted(() => {
   loadSketches();
 });
+
+const theme = useThemeVars();
 </script>
 
 <template>
@@ -149,12 +151,13 @@ onMounted(() => {
       </h1>
       <n-button
         type="primary"
+        secondary
+        circle
         @click="showNewSketchModal = true"
       >
         <template #icon>
           <n-icon><plus /></n-icon>
         </template>
-        {{ t("sketchCentreView.newSketch") }}
       </n-button>
     </div>
 
@@ -381,9 +384,14 @@ onMounted(() => {
 
 .header {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
+  background-color: v-bind('theme.bodyColor');
+  position: sticky;
+  top: 0;
+  z-index: 10;
   align-items: center;
-  margin-bottom: 24px;
+  padding-bottom: 16px;
 }
 
 .title {
@@ -476,19 +484,13 @@ onMounted(() => {
     padding: 12px;
   }
 
-  .header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-
   .title {
     font-size: 20px;
     text-align: center;
   }
 
   .meta-info {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
   }
 }

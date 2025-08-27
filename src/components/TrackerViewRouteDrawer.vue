@@ -7,6 +7,10 @@ import { useI18n } from "vue-i18n";
 import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
 import { Trash } from "@vicons/tabler";
+import PlatformInfo from "@/utils/platform";
+
+const platform = new PlatformInfo();
+const isMobile = platform.isMobile;
 
 const { t } = useI18n();
 const dialog = useDialog();
@@ -148,14 +152,19 @@ function handleRouteBatchDelete() {
 <template>
   <mgl-drawer
     v-model:show="show"
-    :position="'left'"
+    :position="isMobile ? 'bottom' : 'left'"
     @click="() => (routeStore.currentRouteId = null)"
     @update:width="(w) => emit('update:width', w)"
     @contextmenu="(e) => openRouteContextMenu(e)"
   >
+    <div class="drawer-floating">
+      <slot
+        v-if="isMobile && show"
+        name="bottom-floating"
+      />
+    </div>
     <div
-      class="drawer-container"
-      style="height: 100%"
+      :style="{height: '100%', padding: '0 1rem'}"
     >
       <div class="drawer-header">
         <p class="drawer-title">
@@ -242,8 +251,28 @@ function handleRouteBatchDelete() {
 </template>
 
 <style scoped>
-.drawer-container {
-  padding: 1rem;
+@keyframes drawer-floating-fade-in {
+  0% {
+    bottom: 100%;
+    opacity: 0;
+  }
+  100% {
+    bottom: calc(100% + 8px);
+    opacity: 1;
+  }
+}
+
+.drawer-floating {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  animation: drawer-floating-fade-in 0.2s ease-in-out;
 }
 
 .drawer-header {

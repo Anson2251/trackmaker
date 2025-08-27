@@ -65,7 +65,7 @@
         "uiRouteCheckoutTip": "New Route added! Click Here to check it out",
         "uiRecordingStatus": {
             "on": "Recording…",
-            "off": "Track Recorder"
+            "off": "Recorder"
         }
     },
     "aboutView": {

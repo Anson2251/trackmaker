@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-/* eslint-disable no-async-promise-executor */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// ! TODO: the delete route points is currently removed
+// ! TODO: loading the route from a file is currently removed
 
 import {
   ref,
@@ -23,6 +25,9 @@ import {
   MglLineLayer,
 } from "@indoorequal/vue-maplibre-gl";
 import {
+  lightTheme,
+  NConfigProvider,
+  NButton,
   NPopover,
   NCard,
   NText,
@@ -45,25 +50,27 @@ import {
   HandFinger,
   PlayerRecord,
   Square,
-  Backspace,
-  DeviceFloppy,
-  Upload,
+  // Upload,
   Route,
 } from "@vicons/tabler";
 import { type GeographicPointType } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
-import {
-  tauriFileSaveDialog,
-  tauriCreateTextFile,
-  saveString,
-  tauriFileOpenDialog,
-  tauriReadTextFile,
-} from "@/utils/utilities";
+// import {
+//   tauriFileSaveDialog,
+//   tauriCreateTextFile,
+//   saveString,
+//   // tauriFileOpenDialog,
+//   // tauriReadTextFile,
+// } from "@/utils/utilities";
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { UpdateService } from "@/libs/geolocation/update-service";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 import { useSettingsStore } from "@/store/settings-store";
+import PlatformInfo from "@/utils/platform";
+
+const platform = new PlatformInfo();
+const isMobile = platform.isMobile;
 
 const settings = useSettingsStore();
 const message = useMessage();
@@ -254,76 +261,81 @@ async function changeRecordState() {
   }
 }
 
-async function savePath() {
-  if (__TAURI_ENVIRONMENT__) {
-    const path = await tauriFileSaveDialog("tracked-path-export", ["json"]);
-    if (path) tauriCreateTextFile(path, JSON.stringify(geojsonSource.value));
-  } else {
-    saveString(
-      JSON.stringify(geojsonSource.value),
-      "application/json",
-      "tracked-path-export"
-    );
-  }
-}
+// async function savePath() {
+//   if (__TAURI_ENVIRONMENT__) {
+//     const path = await tauriFileSaveDialog("tracked-path-export", ["json"]);
+//     if (path) tauriCreateTextFile(path, JSON.stringify(geojsonSource.value));
+//   } else {
+//     saveString(
+//       JSON.stringify(geojsonSource.value),
+//       "application/json",
+//       "tracked-path-export"
+//     );
+//   }
+// }
 
 const loadTextFileDialogCallback = ref<(contents: string[]) => Promise<void>>(
   async () => {}
 );
 
-function loadFromText() {
-  return new Promise<string[]>(async (resolve, reject) => {
-    if (!__TAURI_ENVIRONMENT__) {
-      loadTextFileDialogCallback.value = async (contents: string[]) => {
-        if (contents.length === 0) {
-          reject(new Error("No file selected"));
-        } else {
-          resolve(contents);
-        }
-      };
+// function loadFromText() {
+//   return new Promise<string[]>(async (resolve, reject) => {
+//     if (!__TAURI_ENVIRONMENT__) {
+//       loadTextFileDialogCallback.value = async (contents: string[]) => {
+//         if (contents.length === 0) {
+//           reject(new Error("No file selected"));
+//         } else {
+//           resolve(contents);
+//         }
+//       };
 
-      uploadModelOpened.value = true;
-    } else {
-      const filePaths = await tauriFileOpenDialog(
-        false,
-        "tracked-path-export",
-        ["txt", "json"]
-      );
-      if (!filePaths) return;
-      const contents: string[] = [];
-      for (const filePath of filePaths) {
-        contents.push(await tauriReadTextFile(filePath));
-      }
-      resolve(contents);
-    }
-  });
-}
+//       uploadModelOpened.value = true;
+//     } else {
+//       const filePaths = await tauriFileOpenDialog(
+//         false,
+//         "tracked-path-export",
+//         ["txt", "json"]
+//       );
+//       if (!filePaths) return;
+//       const contents: string[] = [];
+//       for (const filePath of filePaths) {
+//         contents.push(await tauriReadTextFile(filePath));
+//       }
+//       resolve(contents);
+//     }
+//   });
+// }
 
-async function loadTrackFromFile() {
-  try {
-    const contents = await loadFromText();
-    const points = JSON.parse(
-      contents[0]
-    ).features[0].geometry.coordinates.map((coord: number[]) => ({
-      latitude: coord[1],
-      longitude: coord[0],
-    }));
+// async function loadTrackFromFile() {
+//   try {
+//     const contents = await loadFromText();
+//     const points = JSON.parse(
+//       contents[0]
+//     ).features[0].geometry.coordinates.map((coord: number[]) => ({
+//       latitude: coord[1],
+//       longitude: coord[0],
+//     }));
 
-    const newRoute = await routeStore.addRoute(t("trackerView.nameNewlyImportedRoute"));
-    for (const point of points) {
-      await routeStore.addPointToRoute(newRoute.id, point);
-    }
-    openDrawerTooltip();
-  } catch (error) {
-    message.error(String(error));
-  }
+//     const newRoute = await routeStore.addRoute(t("trackerView.nameNewlyImportedRoute"));
+//     for (const point of points) {
+//       await routeStore.addPointToRoute(newRoute.id, point);
+//     }
+//     openDrawerTooltip();
+//   } catch (error) {
+//     message.error(String(error));
+//   }
+// }
+
+function followRoute() {
+  isRouteDrawerOpen.value =  false;
+  message.warning("Not implemented yet");
 }
 
 const routeDrawerWidth = ref(0);
 const isRouteDrawerOpen = ref(false);
 watch(isRouteDrawerOpen, (val) =>
   map.value?.easeTo({
-    padding: { left: val ? routeDrawerWidth.value : 0 },
+    padding: isMobile ? { bottom: val ? routeDrawerWidth.value : 0 } : { left: val ? routeDrawerWidth.value : 0 },
     duration: 500,
   })
 );
@@ -385,7 +397,10 @@ onMounted(async () => {
             />
             <mgl-fullscreen-control position="top-left" />
             <mgl-scale-control position="bottom-left" />
-            <mgl-custom-control position="top-right">
+            <mgl-custom-control
+              v-if="!isMobile"
+              position="top-right"
+            >
               <button
                 v-for="item in drawerModes"
                 :key="item.name"
@@ -434,69 +449,6 @@ onMounted(async () => {
                 </template>
                 <span>{{ t("trackerView.uiRouteCheckoutTip") }}</span>
               </n-popover>
-            </mgl-custom-control>
-            <mgl-custom-control position="top-right">
-              <button
-                :class="[
-                  'btn-control',
-                  'btn-record',
-                  pathRecording ? 'recording' : 'not-recording',
-                ]"
-                :title="
-                  pathRecording
-                    ? t('trackerView.uiRecordingStatus.on')
-                    : t('trackerView.uiRecordingStatus.off')
-                "
-                @click="changeRecordState"
-              >
-                <n-icon :size="20">
-                  <component
-                    :is="pathRecording ? Square : PlayerRecord"
-                    :size="pathRecording ? 16 : 20"
-                    class="stroke-inherit text-inherit"
-                  />
-                </n-icon>
-              </button>
-              <button
-                v-if="path.length > 0 && !pathRecording"
-                class="btn-control btn-clear"
-                @click="
-                  routeStore.currentRouteId &&
-                    routeStore.clearRoutePoints(routeStore.currentRouteId)
-                "
-              >
-                <n-icon :size="20">
-                  <Backspace
-                    class="stroke-inherit text-inherit"
-                    style="transform: translateX(-1.3px)"
-                    size="20"
-                  />
-                </n-icon>
-              </button>
-              <button
-                v-if="path.length > 0 && !pathRecording"
-                class="btn-control"
-                @click="savePath"
-              >
-                <n-icon :size="20">
-                  <DeviceFloppy
-                    class="btn-default"
-                    size="20"
-                  />
-                </n-icon>
-              </button>
-              <button
-                v-if="path.length === 0 && !pathRecording"
-                class="btn-control"
-                @click="loadTrackFromFile"
-              >
-                <n-icon :size="20">
-                  <Upload
-                    class="btn-default"
-                    size="20"
-                  />
-                </n-icon>
-              </button>
             </mgl-custom-control>
             <mgl-geo-json-source
               source-id="geojson"
@@ -559,7 +511,47 @@ onMounted(async () => {
     <tracker-view-route-drawer
       v-model:show="isRouteDrawerOpen"
       @update:width="(width) => (routeDrawerWidth = width)"
-    />
+    >
+      <template #bottom-floating>
+        <n-config-provider :theme="lightTheme">
+          <n-button
+            v-if="path.length > 1"
+            :size="'large'"
+            type="success"
+            class="drawer-floating-button"
+            @click="followRoute"
+          >
+            Follow
+          </n-button>
+        </n-config-provider>
+      </template>
+    </tracker-view-route-drawer>
+
+    <!-- Mobile record button positioned at bottom -->
+    <div
+      v-if="isMobile"
+      class="mobile-record-button-container"
+      :class="{ 'drawer-open': isRouteDrawerOpen }"
+    >
+      <n-config-provider :theme="lightTheme">
+        <n-button
+          :type="pathRecording ? 'error' : 'primary'"
+          :size="'large'"
+          :class="['mobile-record-button', pathRecording ? 'recording' : 'not-recording']"
+          @click="changeRecordState"
+        >
+          <template #icon>
+            <n-icon :size="20">
+              <component
+                :is="pathRecording ? Square : PlayerRecord"
+                :size="pathRecording ? 16 : 20"
+              />
+            </n-icon>
+          </template>
+          {{ pathRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off') }}
+        </n-button>
+      </n-config-provider>
+    </div>
   </div>
 </template>
 
@@ -568,6 +560,10 @@ onMounted(async () => {
 </style>
 
 <style scoped>
+.drawer-floating-button {
+  box-shadow: 0 0 16px -2px v-bind('lightTheme.Button.common?.successColorSuppl'), 0 1px 3px -1px #000;
+}
+
 .map-load-enter-active,
 .map-load-leave-active {
   transition: opacity 0.3s ease;
@@ -656,5 +652,41 @@ onMounted(async () => {
 .btn-default {
   stroke: #292524;
   color: #292524;
+}
+
+/* Mobile record button styles */
+.mobile-record-button-container {
+  position: absolute;
+  bottom: 48px;
+  right: 50%;
+  left: 50%;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+  transition: bottom 0.3s ease;
+}
+
+.mobile-record-button-container.drawer-open {
+  bottom: -128px;
+}
+
+.mobile-record-button {
+  box-shadow: 0 0 16px -2px v-bind('lightTheme.Button.common?.primaryColorSuppl'), 0 1px 3px -1px #000;
+  transition: all 0.2s ease;
+  width: 10em;
+}
+
+.mobile-record-button.recording {
+  box-shadow: 0 0 16px -2px v-bind('lightTheme.Button.common?.errorColorSuppl'), 0 1px 3px -1px #000;
+}
+
+.mobile-record-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px -2px v-bind('lightTheme.Button.common?.primaryColorSuppl'), 0 2px 8px -1px #000;
+}
+
+.mobile-record-button.recording:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px -2px v-bind('lightTheme.Button.common?.errorColorSuppl'), 0 2px 8px -1px #000;
 }
 </style>
