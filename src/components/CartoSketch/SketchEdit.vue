@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, h } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   MglMap,
@@ -8,6 +8,9 @@ import {
   MglFullscreenControl,
 } from "@indoorequal/vue-maplibre-gl";
 import {
+  NTime,
+  NText,
+  NTag,
   NIcon,
   NInput,
   NCard,
@@ -60,6 +63,15 @@ const selectedComponentType = ref<"draft" | "route" | null>(null);
 const showCreateModal = ref(false);
 const newComponentName = ref("");
 const newComponentType = ref<"draft" | "route">("draft");
+const showMetaModal = ref(false);
+const metaForm = ref({
+  name: "",
+  description: "",
+  tags: [] as string[],
+  created_by: "",
+  modified_by: "",
+});
+const newTag = ref("");
 
 // Computed properties
 const currentSketch = computed(() => sketchStore.currentSketch);
@@ -193,6 +205,48 @@ async function updateComponentMeta(meta: { name: string }) {
   }
 }
 
+// Metadata editing
+function openMetaModal() {
+  if (!currentSketch.value) return;
+
+  metaForm.value = {
+    name: currentSketch.value.meta.name,
+    description: currentSketch.value.meta.description,
+    tags: [...currentSketch.value.meta.tags],
+    created_by: currentSketch.value.meta.created_by,
+    modified_by: currentSketch.value.meta.modified_by,
+  };
+  showMetaModal.value = true;
+}
+
+function addTag() {
+  if (newTag.value.trim() && !metaForm.value.tags.includes(newTag.value.trim())) {
+    metaForm.value.tags.push(newTag.value.trim());
+    newTag.value = "";
+  }
+}
+
+function removeTag(tag: string) {
+  metaForm.value.tags = metaForm.value.tags.filter(t => t !== tag);
+}
+
+async function updateSketchMeta() {
+  if (!currentSketch.value) return;
+
+  try {
+    await sketchStore.updateSketch(currentSketch.value.id, {
+      name: metaForm.value.name,
+      description: metaForm.value.description,
+      tags: metaForm.value.tags,
+    });
+    showMetaModal.value = false;
+    message.success(t("sketchEdit.saveSuccess"));
+  } catch (error) {
+    message.error(t("sketchEdit.saveError"));
+    console.error(error);
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   if (props.sketchId) {
@@ -210,12 +264,16 @@ watch(
     }
   }
 );
+
+const getTimeStr = (stamp: number) => {
+  return new Date(stamp).toLocaleString();
+}
 </script>
 
 <template>
   <selector-drawer
     v-model:active="activeSelector"
-    :list="sketchStore.sketches.map((s) => ({ id: s.id, name: s.meta.name }))"
+    :list="sketchStore.sketches.map((s) => ({ id: s.id, name: s.meta.name, tags: s.meta.tags }))"
     placement="right"
     @new="newSketch"
     @remove="(id: string) => sketchStore.deleteSketch(id)"
@@ -266,6 +324,71 @@ watch(
     </template>
   </n-modal>
 
+  <!-- Metadata Edit Modal -->
+  <n-modal
+    v-model:show="showMetaModal"
+    preset="dialog"
+    :title="t('sketchEdit.editMetadata')"
+    style="max-width: 600px;"
+  >
+    <n-form>
+      <n-form-item :label="t('sketchEdit.name')">
+        <n-input
+          v-model:value="metaForm.name"
+          :placeholder="t('sketchEdit.sketchNamePlaceholder')"
+        />
+      </n-form-item>
+
+      <n-form-item :label="t('sketchEdit.description')">
+        <n-input
+          v-model:value="metaForm.description"
+          type="textarea"
+          :placeholder="t('sketchEdit.sketchDescriptionPlaceholder')"
+          :rows="3"
+        />
+      </n-form-item>
+
+      <n-form-item :label="t('sketchEdit.tags')">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <n-input
+            v-model:value="newTag"
+            :placeholder="t('sketchEdit.addTagPlaceholder')"
+            @keydown.enter.prevent="addTag"
+          />
+          <n-button @click="addTag">
+            {{ t('sketchEdit.add') }}
+          </n-button>
+        </div>
+        <n-tag
+          v-for="tag in metaForm.tags"
+          :key="tag"
+          closable
+          style="margin-right: 8px; margin-bottom: 8px;"
+          @close="removeTag(tag)"
+        >
+          {{ tag }}
+        </n-tag>
+        <n-empty
+          v-if="metaForm.tags.length === 0"
+          :description="t('sketchEdit.noTags')"
+          size="small"
+        />
+      </n-form-item>
+    </n-form>
+    <template #action>
+      <n-button @click="showMetaModal = false">
+        {{ t('sketchEdit.cancel') }}
+      </n-button>
+      <n-button
+        type="primary"
+        :disabled="!metaForm.name.trim()"
+        @click="updateSketchMeta"
+      >
+        {{ t('sketchEdit.save') }}
+      </n-button>
+    </template>
+  </n-modal>
+
   <div class="sketch-edit-container">
     <div class="grid-layout">
       <!-- Meta/Info Section (Top Row, Spanning Both Columns) -->
@@ -278,6 +401,7 @@ watch(
             @save="saveSketch"
             @open="activeSelector = true"
             @create="showCreateModal = true"
+            @edit-meta="openMetaModal"
           />
         </n-card>
       </div>
@@ -300,6 +424,7 @@ watch(
               <n-card
                 style="height: 100%"
                 :title="t('sketchEdit.components')"
+                content-style="min-height: 0; overflow-y: auto;"
               >
                 <component-list
                   :components="componentOptions"
@@ -372,15 +497,34 @@ watch(
         <template #2>
           <n-card
             class="component-info-container"
-            :title="t('sketchEdit.properties')"
             content-style="min-height: 0; overflow: auto;"
           >
             <PropertiesPanel
               :component="selectedComponent"
               :type="selectedComponentType"
               @update-properties="updateComponentProperties"
-              @update-meta="updateComponentMeta"
+              @update-meta="(val) => updateComponentMeta(val)"
             />
+            <template #footer>
+              <n-text
+                v-if="selectedComponent"
+                depth="3"
+                class="metadata"
+              >
+                <div class="metadata-item">
+                  {{ t('sketchEdit.createdTimeBy', {
+                    user: selectedComponent.meta.created_by,
+                    time: getTimeStr(selectedComponent.meta.creation_timestamp)
+                  }) }}
+                </div>
+                <div class="metadata-item">
+                  {{ t('sketchEdit.modifiedTimeBy', {
+                    user: selectedComponent.meta.modified_by,
+                    time: getTimeStr(selectedComponent.meta.modification_timestamp)
+                  }) }}
+                </div>
+              </n-text>
+            </template>
           </n-card>
         </template>
       </n-split>

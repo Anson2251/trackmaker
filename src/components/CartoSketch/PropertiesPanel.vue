@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NForm, NFormItem, NInput, NSwitch, NColorPicker, NInputNumber, NText, NTime, NTag, NEmpty } from 'naive-ui';
+import { NForm, NFormItem, NSwitch, NColorPicker, NInputNumber, NEmpty, NTabs, NTabPane, NInput, NDynamicTags } from 'naive-ui';
 import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
 import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
 import { useI18n } from 'vue-i18n';
@@ -15,7 +15,7 @@ defineProps<Props>();
 
 const emit = defineEmits<{
   updateProperties: [properties: GeographicDraftItemProperties | GeographicRouteItemProperties];
-  updateMeta: [meta: { name: string }];
+  updateMeta: [meta: { name: string; description: string; tags: string[] }];
 }>();
 </script>
 
@@ -24,98 +24,111 @@ const emit = defineEmits<{
     v-if="component"
     class="properties-panel"
   >
-    <n-form>
-      <!-- Common Properties -->
-      <n-form-item :label="t('sketchEdit.name')">
-        <NInput
-          :value="component.meta.name"
-          @update:value="(val) => emit('updateMeta', { name: val })"
-        />
-      </n-form-item>
-
-      <n-form-item :label="t('sketchEdit.visible')">
-        <n-switch
-          :value="component.properties.visible !== false"
-          @update:value="(val) => emit('updateProperties', { visible: val })"
-        />
-      </n-form-item>
-
-      <!-- Draft-specific Properties -->
-      <template v-if="type === 'draft'">
-        <n-form-item :label="t('sketchEdit.fillColor')">
-          <n-color-picker
-            :value="(component as GeographicDraftItemType).properties.fillColor || '#007bff'"
-            :show-alpha="false"
-            @update:value="(val) => emit('updateProperties', { fillColor: val })"
-          />
-        </n-form-item>
-        <n-form-item :label="t('sketchEdit.strokeColor')">
-          <n-color-picker
-            :value="(component as GeographicDraftItemType).properties.strokeColor || '#0056b3'"
-            :show-alpha="false"
-            @update:value="(val) => emit('updateProperties', { strokeColor: val })"
-          />
-        </n-form-item>
-        <n-form-item :label="t('sketchEdit.strokeThickness')">
-          <n-input-number
-            :value="(component as GeographicDraftItemType).properties.strokeThickness || 2"
-            :min="1"
-            :max="10"
-            @update:value="(val) => emit('updateProperties', { strokeThickness: val ?? undefined })"
-          />
-        </n-form-item>
-      </template>
-
-      <!-- Route-specific Properties -->
-      <template v-if="type === 'route'">
-        <n-form-item :label="t('sketchEdit.strokeColor')">
-          <n-color-picker
-            :value="(component as CartoSketchRouteItem).properties.strokeColor || '#28a745'"
-            :show-alpha="false"
-            @update:value="(val) => emit('updateProperties', { strokeColor: val })"
-          />
-        </n-form-item>
-        <n-form-item :label="t('sketchEdit.strokeThickness')">
-          <NInputNumber
-            :value="(component as CartoSketchRouteItem).properties.strokeThickness || 3"
-            :min="1"
-            :max="10"
-            @update:value="(val) => emit('updateProperties', { strokeThickness: val ?? undefined })"
-          />
-        </n-form-item>
-      </template>
-    </n-form>
-
-    <n-text
-      depth="3"
-      class="metadata"
+    <n-tabs
+      type="line"
+      animated
+      :default-value="'properties'"
     >
-      <div style="padding-top: 8px;">
-        {{ t('sketchEdit.created') }}
-        <n-time
-          :time="component.meta.creation_timestamp"
-          type="datetime"
-        />
-      </div>
-      <div>
-        {{ t('sketchEdit.modified') }}
-        <n-time
-          :time="component.meta.modification_timestamp"
-          type="datetime"
-        />
-      </div>
-      <div v-if="component.meta.tags?.length">
-        {{ t('sketchEdit.tags') }}
-        <n-tag
-          v-for="tag in component.meta.tags"
-          :key="tag"
-          size="small"
-          style="margin-left: 4px"
-        >
-          {{ tag }}
-        </n-tag>
-      </div>
-    </n-text>
+      <!-- Properties Tab -->
+      <n-tab-pane
+        name="properties"
+        :tab="t('sketchEdit.properties')"
+      >
+        <n-form>
+          <n-form-item :label="t('sketchEdit.visible')">
+            <n-switch
+              :value="component.properties.visible !== false"
+              @update:value="(val) => emit('updateProperties', { visible: val })"
+            />
+          </n-form-item>
+
+          <!-- Draft-specific Properties -->
+          <template v-if="type === 'draft'">
+            <n-form-item :label="t('sketchEdit.fillColor')">
+              <n-color-picker
+                :value="(component as GeographicDraftItemType).properties.fillColor || '#007bff'"
+                :show-alpha="false"
+                @update:value="(val) => emit('updateProperties', { fillColor: val })"
+              />
+            </n-form-item>
+            <n-form-item :label="t('sketchEdit.strokeColor')">
+              <n-color-picker
+                :value="(component as GeographicDraftItemType).properties.strokeColor || '#0056b3'"
+                :show-alpha="false"
+                @update:value="(val) => emit('updateProperties', { strokeColor: val })"
+              />
+            </n-form-item>
+            <n-form-item :label="t('sketchEdit.strokeThickness')">
+              <n-input-number
+                :value="(component as GeographicDraftItemType).properties.strokeThickness || 2"
+                :min="1"
+                :max="10"
+                @update:value="(val) => emit('updateProperties', { strokeThickness: val ?? undefined })"
+              />
+            </n-form-item>
+          </template>
+
+          <!-- Route-specific Properties -->
+          <template v-if="type === 'route'">
+            <n-form-item :label="t('sketchEdit.strokeColor')">
+              <n-color-picker
+                :value="(component as CartoSketchRouteItem).properties.strokeColor || '#28a745'"
+                :show-alpha="false"
+                @update:value="(val) => emit('updateProperties', { strokeColor: val })"
+              />
+            </n-form-item>
+            <n-form-item :label="t('sketchEdit.strokeThickness')">
+              <NInputNumber
+                :value="(component as CartoSketchRouteItem).properties.strokeThickness || 3"
+                :min="1"
+                :max="10"
+                @update:value="(val) => emit('updateProperties', { strokeThickness: val ?? undefined })"
+              />
+            </n-form-item>
+          </template>
+        </n-form>
+      </n-tab-pane>
+
+      <!-- Metadata Tab -->
+      <n-tab-pane
+        name="metadata"
+        :tab="t('sketchEdit.metadata')"
+      >
+        <n-form>
+          <n-form-item :label="t('sketchEdit.name')">
+            <NInput
+              :value="component.meta.name"
+              @update:value="(val) => emit('updateMeta', { name: val })"
+            />
+          </n-form-item>
+
+          <n-form-item :label="t('sketchEdit.description')">
+            <NInput
+              :value="component.meta.description"
+              type="textarea"
+              :rows="3"
+              @update:value="(val) => emit('updateMeta', { description: val })"
+            />
+          </n-form-item>
+
+          <n-form-item :label="t('sketchEdit.tags')">
+            <n-dynamic-tags
+              :value="component.meta.tags || []"
+              :placeholder="t('sketchEdit.addTagPlaceholder')"
+              @update:value="(val: string[]) => emit('updateMeta', { tags: val })"
+            />
+          </n-form-item>
+
+          <n-form-item label="UUID">
+            <NInput
+              :value="component.id"
+              style="font-family: monospace;"
+              readonly
+            />
+          </n-form-item>
+        </n-form>
+      </n-tab-pane>
+    </n-tabs>
   </div>
   <div
     v-else
@@ -127,7 +140,6 @@ const emit = defineEmits<{
 
 <style scoped>
 .properties-panel {
-  padding: 12px;
   min-height: 0;
   overflow: auto;
 }
@@ -137,7 +149,24 @@ const emit = defineEmits<{
   line-height: 1.4;
 }
 
-.metadata > div {
+.metadata-item {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--n-divider-color);
+}
+
+.metadata-item:last-child {
+  border-bottom: none;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.tag-item {
+  margin-right: 4px;
   margin-bottom: 4px;
 }
 </style>

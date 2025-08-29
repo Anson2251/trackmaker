@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NList, NListItem, NIcon, NButton } from 'naive-ui';
+import { NList, NListItem, NIcon, NButton, NTag } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 
 import { Shape, Trash } from '@vicons/tabler';
@@ -8,7 +8,7 @@ const { t } = useI18n();
 
 const props = defineProps({
     list: {
-        type: Array<{name: string, id: string}>,
+        type: Array<{name: string, id: string, tags: string[]}>,
         default: () => []
     }
 });
@@ -45,6 +45,22 @@ function remove(id: string) {
             </n-icon>
           </div>
         </template>
+        <div style="display: flex; flex-direction: row; flex-grow: 1;">
+          <div style="font-weight: 500;">
+            {{ sketch.name }}
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-left: 24px;">
+            <n-tag
+              v-for="tag in sketch.tags"
+              :key="tag"
+              size="small"
+              type="info"
+            >
+              {{ tag.toLocaleUpperCase() }}
+            </n-tag>
+          </div>
+        </div>
         <template #suffix>
           <n-button
             quaternary
@@ -58,7 +74,6 @@ function remove(id: string) {
             </template>
           </n-button>
         </template>
-        {{ sketch.name }}
       </n-list-item>
     </n-list>
   </div>

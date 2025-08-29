@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon, NFlex, NText, NTag } from 'naive-ui';
-import { DeviceFloppy, Folder, Plus } from '@vicons/tabler';
+import { DeviceFloppy, Folder, Plus, Settings } from '@vicons/tabler';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -17,6 +17,7 @@ const emit = defineEmits<{
   save: [];
   open: [];
   create: [];
+  'edit-meta': [];
 }>();
 
 const toolBarIconSize = 20;
@@ -38,6 +39,12 @@ const toolTipBarItems = [
     icon: Plus,
     iconSize: toolBarIconSize,
     callback: () => emit('create'),
+  },
+  {
+    title: t('sketchEdit.editMetadata'),
+    icon: Settings,
+    iconSize: toolBarIconSize,
+    callback: () => emit('edit-meta'),
   },
 ];
 </script>

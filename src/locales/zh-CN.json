@@ -142,6 +142,7 @@
         "noSketchSelected": "未选择草图",
         "selectSketch": "选择草图",
         "properties": "属性",
+        "metadata": "元数据",
         "enterSketchName": "输入新 CartoSketch 的名称",
         "noSketchSelectedToolbar": "未选择草图",
         "drafts": "草稿",
@@ -156,8 +157,6 @@
         "strokeColor": "描边颜色",
         "strokeThickness": "描边宽度",
         "fillColor": "填充颜色",
-        "created": "创建时间：",
-        "modified": "修改时间：",
         "tags": "标签：",
         "selectComponentToEdit": "选择组件以编辑属性",
         "cartoSketchLibrary": "CartoSketch 库",
@@ -173,6 +172,15 @@
         "subTitle": "副标题",
         "classification": "分类",
         "thickness": "粗细",
-        "deleteSketchConfirmation": "确定要删除此 CartoSketch 吗？\n路线和草稿都将被删除"
+        "deleteSketchConfirmation": "确定要删除此 CartoSketch 吗？\n路线和草稿都将被删除",
+        "editMetadata": "编辑元数据",
+        "createdTimeBy": "由 {user} 创建于 {time}",
+        "modifiedTimeBy": "由 {user} 修改于 {time}",
+        "creatorPlaceholder": "输入创建者名称",
+        "modifierPlaceholder": "输入修改者名称",
+        "addTagPlaceholder": "输入标签名称",
+        "add": "添加",
+        "noTags": "暂无标签",
+        "description": "描述"
     }
 }

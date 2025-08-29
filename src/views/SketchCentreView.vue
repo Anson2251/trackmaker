@@ -184,6 +184,29 @@ const theme = useThemeVars();
               <n-text class="sketch-name">
                 {{ sketch.meta.name }}
               </n-text>
+
+              <div
+                v-if="sketch.meta.tags.length > 0"
+                class="tags"
+              >
+                <n-tag
+                  v-for="tag in sketch.meta.tags.slice(0, 3)"
+                  :key="tag"
+                  size="small"
+                  round
+                  type="info"
+                >
+                  {{ tag.toLocaleUpperCase() }}
+                </n-tag>
+                <n-tag
+                  v-if="sketch.meta.tags.length > 3"
+                  size="small"
+                  round
+                  type="info"
+                >
+                  +{{ sketch.meta.tags.length - 3 }}
+                </n-tag>
+              </div>
             </div>
           </template>
 
@@ -257,27 +280,6 @@ const theme = useThemeVars();
                 </n-text>
               </div>
             </div>
-
-            <div
-              v-if="sketch.meta.tags.length > 0"
-              class="tags"
-            >
-              <n-tag
-                v-for="tag in sketch.meta.tags.slice(0, 3)"
-                :key="tag"
-                size="small"
-                round
-              >
-                {{ tag }}
-              </n-tag>
-              <n-tag
-                v-if="sketch.meta.tags.length > 3"
-                size="small"
-                round
-              >
-                +{{ sketch.meta.tags.length - 3 }}
-              </n-tag>
-            </div>
           </div>
         </n-card>
       </n-grid-item>
@@ -329,7 +331,7 @@ const theme = useThemeVars();
             :placeholder="t('sketchCentreView.sketchNamePlaceholder')"
           />
         </n-form-item>
-        <n-form-item :label="t('sketchCentreView.sketchDescription')">
+        <n-form-item :label="t('sketchCentreView.description')">
           <n-input
             v-model:value="newSketchDescription"
             type="textarea"
@@ -425,6 +427,7 @@ const theme = useThemeVars();
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-right: 24px;
 }
 
 .sketch-name {
@@ -454,6 +457,7 @@ const theme = useThemeVars();
 
 .meta-info {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
 }
 

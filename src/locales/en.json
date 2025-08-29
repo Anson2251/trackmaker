@@ -142,6 +142,7 @@
         "noSketchSelected": "No sketch selected",
         "selectSketch": "Select a sketch",
         "properties": "Properties",
+        "metadata": "Metadata",
         "enterSketchName": "Enter the name of the new CartoSketch",
         "noSketchSelectedToolbar": "No Sketch Selected",
         "drafts": "drafts",
@@ -156,8 +157,6 @@
         "strokeColor": "Stroke Color",
         "strokeThickness": "Stroke Thickness",
         "fillColor": "Fill Color",
-        "created": "Created:",
-        "modified": "Modified:",
         "tags": "Tags:",
         "selectComponentToEdit": "Select a component to edit properties",
         "cartoSketchLibrary": "CartoSketch Library",
@@ -173,6 +172,15 @@
         "subTitle": "Sub Title",
         "classification": "Classification",
         "thickness": "Thickness",
-        "deleteSketchConfirmation": "Are you sure to delete this CartoSketch?\nBoth Route and Drafts will be deleted"
+        "deleteSketchConfirmation": "Are you sure to delete this CartoSketch?\nBoth Route and Drafts will be deleted",
+        "editMetadata": "Edit Metadata",
+        "createdTimeBy": "Created at {time} by {user}",
+        "modifiedTimeBy": "Modified at {time} by {user}",
+        "creatorPlaceholder": "Enter creator name",
+        "modifierPlaceholder": "Enter modifier name",
+        "addTagPlaceholder": "Enter tag name",
+        "add": "Add",
+        "noTags": "No tags yet",
+        "description": "Description"
     }
 }

@@ -22,7 +22,7 @@ const props = defineProps({
 		default: () => 'right'
 	},
 	list: {
-		type: Array<{name: string, id: string}>,
+		type: Array<{name: string, id: string, tags: string[]}>,
 		default: () => []
 	}
 });
