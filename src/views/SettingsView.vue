@@ -22,8 +22,8 @@ const platform = new PlatformInfo();
 const isMobile = computed(() => platform.isMobile)
 
 const { width } = useWindowSize();
-const isNarrowScreen = computed(() => width.value < 640);
-const isExtremeNarrowScreen = computed(() => width.value < 480);
+const isNarrowScreen = computed(() => width.value < 800);
+const isExtremeNarrowScreen = computed(() => width.value < 680);
 const { t, availableLocales } = useI18n();
 const settingsStore = inject("settings") as ReturnType<typeof useSettingsStore>;
 
@@ -235,6 +235,12 @@ onMounted(() => {
   padding: 8px;
   max-width: 1200px;
   margin: 0 auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
 }
 
 .settings-layout {

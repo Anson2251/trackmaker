@@ -29,12 +29,12 @@ import {
   NConfigProvider,
   NButton,
   NPopover,
-  NCard,
   NText,
   NSpin,
   NAlert,
   NIcon,
   useMessage,
+  useThemeVars,
 } from "naive-ui";
 import {
   TerraDraw,
@@ -72,6 +72,7 @@ import PlatformInfo from "@/utils/platform";
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
 
+const theme = useThemeVars();
 const settings = useSettingsStore();
 const message = useMessage();
 const locator = inject("geolocation") as UpdateService;
@@ -371,12 +372,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div style="width: 100%; height: 100%; position: relative; overflow: hidden">
-    <n-card
-      class="map-layout"
-      content-style="padding: 0;"
-      hoverable
-    >
+  <div class="map-layout-container">
+    <div class="map-layout">
       <transition name="map-load">
         <div
           v-if="mapReady && !initialLocateError"
@@ -500,7 +497,7 @@ onMounted(async () => {
           </n-alert>
         </div>
       </transition>
-    </n-card>
+    </div>
 
     <text-file-uploader-dialog
       v-model:show="uploadModelOpened"
@@ -572,6 +569,19 @@ onMounted(async () => {
 .map-load-enter-from,
 .map-load-leave-to {
   opacity: 0;
+}
+
+.map-layout-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  box-shadow: v-bind('theme.boxShadow3');
+  border-radius: v-bind('theme.borderRadius');
+  border: 1px solid v-bind('theme.borderColor');
+  box-sizing: border-box;
 }
 
 .map-layout {

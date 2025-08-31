@@ -381,6 +381,12 @@ const theme = useThemeVars();
 .sketch-centre-view {
   padding: 16px;
   max-width: 1200px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
   margin: 0 auto;
 }
 
@@ -390,7 +396,7 @@ const theme = useThemeVars();
   justify-content: space-between;
   background-color: v-bind('theme.bodyColor');
   position: sticky;
-  top: 0;
+  top: -12px;
   z-index: 10;
   align-items: center;
   padding-bottom: 16px;

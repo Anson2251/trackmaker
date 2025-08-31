@@ -191,12 +191,12 @@ const horizontalScreen = computed(() => width.value > height.value);
 }
 
 .slide-fade-enter-from {
-  /* transform: translateX(20px); */
+  transform: translateX(12px);
   opacity: 0;
 }
 
 .slide-fade-leave-to {
-  /* transform: translateX(-20px); */
+  transform: translateX(-12px);
   opacity: 0;
 }
 
@@ -216,8 +216,8 @@ const horizontalScreen = computed(() => width.value > height.value);
 .main-layout {
   box-sizing: border-box;
   position: relative;
-  overflow: auto;
   min-width: 0;
+  min-height: 0;
 }
 
 .nav-bar {
