@@ -270,6 +270,7 @@ const sideIconSize = ref(20);
 
   gap: 1rem;
   margin: 0 8px;
+  padding-right: 8px;
 
   position: absolute;
   left: 0;
@@ -350,7 +351,6 @@ const sideIconSize = ref(20);
       "project anchor"
       "data anchor"
       "credits anchor";
-    position: relative;
   }
 
   .page-anchor {
