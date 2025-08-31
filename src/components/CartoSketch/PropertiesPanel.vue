@@ -98,7 +98,11 @@ const emit = defineEmits<{
           <n-form-item :label="t('sketchEdit.name')">
             <NInput
               :value="component.meta.name"
-              @update:value="(val) => emit('updateMeta', { name: val })"
+              @update:value="(val) => emit('updateMeta', {
+                name: val,
+                description: component?.meta.description ?? '',
+                tags: component?.meta.tags ?? []
+              })"
             />
           </n-form-item>
 
@@ -107,7 +111,11 @@ const emit = defineEmits<{
               :value="component.meta.description"
               type="textarea"
               :rows="3"
-              @update:value="(val) => emit('updateMeta', { description: val })"
+              @update:value="(val) => emit('updateMeta', {
+                name: component?.meta.name ?? '',
+                description: val,
+                tags: component?.meta.tags ?? []
+              })"
             />
           </n-form-item>
 
@@ -115,7 +123,11 @@ const emit = defineEmits<{
             <n-dynamic-tags
               :value="component.meta.tags || []"
               :placeholder="t('sketchEdit.addTagPlaceholder')"
-              @update:value="(val: string[]) => emit('updateMeta', { tags: val })"
+              @update:value="(val: string[]) => emit('updateMeta', {
+                name: component?.meta.name ?? '',
+                description: component?.meta.description ?? '',
+                tags: val
+              })"
             />
           </n-form-item>
 

@@ -33,3 +33,4 @@ coverage
 # for the credential key of the bing map
 *credential*
 .vite
+docs/cartosketch-compositor-design.md
