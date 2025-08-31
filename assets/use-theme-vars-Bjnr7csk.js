@@ -1,1 +1,0 @@
-import{y as m,A as i}from"./light-6TnQlKBd.js";import{i as t,j as s}from"./index-Da0un-1s.js";function u(){const o=t(m,null);return s(()=>{if(o===null)return i;const{mergedThemeRef:{value:r},mergedThemeOverridesRef:{value:e}}=o,n=(r==null?void 0:r.common)||i;return e!=null&&e.common?Object.assign({},n,e.common):n})}export{u};
