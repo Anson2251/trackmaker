@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { CartoSketch } from '../libs/cartosketch';
-import type { GeographicSketchType } from '../libs/cartosketch/definitions';
+import type { GeographicRouteItemType, GeographicSketchType } from '../libs/cartosketch/definitions';
 import { CartoSketchRouteCollection, CartoSketchRouteItem, readCollectionFromStorage } from '../libs/cartosketch/route';
 import { storeGet, storeSet, storeSave } from '../libs/store';
 import type { GeographicPointType } from '../libs/geolocation/types';
@@ -166,13 +166,13 @@ export const useSketchStore = defineStore('sketches', () => {
     }
 
     // Route management methods (backward compatibility)
-    async function addRoute(name: string, properties: GeographicRouteItemProperties = {}) {
+    async function addRoute(name: string, properties: GeographicRouteItemProperties = {}, meta: Partial<GeographicRouteItemType["meta"]> = {}) {
         if (!currentSketch.value) {
             // Create default sketch if none exists
             await createDefaultSketch();
         }
 
-        const route = new CartoSketchRouteItem(undefined, [], properties);
+        const route = new CartoSketchRouteItem(undefined, [], properties, meta);
         route.meta.name = name;
 
         if (currentSketch.value) {
@@ -214,14 +214,14 @@ export const useSketchStore = defineStore('sketches', () => {
         await storeSave();
     }
 
-    async function updateRoute(id: string, updates: { name?: string; properties?: GeographicRouteItemProperties }) {
+    async function updateRoute(id: string, updates: { properties?: GeographicRouteItemProperties, meta?: Partial<GeographicRouteItemType["meta"]> }) {
         if (!currentSketch.value) return;
 
         const route = currentSketch.value.routes.routes.find(r => r.id === id);
         if (!route) return;
 
-        if (updates.name !== undefined) {
-            route.meta.name = updates.name;
+        if (updates.meta !== undefined) {
+            route.meta = { ...route.meta, ...updates.meta };
         }
         if (updates.properties !== undefined) {
             route.properties = { ...route.properties, ...updates.properties };

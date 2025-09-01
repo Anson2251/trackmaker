@@ -163,9 +163,7 @@ function handleRouteBatchDelete() {
         name="bottom-floating"
       />
     </div>
-    <div
-      :style="{height: '100%', padding: '0 1rem'}"
-    >
+    <div class="drawer-container">
       <div class="drawer-header">
         <p class="drawer-title">
           {{ t("components.trackerViewRouteDrawer.routes") }}
@@ -183,36 +181,38 @@ function handleRouteBatchDelete() {
           </template>
         </n-button>
       </div>
-      <selectable-swipeable-menu-list
-        v-model:selection="(routeStore.currentRouteId as any)"
-        v-model:multiple-selection="selectedRouteIds"
-        :items="routeStore.routes"
-        :menu-options="itemMenuOptions"
-        :swipe-actions="swipeActions"
-        @contextmenu="
-          (_, item) => {
-            renameRouteId = item?.id ?? null;
-            selectedRoute = item ?? null;
-          }
-        "
-      >
-        <template #item="{ item: route }">
-          <div style="height: fit-content; padding: 8px 12px; text-align: left">
-            <div>
-              {{
-                route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
-              }}
+      <div class="drawer-content">
+        <selectable-swipeable-menu-list
+          v-model:selection="(routeStore.currentRouteId as any)"
+          v-model:multiple-selection="selectedRouteIds"
+          :items="routeStore.routes"
+          :menu-options="itemMenuOptions"
+          :swipe-actions="swipeActions"
+          @contextmenu="
+            (_, item) => {
+              renameRouteId = item?.id ?? null;
+              selectedRoute = item ?? null;
+            }
+          "
+        >
+          <template #item="{ item: route }">
+            <div style="height: fit-content; padding: 8px 12px; text-align: left">
+              <div>
+                {{
+                  route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
+                }}
+              </div>
+              <div>
+                {{
+                  t("components.trackerViewRouteDrawer.points", {
+                    num: route.points.length,
+                  })
+                }}
+              </div>
             </div>
-            <div>
-              {{
-                t("components.trackerViewRouteDrawer.points", {
-                  num: route.points.length,
-                })
-              }}
-            </div>
-          </div>
-        </template>
-      </selectable-swipeable-menu-list>
+          </template>
+        </selectable-swipeable-menu-list>
+      </div>
     </div>
   </mgl-drawer>
 
@@ -260,6 +260,22 @@ function handleRouteBatchDelete() {
     bottom: calc(100% + 8px);
     opacity: 1;
   }
+}
+
+.drawer-container {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 1rem;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: auto;
 }
 
 .drawer-floating {

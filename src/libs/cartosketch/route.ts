@@ -16,7 +16,7 @@ import type { GeographicGeneralMetaType } from "@/libs/cartosketch/definitions";
 
 export class CartoSketchRouteCollection {
     readonly id: string;
-    meta: GeographicGeneralMetaType;
+    meta: CartoSketchRouteItem["meta"];
     routesInternal: CartoSketchRouteItem[];
     constructor(routes: CartoSketchRouteItem[] = [], id: string = uuidV4(), meta: GeographicGeneralMetaType = GeographicGeneralMetaDefaultValue()) {
         this.id = id;
@@ -98,12 +98,12 @@ export class CartoSketchRouteCollection {
 
 export class CartoSketchRouteItem {
     readonly id: string;
-    meta: GeographicGeneralMetaType;
+    meta: GeographicRouteItemType["meta"];
     readonly properties: GeographicRouteItemProperties;
     private points: GeographicPointType[];
-    constructor(id: string = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}, meta: GeographicGeneralMetaType = GeographicGeneralMetaDefaultValue()) {
+    constructor(id: string = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}, meta: Partial<GeographicGeneralMetaType>) {
         this.id = id;
-        this.meta = meta || GeographicGeneralMetaDefaultValue();
+        this.meta = {...GeographicGeneralMetaDefaultValue(), record_timespan: 0, ...meta};
         this.properties = properties;
         this.points = points;
     }
@@ -119,6 +119,22 @@ export class CartoSketchRouteItem {
             this.meta = GeographicGeneralMetaDefaultValue();
         }
         this.meta.name = name
+    }
+
+    get distance() {
+        return this.meta.distance || 0
+    }
+
+    set distance(distance: number) {
+        this.meta.distance = distance
+    }
+
+    get recordTimespan() {
+        return this.meta.record_timespan || 0
+    }
+
+    set recordTimespan(recordTimespan: number) {
+        this.meta.record_timespan = recordTimespan
     }
 
     setPoints(points: GeographicPointType[]) {

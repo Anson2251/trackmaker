@@ -13,13 +13,15 @@ import {
 } from "naive-ui";
 import PlatformInfo from "./utils/platform";
 import { useSettingsStore } from "./store/settings-store";
+import NoSleep from 'nosleep.js'
 
 provide("platformInfo", new PlatformInfo());
 const settings = useSettingsStore();
 onMounted(() => settings.init());
 provide("settings", settings);
+provide('noSleep', new NoSleep())
 const osThemeValueRef = useOsTheme();
-const theme = computed(() => 
+const theme = computed(() =>
   (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===
     "dark"
     ? darkTheme

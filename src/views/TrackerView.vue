@@ -68,6 +68,7 @@ import { UpdateService } from "@/libs/geolocation/update-service";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 import { useSettingsStore } from "@/store/settings-store";
 import PlatformInfo from "@/utils/platform";
+import type NoSleep from "nosleep.js";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -86,8 +87,10 @@ const location = ref<GeographicPointType>({ latitude: 0, longitude: 0 });
 const map = shallowRef<Mgl | null>(null);
 const draw = shallowRef<TerraDraw | null>(null);
 const activeDrawMethod = ref<string>("select");
-const pathRecording = ref(false);
 const routeStore = useRouteStore();
+routeStore.setLocator(locator);
+
+const noSleep = inject("noSleep") as NoSleep;
 
 const path = computed(() => {
   if (!routeStore.currentRouteId) return [];
@@ -230,35 +233,22 @@ function initMap(event: any) {
   draw.value.start();
 }
 
-let watchingHandler = -1;
+let isNewRoute = true;
 async function changeRecordState() {
   try {
-    pathRecording.value = !pathRecording.value;
-
-    if (pathRecording.value) {
-      if (!routeStore.currentRouteId) {
-        const newRoute = await routeStore.addRoute(t("trackerView.nameNewRoute"));
-        await routeStore.addPointToRoute(newRoute.id, locator.present);
-        openDrawerTooltip();
-        routeStore.setCurrentRouteId(newRoute.id);
-      } else {
-        await routeStore.addPointToRoute(
-          routeStore.currentRouteId,
-          locator.present
-        );
-      }
-      watchingHandler = locator.addListener((newPoint) => {
-        routeStore.addPointToRoute(routeStore.currentRouteId!, newPoint);
-      });
-    } else {
-      if (watchingHandler !== -1) {
-        locator.removeListener(watchingHandler);
-        pathRecording.value = false;
-        watchingHandler = -1;
-      }
+    if (!routeStore.isRecording) isNewRoute = routeStore.currentRouteId === null;
+    await routeStore.toggleRecording(t);
+    if (!routeStore.isRecording && isNewRoute) {
+      drawerTooltipOpened.value = true;
+      setTimeout(() => {
+        drawerTooltipOpened.value = false;
+      }, 3000);
     }
+    if (routeStore.isRecording) noSleep.enable();
+    else noSleep.disable();
   } catch (err) {
     console.error(err);
+    noSleep.disable();
   }
 }
 
@@ -344,13 +334,6 @@ const toggleRouteDrawer = () =>
   (isRouteDrawerOpen.value = !isRouteDrawerOpen.value);
 
 const drawerTooltipOpened = ref(false);
-const openDrawerTooltip = () => {
-  if (drawerTooltipOpened.value) return;
-  drawerTooltipOpened.value = true;
-  setTimeout(() => {
-    drawerTooltipOpened.value = false;
-  }, 3000);
-};
 
 const initialLocateError = ref("");
 
@@ -369,6 +352,24 @@ onMounted(async () => {
   mapReady.value = true;
   draw.value?.start();
 });
+
+const devMode = !__RELEASE_MODE__;
+
+function formatDuration(ms: number) {
+    const seconds = ms / 1000;
+    const minutes = seconds / 60;
+    const hours = minutes / 60;
+
+    const displaySeconds = seconds % 60;
+    const displayMinutes = minutes % 60;
+    const displayHours = hours;
+
+    let formatted = ""
+    if (Math.floor(displayHours) > 0) formatted += `${String(Math.floor(displayHours))}h `
+    if (Math.floor(displayMinutes) > 0) formatted += `${String(Math.floor(displayMinutes))}m `
+    formatted += `${String(displaySeconds.toFixed(1)).padStart(4, '0')}s`
+    return formatted
+}
 </script>
 
 <template>
@@ -388,14 +389,14 @@ onMounted(async () => {
           >
             <mgl-navigation-control position="top-left" />
             <mgl-geolocate-control
-              v-if="locator.usingGPS"
+              v-if="locator.usingGPS || devMode"
               position="top-left"
               :track-user-location="true"
             />
             <mgl-fullscreen-control position="top-left" />
             <mgl-scale-control position="bottom-left" />
             <mgl-custom-control
-              v-if="!isMobile"
+              v-if="!isMobile || devMode"
               position="top-right"
             >
               <button
@@ -526,26 +527,29 @@ onMounted(async () => {
 
     <!-- Mobile record button positioned at bottom -->
     <div
-      v-if="isMobile"
+      v-if="isMobile || devMode"
       class="mobile-record-button-container"
       :class="{ 'drawer-open': isRouteDrawerOpen }"
     >
       <n-config-provider :theme="lightTheme">
         <n-button
-          :type="pathRecording ? 'error' : 'primary'"
+          :type="routeStore.isRecording ? 'error' : 'primary'"
           :size="'large'"
-          :class="['mobile-record-button', pathRecording ? 'recording' : 'not-recording']"
+          :class="['mobile-record-button', routeStore.isRecording ? 'recording' : 'not-recording']"
           @click="changeRecordState"
         >
           <template #icon>
             <n-icon :size="20">
               <component
-                :is="pathRecording ? Square : PlayerRecord"
-                :size="pathRecording ? 16 : 20"
+                :is="routeStore.isRecording ? Square : PlayerRecord"
+                :size="routeStore.isRecording ? 16 : 20"
               />
             </n-icon>
           </template>
-          {{ pathRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off') }}
+          {{ routeStore.isRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off') }}
+          <p style="font-family: monospace; padding-left: 8px;">
+            {{ routeStore.currentRouteRecordTimespan ? `(${formatDuration(routeStore.currentRouteRecordTimespan)})` : '' }}
+          </p>
         </n-button>
       </n-config-provider>
     </div>
@@ -683,7 +687,7 @@ onMounted(async () => {
 .mobile-record-button {
   box-shadow: 0 0 16px -2px v-bind('lightTheme.Button.common?.primaryColorSuppl'), 0 1px 3px -1px #000;
   transition: all 0.2s ease;
-  width: 10em;
+  width: fit-content;
 }
 
 .mobile-record-button.recording {

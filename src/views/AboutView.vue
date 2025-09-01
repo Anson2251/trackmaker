@@ -204,14 +204,17 @@ const sideIconSize = ref(20);
             <template #header>
               <n-space>
                 {{ credit.name }}
-                <n-tag
-                  v-if="credit.license"
-                  round
-                  type="info"
-                  size="small"
-                >
-                  {{ credit.licenseType }}
-                </n-tag>
+                <n-space v-if="credit.licenseType.trim()">
+                  <n-tag
+                    v-for="type in credit.licenseType.trim().split(',').map((type) => type.trim())"
+                    :key="type"
+                    round
+                    type="info"
+                    size="small"
+                  >
+                    {{ type }}
+                  </n-tag>
+                </n-space>
               </n-space>
             </template>
 

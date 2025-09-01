@@ -103,7 +103,10 @@ export type GeographicRouteItemProperties = {
 
 export type GeographicRouteItemType = {
     id: string,
-    meta: GeographicGeneralMetaType,
+    meta: GeographicGeneralMetaType & {
+        record_timespan?: number,
+        distance?: number
+    },
     properties: GeographicRouteItemProperties,
     points: GeographicPointType[]
 };

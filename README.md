@@ -27,6 +27,8 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 ### High Priority
 
+- [ ] Route distance calculation
+- [ ] Route management module refactoring
 - [ ] Bug fixes for the latest major version
 - [ ] Dead Reckoning (DR) system for better geolocation accuracy
 - [ ] Edit routes functionality
