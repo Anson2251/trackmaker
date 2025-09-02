@@ -347,5 +347,7 @@ function toggleSelectCheckbox(itemId: string) {
   height: 100%;
   flex-grow: 1;
   white-space: nowrap;
+  border: none;
+  color: white;
 }
 </style>

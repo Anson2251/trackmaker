@@ -88,6 +88,7 @@
             "nameNewRoute": "Untitled Route",
             "routes": "Routes",
             "points": "{num} points",
+            "distance": "{distance}",
             "deleteConfirmation": {
                 "title": "Route Delete",
                 "prompt": "Are you sure you want to delete the selected route?",

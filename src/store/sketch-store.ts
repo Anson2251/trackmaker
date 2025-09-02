@@ -7,6 +7,7 @@ import { storeGet, storeSet, storeSave } from '../libs/store';
 import type { GeographicPointType } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicDraftItemProperties, GeographicShape, GeographicGeneralMetaType } from '../libs/cartosketch/definitions';
 import { GeographicGeneralMetaDefaultValue } from '../libs/cartosketch/definitions';
+import { calculatePathDistance } from '../utils/proj4-distance';
 
 export const useSketchStore = defineStore('sketches', () => {
     const sketches = ref<CartoSketch[]>([]);
@@ -35,7 +36,8 @@ export const useSketchStore = defineStore('sketches', () => {
         return routeCollection.value.routes.map(route => ({
             id: route.id,
             name: route.name,
-            points: route.getPoints()
+            points: route.getPoints(),
+            meta: route.meta
         }));
     });
 
@@ -65,6 +67,14 @@ export const useSketchStore = defineStore('sketches', () => {
                 sketches.value = storedData.map((sketchData: GeographicSketchType) =>
                     CartoSketch.fromStorage(sketchData)
                 );
+
+                sketches.value.forEach(sketch => {
+                    sketch.routes.routes.forEach(route => {
+                        if (route.points.length > 1 && !route.meta.distance) {
+                            route.meta.distance = calculatePathDistance(route.points);
+                        }
+                    });
+                });
 
                 // Set current sketch to first one if none is selected
                 if (!currentSketchId.value && sketches.value.length > 0) {
@@ -209,6 +219,18 @@ export const useSketchStore = defineStore('sketches', () => {
 
         route.points.push(point);
         route.meta.modification_timestamp = Date.now();
+
+        // Calculate route distance
+        if (route.points.length > 1) {
+            if (!route.meta.distance) {
+                const distance = calculatePathDistance(route.points);
+                route.meta.distance = distance;
+            }
+            else {
+                const distance = calculatePathDistance([route.points[route.points.length - 2], point]);
+                route.meta.distance += distance;
+            }
+        }
 
         await storeSet('sketches', sketches.value.map(s => s.toStorage()));
         await storeSave();

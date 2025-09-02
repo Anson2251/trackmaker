@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import type { GeographicPointType } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
-import type { UpdateService } from '@/libs/geolocation/update-service';
+import type { UpdateService } from '../libs/geolocation/update-service';
 
 export const useRouteStore = defineStore('routes', () => {
     const sketchStore = useSketchStore();

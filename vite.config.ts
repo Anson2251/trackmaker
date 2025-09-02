@@ -4,9 +4,12 @@ import { exec } from 'child_process'
 
 import { defineConfig } from 'vite';
 import viteCompression from 'vite-plugin-compression';
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 import vue from '@vitejs/plugin-vue';
 import basicSsl from '@vitejs/plugin-basic-ssl'
+
 
 const compression = viteCompression({
 	verbose: true,
@@ -36,6 +39,8 @@ export default defineConfig(async () => {
 	const commitId = await getMostRecentCommitId();
 
 	const plugins = [
+        topLevelAwait(),
+        wasm(),
 		vue(),
 	];
 

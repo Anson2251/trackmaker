@@ -8,6 +8,7 @@ import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
 import { Trash } from "@vicons/tabler";
 import PlatformInfo from "@/utils/platform";
+import { formatDistance } from "@/utils/proj4-distance";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -202,12 +203,21 @@ function handleRouteBatchDelete() {
                   route.name ?? t("components.trackerViewRouteDrawer.nameNewRoute")
                 }}
               </div>
-              <div>
-                {{
-                  t("components.trackerViewRouteDrawer.points", {
-                    num: route.points.length,
-                  })
-                }}
+              <div style="font-size: 0.8rem; opacity: 0.7; display: flex; flex-direction: row; gap: 12px;">
+                <div>
+                  {{
+                    t("components.trackerViewRouteDrawer.points", {
+                      num: route.points.length,
+                    })
+                  }}
+                </div>
+                <div v-if="route.points.length > 1 && route.meta?.distance">
+                  {{
+                    t("components.trackerViewRouteDrawer.distance", {
+                      distance: formatDistance(route.meta.distance)
+                    })
+                  }}
+                </div>
               </div>
             </div>
           </template>
