@@ -68,10 +68,17 @@ export const useSketchStore = defineStore('sketches', () => {
                     CartoSketch.fromStorage(sketchData)
                 );
 
+                // Calculate distances for all routes (async but we don't await here to avoid blocking)
                 sketches.value.forEach(sketch => {
-                    sketch.routes.routes.forEach(route => {
+                    sketch.routes.routes.forEach(async (route) => {
                         if (route.points.length > 1 && !route.meta.distance) {
-                            route.meta.distance = calculatePathDistance(route.points);
+                            try {
+                                route.meta.distance = await calculatePathDistance(route.points);
+                            } catch (error) {
+                                console.warn('Failed to calculate route distance:', error);
+                                // Fallback to 0 if calculation fails
+                                route.meta.distance = 0;
+                            }
                         }
                     });
                 });
@@ -222,13 +229,21 @@ export const useSketchStore = defineStore('sketches', () => {
 
         // Calculate route distance
         if (route.points.length > 1) {
-            if (!route.meta.distance) {
-                const distance = calculatePathDistance(route.points);
-                route.meta.distance = distance;
-            }
-            else {
-                const distance = calculatePathDistance([route.points[route.points.length - 2], point]);
-                route.meta.distance += distance;
+            try {
+                if (!route.meta.distance) {
+                    const distance = await calculatePathDistance(route.points);
+                    route.meta.distance = distance;
+                }
+                else {
+                    const distance = await calculatePathDistance([route.points[route.points.length - 2], point]);
+                    route.meta.distance += distance;
+                }
+            } catch (error) {
+                console.warn('Failed to calculate route distance:', error);
+                // Fallback: use simple haversine for incremental calculation
+                if (!route.meta.distance) {
+                    route.meta.distance = 0;
+                }
             }
         }
 

@@ -5,41 +5,55 @@
  */
 
 // Import proj4rs - the WASM build of proj4
-import { Projection, Point, transform } from 'proj4rs';
+import initProj4rs, { Projection, Point, transform } from 'proj4rs';
 
 // Define common projections
 const PROJECTIONS = {
-  // Geographic coordinate system (latitude/longitude)
-  WGS84: '+proj=longlat +datum=WGS84 +no_defs',
-  GRS80: '+proj=latlong +ellps=GRS80 +no_defs',
+    // Geographic coordinate system (latitude/longitude)
+    WGS84: '+proj=longlat +datum=WGS84 +no_defs',
+    GRS80: '+proj=latlong +ellps=GRS80 +no_defs',
 
-  // Projected coordinate systems for distance calculations
-  UTM_ZONE_50N: '+proj=utm +zone=50 +datum=WGS84 +units=m +no_defs', // Beijing area
-  UTM_ZONE_51N: '+proj=utm +zone=51 +datum=WGS84 +units=m +no_defs', // Shanghai area
+    // Projected coordinate systems for distance calculations
+    UTM_ZONE_50N: '+proj=utm +zone=50 +datum=WGS84 +units=m +no_defs', // Beijing area
+    UTM_ZONE_51N: '+proj=utm +zone=51 +datum=WGS84 +units=m +no_defs', // Shanghai area
 
-  // Gauss-Kruger / Transverse Mercator projections
-  CGCS2000_3_DEGREE: '+proj=tmerc +lat_0=0 +lon_0=117 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs',
-  BEIJING_1954: '+proj=tmerc +lat_0=0 +lon_0=117 +k=1 +x_0=500000 +y_0=0 +ellps=krass +units=m +no_defs',
+    // Gauss-Kruger / Transverse Mercator projections
+    CGCS2000_3_DEGREE: '+proj=tmerc +lat_0=0 +lon_0=117 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs',
+    BEIJING_1954: '+proj=tmerc +lat_0=0 +lon_0=117 +k=1 +x_0=500000 +y_0=0 +ellps=krass +units=m +no_defs',
 
-  // Web Mercator (used by most web maps)
-  WEB_MERCATOR: '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs'
+    // Web Mercator (used by most web maps)
+    WEB_MERCATOR: '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs'
 } as const;
 
 // Coordinate type definitions
 export interface GeoCoordinate {
-  longitude: number;
-  latitude: number;
+    longitude: number;
+    latitude: number;
 }
 
 export interface ProjectedCoordinate {
-  x: number;
-  y: number;
+    x: number;
+    y: number;
 }
 
 export interface DistanceOptions {
-  projection?: string;
-  useHaversine?: boolean;
-  ellipsoid?: string;
+    projection?: string;
+    useHaversine?: boolean;
+    ellipsoid?: string;
+}
+
+// WASM module initialization state
+let isProj4rsInitialized = false;
+
+/**
+ * Initialize the proj4rs WASM module
+ * This must be called before any other proj4rs functions
+ */
+export async function initProj4rsModule(): Promise<void> {
+    if (!isProj4rsInitialized) {
+        await initProj4rs({module_or_path: "./public/proj4rs_bg.wasm"});
+        isProj4rsInitialized = true;
+    }
 }
 
 /**
@@ -49,29 +63,32 @@ export interface DistanceOptions {
  * @param coordinate - Coordinate to transform [lng, lat]
  * @returns Transformed coordinate [x, y] in meters
  */
-export function transformCoordinate(
-  fromProjection: string,
-  toProjection: string,
-  coordinate: [number, number]
-): [number, number] {
-  try {
-    const from = new Projection(fromProjection);
-    const to = new Projection(toProjection);
-    const point = new Point(coordinate[0], coordinate[1], 0);
+export async function transformCoordinate(
+    fromProjection: string,
+    toProjection: string,
+    coordinate: [number, number]
+): Promise<[number, number]> {
+    try {
+        // Ensure WASM module is initialized
+        await initProj4rsModule();
 
-    transform(from, to, point);
+        const from = new Projection(fromProjection);
+        const to = new Projection(toProjection);
+        const point = new Point(coordinate[0], coordinate[1], 0);
 
-    const result: [number, number] = [point.x, point.y];
+        transform(from, to, point);
 
-    // Clean up WASM resources
-    from.free();
-    to.free();
-    point.free();
+        const result: [number, number] = [point.x, point.y];
 
-    return result;
-  } catch (error) {
-    throw new Error(`Failed to transform coordinate: ${error instanceof Error ? error.message : String(error)}`);
-  }
+        // Clean up WASM resources
+        from.free();
+        to.free();
+        point.free();
+
+        return result;
+    } catch (error) {
+        throw new Error(`Failed to transform coordinate: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
 
 /**
@@ -81,12 +98,12 @@ export function transformCoordinate(
  * @returns Distance in meters
  */
 export function calculateEuclideanDistance(
-  point1: ProjectedCoordinate,
-  point2: ProjectedCoordinate
+    point1: ProjectedCoordinate,
+    point2: ProjectedCoordinate
 ): number {
-  const dx = point2.x - point1.x;
-  const dy = point2.y - point1.y;
-  return Math.sqrt(dx * dx + dy * dy);
+    const dx = point2.x - point1.x;
+    const dy = point2.y - point1.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 /**
@@ -96,23 +113,23 @@ export function calculateEuclideanDistance(
  * @returns Distance in meters
  */
 export function calculateHaversineDistance(
-  coord1: GeoCoordinate,
-  coord2: GeoCoordinate
+    coord1: GeoCoordinate,
+    coord2: GeoCoordinate
 ): number {
-  const R = 6371000; // Earth's radius in meters
+    const R = 6371000; // Earth's radius in meters
 
-  const lat1Rad = coord1.latitude * Math.PI / 180;
-  const lat2Rad = coord2.latitude * Math.PI / 180;
-  const deltaLat = (coord2.latitude - coord1.latitude) * Math.PI / 180;
-  const deltaLng = (coord2.longitude - coord1.longitude) * Math.PI / 180;
+    const lat1Rad = coord1.latitude * Math.PI / 180;
+    const lat2Rad = coord2.latitude * Math.PI / 180;
+    const deltaLat = (coord2.latitude - coord1.latitude) * Math.PI / 180;
+    const deltaLng = (coord2.longitude - coord1.longitude) * Math.PI / 180;
 
-  const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-            Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+        Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c;
+    return R * c;
 }
 
 /**
@@ -122,34 +139,34 @@ export function calculateHaversineDistance(
  * @param options - Distance calculation options
  * @returns Distance in meters
  */
-export function calculateProj4Distance(
-  coord1: GeoCoordinate,
-  coord2: GeoCoordinate,
-  options: DistanceOptions = {}
-): number {
-  const {
-    projection = PROJECTIONS.CGCS2000_3_DEGREE,
-    useHaversine = false
-  } = options;
+export async function calculateProj4Distance(
+    coord1: GeoCoordinate,
+    coord2: GeoCoordinate,
+    options: DistanceOptions = {}
+): Promise<number> {
+    const {
+        projection = PROJECTIONS.CGCS2000_3_DEGREE,
+        useHaversine = false
+    } = options;
 
-  if (useHaversine) {
-    return calculateHaversineDistance(coord1, coord2);
-  }
+    if (useHaversine) {
+        return calculateHaversineDistance(coord1, coord2);
+    }
 
-  try {
-    // Transform both coordinates to the target projection
-    const projCoord1 = transformCoordinate(PROJECTIONS.WGS84, projection, [coord1.longitude, coord1.latitude]);
-    const projCoord2 = transformCoordinate(PROJECTIONS.WGS84, projection, [coord2.longitude, coord2.latitude]);
+    try {
+        // Transform both coordinates to the target projection
+        const projCoord1 = await transformCoordinate(PROJECTIONS.WGS84, projection, [coord1.longitude, coord1.latitude]);
+        const projCoord2 = await transformCoordinate(PROJECTIONS.WGS84, projection, [coord2.longitude, coord2.latitude]);
 
-    // Calculate Euclidean distance in projected space
-    return calculateEuclideanDistance(
-      { x: projCoord1[0], y: projCoord1[1] },
-      { x: projCoord2[0], y: projCoord2[1] }
-    );
-  } catch (error) {
-    console.warn('Failed to use proj4 distance calculation, falling back to haversine:', error);
-    return calculateHaversineDistance(coord1, coord2);
-  }
+        // Calculate Euclidean distance in projected space
+        return calculateEuclideanDistance(
+            { x: projCoord1[0], y: projCoord1[1] },
+            { x: projCoord2[0], y: projCoord2[1] }
+        );
+    } catch (error) {
+        console.warn('Failed to use proj4 distance calculation, falling back to haversine:', error);
+        return calculateHaversineDistance(coord1, coord2);
+    }
 }
 
 /**
@@ -158,20 +175,20 @@ export function calculateProj4Distance(
  * @param options - Distance calculation options
  * @returns Total distance in meters
  */
-export function calculatePathDistance(
-  coordinates: GeoCoordinate[],
-  options: DistanceOptions = {}
-): number {
-  if (coordinates.length < 2) {
-    return 0;
-  }
+export async function calculatePathDistance(
+    coordinates: GeoCoordinate[],
+    options: DistanceOptions = {}
+): Promise<number> {
+    if (coordinates.length < 2) {
+        return 0;
+    }
 
-  let totalDistance = 0;
-  for (let i = 1; i < coordinates.length; i++) {
-    totalDistance += calculateProj4Distance(coordinates[i - 1], coordinates[i], options);
-  }
+    let totalDistance = 0;
+    for (let i = 1; i < coordinates.length; i++) {
+        totalDistance += await calculateProj4Distance(coordinates[i - 1], coordinates[i], options);
+    }
 
-  return totalDistance;
+    return totalDistance;
 }
 
 /**
@@ -180,8 +197,8 @@ export function calculatePathDistance(
  * @returns UTM projection string
  */
 export function getUTMProjection(longitude: number): string {
-  const zone = Math.floor((longitude + 180) / 6) + 1;
-  return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs`;
+    const zone = Math.floor((longitude + 180) / 6) + 1;
+    return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs`;
 }
 
 /**
@@ -190,13 +207,13 @@ export function getUTMProjection(longitude: number): string {
  * @returns Formatted string with appropriate units
  */
 export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)} m`;
-  } else if (meters < 10000) {
-    return `${(meters / 1000).toFixed(1)} km`;
-  } else {
-    return `${Math.round(meters / 1000)} km`;
-  }
+    if (meters < 1000) {
+        return `${Math.round(meters)} m`;
+    } else if (meters < 10000) {
+        return `${(meters / 1000).toFixed(1)} km`;
+    } else {
+        return `${Math.round(meters / 1000)} km`;
+    }
 }
 
 // Export projections for external use
@@ -204,12 +221,12 @@ export { PROJECTIONS };
 
 // Default export
 export default {
-  calculateProj4Distance,
-  calculateHaversineDistance,
-  calculatePathDistance,
-  transformCoordinate,
-  calculateEuclideanDistance,
-  getUTMProjection,
-  formatDistance,
-  PROJECTIONS
+    calculateProj4Distance,
+    calculateHaversineDistance,
+    calculatePathDistance,
+    transformCoordinate,
+    calculateEuclideanDistance,
+    getUTMProjection,
+    formatDistance,
+    PROJECTIONS
 };

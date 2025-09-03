@@ -24,6 +24,7 @@ const getMostRecentCommitId = () => new Promise<string>((resolve, reject) => {
 	exec("git rev-parse --short HEAD", (error, stdout, stderr) => {
 		if (error) reject(error)
 		if (stderr) reject(stderr)
+        console.log("Most recent commit id: ", stdout)
 		resolve(stdout)
 	});
 })
@@ -36,7 +37,6 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => {
 	const releaseMode = !!JSON.parse((process.env.RELEASE_MODE || "false").toLowerCase());
 	const tauriEnv = !!JSON.parse((process.env.TAURI_ENVIRONMENT || "false").toLowerCase());
-	const commitId = await getMostRecentCommitId();
 
 	const plugins = [
         topLevelAwait(),
@@ -59,7 +59,7 @@ export default defineConfig(async () => {
 			__MAPTILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
 			__RELEASE_MODE__: releaseMode ? "true" : "false",
 			__TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
-			__MOST_RECENT_COMMIT__: JSON.stringify(commitId)
+			__MOST_RECENT_COMMIT__: releaseMode ? JSON.stringify(await getMostRecentCommitId()) : "''"
 		},
 		base: './',
 		plugins: plugins,

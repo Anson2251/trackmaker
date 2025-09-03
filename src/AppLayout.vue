@@ -114,7 +114,7 @@ const horizontalScreen = computed(() => width.value > height.value);
         :mode="horizontalScreen ? 'vertical' : 'horizontal'"
       />
       <div class="software-info-menu">
-        <div style="width: fit-content">
+        <div style="width: 100%">
           <n-menu
             :options="softwareOption"
             :mode="horizontalScreen ? 'vertical' : 'horizontal'"
