@@ -30,8 +30,8 @@ jobs:
         run: npm install @rollup/rollup-linux-x64-gnu
 
       - name: Build
-        run: npm run build-release
-        env: 
+        run: npm run build
+        env:
           BING_MAPS_KEY: ${{ secrets.BING_MAPS_KEY }}
           MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
 
