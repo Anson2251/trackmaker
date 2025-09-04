@@ -6,7 +6,7 @@
 
 // Import proj4rs - the WASM build of proj4
 import initProj4rs, { Projection, Point, transform } from 'proj4rs';
-import proj4wasm from "@/assets/proj4rs_bg.wasm?url"
+import proj4wasm from "proj4rs/proj4rs_bg.wasm?url"
 
 // Define common projections
 const PROJECTIONS = {
