@@ -7,13 +7,10 @@
     "dev": "export RELEASE_MODE=false; vite dev",
     "tauri": "TAURI_ENVIRONMENT=true tauri",
     "serve": "export RELEASE_MODE=false; vite dev --host",
-    "build": "vite build",
+    "build": "export RELEASE_MODE=true;  vite build",
     "preview": "vite preview",
-    "build-release": "export RELEASE_MODE=true; npm run build",
-    "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix",
-    "build-preview": "npm run build-release; cd ./dist; python3 -m http.server 5173",
-    "generate-docs": "typedoc"
+    "build-preview": "npm run build; cd ./dist; python3 -m http.server 5173"
   },
   "dependencies": {
     "@indoorequal/vue-maplibre-gl": "^8.4.2",

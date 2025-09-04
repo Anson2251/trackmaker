@@ -6,6 +6,7 @@
 
 // Import proj4rs - the WASM build of proj4
 import initProj4rs, { Projection, Point, transform } from 'proj4rs';
+import proj4wasm from "@/assets/proj4rs_bg.wasm?url"
 
 // Define common projections
 const PROJECTIONS = {
@@ -51,7 +52,7 @@ let isProj4rsInitialized = false;
  */
 export async function initProj4rsModule(): Promise<void> {
     if (!isProj4rsInitialized) {
-        await initProj4rs({module_or_path: "./public/proj4rs_bg.wasm"});
+        await initProj4rs({module_or_path: proj4wasm});
         isProj4rsInitialized = true;
     }
 }
