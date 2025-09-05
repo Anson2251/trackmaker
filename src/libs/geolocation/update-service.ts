@@ -4,8 +4,11 @@ import type { GeographicPointType, GeolocationBackend } from "./types";
 import { LocationResponseErrorEnum } from "./types";
 import BrowserGeolocationBackend from "./backends/browser-gps";
 import IPGeolocationBackend from "./backends/ip";
+import KalmanFilterGeolocationBackend from "./backends/kalman-filter-gps";
 import { injectTauriGeolocationProvider } from "./tauri-polyfill";
 import { isEqual } from "lodash-es";
+import { storeGet } from "@/libs/store";
+import type { Settings } from "@/store/settings-store";
 
 type HandlerItemType = {
     id: number
@@ -49,10 +52,24 @@ export class UpdateService {
     backend: GeolocationBackend | undefined;
     usingGPS: boolean = false;
     watchHandler: number = -1;
+    useKalmanFilter: boolean = true; // Enable Kalman filter by default
 
     async build(promptCallback: ((status: PermissionState) => Promise<boolean | void>) = async () => { }) {
         console.info("[geolocation] Building geolocation service");
-        const gps = new BrowserGeolocationBackend();
+
+        // Check settings for Kalman filter preference
+        const settings = await storeGet<Settings>('settings');
+        this.useKalmanFilter = settings?.useKalmanFilter ?? true;
+
+        let gps: GeolocationBackend;
+
+        if (this.useKalmanFilter) {
+            console.info("[geolocation] Using Kalman filter enhanced GPS backend");
+            gps = new KalmanFilterGeolocationBackend();
+        } else {
+            console.info("[geolocation] Using standard GPS backend");
+            gps = new BrowserGeolocationBackend();
+        }
 
         if (__TAURI_ENVIRONMENT__) {
             console.info("[geolocation] Initializing Tauri geolocation backend");
