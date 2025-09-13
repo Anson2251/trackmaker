@@ -1,18 +1,21 @@
 import { UAParser } from 'ua-parser-js';
+import { getPlatformContext, isTauri } from '@/libs/platform';
 
 export class PlatformInfo {
     private parser: UAParser;
+    private platformContext;
 
     constructor() {
         this.parser = new UAParser(navigator.userAgent);
+        this.platformContext = getPlatformContext();
     }
 
     public get isMobile(): boolean {
-        return this.parser.getDevice().type === "mobile";
+        return this.platformContext.isMobile;
     }
 
     public get isTablet(): boolean {
-        return this.parser.getDevice().type === "tablet";
+        return this.platformContext.isTablet;
     }
 
     public get isUnknown(): boolean {
@@ -20,7 +23,7 @@ export class PlatformInfo {
     }
 
     public get browser(): "Tauri" | string {
-        return __TAURI_ENVIRONMENT__ ? "Tauri" : (this.parser.getBrowser().name || "");
+        return isTauri() ? "Tauri" : (this.platformContext.browser || "");
     }
 
     public get engine(): string {
@@ -28,7 +31,29 @@ export class PlatformInfo {
     }
 
     public get os(): string {
-        return this.parser.getOS().name || "";
+        return this.platformContext.os || "";
+    }
+
+    /**
+     * Get the full platform context with capabilities and configuration
+     */
+    public get context() {
+        return this.platformContext;
+    }
+
+    /**
+     * Check if running in Tauri environment
+     */
+    public get isTauri(): boolean {
+        return isTauri();
+    }
+
+    /**
+     * Check if running in web environment
+     */
+    public get isWeb(): boolean {
+        const env = this.platformContext.environment;
+        return env === 'web' || env === 'mobile_web';
     }
 }
 

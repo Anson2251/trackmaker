@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { storeGet, storeSet, storeSave } from '../libs/store';
+import { storageGet, storageSet, storageSave } from '../libs/storage';
 import { ref, watch } from 'vue';
 
 export type Settings = {
@@ -20,15 +20,15 @@ export const useSettingsStore = defineStore('settings', () => {
     });
 
     async function init() {
-        const saved = await storeGet<Settings>('settings');
+        const saved = await storageGet<Settings>('settings');
         if (saved) {
             settings.value = { ...settings.value, ...saved };
         }
     }
 
     async function save() {
-        await storeSet('settings', JSON.parse(JSON.stringify(settings.value)));
-        await storeSave();
+        await storageSet('settings', JSON.parse(JSON.stringify(settings.value)));
+        await storageSave();
     }
 
     watch(settings, save, { deep: true })

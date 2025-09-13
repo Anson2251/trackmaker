@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import { RouterView, RouterLink } from "vue-router";
-import { h, type Component, provide, computed, watch } from "vue";
+import { h, type Component, computed, watch } from "vue";
 import { Map, InfoCircle, Settings, Menu as MenuIcon, MapPin } from "@vicons/tabler";
 import { useI18n } from "vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
 import { NIcon, NText, NPopover, NButton } from "naive-ui";
 import { useRoute } from "vue-router";
-import { UpdateService } from "./libs/geolocation/update-service";
 import { useSettingsStore } from "./store/settings-store";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "./utils/platform";
@@ -30,10 +29,6 @@ watch(
     if (v) locale.value = v;
   }
 );
-
-const locator = (window as { UpdateService?: UpdateService })
-  .UpdateService as UpdateService;
-provide("geolocation", locator);
 
 const menuOptions: MenuOption[] = [
   {

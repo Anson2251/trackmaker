@@ -14,12 +14,11 @@ import {
 import PlatformInfo from "./utils/platform";
 import { useSettingsStore } from "./store/settings-store";
 import NoSleep from 'nosleep.js'
+import type { GeolocationManager } from "./libs/geolocation";
 
-provide("platformInfo", new PlatformInfo());
 const settings = useSettingsStore();
-onMounted(() => settings.init());
-provide("settings", settings);
-provide('noSleep', new NoSleep())
+const locator = (window as { GeolocationManager?: GeolocationManager }).GeolocationManager as GeolocationManager;
+
 const osThemeValueRef = useOsTheme();
 const theme = computed(() =>
   (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===
@@ -33,6 +32,14 @@ const themeOverride = {
       'Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
   },
 };
+
+provide("platformInfo", new PlatformInfo());
+provide("settings", settings);
+provide('noSleep', new NoSleep())
+provide("geolocation", locator);
+
+onMounted(() => settings.init());
+
 </script>
 
 <template>

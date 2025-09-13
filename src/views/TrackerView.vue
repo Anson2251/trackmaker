@@ -64,7 +64,7 @@ import { useRouteStore } from "@/store/route-store";
 // } from "@/utils/utilities";
 import TextFileUploaderDialog from "@/components/TextFileUploaderDialog.vue";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
-import { UpdateService } from "@/libs/geolocation/update-service";
+import { GeolocationManager } from "@/libs/geolocation";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 import { useSettingsStore } from "@/store/settings-store";
 import PlatformInfo from "@/utils/platform";
@@ -76,7 +76,7 @@ const isMobile = platform.isMobile;
 const theme = useThemeVars();
 const settings = useSettingsStore();
 const message = useMessage();
-const locator = inject("geolocation") as UpdateService;
+const locator = inject("geolocation") as GeolocationManager;
 const { t } = useI18n();
 const i18n = useI18n();
 const zoom = ref(7);
@@ -342,12 +342,17 @@ onMounted(async () => {
   await routeStore.init();
 
   try {
-    location.value = await locator.refresh()!;
-    if (!locator.usingGPS)
-      message.warning(t("trackerView.gpsWarning"), { duration: 5000 });
+    const locationResult = await locator.getCurrentLocation();
+    if (locationResult.isOk()) {
+      location.value = locationResult.value;
+      if (!locator.isUsingGPS())
+        message.warning(t("trackerView.gpsWarning"), { duration: 5000 });
+    } else {
+      throw locationResult.error;
+    }
   } catch (err) {
     initialLocateError.value =
-      (err as GeolocationPositionError).message ?? String(err);
+      (err as Error).message ?? String(err);
   }
   mapReady.value = true;
   draw.value?.start();
@@ -389,7 +394,7 @@ function formatDuration(ms: number) {
           >
             <mgl-navigation-control position="top-left" />
             <mgl-geolocate-control
-              v-if="locator.usingGPS || devMode"
+              v-if="locator.isUsingGPS() || devMode"
               position="top-left"
               :track-user-location="true"
             />

@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import type { GeographicPointType } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
-import type { UpdateService } from '../libs/geolocation/update-service';
+import type { GeolocationManager } from '../libs/geolocation';
 
 export const useRouteStore = defineStore('routes', () => {
     const sketchStore = useSketchStore();
@@ -23,15 +23,15 @@ export const useRouteStore = defineStore('routes', () => {
     // Recording state
     const isRecording = ref(false);
     const watchingHandler = ref<number>(-1);
-    const locator = ref<UpdateService | null>(null);
+    const locator = ref<GeolocationManager | null>(null);
 
     let recordingTimespanTrackingHandler: number | undefined;
 
     // Computed property for backward compatibility
     const routes = computed(() => sketchStore.routes);
 
-    function setLocator(updateService: UpdateService) {
-        locator.value = updateService;
+    function setLocator(geolocationManager: GeolocationManager) {
+        locator.value = geolocationManager;
     }
 
     async function init() {
@@ -77,7 +77,7 @@ export const useRouteStore = defineStore('routes', () => {
             addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
-        watchingHandler.value = locator.value.addListener((newPoint: GeographicPointType) => {
+        watchingHandler.value = locator.value.addLocationListener((newPoint: GeographicPointType) => {
             if (currentRouteId.value) {
                 addPointToRoute(currentRouteId.value, newPoint);
             }
@@ -99,7 +99,7 @@ export const useRouteStore = defineStore('routes', () => {
         if (!isRecording.value || !locator.value) return;
 
         if (watchingHandler.value !== -1) {
-            locator.value.removeListener(watchingHandler.value);
+            locator.value.removeLocationListener(watchingHandler.value);
             watchingHandler.value = -1;
         }
 
@@ -122,7 +122,7 @@ export const useRouteStore = defineStore('routes', () => {
                 if (!currentRouteId.value) {
                     const newRoute = await addRoute(t("trackerView.nameNewRoute"));
                     setCurrentRouteId(newRoute.id);
-                    startRecording(locator.value.present);
+                    startRecording(locator.value.getLastKnownLocation());
                 } else {
                     startRecording();
                 }
@@ -138,7 +138,7 @@ export const useRouteStore = defineStore('routes', () => {
 
     function cleanup() {
         if (watchingHandler.value !== -1 && locator.value) {
-            locator.value.removeListener(watchingHandler.value);
+            locator.value.removeLocationListener(watchingHandler.value);
             watchingHandler.value = -1;
         }
         isRecording.value = false;

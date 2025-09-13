@@ -2,8 +2,9 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { CartoSketch } from '../libs/cartosketch';
 import type { GeographicRouteItemType, GeographicSketchType } from '../libs/cartosketch/definitions';
-import { CartoSketchRouteCollection, CartoSketchRouteItem, readCollectionFromStorage } from '../libs/cartosketch/route';
-import { storeGet, storeSet, storeSave } from '../libs/store';
+import { CartoSketchRouteCollection, CartoSketchRouteItem } from '../libs/cartosketch/route';
+import { storageGet, storageSet, storageSave } from '../libs/storage';
+import { MigrationService } from '../libs/data-layer';
 import type { GeographicPointType } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicDraftItemProperties, GeographicShape, GeographicGeneralMetaType } from '../libs/cartosketch/definitions';
 import { GeographicGeneralMetaDefaultValue } from '../libs/cartosketch/definitions';
@@ -54,17 +55,33 @@ export const useSketchStore = defineStore('sketches', () => {
     });
 
     async function init() {
-        const storedData = await storeGet<ReturnType<CartoSketch['toStorage']> | unknown>('sketches');
+        const storedData = await storageGet<ReturnType<CartoSketch['toStorage']> | unknown>('sketches');
 
         if (storedData) {
-            // Check if it's old format (route collection) or new format (sketches)
-            if (storedData && typeof storedData === 'object' && 'routes' in storedData && !('sketches' in storedData)) {
-                // Old format - migrate to new format
-                console.info("[SketchStore] Migrating old route data to new sketch format");
-                await migrateFromRouteFormat(storedData as ReturnType<CartoSketchRouteCollection['exportToStorage']>);
-            } else if (Array.isArray(storedData)) {
+            // Use the migration service to handle data migration
+            const migrationResult = MigrationService.migrateToCurrent(storedData, {
+                validateBefore: true,
+                validateAfter: true,
+                enableRollback: true
+            });
+
+            if (migrationResult.isErr()) {
+                console.error("[SketchStore] Data migration failed:", migrationResult.error);
+                // Fallback to creating default sketch
+                await createDefaultSketch();
+                return;
+            }
+
+            const result = migrationResult.value;
+
+            if (result.migratedVersions.length > 0) {
+                console.info(`[SketchStore] Successfully migrated data from version ${result.fromVersion} to ${result.toVersion}`);
+            }
+
+            // Handle the migrated data
+            if (Array.isArray(result.data)) {
                 // New format - array of sketches
-                sketches.value = storedData.map((sketchData: GeographicSketchType) =>
+                sketches.value = (result.data as GeographicSketchType[]).map((sketchData: GeographicSketchType) =>
                     CartoSketch.fromStorage(sketchData)
                 );
 
@@ -88,7 +105,7 @@ export const useSketchStore = defineStore('sketches', () => {
                     currentSketchId.value = sketches.value[0].id;
                 }
             } else {
-                // Invalid format, create empty sketch
+                // Invalid format after migration, create default sketch
                 await createDefaultSketch();
             }
         } else {
@@ -97,28 +114,6 @@ export const useSketchStore = defineStore('sketches', () => {
         }
     }
 
-    async function migrateFromRouteFormat(routeData: ReturnType<CartoSketchRouteCollection['exportToStorage']>) {
-        try {
-            // Create a default sketch with the migrated route data
-            const routeCollection = readCollectionFromStorage(routeData);
-            const sketch = new CartoSketch();
-            sketch.meta.name = routeCollection.meta.name || 'Migrated Routes';
-            sketch.routes = routeCollection.exportToStorage();
-
-            sketches.value = [sketch];
-            currentSketchId.value = sketch.id;
-
-            // Save migrated data
-            await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-            await storeSave();
-
-            console.info("[SketchStore] Route migration to sketch format complete");
-        } catch (error) {
-            console.error("[SketchStore] Failed to migrate route data:", error);
-            // Create empty sketch as fallback
-            await createDefaultSketch();
-        }
-    }
 
     async function createDefaultSketch() {
         const sketch = new CartoSketch();
@@ -126,8 +121,8 @@ export const useSketchStore = defineStore('sketches', () => {
         sketches.value = [sketch];
         currentSketchId.value = sketch.id;
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     // Sketch management methods
@@ -136,8 +131,8 @@ export const useSketchStore = defineStore('sketches', () => {
         sketch.meta.name = name;
         sketches.value.push(sketch);
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
 
         return sketch;
     }
@@ -158,8 +153,8 @@ export const useSketchStore = defineStore('sketches', () => {
             updates.tags.forEach(tag => sketch.addTag(tag));
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     async function deleteSketch(id: string) {
@@ -172,8 +167,8 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketchId.value = sketches.value.length > 0 ? sketches.value[0].id : null;
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     function setCurrentSketchId(id: string | null) {
@@ -196,8 +191,8 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketch.value.routes.routes.push(route.exportToStorage());
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
 
         return route;
     }
@@ -214,8 +209,8 @@ export const useSketchStore = defineStore('sketches', () => {
             currentRouteId.value = null;
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     async function addPointToRoute(id: string, point: GeographicPointType) {
@@ -247,8 +242,8 @@ export const useSketchStore = defineStore('sketches', () => {
             }
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     async function updateRoute(id: string, updates: { properties?: GeographicRouteItemProperties, meta?: Partial<GeographicRouteItemType["meta"]> }) {
@@ -266,8 +261,8 @@ export const useSketchStore = defineStore('sketches', () => {
 
         route.meta.modification_timestamp = Date.now();
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     async function clearRoutePoints(id: string) {
@@ -279,8 +274,8 @@ export const useSketchStore = defineStore('sketches', () => {
         route.points = [];
         route.meta.modification_timestamp = Date.now();
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     function getRouteById(id: string) {
@@ -321,8 +316,8 @@ export const useSketchStore = defineStore('sketches', () => {
             currentSketch.value.drafts.drafts.push(draftItem);
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
 
         return draftItem;
     }
@@ -344,8 +339,8 @@ export const useSketchStore = defineStore('sketches', () => {
             draft.meta.modification_timestamp = Date.now();
         }
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     async function deleteDraft(id: string) {
@@ -356,8 +351,8 @@ export const useSketchStore = defineStore('sketches', () => {
 
         currentSketch.value.drafts.drafts.splice(index, 1);
 
-        await storeSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storeSave();
+        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
+        await storageSave();
     }
 
     function getDraftById(id: string) {
