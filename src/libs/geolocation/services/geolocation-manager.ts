@@ -9,6 +9,7 @@ import { PermissionService, type PermissionPromptCallback } from './permission-s
 import { getPlatformServices } from '@/libs/platform';
 import type { IGeolocationProvider } from '@/libs/platform/types';
 import IPGeolocationBackend from '../backends/ip';
+import { cloneDeep } from 'lodash-es';
 
 export interface LocationUpdateHandler {
     (location: GeographicPointType, ...args: unknown[]): void;
@@ -276,7 +277,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
                 longitude: position.coords.longitude
             };
             console.info("[GeolocationManager] Location retrieved from platform provider");
-            this.lastKnownLocation = geographicPoint;
+            this.doLocationUpdate(geographicPoint);
             return ok(geographicPoint);
         } else {
             // If platform provider failed, return the error
@@ -303,7 +304,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         try {
             const location = await this.ipBackend.getCurrentPosition();
             console.info("[GeolocationManager] Location retrieved from IP backend");
-            this.lastKnownLocation = location;
+            this.doLocationUpdate(location);
             return ok(location);
         } catch (error) {
             const appError = toAppError(error, 'Failed to get location from IP backend');
@@ -373,7 +374,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
             };
-            this.lastKnownLocation = geographicPoint;
+            this.doLocationUpdate(geographicPoint);
             callback(geographicPoint);
         });
 
@@ -406,6 +407,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         try {
             const watchId = await this.ipBackend.watchPosition((location) => {
                 this.lastKnownLocation = location;
+                this.doLocationUpdate(location);
                 callback(location);
             });
 
@@ -544,13 +546,18 @@ export class GeolocationManager implements GeolocationManagerInterface {
     }
 
     addLocationListener(callback: LocationUpdateHandler): number {
-        const id = Date.now() + Math.random();
+        const id = Number(`${Date.now()} + ${Math.floor(Math.random() * 10000)}`);
         this.locationUpdateCallbacks.set(id, callback);
         return id;
     }
 
     removeLocationListener(id: number): void {
         this.locationUpdateCallbacks.delete(id);
+    }
+
+    doLocationUpdate(location: GeographicPointType): void {
+        this.lastKnownLocation = cloneDeep(location);
+        this.locationUpdateCallbacks.forEach((callback) => callback(cloneDeep(location)));
     }
 
     // Additional utility methods
