@@ -27,14 +27,14 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 ### High Priority
 
-- [ ] Route distance calculation
-- [ ] Route management module refactoring
+- [x] Route distance calculation
+- [x] Route management module refactoring
 - [ ] Bug fixes for the latest major version
 - [ ] Dead Reckoning (DR) system for better geolocation accuracy
 - [ ] Edit routes functionality
-- [ ] Implement keep alive feature for the web app
+- [x] Implement keep alive feature for the web app
 - [ ] Save shape edits on the map
-- [ ] Widgets for editing and modifying shape information
+- [x] Widgets for editing and modifying shape information
 - [ ] Share routes capability
 - [ ] History of drawing actions for Redo and Undo
 
