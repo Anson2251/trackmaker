@@ -6,6 +6,7 @@ import { GeolocationManager } from './libs/geolocation';
 import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
+import { initProj4rsModule } from "./utils/proj4-distance";
 
 // Extend Window interface for our custom properties
 declare global {
@@ -33,7 +34,15 @@ export const modules: ModuleItem[] = [
 
             app.mount("#app");
         },
-        dependencies: ["platform-services", "geolocation"]
+        dependencies: ["platform-services", "geolocation", "proj4-wasm"]
+    },
+    {
+        name: "proj4-wasm",
+        displayName: "Proj4 Wasm",
+        moduleInit: async () => {
+            await initProj4rsModule();
+        },
+        dependencies: []
     },
     {
         name: "platform-services",
