@@ -125,7 +125,7 @@ function openRouteContextMenu(e: MouseEvent) {
 async function handleRename(routeId: string) {
   if (newRouteName.value.trim()) {
     await routeStore.updateRoute(routeId, {
-      name: newRouteName.value.trim(),
+      meta: { name: newRouteName.value.trim() },
     });
     showRenameDialog.value = false;
   }

@@ -246,7 +246,7 @@ export const useSketchStore = defineStore('sketches', () => {
         await storageSave();
     }
 
-    async function updateRoute(id: string, updates: { properties?: GeographicRouteItemProperties, meta?: Partial<GeographicRouteItemType["meta"]> }) {
+    async function updateRoute(id: string, updates: { properties?: Partial<GeographicRouteItemProperties>, meta?: Partial<GeographicGeneralMetaType> }) {
         if (!currentSketch.value) return;
 
         const route = currentSketch.value.routes.routes.find(r => r.id === id);

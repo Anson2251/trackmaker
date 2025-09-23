@@ -52,10 +52,17 @@ let isProj4rsInitialized = false;
  */
 export async function initProj4rsModule(): Promise<void> {
     if (!isProj4rsInitialized) {
-        console.log("[Proj4WASM] Fetching WASM module...")
-        await initProj4rs({module_or_path: proj4wasm});
-        isProj4rsInitialized = true;
-        console.log("[Proj4WASM] WASM module loaded successfully.")
+        try {
+            console.log("[Proj4WASM] Fetching WASM module...")
+            await initProj4rs({module_or_path: proj4wasm});
+            isProj4rsInitialized = true;
+            console.log("[Proj4WASM] WASM module loaded successfully.")
+        }
+        catch (error) {
+            console.warn("[Proj4WASM] Failed to load WASM module, using the JS fallback.");
+            console.error(error);
+            isProj4rsInitialized = true; // at least we tried
+        }
     }
 }
 

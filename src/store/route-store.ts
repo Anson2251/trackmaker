@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import type { GeographicPointType } from '../libs/geolocation/types';
-import type { GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
+import type { GeographicGeneralMetaType, GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
 
@@ -51,7 +51,7 @@ export const useRouteStore = defineStore('routes', () => {
         await sketchStore.addPointToRoute(id, point);
     }
 
-    async function updateRoute(id: string, updates: { name?: string; properties?: GeographicRouteItemProperties }) {
+    async function updateRoute(id: string, updates: { meta?: Partial<GeographicGeneralMetaType>, properties?: Partial<GeographicRouteItemProperties> }) {
         await sketchStore.updateRoute(id, updates);
     }
 
