@@ -294,8 +294,17 @@ const { toggleBuildingLayer, isShowingBuildingLayer } = (() => {
 };
 })();
 
-const isWatchingCurrentLocation = ref(true);
-
+const { toggleWatchingCurrentLocation, isWatchingCurrentLocation } = (() => {
+  const isWatchingCurrentLocation = ref(true);
+  return {toggleWatchingCurrentLocation: () => {
+    isWatchingCurrentLocation.value = !isWatchingCurrentLocation.value;
+    if (isWatchingCurrentLocation.value) {
+      map.value?.flyTo({ center: locator.getLastKnownLocation().toLngLatLike(), zoom: 18 });
+    }
+  },
+  isWatchingCurrentLocation: computed(() => isWatchingCurrentLocation.value)
+};
+})();
 
 function initMap(event: any) {
   map.value = event.map;
@@ -530,7 +539,7 @@ const isUserSettingTheMap = ref(false);
                   'btn-control',
                   { active: isWatchingCurrentLocation },
                 ]"
-                @click="isWatchingCurrentLocation = !isWatchingCurrentLocation"
+                @click="toggleWatchingCurrentLocation"
               >
                 <n-icon :size="20">
                   <CurrentLocation />
