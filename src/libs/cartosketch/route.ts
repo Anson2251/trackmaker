@@ -1,6 +1,6 @@
 import { v4 as uuidV4 } from "uuid";
 import { cloneDeep } from "lodash-es";
-import { type GeographicPointType } from '../../libs/geolocation/types';
+import { type GeographicPoint } from '../../libs/geolocation/types';
 
 import {
     type GeographicRouteGeoJSON,
@@ -100,8 +100,8 @@ export class CartoSketchRouteItem {
     readonly id: string;
     meta: GeographicRouteItemType["meta"];
     readonly properties: GeographicRouteItemProperties;
-    private points: GeographicPointType[];
-    constructor(id: string = uuidV4(), points: GeographicPointType[] = [], properties: GeographicRouteItemProperties = {}, meta: Partial<GeographicGeneralMetaType>) {
+    private points: GeographicPoint[];
+    constructor(id: string = uuidV4(), points: GeographicPoint[] = [], properties: GeographicRouteItemProperties = {}, meta: Partial<GeographicGeneralMetaType>) {
         this.id = id;
         this.meta = {...GeographicGeneralMetaDefaultValue(), record_timespan: 0, ...meta};
         this.properties = properties;
@@ -137,13 +137,13 @@ export class CartoSketchRouteItem {
         this.meta.record_timespan = recordTimespan
     }
 
-    setPoints(points: GeographicPointType[]) {
+    setPoints(points: GeographicPoint[]) {
         this.points = cloneDeep(points);
         this.updateModificationTime();
     }
 
-    appendPoint(point: GeographicPointType) {
-        this.points.push(cloneDeep(point) as GeographicPointType);
+    appendPoint(point: GeographicPoint) {
+        this.points.push(cloneDeep(point) as GeographicPoint);
         this.updateModificationTime();
     }
 
@@ -251,7 +251,7 @@ export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON, name?
         }
     }
 
-    const routeItem = new CartoSketchRouteItem(id, coordinates?.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPointType)) || [], properties, defaultMeta);
+    const routeItem = new CartoSketchRouteItem(id, coordinates?.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPoint)) || [], properties, defaultMeta);
 
     return routeItem;
 }

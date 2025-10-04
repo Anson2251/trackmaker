@@ -1,4 +1,4 @@
-import type { GeographicPointType } from "../geolocation/types";
+import type { GeographicPoint } from "../geolocation/types";
 
 // ======= META =======
 
@@ -108,7 +108,7 @@ export type GeographicRouteItemType = {
         distance?: number
     },
     properties: GeographicRouteItemProperties,
-    points: GeographicPointType[]
+    points: GeographicPoint[]
 };
 
 export type GeographicRouteItemGeoJSON = {

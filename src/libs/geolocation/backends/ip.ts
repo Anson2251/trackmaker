@@ -1,10 +1,10 @@
 /* eslint-disable no-async-promise-executor */
-import { type GeographicPointType, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
+import { type GeographicPoint, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
 import { cloneDeep, isEqual } from "lodash-es";
 
 type HandlerType = {
     id: number
-    callback: (geoLocation: GeographicPointType) => void
+    callback: (geoLocation: GeographicPoint) => void
 }
 
 const handlers: HandlerType[] = [];
@@ -24,7 +24,7 @@ function removeHandler(id: number) {
 
 let watchHandler: number = -1;
 
-let lastLocation: GeographicPointType = {
+let lastLocation: GeographicPoint = {
     latitude: 0,
     longitude: 0
 };
@@ -82,7 +82,7 @@ export class IPGeolocationBackend implements GeolocationBackend {
         };
     }
 
-    async getCurrentPosition(): Promise<GeographicPointType> {
+    async getCurrentPosition(): Promise<GeographicPoint> {
         console.info("[geolocation] Getting current position from IP");
         const info = await this.getInfo();
         console.info("[geolocation] Successfully retrieved current position from IP");
@@ -92,7 +92,7 @@ export class IPGeolocationBackend implements GeolocationBackend {
         };
     }
 
-    watchPosition(callback: (location: GeographicPointType) => void) {
+    watchPosition(callback: (location: GeographicPoint) => void) {
         console.info("[geolocation] Starting IP geolocation watch");
         const id = addHandler(callback);
 

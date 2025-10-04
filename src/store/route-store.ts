@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
-import type { GeographicPointType } from '../libs/geolocation/types';
-import type { GeographicGeneralMetaType, GeographicRouteItemProperties } from '../libs/cartosketch/definitions';
+import type { GeographicPoint } from '../libs/geolocation/types';
+import type { GeographicRouteItemProperties, GeographicRouteItemType } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
 
@@ -47,11 +47,11 @@ export const useRouteStore = defineStore('routes', () => {
         await sketchStore.deleteRoute(id);
     }
 
-    async function addPointToRoute(id: string, point: GeographicPointType) {
+    async function addPointToRoute(id: string, point: GeographicPoint) {
         await sketchStore.addPointToRoute(id, point);
     }
 
-    async function updateRoute(id: string, updates: { meta?: Partial<GeographicGeneralMetaType>, properties?: Partial<GeographicRouteItemProperties> }) {
+    async function updateRoute(id: string, updates: { meta?: Partial<GeographicRouteItemType["meta"]>, properties?: Partial<GeographicRouteItemProperties> }) {
         await sketchStore.updateRoute(id, updates);
     }
 
@@ -68,7 +68,7 @@ export const useRouteStore = defineStore('routes', () => {
     }
 
     // New recording functionality
-    function startRecording(initialPoint?: GeographicPointType) {
+    function startRecording(initialPoint?: GeographicPoint) {
         if (isRecording.value || !locator.value) return;
 
         isRecording.value = true;
@@ -77,7 +77,7 @@ export const useRouteStore = defineStore('routes', () => {
             addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
-        watchingHandler.value = locator.value.addLocationListener((newPoint: GeographicPointType) => {
+        watchingHandler.value = locator.value.addLocationListener((newPoint: GeographicPoint) => {
             if (currentRouteId.value) {
                 addPointToRoute(currentRouteId.value, newPoint);
             }

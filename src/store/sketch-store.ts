@@ -5,7 +5,7 @@ import type { GeographicRouteItemType, GeographicSketchType } from '../libs/cart
 import { CartoSketchRouteCollection, CartoSketchRouteItem } from '../libs/cartosketch/route';
 import { storageGet, storageSet, storageSave } from '../libs/storage';
 import { MigrationService } from '../libs/data-layer';
-import type { GeographicPointType } from '../libs/geolocation/types';
+import type { GeographicPoint } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicDraftItemProperties, GeographicShape, GeographicGeneralMetaType } from '../libs/cartosketch/definitions';
 import { GeographicGeneralMetaDefaultValue } from '../libs/cartosketch/definitions';
 import { calculatePathDistance } from '../utils/proj4-distance';
@@ -213,7 +213,7 @@ export const useSketchStore = defineStore('sketches', () => {
         await storageSave();
     }
 
-    async function addPointToRoute(id: string, point: GeographicPointType) {
+    async function addPointToRoute(id: string, point: GeographicPoint) {
         if (!currentSketch.value) return;
 
         const route = currentSketch.value.routes.routes.find(r => r.id === id);
@@ -246,7 +246,7 @@ export const useSketchStore = defineStore('sketches', () => {
         await storageSave();
     }
 
-    async function updateRoute(id: string, updates: { properties?: Partial<GeographicRouteItemProperties>, meta?: Partial<GeographicGeneralMetaType> }) {
+    async function updateRoute(id: string, updates: { properties?: Partial<GeographicRouteItemType["properties"]>, meta?: Partial<GeographicRouteItemType["meta"]> }) {
         if (!currentSketch.value) return;
 
         const route = currentSketch.value.routes.routes.find(r => r.id === id);

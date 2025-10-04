@@ -1,5 +1,5 @@
 import { Result, err, ok } from 'neverthrow';
-import type { GeographicPointType } from '../types';
+import { GeographicPoint } from '../types';
 import {
     GeolocationError,
     GeolocationUpdateServiceError
@@ -12,25 +12,25 @@ import IPGeolocationBackend from '../backends/ip';
 import { cloneDeep } from 'lodash-es';
 
 export interface LocationUpdateHandler {
-    (location: GeographicPointType, ...args: unknown[]): void;
+    (location: GeographicPoint, ...args: unknown[]): void;
 }
 
 export interface LocationServiceInterface {
-    getCurrentLocation(): Promise<Result<GeographicPointType, GeolocationError>>;
+    getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>>;
     startWatching(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>>;
     stopWatching(handlerId: number): Result<void, GeolocationError>;
     isWatching(): boolean;
-    getLastKnownLocation(): GeographicPointType;
+    getLastKnownLocation(): GeographicPoint;
 }
 
 export interface GeolocationManagerInterface {
     initialize(promptCallback?: PermissionPromptCallback): Promise<Result<void, GeolocationError>>;
-    getCurrentLocation(): Promise<Result<GeographicPointType, GeolocationError>>;
+    getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>>;
     startLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>>;
     stopLocationUpdates(handlerId: number): Result<void, GeolocationError>;
     isServiceRunning(): boolean;
     isUsingGPS(): boolean;
-    getLastKnownLocation(): GeographicPointType;
+    getLastKnownLocation(): GeographicPoint;
     addLocationListener(callback: LocationUpdateHandler): number;
     removeLocationListener(id: number): void;
     getCurrentBackend(): 'platform' | 'ip' | null;
@@ -44,7 +44,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
     private isWatching = false;
     private watchId: number | null = null;
     private locationUpdateCallbacks: Map<number, LocationUpdateHandler> = new Map();
-    private lastKnownLocation: GeographicPointType | null = null;
+    private lastKnownLocation: GeographicPoint | null = null;
     private currentBackend: 'platform' | 'ip' | null = null;
 
     constructor(
@@ -151,7 +151,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
     /**
      * Try to get location via GPS/platform provider
      */
-    private async tryGetGPSLocation(): Promise<Result<GeographicPointType, GeolocationError>> {
+    private async tryGetGPSLocation(): Promise<Result<GeographicPoint, GeolocationError>> {
         if (!this.platformGeolocationProvider) {
             return err(new GeolocationUpdateServiceError(
                 'No platform geolocation provider available',
@@ -163,10 +163,10 @@ export class GeolocationManager implements GeolocationManagerInterface {
             const positionResult = await this.platformGeolocationProvider.getCurrentPosition();
             if (positionResult.isOk()) {
                 const position = positionResult.value;
-                return ok({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                });
+                return ok(new GeographicPoint(
+                position.coords.latitude,
+                position.coords.longitude
+                ));
             } else {
                 return err(new GeolocationUpdateServiceError(
                     'Failed to get location from platform provider',
@@ -219,7 +219,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         }
     }
 
-    async getCurrentLocation(): Promise<Result<GeographicPointType, GeolocationError>> {
+    async getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>> {
         if (!this.isInitialized) {
             const error = new GeolocationUpdateServiceError("Geolocation manager not initialized", 'not_initialized');
             logError(error, 'GeolocationManager.getCurrentLocation');
@@ -261,7 +261,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
     /**
      * Get location from platform provider
      */
-    private async getLocationFromPlatformProvider(): Promise<Result<GeographicPointType, GeolocationError>> {
+    private async getLocationFromPlatformProvider(): Promise<Result<GeographicPoint, GeolocationError>> {
         if (!this.platformGeolocationProvider) {
             return err(new GeolocationUpdateServiceError(
                 'Platform geolocation provider not available',
@@ -272,10 +272,10 @@ export class GeolocationManager implements GeolocationManagerInterface {
         const platformResult = await this.platformGeolocationProvider.getCurrentPosition();
         if (platformResult.isOk()) {
             const position = platformResult.value;
-            const geographicPoint: GeographicPointType = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
+            const geographicPoint = new GeographicPoint(
+                position.coords.latitude,
+                position.coords.longitude
+            );
             console.info("[GeolocationManager] Location retrieved from platform provider");
             this.doLocationUpdate(geographicPoint);
             return ok(geographicPoint);
@@ -293,7 +293,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
     /**
      * Get location from IP backend
      */
-    private async getLocationFromIPBackend(): Promise<Result<GeographicPointType, GeolocationError>> {
+    private async getLocationFromIPBackend(): Promise<Result<GeographicPoint, GeolocationError>> {
         if (!this.ipBackend) {
             return err(new GeolocationUpdateServiceError(
                 'IP backend not available',
@@ -370,10 +370,10 @@ export class GeolocationManager implements GeolocationManagerInterface {
         }
 
         const watchResult = await this.platformGeolocationProvider.watchPosition((position) => {
-            const geographicPoint: GeographicPointType = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
+            const geographicPoint = new GeographicPoint(
+                position.coords.latitude,
+                position.coords.longitude
+            )
             this.doLocationUpdate(geographicPoint);
             callback(geographicPoint);
         });
@@ -538,9 +538,9 @@ export class GeolocationManager implements GeolocationManagerInterface {
         return this.currentBackend;
     }
 
-    getLastKnownLocation(): GeographicPointType {
+    getLastKnownLocation(): GeographicPoint {
         if (!this.lastKnownLocation) {
-            return { latitude: 0, longitude: 0 };
+            return new GeographicPoint(0, 0);
         }
         return this.lastKnownLocation;
     }
@@ -555,7 +555,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         this.locationUpdateCallbacks.delete(id);
     }
 
-    doLocationUpdate(location: GeographicPointType): void {
+    doLocationUpdate(location: GeographicPoint): void {
         this.lastKnownLocation = cloneDeep(location);
         this.locationUpdateCallbacks.forEach((callback) => callback(cloneDeep(location)));
     }

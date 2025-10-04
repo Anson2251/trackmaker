@@ -18,11 +18,11 @@ import {
   MglMap,
   MglNavigationControl,
   MglScaleControl,
-  MglGeolocateControl,
   MglFullscreenControl,
   MglCustomControl,
   MglGeoJsonSource,
   MglLineLayer,
+  MglMarker,
 } from "@indoorequal/vue-maplibre-gl";
 import {
   lightTheme,
@@ -31,11 +31,11 @@ import {
   NPopover,
   NText,
   NSpin,
-  NAlert,
   NIcon,
   useMessage,
   useThemeVars,
 } from "naive-ui";
+import MapCompass from "@/components/MapCompass.vue";
 import {
   TerraDraw,
   TerraDrawPointMode,
@@ -43,7 +43,7 @@ import {
   TerraDrawLineStringMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import { Map as Mgl, Marker } from "maplibre-gl";
+import { Map as Mgl, Marker, Map } from "maplibre-gl";
 import {
   MapPin,
   Line,
@@ -52,8 +52,9 @@ import {
   Square,
   // Upload,
   Route,
+  BuildingCommunity,
+  CurrentLocation
 } from "@vicons/tabler";
-import { type GeographicPointType } from "@/libs/geolocation/types";
 import { useRouteStore } from "@/store/route-store";
 // import {
 //   tauriFileSaveDialog,
@@ -67,23 +68,24 @@ import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend"
 import { GeolocationManager } from "@/libs/geolocation";
 import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 import { useSettingsStore } from "@/store/settings-store";
+import { useMapStore } from "@/store/map-store";
 import PlatformInfo from "@/utils/platform";
 import type NoSleep from "nosleep.js";
+import { DeviceOrientationService } from "@/utils/device-orientation-service";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
 
 const theme = useThemeVars();
 const settings = useSettingsStore();
+const mapStore = useMapStore();
 const message = useMessage();
 const locator = inject("geolocation") as GeolocationManager;
 const { t } = useI18n();
 const i18n = useI18n();
-const zoom = ref(7);
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
 
-const location = ref<GeographicPointType>({ latitude: 0, longitude: 0 });
 const map = shallowRef<Mgl | null>(null);
 const draw = shallowRef<TerraDraw | null>(null);
 const activeDrawMethod = ref<string>("select");
@@ -219,9 +221,94 @@ const changeMapLanguage = (map: Mgl, lang: string) => {
   }
 };
 
+function setupBuildingLayer(map: Map){
+
+      // Insert the layer beneath any symbol layer.
+      const layers = map.getStyle().layers;
+
+      let labelLayerId;
+      for (let i = 0; i < layers.length; i++) {
+          const layer = layers[i];
+          if (
+              layer.type === 'symbol' &&
+              layer.layout &&
+              typeof layer.layout === 'object' &&
+              'text-field' in layer.layout
+          ) {
+              labelLayerId = layer.id;
+              break;
+          }
+      }
+
+      map.addLayer(
+          {
+              'id': '3d-buildings',
+              'source': 'openfreemap',
+              'source-layer': 'building',
+              'type': 'fill-extrusion',
+              'minzoom': 15,
+              'filter': ['!=', ['get', 'hide_3d'], true],
+              'paint': {
+                  'fill-extrusion-color': [
+                      'interpolate',
+                      ['linear'],
+                      ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
+                  ],
+                  'fill-extrusion-height': [
+                      'interpolate',
+                      ['linear'],
+                      ['zoom'],
+                      15,
+                      0,
+                      16,
+                      ['get', 'render_height']
+                  ],
+                  'fill-extrusion-base': ['case',
+                      ['>=', ['get', 'zoom'], 16],
+                      ['get', 'render_min_height'], 0
+                  ]
+              }
+          },
+          labelLayerId
+      );
+}
+
+function removeBuildingLayer(map: Map){
+  map.removeLayer('3d-buildings');
+}
+
+const { toggleBuildingLayer, isShowingBuildingLayer } = (() => {
+  const isShowingBuildingLayer = ref(false);
+  return {toggleBuildingLayer: () => {
+    const localMap = map.value;
+    if (localMap) {
+      if (isShowingBuildingLayer.value) {
+        removeBuildingLayer(localMap);
+      } else {
+        setupBuildingLayer(localMap);
+      }
+      isShowingBuildingLayer.value = !isShowingBuildingLayer.value;
+    }
+  },
+  isShowingBuildingLayer: computed(() => isShowingBuildingLayer.value)
+};
+})();
+
+const isWatchingCurrentLocation = ref(true);
+
+
 function initMap(event: any) {
   map.value = event.map;
+  map.value?.addSource('openfreemap', {
+    url: `https://tiles.openfreemap.org/planet`,
+    type: 'vector',
+  });
   if (map.value) changeMapLanguage(map.value as any, i18n.locale.value);
+  if (mapStore.isTrackingOrientation) {
+    toggleOrientationTracking(); // restart the tracking
+    toggleOrientationTracking();
+  }
+
   map.value?.on("click", () => {
     isRouteDrawerOpen.value = false;
   });
@@ -233,24 +320,27 @@ function initMap(event: any) {
   draw.value.start();
 }
 
-let isNewRoute = true;
-async function changeRecordState() {
-  try {
-    if (!routeStore.isRecording) isNewRoute = routeStore.currentRouteId === null;
-    await routeStore.toggleRecording(t);
-    if (!routeStore.isRecording && isNewRoute) {
-      drawerTooltipOpened.value = true;
-      setTimeout(() => {
-        drawerTooltipOpened.value = false;
-      }, 3000);
+const changeRecordState = (() => {
+  let isNewRoute = true;
+  return async function () {
+    try {
+      if (!routeStore.isRecording) isNewRoute = routeStore.currentRouteId === null;
+      await routeStore.toggleRecording(t);
+      if (!routeStore.isRecording && isNewRoute) {
+        drawerTooltipOpened.value = true;
+        setTimeout(() => {
+          drawerTooltipOpened.value = false;
+        }, 3000);
+      }
+      if (routeStore.isRecording) noSleep.enable();
+      else noSleep.disable();
+    } catch (err) {
+      console.error(err);
+      noSleep.disable();
     }
-    if (routeStore.isRecording) noSleep.enable();
-    else noSleep.disable();
-  } catch (err) {
-    console.error(err);
-    noSleep.disable();
   }
-}
+})();
+
 
 // async function savePath() {
 //   if (__TAURI_ENVIRONMENT__) {
@@ -335,25 +425,16 @@ const toggleRouteDrawer = () =>
 
 const drawerTooltipOpened = ref(false);
 
-const initialLocateError = ref("");
-
 const mapReady = ref<boolean>(false);
 onMounted(async () => {
   await routeStore.init();
+  await mapStore.init();
 
-  try {
-    const locationResult = await locator.getCurrentLocation();
-    if (locationResult.isOk()) {
-      location.value = locationResult.value;
-      if (!locator.isUsingGPS())
-        message.warning(t("trackerView.gpsWarning"), { duration: 5000 });
-    } else {
-      throw locationResult.error;
-    }
-  } catch (err) {
-    initialLocateError.value =
-      (err as Error).message ?? String(err);
-  }
+  console.log(locator.getLastKnownLocation())
+  // !TODO change the hard coded time to a setting
+  if (Date.now() - mapStore.lastUpdateTime > 60000) mapStore.setCenter(locator.getLastKnownLocation())
+
+
   mapReady.value = true;
   draw.value?.start();
 });
@@ -375,6 +456,42 @@ function formatDuration(ms: number) {
     formatted += `${String(displaySeconds.toFixed(1)).padStart(4, '0')}s`
     return formatted
 }
+
+
+let latestBearing = 0
+// Handle device orientation updates when tracking is enabled
+const handleDeviceOrientation = (bearing: number) => {
+  latestBearing = bearing
+  if (mapStore.isTrackingOrientation) {
+    if (map.value?.isEasing() || map.value?.isMoving() || map.value?.isRotating() || map.value?.isZooming() || isUserSettingTheMap.value) return;
+      mapStore.setBearing(bearing)
+  }
+};
+
+// Toggle orientation tracking
+
+const toggleOrientationTracking = (() => {
+  let deviceOrientationHandlerId: number | null = null;
+  return () => {
+    mapStore.setTrackingOrientation(!mapStore.isTrackingOrientation);
+
+    if (mapStore.isTrackingOrientation) {
+      // Start tracking device orientation
+      deviceOrientationHandlerId = DeviceOrientationService.addHandler(handleDeviceOrientation);
+      DeviceOrientationService.start();
+    } else {
+      // Stop tracking device orientation
+      if (deviceOrientationHandlerId !== null) {
+        DeviceOrientationService.stop();
+        deviceOrientationHandlerId = null;
+        mapStore.setBearing(0);
+        map.value?.setBearing(0);
+      }
+    }
+  }
+})()
+
+const isUserSettingTheMap = ref(false);
 </script>
 
 <template>
@@ -382,24 +499,58 @@ function formatDuration(ms: number) {
     <div class="map-layout">
       <transition name="map-load">
         <div
-          v-if="mapReady && !initialLocateError"
+          v-if="mapReady"
           style="width: 100%; height: 100%"
         >
           <mgl-map
+            v-model:bearing="mapStore.bearing"
+            v-model:zoom="mapStore.zoom"
+            v-model:center="mapStore.center"
             :map-style="styleUrl"
-            :center="[location.longitude, location.latitude]"
-            :zoom="zoom"
             height="100%"
             @map:load="initMap"
+            @map:touchstart="isUserSettingTheMap = true"
+            @map:touchend="(() => {
+              isUserSettingTheMap = false;
+              if (mapStore.isTrackingOrientation) handleDeviceOrientation(latestBearing);
+            })"
           >
             <mgl-navigation-control position="top-left" />
-            <mgl-geolocate-control
+            <!-- <mgl-geolocate-control
               v-if="locator.isUsingGPS() || devMode"
               position="top-left"
               :track-user-location="true"
-            />
+            /> -->
             <mgl-fullscreen-control position="top-left" />
             <mgl-scale-control position="bottom-left" />
+            <mgl-custom-control position="top-left">
+              <button
+                v-if="isMobile && locator.isUsingGPS() || devMode"
+                :class="[
+                  'btn-control',
+                  { active: isWatchingCurrentLocation },
+                ]"
+                @click="isWatchingCurrentLocation = !isWatchingCurrentLocation"
+              >
+                <n-icon :size="20">
+                  <CurrentLocation />
+                </n-icon>
+              </button>
+            </mgl-custom-control>
+            <mgl-custom-control position="top-left">
+              <button
+                :class="[
+                  'btn-control',
+                  { active: isShowingBuildingLayer },
+                ]"
+                @click="toggleBuildingLayer"
+              >
+                <n-icon :size="20">
+                  <BuildingCommunity />
+                </n-icon>
+              </button>
+            </mgl-custom-control>
+
             <mgl-custom-control
               v-if="!isMobile || devMode"
               position="top-right"
@@ -409,7 +560,6 @@ function formatDuration(ms: number) {
                 :key="item.name"
                 :class="[
                   'btn-control',
-                  'btn-draw-mode',
                   { active: item.mode.mode === activeDrawMethod },
                 ]"
                 :title="item.name"
@@ -442,7 +592,10 @@ function formatDuration(ms: number) {
               >
                 <template #trigger>
                   <button
-                    class="btn-control btn-route-toggle"
+                    :class="[
+                      'btn-control',
+                      { active: isRouteDrawerOpen },
+                    ]"
                     @click="toggleRouteDrawer"
                   >
                     <n-icon :size="24">
@@ -456,6 +609,7 @@ function formatDuration(ms: number) {
             <mgl-geo-json-source
               source-id="geojson"
               :data="(geojsonSource as any)"
+              :line-metrics="true"
             >
               <mgl-line-layer
                 layer-id="geojson"
@@ -465,12 +619,64 @@ function formatDuration(ms: number) {
                 }"
                 :paint="{
                   'line-width': 5,
-                  'line-color': '#008800',
+                  'line-gradient': [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    0, '#00ff00',
+                    0.7, '#00DD00',
+                    0.9, '#00BB00',
+                    1, '#008800'
+                  ],
                   'line-opacity': 0.8,
                 }"
               />
             </mgl-geo-json-source>
+            <!-- <mgl-vector-source
+              source-id="openfreemap"
+              url="https://tiles.openfreemap.org/planet"
+            >
+              <mgl-fill-extrusion-layer
+                layer-id="3d-buildings"
+                source-layer="building"
+                :minzoom="15"
+                :filter="['!=', ['get', 'hide_3d'], true]"
+                :paint="{
+                  'fill-extrusion-color': [
+                      'interpolate',
+                      ['linear'],
+                      ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
+                  ],
+                  'fill-extrusion-height': [
+                      'interpolate',
+                      ['linear'],
+                      ['zoom'],
+                      15,
+                      0,
+                      16,
+                      ['get', 'render_height']
+                  ],
+                  'fill-extrusion-base': ['case',
+                      ['>=', ['get', 'zoom'], 16],
+                      ['get', 'render_min_height'], 0
+                  ]
+              }"
+              />
+            </mgl-vector-source> -->
+            <mgl-marker
+              v-if="locator.isServiceRunning() && isWatchingCurrentLocation"
+              :coordinates="locator.getLastKnownLocation().toLngLatLike()"
+              color="#006600"
+            />
           </mgl-map>
+          <div style="z-index: 99; position: absolute; right: 4px; top: 9em;">
+            <MapCompass
+              v-if="isMobile || devMode"
+              v-model:bearing="mapStore.bearing"
+              :tracking="mapStore.isTrackingOrientation"
+              @toggle-tracking="toggleOrientationTracking"
+            />
+          </div>
         </div>
         <div
           v-else
@@ -482,25 +688,12 @@ function formatDuration(ms: number) {
           "
         >
           <n-spin
-            v-if="!initialLocateError"
             size="large"
           >
             <template #description>
               <n-text>{{ t("trackerView.mapLoading") }}</n-text>
             </template>
           </n-spin>
-          <n-alert
-            v-else
-            :title="t('app.error')"
-            type="error"
-          >
-            <div>
-              <br>
-              <b>{{ t("app.error") }}: </b><br><code>{{
-                initialLocateError
-              }}</code>
-            </div>
-          </n-alert>
         </div>
       </transition>
     </div>
@@ -604,13 +797,10 @@ function formatDuration(ms: number) {
   display: flex !important;
   justify-content: center;
   align-items: center;
-}
-
-.btn-draw-mode {
   transition: background-color 0.2s ease, border-radius 0.2s ease;
 }
 
-.btn-draw-mode.active {
+.btn-control.active {
   background-color: #bfdbfe;
   border-radius: 0.125rem;
 }

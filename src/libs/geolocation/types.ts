@@ -1,6 +1,14 @@
-export interface GeographicPointType {
+export class GeographicPoint {
     latitude: number;
     longitude: number;
+    constructor(latitude: number, longitude: number) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    toLngLatLike(): [number, number] {
+        return [this.longitude, this.latitude];
+    }
 }
 
 export interface GeoJSONPointType {
@@ -11,7 +19,7 @@ export interface GeoJSONPointType {
 
 export type LocationResponseType = {
     status: boolean;
-    location: GeographicPointType;
+    location: GeographicPoint;
     error: {
         code: number;
         message: string;
@@ -33,9 +41,9 @@ export enum LocationResponseErrorEnum {
 }
 
 export interface GeolocationBackend {
-    getPermissionStatus(): Promise<"granted" | "denied" | "prompt" | "unknown">; 
-    getCurrentPosition(): Promise<GeographicPointType> 
-    watchPosition(callback: (location: GeographicPointType) => void): Promise<number>
+    getPermissionStatus(): Promise<"granted" | "denied" | "prompt" | "unknown">;
+    getCurrentPosition(): Promise<GeographicPoint>
+    watchPosition(callback: (location: GeographicPoint) => void): Promise<number>
     clearWatch(channelId: number): void
 }
 
