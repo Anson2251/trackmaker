@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-CexY3iwd.js","./platform-Vc3gnJhU.js","./vue-i18n-CkQPQCyI.js","./App-jBe8gYQr.css","./index-CvuvwLIW.js","./index-Dl3etUM5.css","./index-De6blp4D.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App--HgMuROu.js","./platform-CwSHpBLR.js","./vue-i18n-D8YIrlzF.js","./App-jBe8gYQr.css","./index-C80J-sXZ.js","./index-DE1BnHrd.css","./index-DxCYE_Oz.js"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -9855,18 +9855,18 @@ ${We(e[1])}`
       moduleInit: async () => {
         var _a2;
         const e = ru((await Ti(async () => {
-          const { default: n } = await import("./App-CexY3iwd.js");
+          const { default: n } = await import("./App--HgMuROu.js");
           return {
             default: n
           };
         }, __vite__mapDeps([0,1,2,3]), import.meta.url)).default);
         e.use(Cu()), e.use((await Ti(async () => {
-          const { default: n } = await import("./index-CvuvwLIW.js");
+          const { default: n } = await import("./index-C80J-sXZ.js");
           return {
             default: n
           };
         }, __vite__mapDeps([4,2,1,5]), import.meta.url)).default), e.use((await Ti(async () => {
-          const { i18n: n } = await import("./index-De6blp4D.js");
+          const { i18n: n } = await import("./index-DxCYE_Oz.js");
           return {
             i18n: n
           };
