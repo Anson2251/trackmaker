@@ -72,6 +72,7 @@ import { useMapStore } from "@/store/map-store";
 import PlatformInfo from "@/utils/platform";
 import type NoSleep from "nosleep.js";
 import { DeviceOrientationService } from "@/utils/device-orientation-service";
+import LocatingIcon from "@/assets/locating-icon.svg?url"
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -296,14 +297,15 @@ const { toggleBuildingLayer, isShowingBuildingLayer } = (() => {
 
 const { toggleWatchingCurrentLocation, isWatchingCurrentLocation } = (() => {
   const isWatchingCurrentLocation = ref(true);
-  return {toggleWatchingCurrentLocation: () => {
-    isWatchingCurrentLocation.value = !isWatchingCurrentLocation.value;
-    if (isWatchingCurrentLocation.value) {
-      map.value?.flyTo({ center: locator.getLastKnownLocation().toLngLatLike(), zoom: 18 });
-    }
-  },
-  isWatchingCurrentLocation: computed(() => isWatchingCurrentLocation.value)
-};
+  return {
+    toggleWatchingCurrentLocation: () => {
+      isWatchingCurrentLocation.value = !isWatchingCurrentLocation.value;
+      if (isWatchingCurrentLocation.value) {
+        map.value?.flyTo({ center: locator.getLastKnownLocation().toLngLatLike(), zoom: 18 });
+      }
+    },
+    isWatchingCurrentLocation: computed(() => isWatchingCurrentLocation.value)
+  };
 })();
 
 function initMap(event: any) {
@@ -435,13 +437,18 @@ const toggleRouteDrawer = () =>
 const drawerTooltipOpened = ref(false);
 
 const mapReady = ref<boolean>(false);
+const deviceBearing = ref<number>(0);
 onMounted(async () => {
   await routeStore.init();
   await mapStore.init();
 
   console.log(locator.getLastKnownLocation())
   // !TODO change the hard coded time to a setting
-  if (Date.now() - mapStore.lastUpdateTime > 60000) mapStore.setCenter(locator.getLastKnownLocation())
+  if (Date.now() - mapStore.lastUpdateTime > 6000 && mapStore.lastUpdateTime !== 0) mapStore.setCenter(locator.getLastKnownLocation())
+  DeviceOrientationService.addHandler((bearing) => {
+    deviceBearing.value = bearing;
+  });
+  DeviceOrientationService.start();
 
 
   mapReady.value = true;
@@ -487,11 +494,9 @@ const toggleOrientationTracking = (() => {
     if (mapStore.isTrackingOrientation) {
       // Start tracking device orientation
       deviceOrientationHandlerId = DeviceOrientationService.addHandler(handleDeviceOrientation);
-      DeviceOrientationService.start();
     } else {
       // Stop tracking device orientation
       if (deviceOrientationHandlerId !== null) {
-        DeviceOrientationService.stop();
         deviceOrientationHandlerId = null;
         mapStore.setBearing(0);
         map.value?.setBearing(0);
@@ -675,8 +680,23 @@ const isUserSettingTheMap = ref(false);
             <mgl-marker
               v-if="locator.isServiceRunning() && isWatchingCurrentLocation"
               :coordinates="locator.getLastKnownLocation().toLngLatLike()"
-              color="#006600"
-            />
+            >
+              <template v-slot:marker>
+                <div :style="{
+                  'filter': 'drop-shadow(0px 2px 4px #888)',
+                }">
+                <img
+                  :src="LocatingIcon"
+                  :style="{
+                    'height': '4em',
+                    'width': '4em',
+
+                    'transform': `rotate(${deviceBearing}deg)`,
+                    'transform-origin': '2em 2.83em'
+                  }"
+                ></div>
+              </template>
+            </mgl-marker>
           </mgl-map>
           <div style="z-index: 99; position: absolute; right: 4px; top: 9em;">
             <MapCompass
