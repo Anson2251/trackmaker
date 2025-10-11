@@ -681,20 +681,19 @@ const isUserSettingTheMap = ref(false);
               v-if="locator.isServiceRunning() && isWatchingCurrentLocation"
               :coordinates="locator.getLastKnownLocation().toLngLatLike()"
             >
-              <template v-slot:marker>
-                <div :style="{
-                  'filter': 'drop-shadow(0px 2px 4px #888)',
-                }">
-                <img
-                  :src="LocatingIcon"
-                  :style="{
-                    'height': '4em',
-                    'width': '4em',
+              <template #marker>
+                <div style="filter: drop-shadow(0px 2px 4px #888);">
+                  <img
+                    :src="LocatingIcon"
+                    :style="{
+                      'height': '4em',
+                      'width': '4em',
 
-                    'transform': `rotate(${deviceBearing}deg)`,
-                    'transform-origin': '2em 2.83em'
-                  }"
-                ></div>
+                      'transform': `rotate(${deviceBearing}deg)`,
+                      'transform-origin': '2em 2.83em'
+                    }"
+                  >
+                </div>
               </template>
             </mgl-marker>
           </mgl-map>
