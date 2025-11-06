@@ -39,6 +39,13 @@
                     "interface": "跟随界面语言"
                 }
             }
+        },
+        "tools": {
+            "title": "工具",
+            "apiDetection": {
+                "title": "Web API 检测",
+                "button": "检查"
+            }
         }
     },
     "router": {
@@ -183,5 +190,51 @@
         "add": "添加",
         "noTags": "暂无标签",
         "description": "描述"
+    },
+    "apiDetection": {
+        "title": "Web API 检测",
+        "description": "检查您的浏览器中各种 Web API 的可用性",
+        "status": {
+            "title": "API 状态"
+        },
+        "available": "可用",
+        "unavailable": "不可用",
+        "error": "错误",
+        "refresh": "刷新",
+        "backToSettings": "返回设置",
+        "apis": {
+            "fetch": "Fetch API",
+            "geolocation": "地理位置 API",
+            "performance": "性能 API",
+            "permission": "权限 API",
+            "deviceorientation": "设备方向 API",
+            "devicemotion": "设备运动 API"
+        },
+        "descriptions": {
+            "fetch": {
+                "available": "Fetch API 可用于发起网络请求。对于下载地图和同步路线数据至关重要。",
+                "unavailable": "Fetch API 不可用。地图加载和数据同步等网络功能将无法工作。"
+            },
+            "geolocation": {
+                "available": "地理位置 API 可用于获取设备位置。GPS 跟踪和基于位置的功能所必需。",
+                "unavailable": "地理位置 API 不可用。位置跟踪和导航功能将被禁用。"
+            },
+            "performance": {
+                "available": "性能 API 可用于测量性能指标。有助于优化应用程序响应速度。",
+                "unavailable": "性能 API 不可用。性能监控功能将受到限制。"
+            },
+            "permission": {
+                "available": "权限 API 可用于查询和请求权限。访问位置和设备传感器所必需。",
+                "unavailable": "权限 API 不可用。权限请求可能无法正常工作。"
+            },
+            "deviceorientation": {
+                "available": "设备方向 API 可用于检测设备方向。支持地图旋转和指南针功能。",
+                "unavailable": "设备方向 API 不可用。地图旋转和指南针功能将被禁用。"
+            },
+            "devicemotion": {
+                "available": "设备运动 API 可用于检测设备运动。用于高级运动跟踪和活动检测。",
+                "unavailable": "设备运动 API 不可用。高级运动跟踪功能将受到限制。"
+            }
+        }
     }
 }

@@ -10,14 +10,17 @@ import {
   NSelect,
   NSwitch,
   NPerformantEllipsis,
+  NButton,
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
 import { computed, inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "@/utils/platform";
+import { useRouter } from "vue-router";
 
 const platform = new PlatformInfo();
+const router = useRouter();
 
 const isMobile = computed(() => platform.isMobile)
 
@@ -46,6 +49,10 @@ type SettingItem =
   | {
       title: SettingItemTitle;
       type: "checkbox";
+    }
+  | {
+      title: string;
+      type: "button";
     };
 
 type Section = {
@@ -117,7 +124,20 @@ const configs = computed<Config>(() => [
       },
     ],
   },
+  {
+    title: "tools",
+    items: [
+      {
+        title: "apiDetection",
+        type: "button",
+      }
+    ],
+  },
 ]);
+
+const navigateToApiDetection = () => {
+  router.push("/api-detection");
+};
 
 onMounted(() => {
   settingsStore.init();
@@ -155,13 +175,13 @@ onMounted(() => {
                   }"
                 >
                   {{
-                    (item as any).items
+                    (item as any).items || (item as any).type === "button"
                       ? $t(`settings.${section.title}.${item.title}.title`)
                       : $t(`settings.${section.title}.${item.title}`)
                   }}
                   <template #tooltip>
                     {{
-                      (item as any).items
+                      (item as any).items || (item as any).type === "button"
                         ? $t(`settings.${section.title}.${item.title}.title`)
                         : $t(`settings.${section.title}.${item.title}`)
                     }}
@@ -200,6 +220,11 @@ onMounted(() => {
                   <n-switch
                     v-model:value="settingsStore.settings[item.title]"
                   />
+                </div>
+                <div v-else-if="item.type === 'button'">
+                  <n-button @click="navigateToApiDetection" type="primary">
+                    {{ $t(`settings.${section.title}.${item.title}.button`) }}
+                  </n-button>
                 </div>
               </div>
             </n-list-item>

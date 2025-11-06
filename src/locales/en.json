@@ -39,6 +39,13 @@
                     "interface": "Follow Interface Language"
                 }
             }
+        },
+        "tools": {
+            "title": "Tools",
+            "apiDetection": {
+                "title": "Web API Check",
+                "button": "Check"
+            }
         }
     },
     "router": {
@@ -183,5 +190,46 @@
         "add": "Add",
         "noTags": "No tags yet",
         "description": "Description"
+    },
+    "apiDetection": {
+        "title": "Web API Detection",
+        "description": "Check the availability of various web APIs in your browser",
+        "available": "Available",
+        "unavailable": "Unavailable",
+        "error": "Error",
+        "apis": {
+            "fetch": "Fetch API",
+            "geolocation": "Geolocation API",
+            "performance": "Performance API",
+            "permission": "Permissions API",
+            "deviceorientation": "Device Orientation API",
+            "devicemotion": "Device Motion API"
+        },
+        "descriptions": {
+            "fetch": {
+                "available": "Fetch API is available for making network requests. Essential for downloading maps and syncing route data.",
+                "unavailable": "Fetch API is not available. Network features like map loading and data synchronization will not work."
+            },
+            "geolocation": {
+                "available": "Geolocation API is available for getting device position. Required for GPS tracking and location-based features.",
+                "unavailable": "Geolocation API is not available. Location tracking and navigation features will be disabled."
+            },
+            "performance": {
+                "available": "Performance API is available for measuring performance metrics. Helps optimize app responsiveness.",
+                "unavailable": "Performance API is not available. Performance monitoring features will be limited."
+            },
+            "permission": {
+                "available": "Permissions API is available for querying and requesting permissions. Needed for accessing location and device sensors.",
+                "unavailable": "Permissions API is not available. Permission requests may not work properly."
+            },
+            "deviceorientation": {
+                "available": "Device Orientation API is available for detecting device orientation. Enables map rotation and compass features.",
+                "unavailable": "Device Orientation API is not available. Map rotation and compass features will be disabled."
+            },
+            "devicemotion": {
+                "available": "Device Motion API is available for detecting device motion. Used for advanced motion tracking and activity detection.",
+                "unavailable": "Device Motion API is not available. Advanced motion tracking features will be limited."
+            }
+        }
     }
 }
