@@ -70,8 +70,9 @@ export async function loadModules(
     loadTimeout: number = 10000,
     options: LoadModulesOptions = {},
     depth = 0,
-    totalSteps = 0
-): Promise<void> {
+    totalSteps = 0,
+    completedSteps = 0
+): Promise<{ completed: number; total: number }> {
     const { logger = defaultLogger, progressReporter, printLog = true } = options;
 
     // Find the module in the library
@@ -82,7 +83,7 @@ export async function loadModules(
     // If the module is already loaded, return
     if (libraryList[moduleIndex].status === "loaded") {
         if(printLog) logger.info(messageFormat.alreadyLoaded(module.name));
-        return Promise.resolve();
+        return { completed: completedSteps, total: totalSteps };
     }
 
     // Check if all the dependencies are present in the library
@@ -94,37 +95,61 @@ export async function loadModules(
     if (missingDependencies.length > 0) {
         const msg = messageFormat.missingDependencies(module.name, missingDependencies.join(", "));
         if(printLog) logger.error(msg);
-        return Promise.reject(msg);
+        throw new Error(msg);
     }
 
     // If the module has already failed to load, reject with an error message
     if (libraryList[moduleIndex].status === "error") {
         const msg = messageFormat.errorDetermined(module.name);
         if(printLog) logger.info(msg);
-        return Promise.reject(msg);
+        throw new Error(msg);
     }
 
     // If the module is already being loaded, wait until it is loaded
     if (libraryList[moduleIndex].status === "loading") {
         if(printLog) logger.info(messageFormat.alreadyLoading(module.name));
         await waitUntilModuleLoaded(libraryList, module.name, loadTimeout, logger);
-        return Promise.resolve();
+        return { completed: completedSteps, total: totalSteps };
     }
 
     try {
+        // Calculate total steps if this is the root call
+        let currentTotalSteps = totalSteps;
+        let currentCompletedSteps = completedSteps;
+
+        if (depth === 0) {
+            // Start with the main module and count all unique dependencies
+            const allModules = new Set<string>();
+            const collectAllModules = (name: string) => {
+                if (allModules.has(name)) return;
+                allModules.add(name);
+
+                const mod = libraryList.find((m) => m.name === name);
+                if (mod && mod.dependencies) {
+                    for (const dep of mod.dependencies) {
+                        collectAllModules(dep);
+                    }
+                }
+            };
+
+            collectAllModules(moduleName);
+            currentTotalSteps = allModules.size;
+            currentCompletedSteps = 0; // Reset completed steps for root call
+        }
+
         // Load all the dependencies
         if (dependencyModules.length > 0) {
             logger.info(messageFormat.loadDependencies(module.name, dependencyModules.map(m => m.name)))
-            const totalDeps = depth === 0 ? dependencyModules.length : totalSteps;
-            let completedDeps = 0;
 
-            await Promise.all(
-                dependencyModules.map(async (m) => {
-                    await loadModules(libraryList, m.name, loadTimeout, { logger, progressReporter, printLog }, depth + 1, totalSteps);
-                    completedDeps++;
-                    progressReporter?.onOverallProgress?.(completedDeps, totalDeps);
-                })
-            );
+            // Load dependencies sequentially to properly track progress
+            for (const depModule of dependencyModules) {
+                const result = await loadModules(libraryList, depModule.name, loadTimeout, { logger, progressReporter, printLog }, depth + 1, currentTotalSteps, currentCompletedSteps);
+                currentCompletedSteps = result.completed;
+                currentTotalSteps = result.total;
+
+                // Report progress after each dependency completes
+                progressReporter?.onOverallProgress?.(currentCompletedSteps, currentTotalSteps);
+            }
             if(printLog) logger.info(messageFormat.dependenciesReady(module.name));
         }
 
@@ -137,16 +162,21 @@ export async function loadModules(
             if(printLog) logger.info(messageFormat.loading(module.name));
             await module.moduleInit(loadTimeout);
             libraryList[moduleIndex].status = "loaded";
+
+            // Increment completed count and report progress
+            currentCompletedSteps++;
             progressReporter?.onModuleComplete?.(module.displayName);
+            progressReporter?.onOverallProgress?.(currentCompletedSteps, currentTotalSteps);
+
             if(printLog) logger.info(messageFormat.loaded(module.name));
-            return Promise.resolve();
+            return { completed: currentCompletedSteps, total: currentTotalSteps };
         } catch (error) {
             // If loading the module fails, set the status to "error" and reject with an error message
             libraryList[moduleIndex].status = "error";
             const errorMessage = messageFormat.error(module.name, isString(error) ? error : (isError(error) ? error.message : JSON.stringify(error)));
             logger.error(errorMessage);
             progressReporter?.onModuleError?.(module.displayName, isString(error) ? new Error(error) : error as Error);
-            return Promise.reject(errorMessage);
+            throw new Error(errorMessage);
         }
     } catch (error) {
         // If loading the dependencies fails, set the status to "error" and reject with an error message
@@ -154,7 +184,7 @@ export async function loadModules(
         const errorMessage = messageFormat.error(module.name, error as string);
         logger.error(errorMessage);
         progressReporter?.onModuleError?.(module.displayName, error as Error);
-        return Promise.reject(errorMessage);
+        throw new Error(errorMessage);
     }
 }
 

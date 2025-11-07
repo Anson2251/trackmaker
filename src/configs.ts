@@ -3,6 +3,7 @@ import type { ModuleItem } from "@/utils/load-modules";
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
 import { GeolocationManager } from './libs/geolocation';
+import { ImuOrientationManager, imuOrientationManager } from '@/libs/imu/services/imu-orientation-manager';
 import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
@@ -12,9 +13,9 @@ import { initProj4rsModule } from "./utils/proj4-distance";
 declare global {
     interface Window {
         GeolocationManager: GeolocationManager;
+        ImuOrientationManager: ImuOrientationManager;
     }
 }
-
 
 export const modules: ModuleItem[] = [
     {
@@ -34,7 +35,7 @@ export const modules: ModuleItem[] = [
 
             app.mount("#app");
         },
-        dependencies: ["platform-services", "geolocation", "proj4-wasm"]
+        dependencies: ["platform-services", "geolocation", "proj4-wasm", "imu-orientation"]
     },
     {
         name: "proj4-wasm",
@@ -124,6 +125,36 @@ export const modules: ModuleItem[] = [
             }
             catch (error) {
                 console.error("[Geolocation] Failed to initialize geolocation service:", error);
+                return Promise.reject(error);
+            }
+        },
+        dependencies: ["platform-services"]
+    },
+    {
+        name: "imu-orientation",
+        displayName: "IMU & Orientation Service",
+        moduleInit: async () => {
+            try {
+                console.time("IMU & Orientation service initialise");
+
+                // Initialize IMU and orientation manager
+                const initResult = await imuOrientationManager.initialize();
+                if (initResult.isErr()) {
+                    throw initResult.error;
+                }
+
+                // Start services continuously to get the data
+                await imuOrientationManager.startOrientationUpdates(() => {});
+                await imuOrientationManager.startAccelerationUpdates({}, () => {});
+                await imuOrientationManager.startGyroscopeUpdates({}, () => {});
+
+                console.timeEnd("IMU & Orientation service initialise");
+                console.info("[IMU & Orientation] Service initialized successfully with initial values");
+
+                // Expose for direct access if needed
+                window.ImuOrientationManager = imuOrientationManager;
+            } catch (error) {
+                console.error("[IMU & Orientation] Failed to initialize service:", error);
                 return Promise.reject(error);
             }
         },

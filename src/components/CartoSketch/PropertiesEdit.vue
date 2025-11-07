@@ -158,8 +158,6 @@ const getConfigItems = () => {
 	});
 };
 
-console.log(props);
-
 watch(propertiesEditview, () => {
 	const property: Record<string, supportedDataType> = {};
 	Object.keys(props.properties).forEach(key => {

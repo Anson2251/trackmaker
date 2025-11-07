@@ -11,12 +11,12 @@ interface Props {
 
 defineProps<Props>();
 
-const locator = inject("geolocation") as GeolocationManager;
+const locator = inject("geolocation") as GeolocationManager | undefined;
 </script>
 
 <template>
   <mgl-marker
-    v-if="locator.isServiceRunning() && isWatchingCurrentLocation"
+    v-if="locator && locator.isServiceRunning() && isWatchingCurrentLocation"
     :coordinates="locator.getLastKnownLocation().toLngLatLike()"
   >
     <template #marker>

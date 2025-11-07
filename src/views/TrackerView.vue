@@ -229,7 +229,6 @@ onMounted(async () => {
   await routeStore.init();
   await mapStore.init();
 
-  console.log(locator.getLastKnownLocation());
   // !TODO change the hard coded time to a setting
   if (Date.now() - mapStore.lastUpdateTime > 6000 && mapStore.lastUpdateTime !== 0) {
     mapStore.setCenter(locator.getLastKnownLocation());

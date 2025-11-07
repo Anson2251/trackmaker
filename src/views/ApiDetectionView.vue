@@ -97,14 +97,23 @@ onMounted(() => {
 <template>
   <div class="api-detection-view">
     <div class="api-detection-content">
-      <n-space vertical size="large">
+      <n-space
+        vertical
+        size="large"
+      >
         <n-card :title="$t('apiDetection.title')">
-          <n-alert type="info" :show-icon="false">
+          <n-alert
+            type="info"
+            :show-icon="false"
+          >
             {{ $t('apiDetection.description') }}
           </n-alert>
           <n-divider horizontal />
           <n-list>
-            <n-list-item v-for="api in apiStatuses" :key="api.name">
+            <n-list-item
+              v-for="api in apiStatuses"
+              :key="api.name"
+            >
               <div class="api-status-item">
                 <div class="api-name">
                   {{ $t(`apiDetection.apis.${api.name}`) }}
@@ -117,12 +126,18 @@ onMounted(() => {
                 </n-tag>
               </div>
 
-              <div v-if="api.details" class="api-details">
+              <div
+                v-if="api.details"
+                class="api-details"
+              >
                 <n-performant-ellipsis>
-                {{ api.details }}
+                  {{ api.details }}
                 </n-performant-ellipsis>
               </div>
-              <div v-if="api.error" class="api-error">
+              <div
+                v-if="api.error"
+                class="api-error"
+              >
                 {{ $t('apiDetection.error') }}: {{ api.error }}
               </div>
             </n-list-item>

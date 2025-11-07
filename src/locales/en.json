@@ -45,6 +45,10 @@
             "apiDetection": {
                 "title": "Web API Check",
                 "button": "Check"
+            },
+            "imuOrientationTesting": {
+                "title": "Device Motion & Orientation Check",
+                "button": "Check"
             }
         }
     },
@@ -229,6 +233,39 @@
             "devicemotion": {
                 "available": "Device Motion API is available for detecting device motion. Used for advanced motion tracking and activity detection.",
                 "unavailable": "Device Motion API is not available. Advanced motion tracking features will be limited."
+            }
+        }
+    },
+    "sensorTest": {
+        "title": "Device Motion & Orientation Test",
+        "deviceOrientation": {
+            "title": "Device Orientation",
+            "toggleOn": "Stop Orientation",
+            "toggleOff": "Start Orientation",
+            "compassHeading": "Compass Heading",
+            "alpha": "Alpha (Z-axis)",
+            "beta": "Beta (X-axis)",
+            "gamma": "Gamma (Y-axis)",
+            "tiltAngle": "Tilt Angle",
+            "iosHeading": "iOS Heading"
+        },
+        "deviceMotion": {
+            "title": "Device Motion (IMU)",
+            "toggleOn": "Stop Motion",
+            "toggleOff": "Start Motion",
+            "acceleration": {
+                "title": "Acceleration (ENU normalized)",
+                "x": "X (East)",
+                "y": "Y (North)",
+                "z": "Z (Up)",
+                "magnitude": "Magnitude"
+            },
+            "gyroscope": {
+                "title": "Gyroscope (raw coordinates)",
+                "x": "X (α)",
+                "y": "Y (β)",
+                "z": "Z (γ)",
+                "rotationSpeed": "Rotation Speed"
             }
         }
     }

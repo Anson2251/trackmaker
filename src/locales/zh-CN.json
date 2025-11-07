@@ -45,6 +45,10 @@
             "apiDetection": {
                 "title": "Web API 检测",
                 "button": "检查"
+            },
+            "imuOrientationTesting": {
+                "title": "设备运动与方向测试",
+                "button": "检查"
             }
         }
     },
@@ -234,6 +238,39 @@
             "devicemotion": {
                 "available": "设备运动 API 可用于检测设备运动。用于高级运动跟踪和活动检测。",
                 "unavailable": "设备运动 API 不可用。高级运动跟踪功能将受到限制。"
+            }
+        }
+    },
+    "sensorTest": {
+        "title": "设备运动与方向测试",
+        "deviceOrientation": {
+            "title": "设备方向",
+            "toggleOn": "停止方向",
+            "toggleOff": "开始方向",
+            "compassHeading": "罗盘方位",
+            "alpha": "Alpha (Z轴)",
+            "beta": "Beta (X轴)",
+            "gamma": "Gamma (Y轴)",
+            "tiltAngle": "倾斜角度",
+            "iosHeading": "iOS 方位"
+        },
+        "deviceMotion": {
+            "title": "设备运动 (IMU)",
+            "toggleOn": "停止运动",
+            "toggleOff": "开始运动",
+            "acceleration": {
+                "title": "加速度 (ENU 标准化)",
+                "x": "X (东)",
+                "y": "Y (北)",
+                "z": "Z (上)",
+                "magnitude": "幅度"
+            },
+            "gyroscope": {
+                "title": "陀螺仪 (原始坐标)",
+                "x": "X (α)",
+                "y": "Y (β)",
+                "z": "Z (γ)",
+                "rotationSpeed": "旋转速度"
             }
         }
     }

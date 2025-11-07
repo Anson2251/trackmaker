@@ -46,6 +46,11 @@ export interface PlatformCapabilities {
         camera: boolean;
         microphone: boolean;
     };
+    sensors: {
+        deviceOrientation: boolean;
+        motion: boolean;
+        highAccuracy: boolean;
+    };
 }
 
 /**
@@ -107,6 +112,57 @@ export interface IFileProvider {
     deleteFile(path: string): Promise<Result<void, AppError>>;
     listFiles(directory: string): Promise<Result<string[], AppError>>;
     exists(path: string): Promise<Result<boolean, AppError>>;
+    isSupported(): boolean;
+}
+
+/**
+ * IMU reading data structure
+ */
+export interface IMUReading {
+    x: number;
+    y: number;
+    z: number;
+    timestamp: number;
+}
+
+/**
+ * Device orientation reading data structure
+ */
+export interface DeviceOrientationReading {
+    alpha: number;
+    beta: number;
+    gamma: number;
+    webkitCompassHeading?: number;
+    timestamp: number;
+}
+
+/**
+ * IMU provider interface for platform-agnostic IMU operations
+ */
+export interface IIMUProvider {
+    init(): Promise<Result<void, AppError>>;
+    startAcceleration(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
+    startGyroscope(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
+    stopAcceleration(): Result<void, AppError>;
+    stopGyroscope(): Result<void, AppError>;
+    getAccelerationReading(): Promise<Result<IMUReading | null, AppError>>;
+    getGyroscopeReading(): Promise<Result<IMUReading | null, AppError>>;
+    onAccelerationReading(callback: (reading: IMUReading) => void): number;
+    onGyroscopeReading(callback: (reading: IMUReading) => void): number;
+    removeEventListener(id: number): Result<void, AppError>;
+    isSupported(): boolean;
+}
+
+/**
+ * Device orientation provider interface for platform-agnostic orientation operations
+ */
+export interface IDeviceOrientationProvider {
+    init(): Promise<Result<void, AppError>>;
+    start(): Promise<Result<void, AppError>>;
+    stop(): Result<void, AppError>;
+    getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;
+    onOrientationChange(callback: (orientation: DeviceOrientationReading) => void): number;
+    removeEventListener(id: number): Result<void, AppError>;
     isSupported(): boolean;
 }
 

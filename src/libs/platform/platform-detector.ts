@@ -94,6 +94,11 @@ export class PlatformDetector {
                 notifications: 'Notification' in window,
                 camera: 'mediaDevices' in navigator,
                 microphone: 'mediaDevices' in navigator
+            },
+            sensors: {
+                deviceOrientation: 'DeviceOrientationEvent' in window,
+                motion: 'DeviceMotionEvent' in window,
+                highAccuracy: false // Varies by device and browser
             }
         };
 
@@ -125,6 +130,11 @@ export class PlatformDetector {
                     permissions: {
                         ...baseCapabilities.permissions,
                         geolocation: true
+                    },
+                    sensors: {
+                        deviceOrientation: 'DeviceOrientationEvent' in window,
+                        motion: 'DeviceMotionEvent' in window,
+                        highAccuracy: false
                     }
                 };
 
@@ -138,6 +148,10 @@ export class PlatformDetector {
                     permissions: {
                         ...baseCapabilities.permissions,
                         geolocation: true
+                    },
+                    sensors: {
+                        ...baseCapabilities.sensors,
+                        highAccuracy: true // Mobile devices often have better sensors
                     }
                 };
 

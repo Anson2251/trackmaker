@@ -130,6 +130,10 @@ const configs = computed<Config>(() => [
       {
         title: "apiDetection",
         type: "button",
+      },
+      {
+        title: "imuOrientationTesting",
+        type: "button",
       }
     ],
   },
@@ -137,6 +141,10 @@ const configs = computed<Config>(() => [
 
 const navigateToApiDetection = () => {
   router.push("/api-detection");
+};
+
+const navigateToSensorTest = () => {
+  router.push("/sensor-demo");
 };
 
 onMounted(() => {
@@ -222,7 +230,10 @@ onMounted(() => {
                   />
                 </div>
                 <div v-else-if="item.type === 'button'">
-                  <n-button @click="navigateToApiDetection" type="primary">
+                  <n-button
+                    type="primary"
+                    @click="item.title === 'apiDetection' ? navigateToApiDetection() : navigateToSensorTest()"
+                  >
                     {{ $t(`settings.${section.title}.${item.title}.button`) }}
                   </n-button>
                 </div>
