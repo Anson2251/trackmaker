@@ -47,7 +47,7 @@
                 "button": "Check"
             },
             "imuOrientationTesting": {
-                "title": "Device Motion & Orientation Check",
+                "title": "Sensor Check",
                 "button": "Check"
             }
         }
@@ -237,7 +237,7 @@
         }
     },
     "sensorTest": {
-        "title": "Device Motion & Orientation Test",
+        "title": "Sensor Test",
         "deviceOrientation": {
             "title": "Device Orientation",
             "toggleOn": "Stop Orientation",
@@ -267,6 +267,19 @@
                 "z": "Z (γ)",
                 "rotationSpeed": "Rotation Speed"
             }
+        },
+        "gps": {
+            "title": "GPS Location",
+            "toggleOn": "Stop GPS",
+            "toggleOff": "Start GPS",
+            "latitude": "Latitude",
+            "longitude": "Longitude",
+            "accuracy": "Accuracy",
+            "timestamp": "Last Update",
+            "backend": "Source",
+            "backendGPS": "GPS",
+            "backendIP": "Network (IP)",
+            "noData": "No GPS data available"
         }
     }
 }

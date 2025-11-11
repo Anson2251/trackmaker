@@ -165,7 +165,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
                 const position = positionResult.value;
                 return ok(new GeographicPoint(
                 position.coords.latitude,
-                position.coords.longitude
+                position.coords.longitude,
+                position.coords.accuracy
                 ));
             } else {
                 return err(new GeolocationUpdateServiceError(
@@ -274,7 +275,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
             const position = platformResult.value;
             const geographicPoint = new GeographicPoint(
                 position.coords.latitude,
-                position.coords.longitude
+                position.coords.longitude,
+                position.coords.accuracy
             );
             console.info("[GeolocationManager] Location retrieved from platform provider");
             this.doLocationUpdate(geographicPoint);
@@ -372,7 +374,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
         const watchResult = await this.platformGeolocationProvider.watchPosition((position) => {
             const geographicPoint = new GeographicPoint(
                 position.coords.latitude,
-                position.coords.longitude
+                position.coords.longitude,
+                position.coords.accuracy
             )
             this.doLocationUpdate(geographicPoint);
             callback(geographicPoint);

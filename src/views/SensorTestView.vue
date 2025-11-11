@@ -3,7 +3,9 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { NCard, NStatistic, NAlert } from 'naive-ui';
 import { imuOrientationManager } from '@/libs/imu';
+import { GeolocationManager } from '@/libs/geolocation';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
+import type { GeographicPoint } from '@/libs/geolocation/types';
 
 const { t } = useI18n();
 // State management
@@ -16,6 +18,14 @@ const accelerationData = ref<IMUReading | null>(null);
 const gyroscopeData = ref<IMUReading | null>(null);
 const accelerationListenerId = ref<number | null>(null);
 const gyroscopeListenerId = ref<number | null>(null);
+
+// GPS data
+const geolocationManager = new GeolocationManager();
+const gpsData = ref<GeographicPoint | null>(null);
+const gpsListenerId = ref<number | null>(null);
+const gpsError = ref<string | null>(null);
+const gpsBackend = ref<'platform' | 'ip' | null>(null);
+const gpsTimestamp = ref<Date | null>(null);
 
 // Error handling
 const orientationError = ref<string | null>(null);
@@ -52,6 +62,7 @@ const rotationSpeed = computed(() => {
 
 onMounted(async () => {
   await initializeManager();
+  await initializeGPS();
 });
 
 onUnmounted(() => {
@@ -150,6 +161,52 @@ async function startMotionMonitoring() {
   }
 }
 
+async function initializeGPS() {
+  try {
+    const initResult = await geolocationManager.initialize();
+    if (initResult.isErr()) {
+      console.error('Failed to initialize GPS manager:', initResult.error);
+      gpsError.value = 'GPS manager initialization failed';
+      return;
+    }
+
+    // Get initial location if available
+    const lastLocation = geolocationManager.getLastKnownLocation();
+    if (lastLocation && lastLocation.latitude !== 0 && lastLocation.longitude !== 0) {
+      gpsData.value = lastLocation;
+      gpsTimestamp.value = new Date();
+    }
+
+    gpsBackend.value = geolocationManager.getCurrentBackend();
+
+    // Start GPS monitoring
+    await startGPSMonitoring();
+  } catch (error) {
+    console.error('Error initializing GPS manager:', error);
+    gpsError.value = 'GPS initialization error';
+  }
+}
+
+async function startGPSMonitoring() {
+  try {
+    const startResult = await geolocationManager.startLocationUpdates((location: GeographicPoint) => {
+      gpsData.value = location;
+      gpsTimestamp.value = new Date();
+      gpsBackend.value = geolocationManager.getCurrentBackend();
+      gpsError.value = null;
+    });
+
+    if (startResult.isOk()) {
+      gpsListenerId.value = startResult.value;
+      gpsError.value = null;
+    } else {
+      gpsError.value = `GPS start failed: ${startResult.error.message}`;
+    }
+  } catch (error) {
+    gpsError.value = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  }
+}
+
 function cleanup() {
   if (orientationListenerId.value !== null) {
     imuOrientationManager.stopOrientationUpdates(orientationListenerId.value);
@@ -159,6 +216,9 @@ function cleanup() {
   }
   if (gyroscopeListenerId.value !== null) {
     imuOrientationManager.stopGyroscopeUpdates(gyroscopeListenerId.value);
+  }
+  if (gpsListenerId.value !== null) {
+    geolocationManager.stopLocationUpdates(gpsListenerId.value);
   }
 }
 
@@ -304,6 +364,62 @@ function cleanup() {
           </div>
         </div>
       </NCard>
+
+      <!-- GPS Location Section -->
+      <NCard
+        :title="t('sensorTest.gps.title')"
+        class="sensor-card"
+      >
+        <NAlert
+          v-if="gpsError"
+          type="error"
+          :title="gpsError"
+          style="margin-top: 16px;"
+        />
+
+        <div
+          v-if="gpsData"
+          class="data-section"
+        >
+          <div class="gps-stats">
+            <div class="gps-row">
+              <NStatistic
+                :label="t('sensorTest.gps.latitude')"
+                :value="gpsData.latitude.toFixed(6)"
+                suffix="°"
+              />
+              <NStatistic
+                :label="t('sensorTest.gps.longitude')"
+                :value="gpsData.longitude.toFixed(6)"
+                suffix="°"
+              />
+              <NStatistic
+                :label="t('sensorTest.gps.accuracy')"
+                :value="gpsData.accuracy.toFixed(1)"
+                suffix="m"
+              />
+            </div>
+            <div class="gps-row">
+              <NStatistic
+                :label="t('sensorTest.gps.backend')"
+                :value="gpsBackend === 'platform' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
+              />
+              <NStatistic
+                v-if="gpsTimestamp"
+                :label="t('sensorTest.gps.timestamp')"
+                :value="gpsTimestamp.toLocaleTimeString()"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-else-if="!gpsError"
+          class="data-section"
+        >
+          <p>{{ t('sensorTest.gps.noData') }}</p>
+        </div>
+      </NCard>
     </div>
   </div>
 </template>
@@ -396,6 +512,25 @@ function cleanup() {
   min-width: 120px;
 }
 
+.gps-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gps-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.gps-row :deep(.n-statistic) {
+  flex: 1;
+  min-width: 120px;
+}
+
 @media (max-width: 768px) {
   .xyz-row {
     flex-direction: column !important;
@@ -411,7 +546,8 @@ function cleanup() {
 
   .xyz-row :deep(.n-statistic),
   .other-stats-row :deep(.n-statistic),
-  .orientation-row :deep(.n-statistic) {
+  .orientation-row :deep(.n-statistic),
+  .gps-row :deep(.n-statistic) {
     min-width: auto;
   }
 }

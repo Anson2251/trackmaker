@@ -47,7 +47,7 @@
                 "button": "检查"
             },
             "imuOrientationTesting": {
-                "title": "设备运动与方向测试",
+                "title": "传感器测试",
                 "button": "检查"
             }
         }
@@ -242,7 +242,7 @@
         }
     },
     "sensorTest": {
-        "title": "设备运动与方向测试",
+        "title": "传感器测试",
         "deviceOrientation": {
             "title": "设备方向",
             "toggleOn": "停止方向",
@@ -272,6 +272,19 @@
                 "z": "Z (γ)",
                 "rotationSpeed": "旋转速度"
             }
+        },
+        "gps": {
+            "title": "GPS 位置",
+            "toggleOn": "停止 GPS",
+            "toggleOff": "开始 GPS",
+            "latitude": "纬度",
+            "longitude": "经度",
+            "accuracy": "精度",
+            "timestamp": "最后更新",
+            "backend": "数据源",
+            "backendGPS": "GPS",
+            "backendIP": "网络 (IP)",
+            "noData": "无 GPS 数据可用"
         }
     }
 }

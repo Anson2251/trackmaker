@@ -1,13 +1,19 @@
 export class GeographicPoint {
     latitude: number;
     longitude: number;
-    constructor(latitude: number, longitude: number) {
+    accuracy: number;
+    constructor(latitude: number, longitude: number, accuracy: number = 0) {
         this.latitude = latitude;
         this.longitude = longitude;
+        this.accuracy = accuracy;
     }
 
     toLngLatLike(): [number, number] {
         return [this.longitude, this.latitude];
+    }
+
+    get varianceInMeter() {
+        return this.accuracy / (2 * (Math.LN2 + Math.LN10))
     }
 }
 
