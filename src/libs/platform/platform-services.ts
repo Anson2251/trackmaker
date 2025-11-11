@@ -5,11 +5,12 @@
 import { Result, ok, err } from 'neverthrow';
 import { platformDetector } from './platform-detector';
 import type { PlatformContext } from './types';
-import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider, type IDeviceOrientationProvider } from './types';
+import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider, type IDeviceOrientationProvider, type IIMUEnabledGeolocationProvider } from './types';
 import { TauriStorageProvider } from './providers/tauri-storage-provider';
 import { WebStorageProvider } from './providers/web-storage-provider';
 import { TauriGeolocationProvider } from './providers/tauri-geolocation-provider';
 import { WebGeolocationProvider } from './providers/web-geolocation-provider';
+import { KalmanGeolocationProvider, type KalmanGeolocationConfig } from './providers/kalman-geolocation-provider';
 import { WebDeviceOrientationProvider } from './providers/web-device-orientation-provider';
 import { WebIMUProvider } from './providers/web-imu-provider';
 import { PlatformDetectionError, PlatformDetectionErrorCode } from './errors';
@@ -26,6 +27,8 @@ export interface PlatformServicesConfig {
     };
     geolocation?: {
         tauriHandlerName?: string;
+        enableKalmanFilter?: boolean;
+        kalmanConfig?: KalmanGeolocationConfig;
     };
 }
 
@@ -74,15 +77,22 @@ export class PlatformServices {
             // Initialize storage provider
             this.storageProvider = this.createStorageProvider(config?.storage);
 
+            // Initialize sensor providers first (needed for Kalman IMU fusion)
+            this.imuProvider = this.createIMUProvider();
+            this.deviceOrientationProvider = this.createDeviceOrientationProvider();
+
             // Initialize geolocation provider
             this.geolocationProvider = this.createGeolocationProvider(config?.geolocation);
 
+            // Set up IMU fusion if Kalman filter is enabled
+            if (config?.geolocation?.enableKalmanFilter &&
+                this.geolocationProvider instanceof KalmanGeolocationProvider &&
+                this.imuProvider) {
+                this.setupIMUFusion();
+            }
+
             // Initialize file provider (placeholder for now)
             this.fileProvider = this.createFileProvider();
-
-            // Initialize sensor providers
-            this.imuProvider = this.createIMUProvider();
-            this.deviceOrientationProvider = this.createDeviceOrientationProvider();
 
             this.initialized = true;
             return ok(undefined);
@@ -119,17 +129,83 @@ export class PlatformServices {
      * Create appropriate geolocation provider based on platform
      */
     private createGeolocationProvider(geoConfig?: PlatformServicesConfig['geolocation']): IGeolocationProvider {
+        // Create base provider based on platform
+        let baseProvider: IGeolocationProvider;
+
         switch (this.context.environment) {
             case RuntimeEnvironment.TAURI:
-                return new TauriGeolocationProvider(
+                baseProvider = new TauriGeolocationProvider(
                     geoConfig?.tauriHandlerName || 'get_geolocation'
                 );
+                break;
 
             case RuntimeEnvironment.WEB:
             case RuntimeEnvironment.MOBILE_WEB:
             default:
-                return new WebGeolocationProvider();
+                baseProvider = new WebGeolocationProvider();
+                break;
         }
+
+        // Wrap with Kalman filter if enabled
+        if (geoConfig?.enableKalmanFilter) {
+            return new KalmanGeolocationProvider(baseProvider, geoConfig.kalmanConfig);
+        }
+
+        return baseProvider;
+    }
+
+    /**
+     * Set up IMU fusion with Kalman filter
+     */
+    private setupIMUFusion(): void {
+        if (!(this.geolocationProvider instanceof KalmanGeolocationProvider) || !this.imuProvider) {
+            return;
+        }
+
+        // Initialize IMU provider
+        this.imuProvider!.init().then((result) => {
+            if (result.isErr()) {
+                console.warn('Failed to initialize IMU provider for Kalman fusion:', result.error.message);
+                return;
+            }
+
+            // Check if IMU provider is still available
+            if (!this.imuProvider) {
+                console.warn('IMU provider became unavailable during initialization');
+                return;
+            }
+
+            // Start acceleration monitoring
+            this.imuProvider.startAcceleration({
+                frequency: 10, // 10Hz updates
+                normalizeToENU: true
+            }).then((startResult) => {
+                if (startResult.isErr()) {
+                    console.warn('Failed to start acceleration for Kalman fusion:', startResult.error.message);
+                    return;
+                }
+
+                // Check if IMU provider is still available
+                if (!this.imuProvider) {
+                    console.warn('IMU provider became unavailable during acceleration setup');
+                    return;
+                }
+
+                // Set up callback to feed acceleration data to Kalman filter
+                this.imuProvider.onAccelerationReading((reading) => {
+                    const kalmanProvider = this.geolocationProvider as IIMUEnabledGeolocationProvider;
+                    if (kalmanProvider.updateWithIMU) {
+                        kalmanProvider.updateWithIMU({
+                            x: reading.x,
+                            y: reading.y,
+                            z: reading.z
+                        });
+                    }
+                });
+            });
+        }).catch((error) => {
+            console.warn('Failed to set up IMU fusion for Kalman filter:', error);
+        });
     }
 
     /**
