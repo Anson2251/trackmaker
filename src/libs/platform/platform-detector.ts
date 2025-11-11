@@ -77,7 +77,8 @@ export class PlatformDetector {
                 native: false,
                 browser: true,
                 ipBased: true,
-                highAccuracy: true
+                highAccuracy: true,
+                kalmanFilter: true // Available as software feature
             },
             fileSystem: {
                 read: false,
@@ -115,7 +116,8 @@ export class PlatformDetector {
                         native: true,
                         browser: true,
                         ipBased: true,
-                        highAccuracy: true
+                        highAccuracy: true,
+                        kalmanFilter: true
                     },
                     fileSystem: {
                         read: true,
@@ -143,7 +145,8 @@ export class PlatformDetector {
                     ...baseCapabilities,
                     geolocation: {
                         ...baseCapabilities.geolocation,
-                        highAccuracy: false // Often limited on mobile web
+                        highAccuracy: false, // Often limited on mobile web
+                        kalmanFilter: true
                     },
                     permissions: {
                         ...baseCapabilities.permissions,
@@ -172,7 +175,16 @@ export class PlatformDetector {
             geolocation: {
                 timeout: 30000,
                 maximumAge: 10000,
-                enableHighAccuracy: true
+                enableHighAccuracy: true,
+                enableKalmanFilter: true, // Disabled by default
+                kalmanConfig: {
+                    enableIMUFusion: true,
+                    imuUpdateInterval: 100,
+                    maxAge: 5000,
+                    sigmaAcceleration: 1.0,
+                    initialPositionUncertainty: 20,
+                    initialVelocityUncertainty: 4
+                }
             },
             fileSystem: {
                 maxFileSize: 10 * 1024 * 1024 // 10MB

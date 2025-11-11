@@ -231,7 +231,13 @@ onMounted(async () => {
 
   // !TODO change the hard coded time to a setting
   if (Date.now() - mapStore.lastUpdateTime > 6000 && mapStore.lastUpdateTime !== 0) {
-    mapStore.setCenter(locator.getLastKnownLocation());
+    const lastLocation = locator.getLastKnownLocation();
+    // Only set center if we have valid coordinates (not the default 0,0)
+    if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
+      mapStore.setCenter(lastLocation);
+    } else {
+      console.warn('[TrackerView] No valid last known location available, skipping map center update');
+    }
   }
   DeviceOrientationService.addHandler((bearing) => {
     deviceBearing.value = bearing;
@@ -316,7 +322,14 @@ const handleToggleCurrentLocation = () => {
   if (isWatchingCurrentLocation.value) {
     const map = mapContainerRef.value?.map;
     if (map) {
-      map.flyTo({ center: locator.getLastKnownLocation().toLngLatLike(), zoom: 18 });
+      const lastLocation = locator.getLastKnownLocation();
+      // Only fly to location if we have valid coordinates (not the default 0,0)
+      if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
+        map.flyTo({ center: lastLocation.toLngLatLike(), zoom: 18 });
+      } else {
+        console.warn('[TrackerView] No valid current location available for navigation');
+        // Could optionally show a user message here
+      }
     }
   }
 };

@@ -4,6 +4,7 @@
 
 import type { Result } from 'neverthrow';
 import type { AppError } from '@/libs/error-handling';
+import type { KalmanGeolocationConfig } from './providers/kalman-geolocation-provider';
 
 /**
  * Supported runtime environments
@@ -29,6 +30,7 @@ export interface PlatformCapabilities {
         browser: boolean;
         ipBased: boolean;
         highAccuracy: boolean;
+        kalmanFilter: boolean;
     };
     fileSystem: {
         read: boolean;
@@ -68,6 +70,8 @@ export interface PlatformConfiguration {
         maximumAge?: number;
         enableHighAccuracy?: boolean;
         tauriHandler?: string;
+        enableKalmanFilter?: boolean;
+        kalmanConfig?: KalmanGeolocationConfig;
     };
     fileSystem: {
         basePath?: string;
@@ -100,6 +104,13 @@ export interface IGeolocationProvider {
     watchPosition(callback: PositionCallback): Promise<Result<number, AppError>>;
     clearWatch(watchId: number): Result<void, AppError>;
     isSupported(): boolean;
+}
+
+/**
+ * Extended interface for geolocation providers that support IMU integration
+ */
+export interface IIMUEnabledGeolocationProvider extends IGeolocationProvider {
+    updateWithIMU?(acceleration: { x: number; y: number; z: number }): void;
 }
 
 /**

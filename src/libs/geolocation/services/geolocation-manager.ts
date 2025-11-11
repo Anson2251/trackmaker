@@ -543,6 +543,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
     getLastKnownLocation(): GeographicPoint {
         if (!this.lastKnownLocation) {
+            console.warn('[GeolocationManager] No known location available - returning default coordinates (0, 0)');
             return new GeographicPoint(0, 0);
         }
         return this.lastKnownLocation;
