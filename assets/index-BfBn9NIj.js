@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-DdEtSt2O.js","./platform-Do-7vXO7.js","./vue-i18n-BUuI8ekj.js","./App-jBe8gYQr.css","./index-q4aC9eBH.js","./index-BDpgnFJm.css","./index-D5RKaK0N.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-iKg_FvgT.js","./platform-C0S52jfr.js","./vue-i18n-CpuwJiUt.js","./App-jBe8gYQr.css","./index-B7xOV6yN.js","./index-BDpgnFJm.css","./index-DvHcrzIN.js"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -13335,18 +13335,18 @@ ${i}`);
       moduleInit: async () => {
         var _a2;
         const e = cf((await Ps(async () => {
-          const { default: n } = await import("./App-DdEtSt2O.js");
+          const { default: n } = await import("./App-iKg_FvgT.js");
           return {
             default: n
           };
         }, __vite__mapDeps([0,1,2,3]), import.meta.url)).default);
         e.use(Hf()), e.use((await Ps(async () => {
-          const { default: n } = await import("./index-q4aC9eBH.js");
+          const { default: n } = await import("./index-B7xOV6yN.js");
           return {
             default: n
           };
         }, __vite__mapDeps([4,2,1,5]), import.meta.url)).default), e.use((await Ps(async () => {
-          const { i18n: n } = await import("./index-D5RKaK0N.js");
+          const { i18n: n } = await import("./index-DvHcrzIN.js");
           return {
             i18n: n
           };
@@ -13395,8 +13395,7 @@ ${i}`);
         try {
           if (!Wi()) throw new Error("Platform services not initialized");
           const t = new sv();
-          console.time("Geolocation service initialise"), await t.initialize(async (n) => tv() ? void 0 : confirm(n === "prompt" ? "Later your browser will request permission to access your location." : "This app requires access to your location to track your movements.")), console.timeEnd("Geolocation service initialise"), console.time("Geolocation service start"), await t.startLocationUpdates((n) => {
-            console.log(`[Geolocation] Location updated: ${n.latitude}, ${n.longitude}`);
+          console.time("Geolocation service initialise"), await t.initialize(async (n) => tv() ? void 0 : confirm(n === "prompt" ? "Later your browser will request permission to access your location." : "This app requires access to your location to track your movements.")), console.timeEnd("Geolocation service initialise"), console.time("Geolocation service start"), await t.startLocationUpdates(() => {
           }), console.timeEnd("Geolocation service start"), window.GeolocationManager = t, console.info("[Geolocation] Unified geolocation service initialized successfully using platform providers");
         } catch (e) {
           return console.error("[Geolocation] Failed to initialize geolocation service:", e), Promise.reject(e);
