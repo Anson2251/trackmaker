@@ -23,16 +23,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install pnpm
+        run: npm install pnpm -g
 
-      - name: Fix rollup for GitHub Action
-        run: npm install @rollup/rollup-linux-x64-gnu
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
         env:
-          BING_MAPS_KEY: ${{ secrets.BING_MAPS_KEY }}
           MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
 
       - name: Copy README to dist
