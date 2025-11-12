@@ -113,9 +113,7 @@ export const modules: ModuleItem[] = [
                 console.time("Geolocation service start");
 
                 // Start location updates
-                await geolocationManager.startLocationUpdates((location) => {
-                    console.log(`[Geolocation] Location updated: ${location.latitude}, ${location.longitude}`);
-                });
+                await geolocationManager.startLocationUpdates(() => {});
 
                 console.timeEnd("Geolocation service start");
 
