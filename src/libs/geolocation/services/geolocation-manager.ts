@@ -12,7 +12,7 @@ import IPGeolocationBackend from '../backends/ip';
 import { cloneDeep } from 'lodash-es';
 
 export interface LocationUpdateHandler {
-    (location: GeographicPoint, ...args: unknown[]): void;
+    (location: GeographicPoint, ...args: unknown[]): void | Promise<void>;
 }
 
 export interface LocationServiceInterface {

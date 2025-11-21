@@ -22,22 +22,6 @@ interface Emits {
 
 defineProps<Props>();
 const emit = defineEmits<Emits>();
-
-function formatDuration(ms: number) {
-  const seconds = ms / 1000;
-  const minutes = seconds / 60;
-  const hours = minutes / 60;
-
-  const displaySeconds = seconds % 60;
-  const displayMinutes = minutes % 60;
-  const displayHours = hours;
-
-  let formatted = "";
-  if (Math.floor(displayHours) > 0) formatted += `${String(Math.floor(displayHours))}h `;
-  if (Math.floor(displayMinutes) > 0) formatted += `${String(Math.floor(displayMinutes))}m `;
-  formatted += `${String(displaySeconds.toFixed(1)).padStart(4, "0")}s`;
-  return formatted;
-}
 </script>
 
 <template>
@@ -63,9 +47,6 @@ function formatDuration(ms: number) {
           </n-icon>
         </template>
         {{ isRecording ? t('trackerView.uiRecordingStatus.on') : t('trackerView.uiRecordingStatus.off') }}
-        <p style="font-family: monospace; padding-left: 8px;">
-          {{ recordTimespan ? `(${formatDuration(recordTimespan)})` : '' }}
-        </p>
       </n-button>
     </n-config-provider>
   </div>
@@ -74,7 +55,7 @@ function formatDuration(ms: number) {
 <style scoped>
 .mobile-record-button-container {
   position: absolute;
-  bottom: 48px;
+  bottom: 48px; /* Original position, no longer need to account for status bar */
   right: 50%;
   left: 50%;
   display: flex;

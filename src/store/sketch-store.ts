@@ -55,7 +55,7 @@ export const useSketchStore = defineStore('sketches', () => {
     });
 
     async function init() {
-        const storedData = await storageGet<ReturnType<CartoSketch['toStorage']> | unknown>('sketches');
+        const storedData = await storageGet<ReturnType<CartoSketch['toStorage']>>('sketches');
 
         if (storedData) {
             // Use the migration service to handle data migration
@@ -149,8 +149,8 @@ export const useSketchStore = defineStore('sketches', () => {
         }
         if (updates.tags !== undefined) {
             // Remove all existing tags and add new ones
-            sketch.meta.tags.forEach(tag => sketch.removeTag(tag));
-            updates.tags.forEach(tag => sketch.addTag(tag));
+            sketch.meta.tags.forEach(tag => {sketch.removeTag(tag)});
+            updates.tags.forEach(tag => {sketch.addTag(tag)});
         }
 
         await storageSet('sketches', sketches.value.map(s => s.toStorage()));
@@ -225,7 +225,7 @@ export const useSketchStore = defineStore('sketches', () => {
         // Calculate route distance
         if (route.points.length > 1) {
             try {
-                if (!route.meta.distance) {
+                if (route.meta.distance === undefined) {
                     const distance = await calculatePathDistance(route.points);
                     route.meta.distance = distance;
                 }
@@ -236,7 +236,7 @@ export const useSketchStore = defineStore('sketches', () => {
             } catch (error) {
                 console.warn('Failed to calculate route distance:', error);
                 // Fallback: use simple haversine for incremental calculation
-                if (!route.meta.distance) {
+                if (route.meta.distance === undefined) {
                     route.meta.distance = 0;
                 }
             }

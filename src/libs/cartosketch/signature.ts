@@ -32,7 +32,7 @@ export class CartoSketchSigner {
     }
 
     static async verifySketch(sketch: CartoSketch, publicKeyArmored: string): Promise<boolean> {
-        if (!sketch.meta.signature) {
+        if (sketch.meta.signature === null || sketch.meta.signature === undefined || sketch.meta.signature === "") {
             return false;
         }
 
@@ -41,6 +41,6 @@ export class CartoSketchSigner {
         // Create the same stable string representation
         const sketchData = JSON.stringify(sketch.toStorage());
 
-        return await crypto.verifySignature(sketchData, sketch.meta.signature, publicKey);
+        return crypto.verifySignature(sketchData, sketch.meta.signature, publicKey);
     }
 }

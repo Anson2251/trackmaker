@@ -49,6 +49,7 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 - **Frontend**: Vue 3, TypeScript, Pinia, Vue Router
 - **Mapping**: MapLibre GL JS, Terra Draw
+   > NOTE: The version 5.12.0, 5.13.0 would throw the error `__publicField is not defined`, please use the 5.11.0 version.
 - **UI Framework**: Naive UI
 - **Desktop**: Tauri 2.x
 - **Storage**: IndexedDB, LocalForage, Tauri Store

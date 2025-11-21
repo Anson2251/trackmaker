@@ -34,7 +34,7 @@ import TrackerViewRouteDrawer from "@/components/TrackerViewRouteDrawer.vue";
 import { useMapStore } from "@/store/map-store";
 import PlatformInfo from "@/utils/platform";
 import type NoSleep from "nosleep.js";
-import { DeviceOrientationService } from "@/utils/device-orientation-service";
+import { useImuCompass } from "@/composables/useImuCompass";
 
 // Import the new components
 import MapContainer from "@/components/TrackerView/MapContainer.vue";
@@ -42,6 +42,7 @@ import MapControls from "@/components/TrackerView/MapControls.vue";
 import DrawingTools from "@/components/TrackerView/DrawingTools.vue";
 import LocationMarker from "@/components/TrackerView/LocationMarker.vue";
 import RecordingButton from "@/components/TrackerView/RecordingButton.vue";
+import StatusBar from "@/components/TrackerView/StatusBar.vue";
 import BuildingLayerToggle from "@/components/TrackerView/BuildingLayerToggle.vue";
 import CurrentLocationToggle from "@/components/TrackerView/CurrentLocationToggle.vue";
 
@@ -225,6 +226,21 @@ const mapReady = ref<boolean>(false);
 const deviceBearing = ref<number>(0);
 const isUserSettingTheMap = ref(false);
 
+// Initialize IMU compass
+const {
+  bearing: imuBearing,
+  isTracking: imuIsTracking,
+  isSupported: imuIsSupported,
+  error: imuError,
+  startTracking: startImuTracking,
+  stopTracking: stopImuTracking
+} = useImuCompass({ autoStart: true });
+
+// Update device bearing when IMU bearing changes
+watch(imuBearing, (newBearing) => {
+  deviceBearing.value = newBearing;
+});
+
 onMounted(async () => {
   await routeStore.init();
   await mapStore.init();
@@ -239,10 +255,7 @@ onMounted(async () => {
       console.warn('[TrackerView] No valid last known location available, skipping map center update');
     }
   }
-  DeviceOrientationService.addHandler((bearing) => {
-    deviceBearing.value = bearing;
-  });
-  DeviceOrientationService.start();
+  // IMU compass is now handled by the composable
 
   mapReady.value = true;
 });
@@ -261,25 +274,20 @@ const handleDeviceOrientation = (bearing: number) => {
 };
 
 // Toggle orientation tracking
-const toggleOrientationTracking = (() => {
-  let deviceOrientationHandlerId: number | null = null;
-  return () => {
-    mapStore.setTrackingOrientation(!mapStore.isTrackingOrientation);
+const toggleOrientationTracking = () => {
+  mapStore.setTrackingOrientation(!mapStore.isTrackingOrientation);
 
-    if (mapStore.isTrackingOrientation) {
-      // Start tracking device orientation
-      deviceOrientationHandlerId = DeviceOrientationService.addHandler(handleDeviceOrientation);
-    } else {
-      // Stop tracking device orientation
-      if (deviceOrientationHandlerId !== null) {
-        deviceOrientationHandlerId = null;
-        mapStore.setBearing(0);
-        const map = mapContainerRef.value?.map;
-        if (map) map.setBearing(0);
-      }
-    }
-  };
-})();
+  if (mapStore.isTrackingOrientation) {
+    // Start tracking device orientation
+    startImuTracking();
+  } else {
+    // Stop tracking device orientation
+    stopImuTracking();
+    mapStore.setBearing(0);
+    const map = mapContainerRef.value?.map;
+    if (map) map.setBearing(0);
+  }
+};
 
 // Map event handlers
 const handleMapInit = (event: any) => {
@@ -477,6 +485,14 @@ const handleToggleBuildingLayer = () => {
       :record-timespan="routeStore.currentRouteRecordTimespan"
       :is-route-drawer-open="isRouteDrawerOpen"
       @toggle-recording="changeRecordState"
+    />
+
+    <!-- Mobile status bar positioned at bottom -->
+    <StatusBar
+      :is-recording="routeStore.isRecording"
+      :record-timespan="routeStore.currentRouteRecordTimespan"
+      :is-route-drawer-open="isRouteDrawerOpen"
+      :current-location="locator.getLastKnownLocation()"
     />
   </div>
 </template>

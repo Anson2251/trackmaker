@@ -9,13 +9,13 @@ export const useRouteStore = defineStore('routes', () => {
     const sketchStore = useSketchStore();
     const routeCollection = computed(() => sketchStore.routeCollection);
     const currentRouteId = computed({
-        get: () => sketchStore.currentRouteId,
-        set: (value) => sketchStore.setCurrentRouteId(value)
+        get: (() => sketchStore.currentRouteId),
+        set: ((value) => sketchStore.setCurrentRouteId(value))
     });
 
     const currentRouteRecordTimespan = ref(0);
     watch(currentRouteId, (id) => {
-        if (id) {
+        if (id !== null) {
             currentRouteRecordTimespan.value = sketchStore.getRouteById(id)?.meta?.record_timespan ?? 0;
         }
     })
@@ -77,7 +77,7 @@ export const useRouteStore = defineStore('routes', () => {
             addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
-        watchingHandler.value = locator.value.addLocationListener((newPoint: GeographicPoint) => {
+        watchingHandler.value = locator.value.addLocationListener(async (newPoint: GeographicPoint) => {
             if (currentRouteId.value) {
                 addPointToRoute(currentRouteId.value, newPoint);
             }

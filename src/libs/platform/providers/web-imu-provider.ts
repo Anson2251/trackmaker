@@ -19,6 +19,13 @@ export class WebIMUProvider implements IIMUProvider {
     private isAccelerationActive = false;
     private isGyroscopeActive = false;
     private motionEventListenerCount = 0;
+    private boundHandleMotionEvent: (event: DeviceMotionEvent) => void;
+    private boundHandleOrientationEvent: (event: DeviceOrientationEvent) => void;
+
+    constructor() {
+        this.boundHandleMotionEvent = this.handleMotionEvent.bind(this);
+        this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
+    }
 
     async init(): Promise<Result<void, GenericError>> {
         if (this.initialized) {
@@ -31,7 +38,7 @@ export class WebIMUProvider implements IIMUProvider {
 
         // Listen to device orientation for ENU normalization
         if ('DeviceOrientationEvent' in window) {
-            window.addEventListener('deviceorientation', this.handleOrientationEvent.bind(this));
+            window.addEventListener('deviceorientation', this.boundHandleOrientationEvent);
         }
 
         this.initialized = true;
@@ -105,7 +112,7 @@ export class WebIMUProvider implements IIMUProvider {
 
             // Only remove event listener if no more active listeners
             if (this.motionEventListenerCount === 0) {
-                window.removeEventListener('devicemotion', this.handleMotionEvent.bind(this), true);
+                window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
             }
             return ok(undefined);
         } catch (error) {
@@ -126,7 +133,7 @@ export class WebIMUProvider implements IIMUProvider {
 
             // Only remove event listener if no more active listeners
             if (this.motionEventListenerCount === 0) {
-                window.removeEventListener('devicemotion', this.handleMotionEvent.bind(this), true);
+                window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
             }
             return ok(undefined);
         } catch (error) {

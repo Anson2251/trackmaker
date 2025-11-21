@@ -77,6 +77,12 @@
         "uiRecordingStatus": {
             "on": "Recording…",
             "off": "Recorder"
+        },
+        "statusBar": {
+            "recordingTime": "Time",
+            "distance": "Distance",
+            "kalmanGain": "Kalman",
+            "gps": "Location"
         }
     },
     "aboutView": {

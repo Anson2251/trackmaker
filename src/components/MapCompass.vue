@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useThemeVars } from "naive-ui";
+import { useImuCompass } from "@/composables/useImuCompass";
 
 const theme = useThemeVars();
 
@@ -15,6 +16,39 @@ const bearing = defineModel<number>("bearing", {default: 0});
 const emit = defineEmits<{
   toggleTracking: [];
 }>();
+
+// Initialize IMU compass
+const {
+  bearing: imuBearing,
+  isTracking: imuIsTracking,
+  isSupported: imuIsSupported,
+  error: imuError,
+  toggleTracking: toggleImuTracking
+} = useImuCompass();
+
+// Update bearing model when IMU bearing changes
+watch(imuBearing, (newBearing) => {
+  if (props.tracking) {
+    bearing.value = newBearing;
+  }
+});
+
+// Sync tracking state
+watch(() => props.tracking, (isTracking) => {
+  if (isTracking !== imuIsTracking.value) {
+    if (isTracking) {
+      toggleImuTracking();
+    } else {
+      toggleImuTracking();
+    }
+  }
+});
+
+// Handle toggle tracking event
+const handleToggleTracking = () => {
+  toggleImuTracking();
+  emit('toggleTracking');
+};
 
 const rotationStyle = computed(() => `transform: rotate(${(-bearing.value) % 360}deg)`);
 
@@ -92,7 +126,7 @@ onMounted(() => {
   ) as HTMLDivElement;
   compassContainer.onclick = () => {
     // Toggle tracking mode when compass is clicked
-    emit('toggleTracking');
+    handleToggleTracking();
 
     // If not tracking, reset bearing to 0 (north up)
     if (!props.tracking) {

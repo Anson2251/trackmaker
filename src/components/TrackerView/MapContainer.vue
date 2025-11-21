@@ -15,7 +15,7 @@ import { TerraDraw } from "terra-draw";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
 import { useSettingsStore } from "@/store/settings-store";
 import { useMapStore } from "@/store/map-store";
-import { DeviceOrientationService } from "@/utils/device-orientation-service";
+import { useImuCompass } from "@/composables/useImuCompass";
 
 interface Props {
   styleUrl: string;
@@ -132,30 +132,45 @@ function initMap(event: any) {
   props.onMapInit(event);
 }
 
-// Toggle orientation tracking
-const toggleOrientationTracking = (() => {
-  let deviceOrientationHandlerId: number | null = null;
-  return () => {
-    mapStore.setTrackingOrientation(!mapStore.isTrackingOrientation);
+// Initialize IMU compass
+const {
+  bearing: imuBearing,
+  isTracking: imuIsTracking,
+  isSupported: imuIsSupported,
+  error: imuError,
+  startTracking: startImuTracking,
+  stopTracking: stopImuTracking
+} = useImuCompass({ autoStart: false });
 
-    if (mapStore.isTrackingOrientation) {
-      // Start tracking device orientation
-      deviceOrientationHandlerId = DeviceOrientationService.addHandler((bearing) => {
-        if (mapStore.isTrackingOrientation) {
-          if (map.value?.isEasing() || map.value?.isMoving() || map.value?.isRotating() || map.value?.isZooming()) return;
-          mapStore.setBearing(bearing);
-        }
-      });
-    } else {
-      // Stop tracking device orientation
-      if (deviceOrientationHandlerId !== null) {
-        deviceOrientationHandlerId = null;
-        mapStore.setBearing(0);
-        map.value?.setBearing(0);
-      }
-    }
+// Toggle orientation tracking
+const toggleOrientationTracking = () => {
+  mapStore.setTrackingOrientation(!mapStore.isTrackingOrientation);
+
+  if (mapStore.isTrackingOrientation) {
+    // Start tracking device orientation
+    startImuTracking();
+  } else {
+    // Stop tracking device orientation
+    stopImuTracking();
+    mapStore.setBearing(0);
+    map.value?.setBearing(0);
   }
-})();
+};
+
+// Handle device orientation updates when tracking is enabled
+const handleDeviceOrientation = (bearing: number) => {
+  if (mapStore.isTrackingOrientation) {
+    if (map.value?.isEasing() || map.value?.isMoving() || map.value?.isRotating() || map.value?.isZooming()) return;
+    mapStore.setBearing(bearing);
+  }
+};
+
+// Update map bearing when IMU bearing changes and tracking is enabled
+watch([imuBearing, () => mapStore.isTrackingOrientation], ([newBearing, isTracking]) => {
+  if (isTracking) {
+    handleDeviceOrientation(newBearing);
+  }
+});
 
 // Expose functions to parent
 defineExpose({

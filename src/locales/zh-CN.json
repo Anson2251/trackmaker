@@ -77,6 +77,12 @@
         "uiRecordingStatus": {
             "on": "记录中…",
             "off": "轨迹记录器"
+        },
+        "statusBar": {
+            "recordingTime": "时长",
+            "distance": "距离",
+            "kalmanGain": "卡尔曼",
+            "gps": "定位"
         }
     },
     "aboutView": {

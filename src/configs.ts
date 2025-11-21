@@ -9,6 +9,74 @@ import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
 import { initProj4rsModule } from "./utils/proj4-distance";
 
+// Temporary mobile device detection function
+function isMobileDevice(): boolean {
+    // Check user agent
+    const userAgent = navigator.userAgent || navigator.vendor || (window as Window & { opera?: string }).opera || "";
+
+    // Common mobile device patterns
+    const mobilePatterns = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i,
+        /Mobile/i
+    ];
+
+    const isMobileUA = mobilePatterns.some(pattern => userAgent.match(pattern));
+
+    // Additional check for touch capability (most mobile devices have touch)
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Check screen width as another hint (but not definitive)
+    const isSmallScreen = window.innerWidth <= 768;
+
+    return isMobileUA || (hasTouch && isSmallScreen);
+}
+
+// Temporary IMU permission request function
+async function requestIMUPermission(): Promise<boolean> {
+    try {
+        // Only request on mobile devices
+        if (!isMobileDevice()) {
+            console.info('[IMU Permission] Not a mobile device, skipping IMU permission request');
+            return true;
+        }
+
+        console.info('[IMU Permission] Mobile device detected, requesting IMU permissions');
+
+        // For iOS 13+, we need to request device motion and orientation permissions
+        if (typeof (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission === 'function') {
+            console.info('[IMU Permission] Requesting device motion permission');
+            const motionPermission = await (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission!();
+            if (motionPermission !== 'granted') {
+                console.warn('[IMU Permission] Device motion permission denied');
+                return false;
+            }
+        }
+
+        if (typeof (DeviceOrientationEvent as typeof DeviceOrientationEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission === 'function') {
+            console.info('[IMU Permission] Requesting device orientation permission');
+            const orientationPermission = await (DeviceOrientationEvent as typeof DeviceOrientationEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission!();
+            if (orientationPermission !== 'granted') {
+                console.warn('[IMU Permission] Device orientation permission denied');
+                return false;
+            }
+        }
+
+        console.info('[IMU Permission] IMU permissions granted successfully');
+        return true;
+
+    } catch (error) {
+        console.warn('[IMU Permission] Failed to request IMU permission:', error);
+        // Don't fail the initialization, just continue without IMU
+        return true;
+    }
+}
+
 // Extend Window interface for our custom properties
 declare global {
     interface Window {
@@ -116,6 +184,10 @@ export const modules: ModuleItem[] = [
                 await geolocationManager.startLocationUpdates(() => {});
 
                 console.timeEnd("Geolocation service start");
+
+                // Temporary fix: Request IMU permissions after geolocation initialization
+                console.info("[Geolocation] Requesting IMU permissions as temporary fix");
+                await requestIMUPermission();
 
                 window.GeolocationManager = geolocationManager; // expose new manager for direct access
 

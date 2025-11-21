@@ -20,18 +20,18 @@ export class CartoSketchRouteCollection {
     routesInternal: CartoSketchRouteItem[];
     constructor(routes: CartoSketchRouteItem[] = [], id: string = uuidV4(), meta: GeographicGeneralMetaType = GeographicGeneralMetaDefaultValue()) {
         this.id = id;
-        this.meta = meta || GeographicGeneralMetaDefaultValue();
+        this.meta = meta ?? GeographicGeneralMetaDefaultValue();
         this.routesInternal = routes;
     }
 
     get name() {
-        if (!this.meta) {
+        if (this.meta === null || this.meta === undefined) {
             this.meta = GeographicGeneralMetaDefaultValue();
         }
         return this.meta.name
     }
     set name(name: string) {
-        if (!this.meta) {
+        if (this.meta === null || this.meta === undefined) {
             this.meta = GeographicGeneralMetaDefaultValue();
         }
         this.meta.name = name
@@ -109,20 +109,20 @@ export class CartoSketchRouteItem {
     }
 
     get name() {
-        if (!this.meta) {
+        if (this.meta === null || this.meta === undefined) {
             this.meta = GeographicGeneralMetaDefaultValue();
         }
         return this.meta.name
     }
     set name(name: string) {
-        if (!this.meta) {
+        if (this.meta === null || this.meta === undefined) {
             this.meta = GeographicGeneralMetaDefaultValue();
         }
         this.meta.name = name
     }
 
     get distance() {
-        return this.meta.distance || 0
+        return this.meta.distance ?? 0
     }
 
     set distance(distance: number) {
@@ -130,7 +130,7 @@ export class CartoSketchRouteItem {
     }
 
     get recordTimespan() {
-        return this.meta.record_timespan || 0
+        return this.meta.record_timespan ?? 0
     }
 
     set recordTimespan(recordTimespan: number) {
@@ -143,7 +143,7 @@ export class CartoSketchRouteItem {
     }
 
     appendPoint(point: GeographicPoint) {
-        this.points.push(cloneDeep(point) as GeographicPoint);
+        this.points.push(cloneDeep(point));
         this.updateModificationTime();
     }
 
@@ -213,16 +213,16 @@ export class CartoSketchRouteItem {
 export function importCollectionFromGeoJSON(geojson: GeographicRouteGeoJSON, name?: string, id = uuidV4()): CartoSketchRouteCollection {
     name = name ?? geojson.properties?.name ?? id;
 
-    const collection = (geojson.features as GeographicRouteItemGeoJSON[]).map((feature: GeographicRouteItemGeoJSON, index: number) => {
+    const collection = geojson.features.map((feature: GeographicRouteItemGeoJSON, index: number) => {
         return importItemFromGeoJSON(feature, `${name}-${index}`);
     });
 
     const defaultMeta = GeographicGeneralMetaDefaultValue();
-    if (geojson.properties) {
+    if (geojson.properties !== null && geojson.properties !== undefined) {
         for (const key of Object.keys(defaultMeta)) {
             const val = geojson.properties[key as keyof typeof geojson.properties];
             if (val !== undefined) {
-                defaultMeta[key as keyof typeof defaultMeta] = val as never;
+                (defaultMeta as Record<string, unknown>)[key] = val;
             }
         }
     }
@@ -233,7 +233,7 @@ export function importCollectionFromGeoJSON(geojson: GeographicRouteGeoJSON, nam
 }
 
 export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON, name?: string, id?: string): CartoSketchRouteItem {
-    const properties = geojson.properties || {} as GeographicRouteItemProperties;
+    const properties = geojson.properties ?? {} as GeographicRouteItemProperties;
     const type = geojson.geometry?.type as string;
     const coordinates = geojson.geometry?.coordinates as GeoJSONPoint[];
 
@@ -242,39 +242,50 @@ export function importItemFromGeoJSON(geojson: GeographicRouteItemGeoJSON, name?
     id = id ?? uuidV4();
 
     const defaultMeta = GeographicGeneralMetaDefaultValue();
-    if (geojson.properties) {
+    if (geojson.properties !== null && geojson.properties !== undefined) {
         for (const key of Object.keys(defaultMeta)) {
             const val = geojson.properties[key as keyof typeof geojson.properties];
             if (val !== undefined) {
-                defaultMeta[key as keyof typeof defaultMeta] = val as never;
+                (defaultMeta as Record<string, unknown>)[key] = val;
             }
         }
     }
 
-    const routeItem = new CartoSketchRouteItem(id, coordinates?.map((point) => ({ latitude: point[1], longitude: point[0] } as GeographicPoint)) || [], properties, defaultMeta);
+    const routeItem = new CartoSketchRouteItem(
+        id,
+        coordinates?.map((point) => ({
+            latitude: point[1],
+            longitude: point[0],
+            accuracy: 0,
+            toLngLatLike: () => [point[0], point[1]],
+            varianceInMeter: 0
+        })) ?? [],
+        properties,
+        defaultMeta
+    );
 
     return routeItem;
 }
 
 
 export function importItemFromStorage(data: GeographicRouteItemType): CartoSketchRouteItem {
-    if (!data) {
+    if (data === null || data === undefined) {
         throw new Error('[importItemFromStorage] Invalid data provided');
     }
-    const routeItem = new CartoSketchRouteItem(data.id || uuidV4(), data.points || [], data.properties || {}, data.meta);
-    if (data.meta) {
+    const routeItem = new CartoSketchRouteItem(data.id ?? uuidV4(), data.points ?? [], data.properties ?? {}, data.meta);
+    if (data.meta !== null && data.meta !== undefined) {
         routeItem.meta = data.meta;
     }
     return routeItem;
 }
 
 export function readCollectionFromStorage(data: GeographicRouteType): CartoSketchRouteCollection {
-    if (!data) {
+    if (data === null || data === undefined) {
         throw new Error('[readCollectionFromStorage] Invalid data provided');
     }
-    const routes = (data.routes || []).map((route) => importItemFromStorage(route));
+    const routes = (data.routes ?? []).map((route) => importItemFromStorage(route));
     const routeCollection = new CartoSketchRouteCollection(routes, data.id || uuidV4(), data.meta);
-    if (data.meta) {
+    if (data.meta !== null && data.meta !== undefined) {
         routeCollection.meta = data.meta;
     }
     return routeCollection;
