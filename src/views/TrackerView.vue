@@ -53,7 +53,7 @@ import {
   TerraDrawLineStringMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/extend";
+import type { TerraDrawBaseDrawMode } from "terra-draw/modes/base.mode";
 import type { Component } from "vue";
 import { MapPin, Line, HandFinger } from "@vicons/tabler";
 

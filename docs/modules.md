@@ -38,4 +38,6 @@
 - [utils/geolocation](utils/geolocation/README.md)
 - [utils/input-device-preferences](utils/input-device-preferences/README.md)
 - [utils/load-modules](utils/load-modules.md)
+- [libs/platform](libs/platform/README.md)
+- [libs/platform/permission-service](libs/platform/permission-service.md)
 - [utils/platform](utils/platform/README.md)
