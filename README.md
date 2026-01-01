@@ -30,18 +30,19 @@ Enabling route planning and navigation for sports activities with map marking fe
 - [x] Route distance calculation
 - [x] Route management module refactoring
 - [ ] Bug fixes for the latest major version
-- [ ] Dead Reckoning (DR) system for better geolocation accuracy
+- [x] Dead Reckoning (DR) system for better geolocation accuracy
 - [ ] Edit routes functionality
+   - [ ] History of drawing actions for Redo and Undo
 - [x] Implement keep alive feature for the web app
 - [ ] Save shape edits on the map
 - [x] Widgets for editing and modifying shape information
 - [ ] Share routes capability
-- [ ] History of drawing actions for Redo and Undo
+
 
 ### Medium Priority
 
 - [ ] Pin with note functionality
-- [ ] Multiple tracks with note/tags system
+- [x] Multiple tracks with note/tags system
 - [ ] Enhanced Tauri geolocation support
 
 ## Technology Stack
