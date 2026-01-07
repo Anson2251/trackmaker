@@ -182,7 +182,7 @@ function handleRouteBatchDelete() {
           </template>
         </n-button>
       </div>
-      <div class="drawer-content">
+      <div class="drawer-content" @touchstart="(e) => e.stopPropagation()" @touchend="(e) => e.stopPropagation()">
         <selectable-swipeable-menu-list
           v-model:selection="(routeStore.currentRouteId as any)"
           v-model:multiple-selection="selectedRouteIds"

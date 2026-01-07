@@ -262,6 +262,12 @@ onMounted(async () => {
 
 const devMode = !__RELEASE_MODE__;
 
+// Computed property to get Kalman gain for dev mode
+let kalmanGain = null;
+setInterval(() => {
+  kalmanGain = locator.getLastKalmanGain()
+})
+
 let latestBearing = 0;
 // Handle device orientation updates when tracking is enabled
 const handleDeviceOrientation = (bearing: number) => {
@@ -424,6 +430,14 @@ const handleToggleBuildingLayer = () => {
               :is-watching-current-location="isWatchingCurrentLocation"
               :device-bearing="deviceBearing"
             />
+
+            <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
+            <div v-if="devMode" class="kalman-gain-bar">
+              <span class="kalman-gain-label">Kalman Gain:</span>
+              <span class="kalman-gain-value">
+                {{ kalmanGain ? (kalmanGain.get(0, 0) * kalmanGain.get(1, 1)).toFixed(6)  : 'N/A' }}
+              </span>
+            </div>
           </MapContainer>
 
           <!-- Map Compass -->
@@ -558,5 +572,31 @@ const handleToggleBuildingLayer = () => {
   stroke: #075985;
   fill: #0369a1;
   color: #075985;
+}
+
+.kalman-gain-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.75);
+  color: #00ff00;
+  padding: 4px 8px;
+  font-family: monospace;
+  font-size: 11px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.kalman-gain-label {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.kalman-gain-value {
+  color: #00ff00;
 }
 </style>

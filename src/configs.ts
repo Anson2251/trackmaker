@@ -12,6 +12,7 @@ import { initProj4rsModule } from "./utils/proj4-distance";
 // Temporary mobile device detection function
 function isMobileDevice(): boolean {
     // Check user agent
+    // oxlint-disable-next-line no-deprecated
     const userAgent = navigator.userAgent || navigator.vendor || (window as Window & { opera?: string }).opera || "";
 
     // Common mobile device patterns

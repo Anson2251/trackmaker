@@ -5,6 +5,7 @@
 
 import { KalmanFilter, type KalmanConfig, type IMUReading, type GPSReading } from '../kalman-filter';
 import { type GeolocationBackend, GeographicPoint } from '../types';
+import type { IIMUProvider } from '@/libs/platform/types';
 
 /**
  * Configuration for Kalman geolocation backend
@@ -19,19 +20,23 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
     private wrappedBackend: GeolocationBackend;
     private kalmanFilter: KalmanFilter;
     private config: KalmanBackendConfig;
+    private imuProvider: IIMUProvider | null = null;
     private initialized = false;
     private watchId: number | null = null;
     private lastGPSReading: GeographicPoint | null = null;
     private imuUpdateTimer: number | null = null;
+    private imuListenerId: number | null = null;
     private imuCallback: ((reading: IMUReading) => void) | null = null;
     private watchCallbacks: Map<number, (location: GeographicPoint) => void> = new Map();
     private nextCallbackId = 1;
 
     constructor(
         wrappedBackend: GeolocationBackend,
-        config: Partial<KalmanBackendConfig> = {}
+        config: Partial<KalmanBackendConfig> = {},
+        imuProvider?: IIMUProvider
     ) {
         this.wrappedBackend = wrappedBackend;
+        this.imuProvider = imuProvider || null;
         this.config = {
             enableIMUFusion: false,
             imuUpdateInterval: 100, // 10Hz IMU updates
@@ -47,6 +52,16 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
             initialPositionUncertainty: this.config.initialPositionUncertainty,
             initialVelocityUncertainty: this.config.initialVelocityUncertainty
         });
+    }
+
+    /**
+     * Check if IMU fusion is available (requires IMU provider and IMU support)
+     */
+    private isIMUAvailable(): boolean {
+        if (!this.imuProvider) {
+            return false;
+        }
+        return this.imuProvider.isSupported();
     }
 
     async getPermissionStatus(): Promise<"granted" | "denied" | "prompt" | "unknown"> {
@@ -82,9 +97,14 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
             }
         );
 
-        // Start IMU fusion if enabled
-        if (this.config.enableIMUFusion) {
-            this.startIMUFusion();
+        // Start IMU fusion if enabled and available
+        if (this.config.enableIMUFusion && this.isIMUAvailable()) {
+            // Fire and forget - errors are handled inside startIMUFusion
+            this.startIMUFusion().catch((error: unknown) => {
+                console.warn('[KalmanGeolocationBackend] Failed to start IMU fusion:', error);
+            });
+        } else if (this.config.enableIMUFusion && !this.isIMUAvailable()) {
+            console.warn('[KalmanGeolocationBackend] IMU fusion enabled but IMU not available, falling back to GPS-only');
         }
 
         return callbackId;
@@ -122,7 +142,7 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
 
         const imuReading: IMUReading = {
             acceleration: { ...acceleration, z: 0 },
-            timestamp: Date.now()
+            timestamp: performance.now()
         };
 
         this.kalmanFilter.updateWithIMU(imuReading);
@@ -143,12 +163,20 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
         return this.kalmanFilter.getState();
     }
 
+    /**
+     * Get the last calculated Kalman gain matrix
+     * Returns null if no GPS update has been processed yet
+     */
+    public getLastKalmanGain() {
+        return this.kalmanFilter.getLastKalmanGain();
+    }
+
     private async applyKalmanFilter(position: GeographicPoint): Promise<GeographicPoint> {
         const gpsReading: GPSReading = {
             latitude: position.latitude,
             longitude: position.longitude,
             accuracy: position.accuracy,
-            timestamp: Date.now()
+            timestamp: performance.now()
         };
 
         // Update Kalman filter
@@ -213,20 +241,58 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
         }
     }
 
-    private startIMUFusion(): void {
-        if (this.imuUpdateTimer !== null) {
+    private async startIMUFusion(): Promise<void> {
+        if (this.imuListenerId !== null) {
             return;
         }
 
-        // In a real implementation, this would interface with an IMU provider
-        // For now, we'll simulate periodic updates that could be provided by an external source
-        this.imuUpdateTimer = window.setInterval(() => {
-            // This would be replaced with actual IMU data from an IMU provider
-            // For now, we'll just let the filter predict based on current state
-        }, this.config.imuUpdateInterval);
+        // Check if IMU fusion is actually available
+        if (!this.isIMUAvailable() || !this.config.enableIMUFusion) {
+            console.warn('[KalmanGeolocationBackend] IMU fusion not available or disabled');
+            return;
+        }
+
+        try {
+            // Start acceleration monitoring with IMU provider
+            const startResult = await this.imuProvider!.startAcceleration({
+                frequency: 1000 / (this.config.imuUpdateInterval ?? 100), // default 10Hz
+                normalizeToENU: true // Normalize to East-North-Up coordinates for consistent axes
+            });
+
+            if (startResult.isErr()) {
+                console.warn('[KalmanGeolocationBackend] Failed to start IMU acceleration:', startResult.error);
+                return;
+            }
+
+            // Set up listener for acceleration readings
+            this.imuListenerId = this.imuProvider!.onAccelerationReading((reading) => {
+                // Convert IMU reading to acceleration format expected by Kalman filter
+                this.updateWithIMU({
+                    x: reading.x,
+                    y: reading.y,
+                    z: reading.z
+                });
+            });
+
+            console.info('[KalmanGeolocationBackend] IMU fusion started successfully');
+        } catch (error) {
+            console.error('[KalmanGeolocationBackend] Error starting IMU fusion:', error);
+        }
     }
 
     private stopIMUFusion(): void {
+        // Stop IMU listener if active
+        if (this.imuListenerId !== null && this.imuProvider) {
+            this.imuProvider.removeEventListener(this.imuListenerId);
+            this.imuListenerId = null;
+        }
+
+        // Stop acceleration monitoring
+        if (this.imuProvider) {
+            this.imuProvider.stopAcceleration();
+        }
+
+        // Clear legacy timer if still present
         if (this.imuUpdateTimer !== null) {
             clearInterval(this.imuUpdateTimer);
             this.imuUpdateTimer = null;

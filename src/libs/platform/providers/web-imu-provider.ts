@@ -226,7 +226,7 @@ export class WebIMUProvider implements IIMUProvider {
                     x: acc.x,
                     y: acc.y,
                     z: acc.z,
-                    timestamp: Date.now()
+                    timestamp: performance.now()
                 };
 
                 // If using accelerationIncludingGravity, we need to remove gravity component
@@ -264,7 +264,7 @@ export class WebIMUProvider implements IIMUProvider {
                     x: rot.alpha, // rotation around Z axis
                     y: rot.beta,  // rotation around X axis
                     z: rot.gamma, // rotation around Y axis
-                    timestamp: Date.now()
+                    timestamp: performance.now()
                 };
 
                 // Apply ENU normalization if requested
@@ -364,7 +364,7 @@ export class WebIMUProvider implements IIMUProvider {
             x: gx,
             y: gy,
             z: gz,
-            timestamp: Date.now()
+            timestamp: performance.now()
         };
     }
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import { useThemeVars } from "naive-ui";
 import { clamp } from "lodash-es";
 
@@ -21,6 +21,40 @@ const theme = useThemeVars();
 
 const routeDrawer = useTemplateRef("route-drawer");
 const position = computed(() => props.position || "left");
+
+// Swipe gesture tracking for easter egg
+let touchStartX = 0;
+let touchStartY = 0;
+const SWIPE_THRESHOLD = 80;
+
+const handleTouchStart = (e: TouchEvent) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+};
+
+const handleTouchEnd = (e: TouchEvent) => {
+  if (!touchStartX || !touchStartY) return;
+
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+
+  // Check if swipe is in the direction to close the drawer
+  let shouldClose = false;
+  if (position.value === "left" && deltaX < -SWIPE_THRESHOLD) shouldClose = true;
+  if (position.value === "right" && deltaX > SWIPE_THRESHOLD) shouldClose = true;
+  if (position.value === "top" && deltaY < -SWIPE_THRESHOLD) shouldClose = true;
+  if (position.value === "bottom" && deltaY > SWIPE_THRESHOLD) shouldClose = true;
+
+  if (shouldClose) {
+    show.value = false;
+  }
+
+  touchStartX = 0;
+  touchStartY = 0;
+};
 
 // Calculate drawer dimensions based on position
 const routeDrawerWidth = computed(() =>
@@ -81,8 +115,21 @@ watch(routeDrawerHeight, () => emit("update:height", routeDrawerHeight.value));
       :class="`route-drawer--${position}`"
       @click="(e) => emit('click', e)"
       @contextmenu="(e) => emit('contextmenu', e)"
+      @touchstart="handleTouchStart"
+      @touchend="handleTouchEnd"
     >
-      <slot name="default" />
+      <!-- Easter egg: Swipe indicator -->
+      <div class="swipe-indicator" :class="`swipe-indicator--${position}`">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 4V20M12 4L8 8M12 4L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-if="position === 'top'"/>
+          <path d="M12 20V4M12 20L8 16M12 20L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-else-if="position === 'bottom'"/>
+          <path d="M4 12H20M4 12L8 8M4 12L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-else-if="position === 'left'"/>
+          <path d="M20 12H4M20 12L16 8M20 12L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-else-if="position === 'right'"/>
+        </svg>
+      </div>
+      <div style="height: 100%; width: 100%; overflow: auto;">
+        <slot name="default" />
+      </div>
     </div>
   </transition>
 </template>
@@ -93,12 +140,50 @@ watch(routeDrawerHeight, () => emit("update:height", routeDrawerHeight.value));
   box-sizing: border-box;
   background-color: v-bind("theme.modalColor");
   border-radius: v-bind("theme.borderRadius");
+  touch-action: pan-x pan-y;
+}
+
+/* Swipe indicator easter egg */
+.swipe-indicator {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: v-bind("theme.textColorBase");
+  opacity: 0.3;
+  transition: opacity 0.3s, transform 0.3s;
+  cursor: grab;
+}
+
+.swipe-indicator--left {
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.swipe-indicator--right {
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.swipe-indicator--top {
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.swipe-indicator--bottom {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Left position styles */
 .route-drawer--left {
   padding-left: 48px;
   padding-bottom: 32px;
+  padding-top: 32px;
   bottom: 0;
   left: 0px;
   top: 0;
@@ -111,6 +196,7 @@ watch(routeDrawerHeight, () => emit("update:height", routeDrawerHeight.value));
 .route-drawer--right {
   padding-right: 48px;
   padding-bottom: 32px;
+  padding-top: 32px;
   bottom: 0;
   right: 0px;
   top: 0;
@@ -123,6 +209,7 @@ watch(routeDrawerHeight, () => emit("update:height", routeDrawerHeight.value));
 .route-drawer--top {
   padding-top: 48px;
   padding-right: 32px;
+  padding-left: 32px;
   top: 0px;
   left: 0;
   right: 0;
@@ -135,6 +222,7 @@ watch(routeDrawerHeight, () => emit("update:height", routeDrawerHeight.value));
 .route-drawer--bottom {
   padding-bottom: 48px;
   padding-right: 32px;
+  padding-left: 32px;
   bottom: 0px;
   left: 0;
   right: 0;

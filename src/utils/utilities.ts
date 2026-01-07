@@ -2,7 +2,7 @@ import { save as saveDialog, open as openDialog } from '@tauri-apps/plugin-dialo
 import { create, readTextFile } from '@tauri-apps/plugin-fs';
 
 export async function tauriFileSaveDialog(name: string, extensions: string[]) {
-	return await saveDialog({
+	return saveDialog({
 		filters: [
 			{
 				name: name,
@@ -27,7 +27,7 @@ export async function tauriFileOpenDialog(multiple = false, defaultName = "", ex
 }
 
 export async function tauriReadTextFile(filePath: string) {
-	return await readTextFile(filePath);
+	return readTextFile(filePath);
 }
 
 export async function tauriCreateTextFile(filePath: string, content: string) {

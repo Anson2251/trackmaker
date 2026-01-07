@@ -120,7 +120,7 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
             beta: event.beta ?? 0,
             gamma: event.gamma ?? 0,
             webkitCompassHeading: (event as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading,
-            timestamp: Date.now()
+            timestamp: performance.now()
         };
 
         this.lastReading = reading;

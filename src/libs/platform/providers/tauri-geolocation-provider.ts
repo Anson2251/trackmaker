@@ -143,7 +143,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
                 ...coord,
                 toJSON: () => JSON.stringify(coord)
             },
-            timestamp: Date.now(),
+            timestamp: performance.now(),
         };
 
         return {
@@ -266,7 +266,7 @@ class TauriGeolocation implements Geolocation {
                 ...coord,
                 toJSON: () => JSON.stringify(coord)
             },
-            timestamp: Date.now(),
+            timestamp: performance.now(),
         };
 
         return {

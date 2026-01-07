@@ -22,7 +22,7 @@ export class PlatformInfo {
         return typeof this.parser.getDevice().type === "undefined";
     }
 
-    public get browser(): "Tauri" | string {
+    public get browser(): string {
         return isTauri() ? "Tauri" : (this.platformContext.browser || "");
     }
 
@@ -53,6 +53,7 @@ export class PlatformInfo {
      */
     public get isWeb(): boolean {
         const env = this.platformContext.environment;
+        // oxlint-disable-next-line no-unsafe-enum-comparison
         return env === 'web' || env === 'mobile_web';
     }
 }

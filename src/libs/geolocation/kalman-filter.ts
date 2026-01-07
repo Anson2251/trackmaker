@@ -55,7 +55,7 @@ export class KalmanFilter {
 
     constructor(config: Partial<KalmanConfig>) {
         this.config = {
-            sigmaAcceleration: 1.0, // Suitable for driving/cycling/walking
+            sigmaAcceleration: 4.0, // Suitable for driving/cycling/walking
             initialPositionUncertainty: 20, // 20 meters initial uncertainty
             initialVelocityUncertainty: 4, // 4 m/s initial velocity uncertainty
             ...config
@@ -74,7 +74,7 @@ export class KalmanFilter {
                 [0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0],
                 [0, 0, 0, Math.pow(this.config.initialVelocityUncertainty, 2)]
             ]),
-            timestamp: Date.now()
+            timestamp: performance.now()
         };
     }
 
@@ -180,6 +180,18 @@ export class KalmanFilter {
     }
 
     /**
+     * Get the last calculated Kalman gain matrix
+     * Returns null if no GPS update has been processed yet
+     */
+    public getLastKalmanGain(): Matrix | null {
+        // The Kalman gain is calculated during the updateGPS step
+        // We need to store it to expose it later
+        return this.lastKalmanGain || null;
+    }
+
+    private lastKalmanGain: Matrix | null = null;
+
+    /**
      * Predict step of Kalman filter
      */
     private predict(dt: number, acceleration?: { x: number; y: number }): void {
@@ -277,6 +289,9 @@ export class KalmanFilter {
 
         // Kalman gain: K = P * H^T * S^(-1)
         const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(S));
+
+        // Store the Kalman gain for debugging/monitoring
+        this.lastKalmanGain = K;
 
         // Innovation: y = z - H * x
         const innovation = measurement.sub(expectedMeasurement);
