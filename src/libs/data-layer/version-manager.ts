@@ -56,7 +56,7 @@ export class VersionManager {
             throw new Error('Unable to determine data version');
         } catch (error) {
             const versionError = error instanceof VersionError ? error : new VersionError(
-                `Failed to extract version from data: ${error}`,
+                `Failed to extract version from data: ${String(error)}`,
                 MigrationErrorCode.INVALID_VERSION,
                 undefined,
                 undefined,
@@ -125,7 +125,7 @@ export class VersionManager {
             return ok(undefined);
         } catch (error) {
             const versionError = error instanceof VersionError ? error : new VersionError(
-                `Version validation failed: ${error}`,
+                `Version validation failed: ${String(error)}`,
                 MigrationErrorCode.INVALID_VERSION,
                 version,
                 undefined,
@@ -163,7 +163,7 @@ export class VersionManager {
             return ok(null);
         } catch (error) {
             const versionError = error instanceof VersionError ? error : new VersionError(
-                `Failed to extract version metadata: ${error}`,
+                `Failed to extract version metadata: ${String(error)}`,
                 MigrationErrorCode.INVALID_VERSION,
                 undefined,
                 undefined,
@@ -216,7 +216,7 @@ export class VersionManager {
             return ok(path);
         } catch (error) {
             const versionError = error instanceof VersionError ? error : new VersionError(
-                `Failed to determine migration path: ${error}`,
+                `Failed to determine migration path: ${String(error)}`,
                 MigrationErrorCode.INVALID_VERSION,
                 currentVersion,
                 targetVersion,

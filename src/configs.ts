@@ -52,6 +52,7 @@ async function requestIMUPermission(): Promise<boolean> {
         if (typeof (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission === 'function') {
             console.info('[IMU Permission] Requesting device motion permission');
             const motionPermission = await (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission!();
+            console.log("Requested permission on IOS")
             if (motionPermission !== 'granted') {
                 console.warn('[IMU Permission] Device motion permission denied');
                 return false;
@@ -144,7 +145,7 @@ export const modules: ModuleItem[] = [
                 console.info("[Platform] Platform services initialized successfully");
             } catch (error) {
                 console.error("[Platform] Failed to initialize platform services:", error);
-                return Promise.reject(error);
+                return Promise.reject(error instanceof Error ? error : new Error(String(error)));
             }
         },
         dependencies: []
@@ -195,7 +196,7 @@ export const modules: ModuleItem[] = [
             }
             catch (error) {
                 console.error("[Geolocation] Failed to initialize geolocation service:", error);
-                return Promise.reject(error);
+                return Promise.reject(error instanceof Error ? error : new Error(String(error)));
             }
         },
         dependencies: ["platform-services"]
@@ -225,7 +226,7 @@ export const modules: ModuleItem[] = [
                 window.ImuOrientationManager = imuOrientationManager;
             } catch (error) {
                 console.error("[IMU & Orientation] Failed to initialize service:", error);
-                return Promise.reject(error);
+                return Promise.reject(error instanceof Error ? error : new Error(String(error)));
             }
         },
         dependencies: ["platform-services"]

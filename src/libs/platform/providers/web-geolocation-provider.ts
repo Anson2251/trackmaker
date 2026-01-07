@@ -8,8 +8,10 @@ import { GeolocationProviderError, GeolocationProviderErrorCode } from '../error
 
 export class WebGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
+    private permissionCallback: ((state: PermissionState) => void) | undefined;
 
-    async init(): Promise<Result<void, GeolocationProviderError>> {
+    async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GeolocationProviderError>> {
+        this.permissionCallback = permissionCallback;
         if (this.initialized) {
             return ok(undefined);
         }

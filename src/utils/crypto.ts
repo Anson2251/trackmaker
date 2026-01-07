@@ -27,12 +27,12 @@ export async function readPrivateKey(privateKeyArmored: string, passphrase?: str
 }
 
 export async function readPublicKey(publicKeyArmored: string): Promise<openpgp.PublicKey> {
-    return await openpgp.readKey({ armoredKey: publicKeyArmored });
+    return openpgp.readKey({ armoredKey: publicKeyArmored });
 }
 
 export async function sign(message: string, privateKey: openpgp.PrivateKey): Promise<string> {
     const messageObj = await openpgp.createMessage({ text: message });
-    const signed = await openpgp.sign({
+    const signed: string = await openpgp.sign({
         message: messageObj,
         signingKeys: [privateKey],
         detached: true
@@ -77,8 +77,8 @@ export async function generateSignature(
 export async function decomposeSignature(signature: string): Promise<SignatureType> {
     const decodedSignature = atob(signature);
     const message = await openpgp.readMessage({ armoredMessage: atob(decodedSignature) });
-    const signatureData = JSON.parse(atob(message.getText()));
-    return signatureData;
+    const signatureData = JSON.parse(atob(message.getText() as string));
+    return signatureData as SignatureType;
 }
 
 export async function getPublicKeyFromKeyserver(keyId: string): Promise<string | null> {
@@ -109,5 +109,5 @@ export async function verifySignature(
     const message = btoa(JSON.stringify(signatureData));
     const decodedSignature = atob(signature);
 
-    return await verify(message, decodedSignature, publicKey);
+    return verify(message, decodedSignature, publicKey);
 }

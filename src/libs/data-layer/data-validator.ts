@@ -82,7 +82,7 @@ export class DataValidator {
             }
 
             const error = new MigrationValidationError(
-                `Unexpected validation error: ${validationError}`,
+                `Unexpected validation error: ${String(validationError)}`,
                 undefined,
                 data,
                 validationError instanceof Error ? validationError : new Error(String(validationError))
@@ -166,7 +166,7 @@ export class DataValidator {
             }
 
             const error = new MigrationValidationError(
-                `Unexpected validation error: ${validationError}`,
+                `Unexpected validation error: ${String(validationError)}`,
                 undefined,
                 data,
                 validationError instanceof Error ? validationError : new Error(String(validationError))
@@ -248,7 +248,7 @@ export class DataValidator {
             }
 
             const error = new MigrationValidationError(
-                `Unexpected validation error: ${validationError}`,
+                `Unexpected validation error: ${String(validationError)}`,
                 undefined,
                 data,
                 validationError instanceof Error ? validationError : new Error(String(validationError))
@@ -299,7 +299,7 @@ export class DataValidator {
             }
 
             const error = new MigrationValidationError(
-                `Unexpected validation error: ${validationError}`,
+                `Unexpected validation error: ${String(validationError)}`,
                 undefined,
                 data,
                 validationError instanceof Error ? validationError : new Error(String(validationError))
@@ -321,7 +321,7 @@ export class DataValidator {
                 return this.validateSketchArray(data);
             default:
                 return err(new MigrationValidationError(
-                    `Unknown expected format: ${expectedFormat}`,
+                    `Unknown expected format: ${String(expectedFormat)}`,
                     'expectedFormat',
                     expectedFormat
                 ));
@@ -353,7 +353,7 @@ export class DataValidator {
             return ok(result);
         } catch (error) {
             return err(new DataCorruptionError(
-                `Data integrity check failed: ${error}`,
+                `Data integrity check failed: ${String(error)}`,
                 data,
                 error instanceof Error ? error : new Error(String(error))
             ));

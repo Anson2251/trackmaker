@@ -193,7 +193,7 @@ export class MigrationService {
 
         } catch (error) {
             return err(new MigrationError(
-                `Migration service error: ${error}`,
+                `Migration service error: ${String(error)}`,
                 MigrationErrorCode.MIGRATION_FAILED,
                 error instanceof Error ? error : new Error(String(error))
             ));
@@ -237,7 +237,7 @@ export class MigrationService {
 
             } catch (error) {
                 lastError = new MigrationError(
-                    `Migration attempt ${attempt + 1} failed: ${error}`,
+                    `Migration attempt ${attempt + 1} failed: ${String(error)}`,
                     MigrationErrorCode.MIGRATION_FAILED,
                     error instanceof Error ? error : new Error(String(error))
                 );
@@ -269,7 +269,7 @@ export class MigrationService {
             return ok(originalData);
         } catch (error) {
             return err(new MigrationError(
-                `Rollback failed: ${error}`,
+                `Rollback failed: ${String(error)}`,
                 MigrationErrorCode.ROLLBACK_FAILED,
                 error instanceof Error ? error : new Error(String(error))
             ));
@@ -363,7 +363,7 @@ export class MigrationUtils {
             return ok(data);
         } catch (error) {
             return err(new MigrationError(
-                `Failed to restore backup: ${error}`,
+                `Failed to restore backup: ${String(error)}`,
                 MigrationErrorCode.DATA_CORRUPTION,
                 error instanceof Error ? error : new Error(String(error))
             ));

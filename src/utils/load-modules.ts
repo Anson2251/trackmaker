@@ -37,7 +37,7 @@ export const messageFormat = {
     "alreadyLoading": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is already loading by another instance, skip`,
     "alreadyLoaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has been loaded by another instance, skip`,
     "missingDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is missing the following dependencies: ${formatArg(args[1])}`,
-    "loadDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is loading its dependencies (${args.slice(1).join(', ')})`,
+    "loadDependencies": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" is loading its dependencies (${args.slice(1).map(a => formatArg(a)).join(', ')})`,
     "dependenciesReady": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies are ready`,
     "dependenciesFailure": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" dependencies failed to load. \n\nTrackback: \n${formatArg(args[1])}`
 };

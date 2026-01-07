@@ -40,7 +40,7 @@ export const useRouteStore = defineStore('routes', () => {
     }
 
     async function addRoute(name: string, properties: GeographicRouteItemProperties = {}) {
-        return await sketchStore.addRoute(name, properties);
+        return sketchStore.addRoute(name, properties);
     }
 
     async function deleteRoute(id: string) {
@@ -74,16 +74,16 @@ export const useRouteStore = defineStore('routes', () => {
         isRecording.value = true;
 
         if (initialPoint) {
-            addPointToRoute(currentRouteId.value!, initialPoint);
+            void addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
         watchingHandler.value = locator.value.addLocationListener(async (newPoint: GeographicPoint) => {
             if (currentRouteId.value) {
-                addPointToRoute(currentRouteId.value, newPoint);
+                await addPointToRoute(currentRouteId.value, newPoint);
             }
         });
 
-        sketchStore.updateRoute(currentRouteId.value!, { meta: { modification_timestamp: Date.now() } });
+        void sketchStore.updateRoute(currentRouteId.value!, { meta: { modification_timestamp: Date.now() } });
 
         recordingTimespanTrackingHandler = setInterval(async () => {
             const currentRoute = sketchStore.getRouteById(currentRouteId.value!)!;

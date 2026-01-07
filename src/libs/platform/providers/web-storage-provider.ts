@@ -52,7 +52,7 @@ export class WebStorageProvider implements IStorageProvider {
             };
 
             request.onerror = (event) => {
-                reject((event.target as IDBOpenDBRequest).error);
+                reject((event.target as IDBOpenDBRequest).error ?? Error('Failed to open database'));
             };
         });
     }
@@ -118,10 +118,11 @@ export class WebStorageProvider implements IStorageProvider {
                 return new Promise<Record<string, unknown>>((resolve, reject) => {
                     const request = store.getAll();
                     request.onsuccess = () => {
-                        const data = request.result.reduce((acc, item, index) => {
+                        const items = request.result as unknown[];
+                        const data = items.reduce<Record<string, unknown>>((acc, item, index) => {
                             acc[index] = item;
                             return acc;
-                        }, {} as Record<string, unknown>);
+                        }, {});
                         resolve(data);
                     };
                     request.onerror = () => reject(new Error('Failed to export data'));

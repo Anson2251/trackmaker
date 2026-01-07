@@ -159,6 +159,7 @@ export class PlatformDetector {
                 };
 
             case RuntimeEnvironment.WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 return baseCapabilities;
         }
@@ -228,6 +229,7 @@ export class PlatformDetector {
                 };
 
             case RuntimeEnvironment.WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 return {
                     ...baseConfig,

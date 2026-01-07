@@ -8,6 +8,7 @@ import { GenericError } from '@/libs/error-handling';
 
 export class WebIMUProvider implements IIMUProvider {
     private initialized = false;
+    private permissionCallback: ((state: PermissionState) => void) | undefined;
     private accelerationListeners: Map<number, (reading: IMUReading) => void> = new Map();
     private gyroscopeListeners: Map<number, (reading: IMUReading) => void> = new Map();
     private nextListenerId = 0;
@@ -27,7 +28,8 @@ export class WebIMUProvider implements IIMUProvider {
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
     }
 
-    async init(): Promise<Result<void, GenericError>> {
+    async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GenericError>> {
+        this.permissionCallback = permissionCallback;
         if (this.initialized) {
             return ok(undefined);
         }

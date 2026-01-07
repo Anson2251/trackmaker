@@ -69,7 +69,7 @@ export class RouteCollectionToSketchMigration implements MigrationStrategy {
             return ok(sketches);
         } catch (error) {
             return err(new MigrationError(
-                `Route collection to sketch migration failed: ${error}`,
+                `Route collection to sketch migration failed: ${String(error)}`,
                 MigrationErrorCode.MIGRATION_FAILED,
                 error instanceof Error ? error : new Error(String(error))
             ));
@@ -103,7 +103,7 @@ export class RouteCollectionToSketchMigration implements MigrationStrategy {
             return ok(firstSketch.routes);
         } catch (error) {
             return err(new MigrationError(
-                `Route collection to sketch rollback failed: ${error}`,
+                `Route collection to sketch rollback failed: ${String(error)}`,
                 MigrationErrorCode.ROLLBACK_FAILED,
                 error instanceof Error ? error : new Error(String(error))
             ));
@@ -265,7 +265,7 @@ export class MigrationStrategyFactory {
             return ok(strategies);
         } catch (error) {
             return err(new MigrationError(
-                `Failed to create strategies for migration path: ${error}`,
+                `Failed to create strategies for migration path: ${String(error)}`,
                 MigrationErrorCode.MIGRATION_FAILED,
                 error instanceof Error ? error : new Error(String(error))
             ));

@@ -47,7 +47,7 @@ export class PermissionService implements PermissionServiceInterface {
         // Fallback to browser permissions API
         try {
             if (!navigator.permissions) {
-                return this.fallbackPermissionCheck();
+                return await this.fallbackPermissionCheck();
             }
 
             const result = await navigator.permissions.query({ name: 'geolocation' });

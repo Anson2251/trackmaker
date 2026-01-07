@@ -183,9 +183,9 @@ export const globalCoordinateTransformer = new CoordinateTransformer();
 export async function geographicToLocal(coord: GeoCoordinate, referencePoint?: GeoCoordinate): Promise<ProjectedCoordinate> {
     if (referencePoint) {
         const transformer = new CoordinateTransformer({ referencePoint });
-        return await transformer.geographicToLocal(coord);
+        return transformer.geographicToLocal(coord);
     } else if (globalCoordinateTransformer.isInitialized()) {
-        return await globalCoordinateTransformer.geographicToLocal(coord);
+        return globalCoordinateTransformer.geographicToLocal(coord);
     } else {
         throw new Error('No reference point available. Provide a referencePoint or set one globally.');
     }
@@ -197,9 +197,9 @@ export async function geographicToLocal(coord: GeoCoordinate, referencePoint?: G
 export async function localToGeographic(coord: ProjectedCoordinate, referencePoint?: GeoCoordinate): Promise<GeoCoordinate> {
     if (referencePoint) {
         const transformer = new CoordinateTransformer({ referencePoint });
-        return await transformer.localToGeographic(coord);
+        return transformer.localToGeographic(coord);
     } else if (globalCoordinateTransformer.isInitialized()) {
-        return await globalCoordinateTransformer.localToGeographic(coord);
+        return globalCoordinateTransformer.localToGeographic(coord);
     } else {
         throw new Error('No reference point available. Provide a referencePoint or set one globally.');
     }

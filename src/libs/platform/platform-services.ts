@@ -5,12 +5,11 @@
 import { Result, ok, err } from 'neverthrow';
 import { platformDetector } from './platform-detector';
 import type { PlatformContext } from './types';
-import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider, type IDeviceOrientationProvider, type IIMUEnabledGeolocationProvider } from './types';
+import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider, type IDeviceOrientationProvider } from './types';
 import { TauriStorageProvider } from './providers/tauri-storage-provider';
 import { WebStorageProvider } from './providers/web-storage-provider';
 import { TauriGeolocationProvider } from './providers/tauri-geolocation-provider';
 import { WebGeolocationProvider } from './providers/web-geolocation-provider';
-import { KalmanGeolocationProvider, type KalmanGeolocationConfig } from './providers/kalman-geolocation-provider';
 import { WebDeviceOrientationProvider } from './providers/web-device-orientation-provider';
 import { WebIMUProvider } from './providers/web-imu-provider';
 import { PlatformDetectionError, PlatformDetectionErrorCode } from './errors';
@@ -28,7 +27,7 @@ export interface PlatformServicesConfig {
     geolocation?: {
         tauriHandlerName?: string;
         enableKalmanFilter?: boolean;
-        kalmanConfig?: KalmanGeolocationConfig;
+        kalmanConfig?: any;
     };
 }
 
@@ -84,12 +83,13 @@ export class PlatformServices {
             // Initialize geolocation provider
             this.geolocationProvider = this.createGeolocationProvider(config?.geolocation);
 
+            // TODO: Re-enable IMU fusion after Kalman filter migration
             // Set up IMU fusion if Kalman filter is enabled
-            if (config?.geolocation?.enableKalmanFilter &&
-                this.geolocationProvider instanceof KalmanGeolocationProvider &&
-                this.imuProvider) {
-                this.setupIMUFusion();
-            }
+            // if (config?.geolocation?.enableKalmanFilter &&
+            //     this.geolocationProvider instanceof KalmanGeolocationProvider &&
+            //     this.imuProvider) {
+            //     this.setupIMUFusion();
+            // }
 
             // Initialize file provider (placeholder for now)
             this.fileProvider = this.createFileProvider();
@@ -117,6 +117,7 @@ export class PlatformServices {
 
             case RuntimeEnvironment.WEB:
             case RuntimeEnvironment.MOBILE_WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 return new WebStorageProvider(
                     storageConfig?.webDbName || 'trackmaker-db',
@@ -141,15 +142,17 @@ export class PlatformServices {
 
             case RuntimeEnvironment.WEB:
             case RuntimeEnvironment.MOBILE_WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 baseProvider = new WebGeolocationProvider();
                 break;
         }
 
         // Wrap with Kalman filter if enabled
-        if (geoConfig?.enableKalmanFilter) {
-            return new KalmanGeolocationProvider(baseProvider, geoConfig.kalmanConfig);
-        }
+        // TODO: Re-enable Kalman filter after migration to geolocation backend
+        // if (geoConfig?.enableKalmanFilter) {
+        //     return new KalmanGeolocationProvider(baseProvider, geoConfig.kalmanConfig);
+        // }
 
         return baseProvider;
     }
@@ -158,54 +161,7 @@ export class PlatformServices {
      * Set up IMU fusion with Kalman filter
      */
     private setupIMUFusion(): void {
-        if (!(this.geolocationProvider instanceof KalmanGeolocationProvider) || !this.imuProvider) {
-            return;
-        }
-
-        // Initialize IMU provider
-        this.imuProvider!.init().then((result) => {
-            if (result.isErr()) {
-                console.warn('Failed to initialize IMU provider for Kalman fusion:', result.error.message);
-                return;
-            }
-
-            // Check if IMU provider is still available
-            if (!this.imuProvider) {
-                console.warn('IMU provider became unavailable during initialization');
-                return;
-            }
-
-            // Start acceleration monitoring
-            this.imuProvider.startAcceleration({
-                frequency: 10, // 10Hz updates
-                normalizeToENU: true
-            }).then((startResult) => {
-                if (startResult.isErr()) {
-                    console.warn('Failed to start acceleration for Kalman fusion:', startResult.error.message);
-                    return;
-                }
-
-                // Check if IMU provider is still available
-                if (!this.imuProvider) {
-                    console.warn('IMU provider became unavailable during acceleration setup');
-                    return;
-                }
-
-                // Set up callback to feed acceleration data to Kalman filter
-                this.imuProvider.onAccelerationReading((reading) => {
-                    const kalmanProvider = this.geolocationProvider as IIMUEnabledGeolocationProvider;
-                    if (kalmanProvider.updateWithIMU) {
-                        kalmanProvider.updateWithIMU({
-                            x: reading.x,
-                            y: reading.y,
-                            z: reading.z
-                        });
-                    }
-                });
-            });
-        }).catch((error) => {
-            console.warn('Failed to set up IMU fusion for Kalman filter:', error);
-        });
+        // TODO: Re-enable IMU fusion after Kalman filter migration
     }
 
     /**
@@ -237,6 +193,7 @@ export class PlatformServices {
 
             case RuntimeEnvironment.WEB:
             case RuntimeEnvironment.MOBILE_WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 return new WebIMUProvider();
         }
@@ -254,6 +211,7 @@ export class PlatformServices {
 
             case RuntimeEnvironment.WEB:
             case RuntimeEnvironment.MOBILE_WEB:
+            case RuntimeEnvironment.UNKNOWN:
             default:
                 return new WebDeviceOrientationProvider();
         }

@@ -142,9 +142,9 @@ export function safeTryAsync<T, E extends AppError>(
         fn(),
         (error) => {
             if (errorConstructor) {
-                return new errorConstructor(`Async operation failed: ${error}`, error as Error);
+                return new errorConstructor(`Async operation failed: ${String(error)}`, error as Error);
             }
-            return new GenericError(`Async operation failed: ${error}`, GenericErrorCode.OPERATION_FAILED, error as Error) as E;
+            return new GenericError(`Async operation failed: ${String(error)}`, GenericErrorCode.OPERATION_FAILED, error as Error) as E;
         }
     );
 }
@@ -160,9 +160,9 @@ export function safeTry<T, E extends AppError>(
         return ok(fn());
     } catch (error) {
         if (errorConstructor) {
-            return err(new errorConstructor(`Operation failed: ${error}`, error as Error));
+            return err(new errorConstructor(`Operation failed: ${String(error)}`, error as Error));
         }
-        return err(new GenericError(`Operation failed: ${error}`, GenericErrorCode.OPERATION_FAILED, error as Error) as E);
+        return err(new GenericError(`Operation failed: ${String(error)}`, GenericErrorCode.OPERATION_FAILED, error as Error) as E);
     }
 }
 
@@ -276,7 +276,7 @@ export function withRetryAsync<T, E extends AppError>(
             return ResultAsync.fromPromise(
                 new Promise<T>((resolve, reject) => {
                     setTimeout(() => {
-                        attempt(remainingRetries - 1, currentDelay * 2)
+                        void attempt(remainingRetries - 1, currentDelay * 2)
                             .match(
                                 (value) => resolve(value),
                                 (retryError) => reject(retryError)

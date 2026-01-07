@@ -1,5 +1,5 @@
 /* eslint-disable no-async-promise-executor */
-import { type GeographicPoint, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
+import { GeographicPoint, type GeolocationBackend, LocationResponseErrorEnum } from "../types";
 import { cloneDeep, isEqual } from "lodash-es";
 
 type HandlerType = {
@@ -24,10 +24,7 @@ function removeHandler(id: number) {
 
 let watchHandler: number = -1;
 
-let lastLocation: GeographicPoint = {
-    latitude: 0,
-    longitude: 0
-};
+let lastLocation  = new GeographicPoint(0, 0);
 
 export interface GeolocationInfoType {
     city: string;
@@ -52,15 +49,17 @@ export class IPGeolocationBackend implements GeolocationBackend {
 
 
     async fetchRaw(timeout = 10000): Promise<IpGeolocationData | void> {
-        const fetchingPromise = new Promise<IpGeolocationData>(async (resolve, reject) => {
-            try {
-                const response = await fetch(ipApiURL);
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                resolve(response.json());
-            }
-            catch {
-                reject(new Error("Failed to fetch IP geolocation data"));
-            }
+        const fetchingPromise = new Promise<IpGeolocationData>((resolve, reject) => {
+            (async () => {
+                try {
+                    const response = await fetch(ipApiURL);
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    resolve(response.json());
+                }
+                catch {
+                    reject(new Error("Failed to fetch IP geolocation data"));
+                }
+            })().catch(reject);
         })
 
         const timeoutPromise = new Promise<void>((_, reject) => {
@@ -86,10 +85,7 @@ export class IPGeolocationBackend implements GeolocationBackend {
         console.info("[geolocation] Getting current position from IP");
         const info = await this.getInfo();
         console.info("[geolocation] Successfully retrieved current position from IP");
-        return {
-            latitude: info.latitude,
-            longitude: info.longitude
-        };
+        return new GeographicPoint(info.latitude, info.longitude, 50000);
     }
 
     watchPosition(callback: (location: GeographicPoint) => void) {
@@ -106,9 +102,9 @@ export class IPGeolocationBackend implements GeolocationBackend {
                             handlers.forEach((handler) => handler.callback(location));
                             lastLocation = cloneDeep(location);
                         })
-                        .catch((err) => {
+                        .catch((err: unknown) => {
                             console.error("[geolocation] Error in IP geolocation watch:", err);
-                            throw new Error(`Error while watching the geolocation [IP]. Code: ${LocationResponseErrorEnum.UNKNOWN}, Msg: ${err}`);
+                            throw new Error(`Error while watching the geolocation [IP]. Code: ${LocationResponseErrorEnum.UNKNOWN}, Msg: ${String(err)}`);
                         });
                 };
                 watchHandler = setInterval(() => update(), 20000) as unknown as number;

@@ -9,6 +9,7 @@ import { GeolocationProviderError, GeolocationProviderErrorCode } from '../error
 
 export class TauriGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
+    private permissionCallback: ((state: PermissionState) => void) | undefined;
     private tauriHandlerName: string;
     private watchCallbacks = new Map<number, number>();
 
@@ -16,7 +17,8 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
         this.tauriHandlerName = tauriHandlerName;
     }
 
-    async init(): Promise<Result<void, GeolocationProviderError>> {
+    async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GeolocationProviderError>> {
+        this.permissionCallback = permissionCallback;
         if (this.initialized) {
             return ok(undefined);
         }
@@ -58,7 +60,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
         try {
             if (!navigator.permissions) {
                 // Fallback for browsers without permissions API
-                return this.fallbackPermissionCheck();
+                return await this.fallbackPermissionCheck();
             }
 
             const result = await navigator.permissions.query({ name: 'geolocation' });
@@ -221,8 +223,8 @@ class TauriGeolocation implements Geolocation {
     ): void {
         this.getTauriPosition()
             .then(successCallback)
-            .catch((error) => {
-                errorCallback?.(this.createPositionError(error));
+            .catch((error: unknown) => {
+                errorCallback?.(this.createPositionError(error as Error));
             });
     }
 
@@ -235,8 +237,8 @@ class TauriGeolocation implements Geolocation {
         const watchId = window.setInterval(() => {
             this.getTauriPosition()
                 .then(successCallback)
-                .catch((error) => {
-                    errorCallback?.(this.createPositionError(error));
+                .catch((error: unknown) => {
+                    errorCallback?.(this.createPositionError(error as Error));
                 });
         }, maximumAge);
         return watchId;

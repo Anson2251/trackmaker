@@ -31,7 +31,7 @@ export class ImuError extends AppError {
     constructor(
         message: string,
         public readonly code: string,
-        cause?: Error | undefined
+        cause?: Error
     ) {
         super(message, cause);
         this.name = 'ImuError';
@@ -39,7 +39,7 @@ export class ImuError extends AppError {
 }
 
 export class ImuUpdateServiceError extends ImuError {
-    constructor(message: string, code: string, cause?: Error | undefined) {
+    constructor(message: string, code: string, cause?: Error) {
         super(message, code, cause);
         this.name = 'ImuUpdateServiceError';
     }

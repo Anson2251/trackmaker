@@ -86,19 +86,23 @@ export const useSketchStore = defineStore('sketches', () => {
                 );
 
                 // Calculate distances for all routes (async but we don't await here to avoid blocking)
+                const promises: Promise<void>[] = [];
                 sketches.value.forEach(sketch => {
-                    sketch.routes.routes.forEach(async (route) => {
+                    sketch.routes.routes.forEach((route) => {
                         if (route.points.length > 1 && !route.meta.distance) {
-                            try {
-                                route.meta.distance = await calculatePathDistance(route.points);
-                            } catch (error) {
-                                console.warn('Failed to calculate route distance:', error);
-                                // Fallback to 0 if calculation fails
-                                route.meta.distance = 0;
-                            }
+                            promises.push((async () => {
+                                try {
+                                    route.meta.distance = await calculatePathDistance(route.points);
+                                } catch (error) {
+                                    console.warn('Failed to calculate route distance:', error);
+                                    // Fallback to 0 if calculation fails
+                                    route.meta.distance = 0;
+                                }
+                            })());
                         }
                     });
                 });
+                await Promise.all(promises);
 
                 // Set current sketch to first one if none is selected
                 if (!currentSketchId.value && sketches.value.length > 0) {

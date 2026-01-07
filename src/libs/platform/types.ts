@@ -4,7 +4,6 @@
 
 import type { Result } from 'neverthrow';
 import type { AppError } from '@/libs/error-handling';
-import type { KalmanGeolocationConfig } from './providers/kalman-geolocation-provider';
 
 /**
  * Supported runtime environments
@@ -71,7 +70,6 @@ export interface PlatformConfiguration {
         enableHighAccuracy?: boolean;
         tauriHandler?: string;
         enableKalmanFilter?: boolean;
-        kalmanConfig?: KalmanGeolocationConfig;
     };
     fileSystem: {
         basePath?: string;
@@ -97,7 +95,7 @@ export interface IStorageProvider {
  * Geolocation provider interface for platform-agnostic location services
  */
 export interface IGeolocationProvider {
-    init(): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
     getPermissionStatus(): Promise<Result<PermissionState, AppError>>;
     requestPermission(): Promise<Result<PermissionState, AppError>>;
     getCurrentPosition(): Promise<Result<GeolocationPosition, AppError>>;
@@ -151,7 +149,7 @@ export interface DeviceOrientationReading {
  * IMU provider interface for platform-agnostic IMU operations
  */
 export interface IIMUProvider {
-    init(): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
     startAcceleration(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
     startGyroscope(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
     stopAcceleration(): Result<void, AppError>;
@@ -168,7 +166,7 @@ export interface IIMUProvider {
  * Device orientation provider interface for platform-agnostic orientation operations
  */
 export interface IDeviceOrientationProvider {
-    init(): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
     start(): Promise<Result<void, AppError>>;
     stop(): Result<void, AppError>;
     getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;

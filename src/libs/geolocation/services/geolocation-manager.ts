@@ -144,7 +144,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
         } catch {
             console.warn("[GeolocationManager] Exception during platform initialization, will try IP backend");
-            return await this.initializeWithIPBackend();
+            return this.initializeWithIPBackend();
         }
     }
 
@@ -229,9 +229,9 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
         // Use the determined backend from initialization
         if (this.currentBackend === 'platform' && this.platformGeolocationProvider) {
-            return await this.getLocationFromPlatformProvider();
+            return this.getLocationFromPlatformProvider();
         } else if (this.currentBackend === 'ip' && this.ipBackend) {
-            return await this.getLocationFromIPBackend();
+            return this.getLocationFromIPBackend();
         } else {
             // Fallback - try platform first, then IP if available
             console.warn("[GeolocationManager] No backend determined, attempting fallback strategy");
@@ -330,9 +330,9 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
         // Use the determined backend from initialization
         if (this.currentBackend === 'platform' && this.platformGeolocationProvider) {
-            return await this.startPlatformLocationUpdates(callback);
+            return this.startPlatformLocationUpdates(callback);
         } else if (this.currentBackend === 'ip' && this.ipBackend) {
-            return await this.startIPLocationUpdates(callback);
+            return this.startIPLocationUpdates(callback);
         } else {
             // Fallback - try platform first, then IP if available
             console.warn("[GeolocationManager] No backend determined, attempting fallback strategy");
