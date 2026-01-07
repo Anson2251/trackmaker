@@ -785,7 +785,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
     isUsingGPS(): boolean {
         // Return true if using platform provider (GPS), false if using IP backend
-        return this.currentBackend === 'platform';
+        return this.currentBackend === 'platform' || this.currentBackend === 'kalman';
     }
 
     /**

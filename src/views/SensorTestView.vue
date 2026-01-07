@@ -24,7 +24,7 @@ const geolocationManager = new GeolocationManager();
 const gpsData = ref<GeographicPoint | null>(null);
 const gpsListenerId = ref<number | null>(null);
 const gpsError = ref<string | null>(null);
-const gpsBackend = ref<'platform' | 'ip' | null>(null);
+const gpsBackend = ref<'kalman' | 'platform' | 'ip' | null>(null);
 const gpsTimestamp = ref<Date | null>(null);
 
 // Error handling
@@ -402,7 +402,7 @@ function cleanup() {
             <div class="gps-row">
               <NStatistic
                 :label="t('sensorTest.gps.backend')"
-                :value="gpsBackend === 'platform' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
+                :value="gpsBackend === 'platform' || gpsBackend === 'kalman' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
               />
               <NStatistic
                 v-if="gpsTimestamp"
