@@ -56,6 +56,7 @@ import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import type { TerraDrawBaseDrawMode } from "terra-draw/modes/base.mode";
 import type { Component } from "vue";
 import { MapPin, Line, HandFinger } from "@vicons/tabler";
+import type Matrix from "ml-matrix";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -263,9 +264,9 @@ onMounted(async () => {
 const devMode = !__RELEASE_MODE__;
 
 // Computed property to get Kalman gain for dev mode
-let kalmanGain = null;
+let kalmanGain = ref<Matrix | null>(null);
 setInterval(() => {
-  kalmanGain = locator.getLastKalmanGain()
+  kalmanGain.value = locator.getLastKalmanGain()
 })
 
 let latestBearing = 0;
@@ -428,7 +429,7 @@ const handleToggleBuildingLayer = () => {
             <!-- Location Marker -->
             <LocationMarker
               :is-watching-current-location="isWatchingCurrentLocation"
-              :device-bearing="deviceBearing"
+              :device-bearing="mapStore.isTrackingOrientation ? 0 : deviceBearing"
             />
 
             <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
