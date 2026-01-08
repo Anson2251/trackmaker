@@ -358,7 +358,7 @@ const theme = useThemeVars();
     <!-- Edit Sketch Drawer -->
     <n-drawer
       v-model:show="showEditDrawer"
-      :width="800"
+      :width="windowWidth > 1000 ? 800 : Math.min(windowWidth - 32, 600)"
       :placement="'right'"
       display-directive="show"
       :height="'100%'"

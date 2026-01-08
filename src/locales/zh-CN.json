@@ -199,7 +199,10 @@
         "addTagPlaceholder": "输入标签名称",
         "add": "添加",
         "noTags": "暂无标签",
-        "description": "描述"
+        "description": "描述",
+        "map": "地图",
+        "noComponentSelected": "未选择组件",
+        "selectComponent": "选择组件"
     },
     "apiDetection": {
         "title": "Web API 检测",

@@ -199,7 +199,10 @@
         "addTagPlaceholder": "Enter tag name",
         "add": "Add",
         "noTags": "No tags yet",
-        "description": "Description"
+        "description": "Description",
+        "map": "Map",
+        "noComponentSelected": "No component selected",
+        "selectComponent": "Select a component"
     },
     "apiDetection": {
         "title": "Web API Detection",

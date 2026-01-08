@@ -284,15 +284,7 @@ export const useSketchStore = defineStore('sketches', () => {
 
     function getRouteById(id: string) {
         if (!currentSketch.value) return null;
-        const routeData = currentSketch.value.routes.routes.find(r => r.id === id);
-        if (!routeData) return null;
-
-        return new CartoSketchRouteItem(
-            routeData.id,
-            routeData.points,
-            routeData.properties,
-            routeData.meta
-        );
+        return currentSketch.value.routes.routes.find(r => r.id === id) || null;
     }
 
     function setCurrentRouteId(id: string | null) {
