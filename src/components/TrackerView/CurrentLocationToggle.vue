@@ -29,7 +29,7 @@ const toggleWatchingCurrentLocation = () => {
 <template>
   <mgl-custom-control position="top-left">
     <button
-      v-if="isMobile && locator.isUsingGPS() || devMode"
+      v-if="locator.isUsingGPS() || devMode"
       :class="[
         'btn-control',
         { active: isWatchingCurrentLocation },
