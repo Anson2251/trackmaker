@@ -55,7 +55,7 @@ export class KalmanFilter {
 
     constructor(config: Partial<KalmanConfig>) {
         this.config = {
-            sigmaAcceleration: 4.0, // Suitable for driving/cycling/walking
+            sigmaAcceleration: 0.1, // Suitable for driving/cycling/walking
             initialPositionUncertainty: 20, // 20 meters initial uncertainty
             initialVelocityUncertainty: 4, // 4 m/s initial velocity uncertainty
             ...config
