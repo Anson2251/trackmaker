@@ -233,8 +233,7 @@ const {
   isTracking: imuIsTracking,
   isSupported: imuIsSupported,
   error: imuError,
-  startTracking: startImuTracking,
-  stopTracking: stopImuTracking
+  startTracking: startImuTracking
 } = useImuCompass({ autoStart: true });
 
 // Update device bearing when IMU bearing changes
@@ -291,8 +290,7 @@ const toggleOrientationTracking = () => {
     // Start tracking device orientation
     startImuTracking();
   } else {
-    // Stop tracking device orientation
-    stopImuTracking();
+    // Stop using orientation for map bearing, but keep IMU running for deviceBearing updates
     mapStore.setBearing(0);
     const map = mapContainerRef.value?.map;
     if (map) map.setBearing(0);
@@ -432,7 +430,7 @@ const handleToggleBuildingLayer = () => {
             <!-- Location Marker -->
             <LocationMarker
               :is-watching-current-location="isWatchingCurrentLocation"
-              :device-bearing="(mapStore.isTrackingOrientation ? 0 : deviceBearing) - mapStore.bearing"
+              :device-bearing="(mapStore.isTrackingOrientation ? 0 : (deviceBearing - mapStore.bearing) % 360) /* TODO: update continuously instead of only at drag end */"
             />
 
             <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
