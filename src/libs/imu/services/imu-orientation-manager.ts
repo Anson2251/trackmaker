@@ -39,13 +39,43 @@ export class ImuOrientationManager {
     private lastKnownGyroscope: IMUReading | null = null;
     // private gyroscopeWatchId: number | null = null;
 
-    async initialize(): Promise<Result<void, ImuError>> {
+    async initialize(onPermissionRequest: (messageId: string) => Promise<boolean>): Promise<Result<void, ImuError>> {
         if (this.isInitialized) {
             console.info("[ImuOrientationManager] Already initialized");
             return ok(undefined);
         }
 
         console.info("[ImuOrientationManager] Initializing IMU and orientation services");
+
+        if ((DeviceMotionEvent as any).requestPermission) {
+            try {
+                await (DeviceMotionEvent as any).requestPermission();
+            }
+            catch {
+                if (!await onPermissionRequest("permission.imu.required")) return ok()
+                console.info('[IMU Permission] IOS 13+ Mobile device detected, requesting IMU permission on DeviceMotion');
+                const motionPermission = await (DeviceMotionEvent as any).requestPermission();
+                if (motionPermission !== 'granted') {
+                    console.warn('[IMU Permission] Device motion permission denied');
+                    return ok();
+                }
+            }
+        }
+
+        if ((DeviceOrientationEvent as any).requestPermission) {
+            try {
+                await (DeviceOrientationEvent as any).requestPermission();
+            }
+            catch {
+                if (!await onPermissionRequest("permission.imu.required")) return ok()
+                console.info('[IMU Permission] Requesting device orientation permission');
+                const orientationPermission = await (DeviceOrientationEvent as any).requestPermission();
+                if (orientationPermission !== 'granted') {
+                    console.warn('[IMU Permission] Device orientation permission denied');
+                    return ok();
+                }
+            }
+        }
 
         try {
             const platformServices = getPlatformServices();
@@ -151,10 +181,7 @@ export class ImuOrientationManager {
     }
 
     async startOrientationUpdates(callback: OrientationUpdateHandler): Promise<Result<number, ImuError>> {
-        if (!this.isInitialized) {
-            const initResult = await this.initialize();
-            if (initResult.isErr()) return err(initResult.error) as Result<number, ImuError>;
-        }
+        if (!this.isInitialized)  return err(new ImuError("Initialisation exception", "initialisation_exception", Error("Cannot update without being initialised"))) as Result<number, ImuError>;
 
         if (!this.orientationProvider) {
             return err(new ImuUpdateServiceError('Orientation provider unavailable', 'no_orientation_provider'));
@@ -282,10 +309,8 @@ export class ImuOrientationManager {
         options: { normalizeToENU?: boolean } = {},
         callback: AccelerationUpdateHandler
     ): Promise<Result<number, ImuError>> {
-        if (!this.isInitialized) {
-            const initResult = await this.initialize();
-            if (initResult.isErr()) return err(initResult.error) as Result<number, ImuError>;
-        }
+        if (!this.isInitialized)  return err(new ImuError("Initialisation exception", "initialisation_exception", Error("Cannot update without being initialised"))) as Result<number, ImuError>;
+
 
         if (!this.motionProvider) {
             return err(new ImuUpdateServiceError('Motion provider unavailable', 'no_motion_provider'));
@@ -426,10 +451,7 @@ export class ImuOrientationManager {
         options: { normalizeToENU?: boolean } = {},
         callback: GyroscopeUpdateHandler
     ): Promise<Result<number, ImuError>> {
-        if (!this.isInitialized) {
-            const initResult = await this.initialize();
-            if (initResult.isErr()) return err(initResult.error) as Result<number, ImuError>;
-        }
+        if (!this.isInitialized)  return err(new ImuError("Initialisation exception", "initialisation_exception", Error("Cannot update without being initialised"))) as Result<number, ImuError>;
 
         if (!this.motionProvider) {
             return err(new ImuUpdateServiceError('Motion provider unavailable', 'no_motion_provider'));

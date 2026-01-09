@@ -11,7 +11,8 @@ declare module '*.vue' {
 
 declare interface Window {
     UpdateService?: UpdateService,
-    splashScreen?: App
+    splashScreen?: App,
+    permissionConfirm?: (messageId: string) => Promise<boolean>
 }
 
 

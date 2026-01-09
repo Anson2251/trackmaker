@@ -2,15 +2,22 @@
 import { onMounted, ref, computed } from "vue";
 import { loadModules } from "./utils/load-modules";
 import { modules } from "./configs";
+import { t } from "./utils/splash-i18n";
 
 const loadingProgress = ref(0);
-const loadingMessage = ref("Initializing...");
+const loadingMessage = ref(t('loading'));
 const currentModule = ref("");
 const totalModules = ref(0);
 const completedModules = ref(0);
 const showError = ref(false);
 const showTimeout = ref(false);
 const errorMessage = ref("");
+
+// Permission dialog state
+const showPermissionDialog = ref(false);
+const permissionMessage = ref("");
+const permissionType = ref<'prompt' | 'denied'>('prompt');
+let permissionResolve: ((value: boolean) => void) | null = null;
 
 // Theme detection
 const currentTheme = ref<'light' | 'dark'>('light');
@@ -94,6 +101,30 @@ const progressReporter = {
 const handleRetry = () => {
   window.location.reload();
 };
+
+// Custom confirm dialog for permissions
+const permissionConfirm = (messageId: string): Promise<boolean> => {
+  permissionMessage.value = t(messageId as Parameters<typeof t>[0]);
+  showPermissionDialog.value = true;
+
+  return new Promise((resolve) => {
+    permissionResolve = (value: boolean) => {
+      showPermissionDialog.value = false;
+      resolve(value);
+    };
+  });
+};
+
+const handlePermissionAllow = () => {
+  permissionResolve?.(true);
+};
+
+const handlePermissionDeny = () => {
+  permissionResolve?.(false);
+};
+
+// Expose permission confirm function globally for module initialization
+window.permissionConfirm = permissionConfirm;
 
 onMounted(() => {
   // Detect and apply theme
@@ -252,6 +283,33 @@ onMounted(() => {
           Retry
         </button>
       </div>
+
+      <div
+        v-if="showPermissionDialog"
+        class="permission-section"
+      >
+        <div class="permission-icon">
+          📍
+        </div>
+        <h2>{{ t('permission.title') }}</h2>
+        <p class="permission-message">
+          {{ permissionMessage }}
+        </p>
+        <div class="permission-buttons">
+          <button
+            class="permission-button deny"
+            @click="handlePermissionDeny"
+          >
+            {{ t('permission.deny') }}
+          </button>
+          <button
+            class="permission-button allow"
+            @click="handlePermissionAllow"
+          >
+            {{ t('permission.allow') }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -406,6 +464,77 @@ onMounted(() => {
 .retry-button:hover {
   background: var(--button-bg);
   opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.permission-section {
+  position: fixed;
+
+  top: 30%;
+  left: 32px;
+  right: 32px;
+  background: var(--splash-overlay-bg);
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--text-quaternary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.permission-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.permission-section h2 {
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.permission-message {
+  color: var(--text-tertiary);
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.permission-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.permission-button {
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.permission-button.allow {
+  background: var(--button-bg);
+  border-color: var(--button-border);
+  color: var(--button-text);
+}
+
+.permission-button.deny {
+  background: transparent;
+  border-color: var(--text-quaternary);
+  color: var(--text-tertiary);
+}
+
+.permission-button:hover {
+  opacity: 0.85;
+}
+
+.permission-button.allow:hover {
   transform: translateY(-1px);
 }
 

@@ -9,81 +9,12 @@ import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
 import { initProj4rsModule } from "./utils/proj4-distance";
 
-// Temporary mobile device detection function
-function isMobileDevice(): boolean {
-    // Check user agent
-    // oxlint-disable-next-line no-deprecated
-    const userAgent = navigator.userAgent || navigator.vendor || (window as Window & { opera?: string }).opera || "";
-
-    // Common mobile device patterns
-    const mobilePatterns = [
-        /Android/i,
-        /webOS/i,
-        /iPhone/i,
-        /iPad/i,
-        /iPod/i,
-        /BlackBerry/i,
-        /Windows Phone/i,
-        /Mobile/i
-    ];
-
-    const isMobileUA = mobilePatterns.some(pattern => userAgent.match(pattern));
-
-    // Additional check for touch capability (most mobile devices have touch)
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-    // Check screen width as another hint (but not definitive)
-    const isSmallScreen = window.innerWidth <= 768;
-
-    return isMobileUA || (hasTouch && isSmallScreen);
-}
-
-// Temporary IMU permission request function
-async function requestIMUPermission(): Promise<boolean> {
-    try {
-        // Only request on mobile devices
-        if (!isMobileDevice()) {
-            console.info('[IMU Permission] Not a mobile device, skipping IMU permission request');
-            return true;
-        }
-
-        console.info('[IMU Permission] Mobile device detected, requesting IMU permissions');
-
-        // For iOS 13+, we need to request device motion and orientation permissions
-        if (typeof (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission === 'function') {
-            console.info('[IMU Permission] Requesting device motion permission');
-            const motionPermission = await (DeviceMotionEvent as typeof DeviceMotionEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission!();
-            console.log("Requested permission on IOS")
-            if (motionPermission !== 'granted') {
-                console.warn('[IMU Permission] Device motion permission denied');
-                return false;
-            }
-        }
-
-        if (typeof (DeviceOrientationEvent as typeof DeviceOrientationEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission === 'function') {
-            console.info('[IMU Permission] Requesting device orientation permission');
-            const orientationPermission = await (DeviceOrientationEvent as typeof DeviceOrientationEvent & { requestPermission?: () => Promise<'granted' | 'denied'> }).requestPermission!();
-            if (orientationPermission !== 'granted') {
-                console.warn('[IMU Permission] Device orientation permission denied');
-                return false;
-            }
-        }
-
-        console.info('[IMU Permission] IMU permissions granted successfully');
-        return true;
-
-    } catch (error) {
-        console.warn('[IMU Permission] Failed to request IMU permission:', error);
-        // Don't fail the initialization, just continue without IMU
-        return true;
-    }
-}
-
 // Extend Window interface for our custom properties
 declare global {
     interface Window {
         GeolocationManager: GeolocationManager;
         ImuOrientationManager: ImuOrientationManager;
+        permissionConfirm?: (messageId: string) => Promise<boolean>;
     }
 }
 
@@ -171,12 +102,16 @@ export const modules: ModuleItem[] = [
                         return; // Tauri environment handles permissions differently
                     }
 
-                    const confirmation = status === "prompt"
-                        ? "Later your browser will request permission to access your location."
-                        : "This app requires access to your location to track your movements."
+                    const messageId = status === "prompt"
+                        ? "permission.location.prompt"
+                        : "permission.location.required"
 
-                    // chrome's lighthouse requires to have a prompt message for geolocation access
-                    return confirm(confirmation);
+                    // Use custom permission dialog from splash screen
+                    if (window.permissionConfirm) {
+                        return window.permissionConfirm(messageId);
+                    }
+                    // Fallback to native confirm if splash screen not available
+                    return confirm(messageId);
                 });
 
                 console.timeEnd("Geolocation service initialise");
@@ -189,7 +124,6 @@ export const modules: ModuleItem[] = [
 
                 // Temporary fix: Request IMU permissions after geolocation initialization
                 console.info("[Geolocation] Requesting IMU permissions as temporary fix");
-                await requestIMUPermission();
 
                 window.GeolocationManager = geolocationManager; // expose new manager for direct access
 
@@ -210,7 +144,12 @@ export const modules: ModuleItem[] = [
                 console.time("IMU & Orientation service initialise");
 
                 // Initialize IMU and orientation manager
-                const initResult = await imuOrientationManager.initialize();
+                const initResult = await imuOrientationManager.initialize(async () => {
+                    if (window.permissionConfirm) {
+                        return window.permissionConfirm("permission.imu.required");
+                    }
+                    return confirm("permission.imu.required");
+                });
                 if (initResult.isErr()) {
                     throw initResult.error;
                 }

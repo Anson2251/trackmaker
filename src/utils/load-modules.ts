@@ -26,7 +26,7 @@ export type ModuleItem = {
     status?: ModuleLoadingStatus
 }
 
-const formatArg = (arg: ArgType) => isString(arg) ? arg : JSON.stringify(arg);
+const formatArg = (arg: ArgType) => isString(arg) ? arg : (isError(arg) ? String(arg) : JSON.stringify(arg));
 
 export const messageFormat = {
     "unloaded": (...args: ArgType[]) => `[loadModules] Module "${formatArg(args[0])}" has not been loaded yet`,
@@ -174,15 +174,16 @@ export async function loadModules(
             // If loading the module fails, set the status to "error" and reject with an error message
             libraryList[moduleIndex].status = "error";
             const errorMessage = messageFormat.error(module.name, isString(error) ? error : (isError(error) ? error.message : JSON.stringify(error)));
-            logger.error(errorMessage);
+            logger.error(1, errorMessage);
             progressReporter?.onModuleError?.(module.displayName, isString(error) ? new Error(error) : error as Error);
             throw new Error(errorMessage);
         }
     } catch (error) {
         // If loading the dependencies fails, set the status to "error" and reject with an error message
         libraryList[moduleIndex].status = "error";
+        console.log(error)
         const errorMessage = messageFormat.error(module.name, error as string);
-        logger.error(errorMessage);
+        logger.error(2, errorMessage);
         progressReporter?.onModuleError?.(module.displayName, error as Error);
         throw new Error(errorMessage);
     }

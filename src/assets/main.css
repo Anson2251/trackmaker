@@ -21,6 +21,7 @@ html[data-theme="light"] {
   --button-text: rgb(142, 142, 142);
   --error-bg: rgba(0, 0, 0, 0.1);
   --logo-shadow: #5b5b5ba8, #5b5b5b57;
+  --splash-overlay-bg: rgba(230, 235, 250, 0.8);
 }
 
 /* Dark theme colors */
@@ -43,6 +44,7 @@ html[data-theme="dark"] {
   --button-text: #b0b0b0;
   --error-bg: rgba(255, 255, 255, 0.1);
   --logo-shadow: #000000a8, #00000057;
+  --splash-overlay-bg: rgba(20, 25, 40, 0.8);
 }
 
 #app, #splash {

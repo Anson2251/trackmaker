@@ -133,6 +133,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
             // Step 2: Handle permission prompting if needed
             if (permissionState === 'prompt' && promptCallback) {
+                console.log("GPS Permission not granted, prompting user.");
                 const userResponse = await promptCallback(permissionState);
                 if (userResponse) {
                     // Request permission through platform provider
@@ -166,7 +167,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
                     this.currentBackend = 'platform';
                 }
             } else {
-                console.warn("[GeolocationManager] Failed to get location via GPS, falling back to IP backend");
+                console.warn("[GeolocationManager] Failed to get location via GPS, falling back to IP backend", gpsLocationResult.error);
                 return await this.initializeWithIPBackend();
             }
 
@@ -205,6 +206,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         }
 
         try {
+            console.log("Trying to get the location via Geolocation API")
             const positionResult = await this.platformGeolocationProvider.getCurrentPosition();
             if (positionResult.isOk()) {
                 const position = positionResult.value;
@@ -214,6 +216,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
                 position.coords.accuracy
                 ));
             } else {
+                console.log("Geolocation API Calling Failed")
                 return err(new GeolocationUpdateServiceError(
                     'Failed to get location from platform provider',
                     'platform_location_failed',
