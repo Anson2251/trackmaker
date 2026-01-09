@@ -53,7 +53,7 @@ import {
   TerraDrawLineStringMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import type { TerraDrawBaseDrawMode } from "terra-draw/modes/base.mode";
+import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/modes/base.mode";
 import type { Component } from "vue";
 import { MapPin, Line, HandFinger } from "@vicons/tabler";
 import type Matrix from "ml-matrix";
@@ -432,7 +432,7 @@ const handleToggleBuildingLayer = () => {
             <!-- Location Marker -->
             <LocationMarker
               :is-watching-current-location="isWatchingCurrentLocation"
-              :device-bearing="mapStore.isTrackingOrientation ? 0 : deviceBearing"
+              :device-bearing="(mapStore.isTrackingOrientation ? 0 : deviceBearing) - mapStore.bearing"
             />
 
             <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
