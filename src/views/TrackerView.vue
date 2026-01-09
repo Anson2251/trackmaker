@@ -246,7 +246,7 @@ onMounted(async () => {
   await mapStore.init();
 
   // !TODO change the hard coded time to a setting
-  if (Date.now() - mapStore.lastUpdateTime > 6000 && mapStore.lastUpdateTime !== 0) {
+  if (Date.now() - mapStore.lastUpdateTime < 60000 && mapStore.lastUpdateTime !== 0) {
     const lastLocation = locator.getLastKnownLocation();
     // Only set center if we have valid coordinates (not the default 0,0)
     if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
