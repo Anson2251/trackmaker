@@ -253,10 +253,13 @@ onMounted(async () => {
     if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
       mapStore.setCenter(lastLocation);
     } else {
+      mapStore.setCenter(locator.getLastKnownLocation());
       console.warn('[TrackerView] No valid last known location available, skipping map center update');
     }
   }
-  // IMU compass is now handled by the composable
+  else {
+    mapStore.setCenter(locator.getLastKnownLocation());
+  }
 
   mapReady.value = true;
 });
