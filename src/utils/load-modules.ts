@@ -174,7 +174,7 @@ export async function loadModules(
             // If loading the module fails, set the status to "error" and reject with an error message
             libraryList[moduleIndex].status = "error";
             const errorMessage = messageFormat.error(module.name, isString(error) ? error : (isError(error) ? error.message : JSON.stringify(error)));
-            logger.error(1, errorMessage);
+            logger.error(errorMessage);
             progressReporter?.onModuleError?.(module.displayName, isString(error) ? new Error(error) : error as Error);
             throw new Error(errorMessage);
         }
@@ -183,7 +183,7 @@ export async function loadModules(
         libraryList[moduleIndex].status = "error";
         console.log(error)
         const errorMessage = messageFormat.error(module.name, error as string);
-        logger.error(2, errorMessage);
+        logger.error(errorMessage);
         progressReporter?.onModuleError?.(module.displayName, error as Error);
         throw new Error(errorMessage);
     }

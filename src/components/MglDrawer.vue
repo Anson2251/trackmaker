@@ -28,11 +28,13 @@ let touchStartY = 0;
 const SWIPE_THRESHOLD = 80;
 
 const handleTouchStart = (e: TouchEvent) => {
+  e.preventDefault()
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 };
 
 const handleTouchEnd = (e: TouchEvent) => {
+  e.preventDefault()
   if (!touchStartX || !touchStartY) return;
 
   const touchEndX = e.changedTouches[0].clientX;
