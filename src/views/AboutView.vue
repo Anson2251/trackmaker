@@ -15,6 +15,7 @@ import {
   NAnchor,
   NAnchorLink,
   useThemeVars,
+  NCode,
 } from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -40,6 +41,9 @@ onUnmounted(() => {
 });
 
 const logo = ref(new URL("/favicon.svg", import.meta.url).href);
+
+const commitId = __MOST_RECENT_COMMIT__;
+const devMode = !__RELEASE_MODE__;
 
 const processLicenseText = (s) =>
   s
@@ -91,7 +95,16 @@ const sideIconSize = ref(20);
             :src="logo"
             preview-disabled
           />
-          <n-h1>Trackmaker</n-h1>
+          <div style="width: 100%;">
+            <n-h1>Trackmaker</n-h1>
+            <div v-if="commitId || devMode">
+              <n-p :depth="3" style="display: flex; align-items: center; gap: 12px">
+                <n-tag v-if="devMode" type="warning">DEV MODE</n-tag>
+                <n-tag v-else type="info">COMMIT</n-tag>
+                <n-code :code="devMode ? 'N/A' : commitId" language="bash" />
+              </n-p>
+            </div>
+          </div>
         </div>
         <p class="project-description">
           {{ t("aboutView.description") }}
@@ -302,6 +315,12 @@ const sideIconSize = ref(20);
 
 .license-collapse {
   margin-top: 1rem;
+}
+
+.commit-info:deep(.n-p) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .credits-list {

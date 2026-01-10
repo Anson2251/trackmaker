@@ -16,6 +16,7 @@ import {
   NTag,
   NDrawer,
   NDrawerContent,
+  NPerformantEllipsis,
   useDialog,
   useMessage,
   useThemeVars,
@@ -181,9 +182,11 @@ const theme = useThemeVars();
         >
           <template #header>
             <div class="card-header">
-              <n-text class="sketch-name">
-                {{ sketch.meta.name }}
-              </n-text>
+              <n-performant-ellipsis>
+                <n-text class="sketch-name">
+                  {{ sketch.meta.name }}
+                </n-text>
+              </n-performant-ellipsis>
 
               <div
                 v-if="sketch.meta.tags.length > 0"
@@ -331,7 +334,7 @@ const theme = useThemeVars();
             :placeholder="t('sketchCentreView.sketchNamePlaceholder')"
           />
         </n-form-item>
-        <n-form-item :label="t('sketchCentreView.description')">
+        <n-form-item :label="t('sketchCentreView.sketchDescription')">
           <n-input
             v-model:value="newSketchDescription"
             type="textarea"

@@ -39,18 +39,15 @@ function remove(id: string) {
         @click="select(sketch.id)"
       >
         <template #prefix>
-          <div style="height: 100%; width: 100%; display: flex; justify-items: center;">
+          <div class="prefix-icon">
             <n-icon size="20">
               <shape />
             </n-icon>
           </div>
         </template>
-        <div style="display: flex; flex-direction: row; flex-grow: 1;">
-          <div style="font-weight: 500;">
-            {{ sketch.name }}
-          </div>
-
-          <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-left: 24px;">
+        <div class="sketch-content">
+          <div class="sketch-name">{{ sketch.name }}</div>
+          <div v-if="sketch.tags.length > 0" class="tags">
             <n-tag
               v-for="tag in sketch.tags"
               :key="tag"
@@ -65,6 +62,7 @@ function remove(id: string) {
           <n-button
             quaternary
             circle
+            size="small"
             @click.stop="remove(sketch.id)"
           >
             <template #icon>
@@ -88,5 +86,34 @@ function remove(id: string) {
 .select-listview {
     width: 100%;
     height: 100%;
+}
+
+.prefix-icon {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.sketch-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.sketch-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
 }
 </style>

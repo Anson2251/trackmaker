@@ -55,14 +55,17 @@ import {
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/modes/base.mode";
 import type { Component } from "vue";
-import { MapPin, Line, HandFinger } from "@vicons/tabler";
+import { MapPin, Line, HandFinger, Folders } from "@vicons/tabler";
 import type Matrix from "ml-matrix";
+import SelectorDrawer from "@/components/CartoSketch/SelectorDrawer.vue";
+import { useSketchStore } from "@/store/sketch-store";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
 
 const theme = useThemeVars();
 const mapStore = useMapStore();
+const sketchStore = useSketchStore();
 const message = useMessage();
 const locator = inject("geolocation") as GeolocationManager;
 const { t } = useI18n();
@@ -222,6 +225,35 @@ const toggleRouteDrawer = () =>
   (isRouteDrawerOpen.value = !isRouteDrawerOpen.value);
 
 const drawerTooltipOpened = ref(false);
+
+// Sketch selector drawer state
+const isSketchSelectorOpen = ref(false);
+
+const sketchList = computed(() => {
+    return sketchStore.sketches.map(sketch => ({
+        name: sketch.meta.name,
+        id: sketch.id,
+        tags: sketch.meta.tags
+    }));
+});
+
+const handleSketchSelect = (id: string) => {
+    const sketch = sketchStore.sketches.find(s => s.id === id);
+    sketchStore.setCurrentSketchId(id);
+    isSketchSelectorOpen.value = false;
+    message.success(t('sketchEdit.switchSuccess', { sketch: sketch?.meta.name }));
+};
+
+const handleSketchNew = async () => {
+    const newSketch = await sketchStore.createSketch(t('sketchEdit.newSketchName'));
+    sketchStore.setCurrentSketchId(newSketch.id);
+    isSketchSelectorOpen.value = false;
+    message.success(t('sketchEdit.createSuccess', { sketch: newSketch.meta.name }));
+};
+
+const handleSketchRemove = async (id: string) => {
+    await sketchStore.deleteSketch(id);
+};
 
 const mapReady = ref<boolean>(false);
 const deviceBearing = ref<number>(0);
@@ -397,6 +429,24 @@ const handleToggleBuildingLayer = () => {
               @toggle="handleToggleBuildingLayer"
             />
 
+            <!-- Sketch Selector Toggle -->
+            <mgl-custom-control position="top-left">
+              <n-popover trigger="manual" :show="false">
+                <template #trigger>
+                  <button
+                    class="btn-control"
+                    :class="{ active: isSketchSelectorOpen }"
+                    @click="isSketchSelectorOpen = true"
+                    :title="t('sketchEdit.cartoSketchLibrary')"
+                  >
+                    <n-icon :size="24">
+                      <folders />
+                    </n-icon>
+                  </button>
+                </template>
+              </n-popover>
+            </mgl-custom-control>
+
             <!-- Drawing Tools -->
             <DrawingTools
               :active-draw-method="activeDrawMethod"
@@ -509,6 +559,15 @@ const handleToggleBuildingLayer = () => {
       :record-timespan="routeStore.currentRouteRecordTimespan"
       :is-route-drawer-open="isRouteDrawerOpen"
       :current-location="locator.getLastKnownLocation()"
+    />
+
+    <!-- Sketch Selector Drawer -->
+    <SelectorDrawer
+      v-model:show="isSketchSelectorOpen"
+      :list="sketchList"
+      @select="handleSketchSelect"
+      @new="handleSketchNew"
+      @remove="handleSketchRemove"
     />
   </div>
 </template>

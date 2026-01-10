@@ -5,11 +5,12 @@ import { Map, InfoCircle, Settings, Menu as MenuIcon, MapPin } from "@vicons/tab
 import { useI18n } from "vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
-import { NIcon, NText, NPopover, NButton } from "naive-ui";
+import { NIcon, NPopover, NButton } from "naive-ui";
 import { useRoute } from "vue-router";
 import { useSettingsStore } from "./store/settings-store";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "./utils/platform";
+import TitleBar from "./components/TitleBar.vue";
 
 const router = useRoute();
 const settings = useSettingsStore();
@@ -85,8 +86,6 @@ const softwareOption: MenuOption[] = [
 ];
 
 const currentRoute = computed(() => router.path.slice(1));
-const commitId = __MOST_RECENT_COMMIT__;
-const devMode = !__RELEASE_MODE__;
 const { width, height } = useWindowSize();
 const horizontalScreen = computed(() => width.value > height.value);
 </script>
@@ -116,15 +115,8 @@ const horizontalScreen = computed(() => width.value > height.value);
             :value="currentRoute"
           />
         </div>
-        <div
-          v-if="commitId"
-          style="width: 100%; text-align: center; padding: 4px"
-        >
-          <n-text depth="3">
-            {{
-              devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase()
-            }}
-          </n-text>
+        <div style="max-width: 8em;">
+          <TitleBar />
         </div>
       </div>
     </div>
@@ -152,13 +144,8 @@ const horizontalScreen = computed(() => width.value > height.value);
           :mode="'vertical'"
         />
       </n-popover>
-      <div
-        v-if="commitId"
-        style="width: 100%; text-align: center; padding: 4px"
-      >
-        <n-text depth="3">
-          {{ devMode ? "DEV MODE" : "Commit:" + commitId.toLocaleUpperCase() }}
-        </n-text>
+      <div style="max-width: 50vw;">
+        <TitleBar />
       </div>
     </div>
     <div class="main-layout">

@@ -202,7 +202,10 @@
         "description": "描述",
         "map": "地图",
         "noComponentSelected": "未选择组件",
-        "selectComponent": "选择组件"
+        "selectComponent": "选择组件",
+        "switchSuccess": "已切换到 {sketch}",
+        "createSuccess": "已创建 {sketch}",
+        "newSketchName": "新建草图"
     },
     "apiDetection": {
         "title": "Web API 检测",

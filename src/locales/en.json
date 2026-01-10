@@ -202,7 +202,10 @@
         "description": "Description",
         "map": "Map",
         "noComponentSelected": "No component selected",
-        "selectComponent": "Select a component"
+        "selectComponent": "Select a component",
+        "switchSuccess": "Switched to {sketch}",
+        "createSuccess": "Created {sketch}",
+        "newSketchName": "New Sketch"
     },
     "apiDetection": {
         "title": "Web API Detection",

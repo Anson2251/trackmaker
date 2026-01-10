@@ -6,11 +6,13 @@ import { Upload } from '@vicons/tabler';
 
 import SketchSelector from './SketchSelector.vue';
 
-import { watch, ref } from "vue";
+import { watch, ref, computed } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
 import { useI18n } from 'vue-i18n';
+import { useWindowSize } from "@vueuse/core";
 
 const { t } = useI18n();
+const { width: windowWidth } = useWindowSize();
 
 const props = defineProps({
 	active: {
@@ -57,6 +59,11 @@ const buttonGroupItems = [
 const activeSelectorFlag = ref(false);
 const drawerSelectorPlacement = ref<DrawerPlacement>(props.placement as DrawerPlacement);
 
+// Responsive drawer width
+const drawerWidth = computed(() => {
+	return windowWidth.value < 640 ? Math.min(windowWidth.value - 32, 400) : 502;
+});
+
 watch(props, () => {
 	activeSelectorFlag.value = props.active;
 	drawerSelectorPlacement.value = props.placement as DrawerPlacement;
@@ -74,7 +81,7 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
 <template>
   <n-drawer
     v-model:show="activeSelectorFlag"
-    :width="502"
+    :width="drawerWidth"
     :placement="drawerSelectorPlacement"
     :auto-focus="false"
   >
