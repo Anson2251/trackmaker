@@ -160,24 +160,6 @@ async function handleSaveFeatureEdit() {
   }
 }
 
-function handleCancelFeatureEdit() {
-  // Reset to original values
-  if (terraDraw.value) {
-    const draftId = terraDraw.value.selectedDraftId.value;
-    if (draftId) {
-      const draft = sketchStore.currentDrafts.find(
-        (d: { id: string; meta: { name?: string; description?: string } }) =>
-          d.id === draftId
-      );
-      if (draft) {
-        terraDraw.value.selectedFeatureName.value = draft.meta.name || "";
-        terraDraw.value.selectedFeatureDescription.value =
-          draft.meta.description || "";
-      }
-    }
-  }
-}
-
 // Watch for selection changes to open popover
 watch(
   () => terraDraw.value?.selectedFeatureId.value,
@@ -552,11 +534,10 @@ watch(
               :y="featurePopoverY"
               :name="terraDraw?.selectedFeatureName.value ?? ''"
               :description="terraDraw?.selectedFeatureDescription.value ?? ''"
-              @update:show="isFeatureEditPopoverOpen = $event"
+              @update:show="(show) => isFeatureEditPopoverOpen = show"
               @update:name="handleUpdateFeatureName"
               @update:description="handleUpdateFeatureDescription"
               @save="handleSaveFeatureEdit"
-              @cancel="handleCancelFeatureEdit"
             />
 
             <!-- Route Drawer Toggle Button -->

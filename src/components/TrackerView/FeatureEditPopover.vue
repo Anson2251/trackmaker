@@ -1,10 +1,6 @@
 <script lang="ts" setup>
-import { ref, watch } from "vue";
-import { NPopover, NInput, NButton, NSpace, NIcon } from "naive-ui";
-import { useI18n } from "vue-i18n";
-import { Edit, Check, X } from "@vicons/tabler";
-
-const { t } = useI18n();
+import { ref, watch, nextTick } from "vue";
+import { NPopover, NInput } from "naive-ui";
 
 interface Props {
   show: boolean;
@@ -19,14 +15,16 @@ interface Emits {
   (e: "update:name", name: string): void;
   (e: "update:description", description: string): void;
   (e: "save"): void;
-  (e: "cancel"): void;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-// Edit mode state
-const isEditing = ref(false);
+// Editing state for each field
+const editingName = ref(false);
+const editingDescription = ref(false);
+const nameInputRef = ref<InstanceType<typeof NInput> | null>(null);
+const descriptionInputRef = ref<InstanceType<typeof NInput> | null>(null);
 
 // Local state for editing
 const localName = ref("");
@@ -39,33 +37,46 @@ watch(
     if (props.show) {
       localName.value = props.name;
       localDescription.value = props.description;
-      isEditing.value = false; // Reset to view mode when popover opens
+      editingName.value = false;
+      editingDescription.value = false;
     }
   },
   { immediate: true }
 );
 
-const handleEdit = () => {
+const startEditingName = () => {
   localName.value = props.name;
-  localDescription.value = props.description;
-  isEditing.value = true;
+  editingName.value = true;
+  setTimeout(() => {
+    nameInputRef.value?.focus();
+  }, 200);
 };
 
-const handleSave = () => {
-  emit("update:name", localName.value);
-  emit("update:description", localDescription.value);
-  isEditing.value = false;
-  emit("save");
+const startEditingDescription = () => {
+  localDescription.value = props.description;
+  editingDescription.value = true;
+  setTimeout(() => {
+    descriptionInputRef.value?.focus();
+  }, 200);
 };
 
-const handleCancel = () => {
-  localName.value = props.name;
-  localDescription.value = props.description;
-  isEditing.value = false;
+const saveName = () => {
+  if (localName.value !== props.name) {
+    emit("update:name", localName.value);
+    emit("save");
+  }
+  editingName.value = false;
+};
+
+const saveDescription = () => {
+  if (localDescription.value !== props.description) {
+    emit("update:description", localDescription.value);
+    emit("save");
+  }
+  editingDescription.value = false;
 };
 
 const handleClose = () => {
-  isEditing.value = false;
   emit("update:show", false);
 };
 </script>
@@ -79,133 +90,104 @@ const handleClose = () => {
     placement="bottom"
     :on-clickoutside="handleClose"
   >
-    <div class="feature-edit-popover">
-      <!-- Header with edit n-button -->
-      <div class="popover-header">
-        <h3 class="popover-title">
-          {{ t("trackerView.terraDrawTools.select") }}
-        </h3>
-        <n-button
-          size="small" circle
-          v-if="!isEditing"
-          @click="handleEdit"
-          :title="t('sketchEdit.edit')"
-        >
-          <n-icon :size="14">
-            <Edit />
-          </n-icon>
-        </n-button>
-      </div>
-
-      <!-- View Mode -->
-      <template v-if="!isEditing">
-        <div class="view-content">
-          <div class="view-field">
-            <span class="view-label">{{ t("trackerView.sketch.name") }}</span>
-            <span class="view-value">{{ name || "-" }}</span>
+    <template #header>
+      <div style="display: inline-block; width: 100%">
+        <transition mode="out-in" name="slide-up">
+          <div
+            v-if="!editingName"
+            class="popover-name"
+            @click="startEditingName"
+          >
+            {{ name || "Untitled" }}
           </div>
-          <div class="view-field">
-            <span class="view-label">{{ t("trackerView.sketch.description") }}</span>
-            <span class="view-value">{{ description || "-" }}</span>
-          </div>
-        </div>
-      </template>
-
-      <!-- Edit Mode -->
-      <template v-else>
-        <div class="form-group">
-          <label class="form-label">{{ t("trackerView.sketch.name") }}</label>
           <n-input
+            v-else
+            style="position: relative"
+            ref="nameInputRef"
             v-model:value="localName"
-            :placeholder="t('trackerView.sketch.namePlaceholder')"
+            placeholder="Name"
             maxlength="100"
             show-count
+            autofocus
+            @blur="saveName"
+            @keydown.enter="saveName"
           />
+        </transition>
+      </div>
+    </template>
+    <div class="feature-edit-popover">
+      <transition mode="out-in" name="slide-up">
+        <div
+          v-if="!editingDescription"
+          class="popover-description"
+          :class="{ 'is-empty': !description }"
+          @click="startEditingDescription"
+        >
+          {{ description || "Add description..." }}
         </div>
-
-        <div class="form-group">
-          <label class="form-label">{{
-            t("trackerView.sketch.description")
-          }}</label>
-          <n-input
-            v-model:value="localDescription"
-            type="textarea"
-            :placeholder="t('trackerView.sketch.descriptionPlaceholder')"
-            :rows="3"
-            maxlength="500"
-            show-count
-          />
-        </div>
-
-        <n-space justify="end" class="popover-actions">
-          <n-button size="small" circle @click="handleCancel">
-            <n-icon :size="16">
-              <X />
-            </n-icon>
-          </n-button>
-          <n-button type="primary" size="small" circle @click="handleSave">
-            <n-icon :size="16">
-              <Check />
-            </n-icon>
-          </n-button>
-        </n-space>
-      </template>
+        <n-input
+          v-else
+          ref="descriptionInputRef"
+          v-model:value="localDescription"
+          type="textarea"
+          placeholder="Description"
+          :rows="3"
+          maxlength="500"
+          show-count
+          @blur="saveDescription"
+        />
+      </transition>
     </div>
   </n-popover>
 </template>
 
 <style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.07s ease-in-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
 .feature-edit-popover {
-  width: 260px;
-  padding: 8px;
+  min-width: 260px;
+  max-width: 400px;
+  padding: 4px 0;
+  display: inline-block;
 }
 
-.popover-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.popover-title {
-  margin: 0;
-  font-size: 14px;
+.popover-name {
+  font-size: 15px;
   font-weight: 600;
+  padding-top: 4px;
+  padding-left: 8px;
+  cursor: text;
+  border-radius: 4px;
+  min-height: 32px;
 }
 
-.view-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.popover-name:hover {
+  background: var(--hover-color, rgba(0, 0, 0, 0.06));
 }
 
-.view-field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.view-label {
-  font-size: 11px;
-  text-transform: uppercase;
-}
-
-.view-value {
+.popover-description {
   font-size: 13px;
-  word-break: break-word;
+  line-height: 1.5;
+  padding: 6px 8px;
+  cursor: text;
+  border-radius: 4px;
+  min-height: 24px;
 }
 
-.form-group {
-  margin-bottom: 12px;
-}
-
-.form-label {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.popover-actions {
-  margin-top: 12px;
+.popover-description:hover {
+  background: var(--hover-color, rgba(0, 0, 0, 0.06));
 }
 </style>
