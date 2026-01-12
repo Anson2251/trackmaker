@@ -65,6 +65,11 @@
         "nameNewlyImportedRoute": "新导入的路线",
         "nameNewRoute": "新建路线",
         "terraDrawTools": {
+            "title": "绘图工具",
+            "history": "历史",
+            "undo": "撤销",
+            "redo": "重做",
+            "clearAll": "清除全部",
             "rect": "矩形",
             "point": "点",
             "polygon": "多边形",

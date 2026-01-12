@@ -53,12 +53,12 @@ import {
   TerraDrawLineStringMode,
 } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import type { TerraDrawBaseDrawMode } from "node_modules/terra-draw/dist/modes/base.mode";
 import type { Component } from "vue";
 import { MapPin, Line, HandFinger, Folders } from "@vicons/tabler";
 import type Matrix from "ml-matrix";
 import SelectorDrawer from "@/components/CartoSketch/SelectorDrawer.vue";
 import { useSketchStore } from "@/store/sketch-store";
+import { createTerraDrawComposable, type DrawModes } from "@/composables/useTerraDraw";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -73,8 +73,6 @@ const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
 
 const mapContainerRef = shallowRef<InstanceType<typeof MapContainer> | null>(null);
-const draw = shallowRef<TerraDraw | null>(null);
-const activeDrawMethod = ref<string>("select");
 const routeStore = useRouteStore();
 routeStore.setLocator(locator);
 
@@ -118,12 +116,7 @@ const geojsonSource = computed<any>(() => {
   }
 });
 
-type DrawModes = {
-  mode: TerraDrawBaseDrawMode<any>;
-  name: string;
-  icon: Component;
-};
-
+// TerraDraw modes configuration
 const drawerModes: DrawModes[] = [
   {
     mode: new TerraDrawPointMode(),
@@ -176,6 +169,9 @@ const drawerModes: DrawModes[] = [
     icon: HandFinger,
   },
 ];
+
+// TerraDraw composable
+const terraDraw = shallowRef<ReturnType<typeof createTerraDrawComposable> | null>(null);
 
 const isShowingBuildingLayer = ref(false);
 const isWatchingCurrentLocation = ref(true);
@@ -276,6 +272,7 @@ watch(imuBearing, (newBearing) => {
 onMounted(async () => {
   await routeStore.init();
   await mapStore.init();
+  await sketchStore.init();
 
   // !TODO change the hard coded time to a setting
   if (Date.now() - mapStore.lastUpdateTime < 60000 && mapStore.lastUpdateTime !== 0) {
@@ -332,11 +329,15 @@ const toggleOrientationTracking = () => {
 // Map event handlers
 const handleMapInit = (event: any) => {
   // Initialize TerraDraw
-  draw.value = new TerraDraw({
-    adapter: new TerraDrawMapLibreGLAdapter({ map: event.map }),
-    modes: drawerModes.map((item) => item.mode as TerraDrawBaseDrawMode<any>),
-  });
-  draw.value.start();
+  const map = event.map;
+  const terraDrawInstance = createTerraDrawComposable(map, drawerModes);
+  terraDraw.value = terraDrawInstance;
+  terraDrawInstance.initDraw();
+
+  // Load existing drafts from sketch store
+  if (sketchStore.currentDrafts.length > 0) {
+    terraDrawInstance.loadDrafts(sketchStore.currentDrafts);
+  }
 };
 
 const handleMapTouchStart = () => {
@@ -353,15 +354,26 @@ const handleMapClick = () => {
 };
 
 const handleDrawingToolClick = (mode: string) => {
-  if (draw.value) {
-    if (mode === "select") {
-      draw.value.setMode("select");
-      activeDrawMethod.value = "select";
-    } else {
-      activeDrawMethod.value = mode;
-      draw.value.start();
-      draw.value.setMode(mode);
-    }
+  if (terraDraw.value) {
+    terraDraw.value.setMode(mode);
+  }
+};
+
+const handleUndo = async () => {
+  if (terraDraw.value) {
+    await terraDraw.value.undo();
+  }
+};
+
+const handleRedo = async () => {
+  if (terraDraw.value) {
+    await terraDraw.value.redo();
+  }
+};
+
+const handleClearAll = async () => {
+  if (terraDraw.value) {
+    await terraDraw.value.clearAll();
   }
 };
 
@@ -393,6 +405,16 @@ const handleToggleBuildingLayer = () => {
     }
   }
 };
+
+// Watch for sketch changes to load drafts
+watch(() => sketchStore.currentSketchId, async () => {
+  if (terraDraw.value && sketchStore.currentDrafts) {
+    // Clear existing drawings and load new drafts for the current sketch
+    await terraDraw.value.clearAll();
+    terraDraw.value.loadDrafts(sketchStore.currentDrafts);
+  }
+});
+
 </script>
 
 <template>
@@ -429,8 +451,20 @@ const handleToggleBuildingLayer = () => {
               @toggle="handleToggleBuildingLayer"
             />
 
-            <!-- Sketch Selector Toggle -->
-            <mgl-custom-control position="top-left">
+            <!-- Drawing Tools -->
+            <DrawingTools
+              :active-draw-method="terraDraw?.activeDrawMethod.value ?? 'select'"
+              :can-undo="terraDraw?.canUndo.value"
+              :can-redo="terraDraw?.canRedo.value"
+              @set-draw-mode="handleDrawingToolClick"
+              @undo="handleUndo"
+              @redo="handleRedo"
+              @clear-all="handleClearAll"
+            />
+
+            <!-- Route Drawer Toggle Button -->
+             <!-- Sketch Selector Toggle -->
+            <mgl-custom-control position="bottom-left">
               <n-popover trigger="manual" :show="false">
                 <template #trigger>
                   <button
@@ -445,17 +479,6 @@ const handleToggleBuildingLayer = () => {
                   </button>
                 </template>
               </n-popover>
-            </mgl-custom-control>
-
-            <!-- Drawing Tools -->
-            <DrawingTools
-              :active-draw-method="activeDrawMethod"
-              @update:active-draw-method="activeDrawMethod = $event"
-              @set-draw-mode="handleDrawingToolClick"
-            />
-
-            <!-- Route Drawer Toggle Button -->
-            <mgl-custom-control position="bottom-left">
               <n-popover
                 trigger="manual"
                 :show="drawerTooltipOpened"
@@ -493,7 +516,7 @@ const handleToggleBuildingLayer = () => {
           </MapContainer>
 
           <!-- Map Compass -->
-          <div style="z-index: 99; position: absolute; right: 4px; top: 9em;">
+          <div :style="{zIndex: 99, position: 'absolute', right: '4px', top: isMobile && !devMode ? '4px' : '14em'}">
             <MapCompass
               v-if="isMobile || devMode"
               v-model:bearing="mapStore.bearing"
@@ -607,6 +630,10 @@ const handleToggleBuildingLayer = () => {
 .map-layout {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+
+.map-layout:deep(.maplibregl-ctrl-group) {
   overflow: hidden;
 }
 

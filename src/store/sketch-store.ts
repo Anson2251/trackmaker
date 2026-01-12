@@ -356,6 +356,16 @@ export const useSketchStore = defineStore('sketches', () => {
         return currentSketch.value.drafts.drafts.find(d => d.id === id) || null;
     }
 
+    function listRouteIDs() {
+        if (!currentSketch.value) return [];
+        return currentSketch.value.routes.routes.map(r => r.id);
+    }
+
+    function listDraftIDs() {
+        if (!currentSketch.value) return [];
+        return currentSketch.value.drafts.drafts.map(d => d.id);
+    }
+
     return {
         // State
         sketches,
@@ -383,11 +393,13 @@ export const useSketchStore = defineStore('sketches', () => {
         clearRoutePoints,
         getRouteById,
         setCurrentRouteId,
+        listRouteIDs,
 
         // Draft management
         addDraft,
         updateDraft,
         deleteDraft,
-        getDraftById
+        getDraftById,
+        listDraftIDs
     };
 });

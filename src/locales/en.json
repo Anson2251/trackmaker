@@ -65,6 +65,11 @@
         "nameNewlyImportedRoute": "Newly Imported Route",
         "nameNewRoute": "New Route",
         "terraDrawTools": {
+            "title": "Drawing Tools",
+            "history": "History",
+            "undo": "Undo",
+            "redo": "Redo",
+            "clearAll": "Clear All",
             "rect": "Rectangle",
             "point": "Point",
             "polygon": "Polygon",
