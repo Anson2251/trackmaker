@@ -29,12 +29,13 @@ Enabling route planning and navigation for sports activities with map marking fe
 
 - [x] Route distance calculation
 - [x] Route management module refactoring
-- [ ] Bug fixes for the latest major version
+- [x] Bug fixes for the latest major version
 - [x] Dead Reckoning (DR) system for better geolocation accuracy
 - [ ] Edit routes functionality
-   - [ ] History of drawing actions for Redo and Undo
+   - [x] History of drawing actions for Redo and Undo
+   - [ ] MarkDown notes with images
 - [x] Implement keep alive feature for the web app
-- [ ] Save shape edits on the map
+- [x] Save shape edits on the map
 - [x] Widgets for editing and modifying shape information
 - [ ] Share routes capability
 
@@ -73,6 +74,39 @@ src/
 ├── utils/            # Utility functions
 └── views/            # Main application views
 ```
+
+## Notice
+
+### About the inaccurate map data
+
+The map data we used may **contain inaccuracies or controversial content**, particularly regarding territorial boundaries. Due to **resource limitations**, we are currently unable to use higher-quality data, but we are actively **seeking better sources** and will update the application as soon as feasible.
+
+### About the Online Demo
+
+This project is still under development. Many features are being implemented.
+
+- **DEV Branch:**
+
+   This [online demo](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo-dev` branch) is for experimental use only. It is now automatically built with the latest code on the `dev` branch. Some features may not work properly.
+
+- **Main Branch:**
+
+   This [online demo](https://trackmaker.pages.dev/) (on the `gh-page-demo` branch) is the latest stable version. It is automatically built with the latest code on the `main` branch.
+
+### About the Tauri demo
+
+[Tauri](https://v2.tauri.app/) is a framework for building tiny, fast binaries for all major desktop and mobile platforms.
+
+The desktop version of Trackmaker is built using Tauri. Geolocation features are available in the Tauri environment through the Tauri geolocation plugin.
+
+### Browser Compatibility
+
+This application requires modern browser features including:
+
+- Geolocation API
+- IndexedDB
+- ES6+ JavaScript features
+- Web Workers
 
 ## Development
 
@@ -146,33 +180,6 @@ Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 - [CartoSketch Library](./docs/libs/cartosketch/)
 - [Map Backends](./docs/libs/map-backends/)
 - [Utilities](./docs/utils/)
-
-## Notice
-
-### About the inaccurate map data
-
-The map data we used may **contain inaccuracies or controversial content**, particularly regarding territorial boundaries. Due to **resource limitations**, we are currently unable to use higher-quality data, but we are actively **seeking better sources** and will update the application as soon as feasible.
-
-### About the Online Demo
-
-This project is still under development. Many features are being implemented.
-
-This [online demo](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo` branch) is for experimental use only. It is now automatically built with the latest code on the `main` branch. Some features may not work properly.
-
-### About the Tauri demo
-
-[Tauri](https://v2.tauri.app/) is a framework for building tiny, fast binaries for all major desktop and mobile platforms.
-
-The desktop version of Trackmaker is built using Tauri. Geolocation features are available in the Tauri environment through the Tauri geolocation plugin.
-
-### Browser Compatibility
-
-This application requires modern browser features including:
-
-- Geolocation API
-- IndexedDB
-- ES6+ JavaScript features
-- Web Workers
 
 ---
 
