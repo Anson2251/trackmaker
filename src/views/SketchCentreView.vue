@@ -8,11 +8,6 @@ import {
   NButton,
   NIcon,
   NText,
-  NSpace,
-  NModal,
-  NInput,
-  NForm,
-  NFormItem,
   NTag,
   NDrawer,
   NDrawerContent,
@@ -33,6 +28,7 @@ import {
 import { useSketchStore } from "@/store/sketch-store";
 import { CartoSketch } from "@/libs/cartosketch";
 import SketchEdit from "@/components/CartoSketch/SketchEdit.vue";
+import SketchCreateModal from "@/components/CartoSketch/SketchCreateModal.vue";
 import { useWindowSize } from "@vueuse/core";
 
 const { t } = useI18n();
@@ -61,8 +57,6 @@ const getCardStyle = (sketchId: string) => {
   };
 };
 const showNewSketchModal = ref(false);
-const newSketchName = ref("");
-const newSketchDescription = ref("");
 const showEditDrawer = ref(false);
 const editingSketchId = ref("");
 
@@ -95,26 +89,6 @@ const selectSketch = (sketchId: string) => {
 const editSketch = (sketchId: string) => {
   editingSketchId.value = sketchId;
   showEditDrawer.value = true;
-};
-
-// Create a new sketch
-const createNewSketch = async () => {
-  if (!newSketchName.value.trim()) {
-    message.error(t("sketchCentreView.nameRequired"));
-    return;
-  }
-
-  const newSketch = await sketchStore.createSketch(newSketchName.value);
-  await sketchStore.updateSketch(newSketch.id, {
-    description: newSketchDescription.value
-  });
-
-  sketchStore.setCurrentSketchId(newSketch.id);
-  showNewSketchModal.value = false;
-  newSketchName.value = "";
-  newSketchDescription.value = "";
-
-  message.success(t("sketchCentreView.sketchCreated"));
 };
 
 // Delete a sketch with confirmation
@@ -313,50 +287,10 @@ const theme = useThemeVars();
     </div>
 
     <!-- New Sketch Modal -->
-    <n-modal
+    <SketchCreateModal
       v-model:show="showNewSketchModal"
-      :mask-closable="true"
-      preset="card"
-      style="max-width: 500px"
-      :title="t('sketchCentreView.newSketch')"
-    >
-      <n-form
-        :model="{ name: newSketchName, description: newSketchDescription }"
-        label-placement="top"
-        require-mark-placement="right-hanging"
-      >
-        <n-form-item
-          :label="t('sketchCentreView.sketchName')"
-          required
-        >
-          <n-input
-            v-model:value="newSketchName"
-            :placeholder="t('sketchCentreView.sketchNamePlaceholder')"
-          />
-        </n-form-item>
-        <n-form-item :label="t('sketchCentreView.sketchDescription')">
-          <n-input
-            v-model:value="newSketchDescription"
-            type="textarea"
-            :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder')"
-            :autosize="{ minRows: 3, maxRows: 5 }"
-          />
-        </n-form-item>
-      </n-form>
-      <template #footer>
-        <n-space justify="end">
-          <n-button @click="showNewSketchModal = false">
-            {{ t("sketchCentreView.cancel") }}
-          </n-button>
-          <n-button
-            type="primary"
-            @click="createNewSketch"
-          >
-            {{ t("sketchCentreView.create") }}
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+      @created="(sketchId) => message.success(t('sketchCentreView.sketchCreated'))"
+    />
 
     <!-- Edit Sketch Drawer -->
     <n-drawer

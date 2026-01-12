@@ -673,10 +673,10 @@ watch(
 
     <!-- Sketch Selector Drawer -->
     <SelectorDrawer
-      v-model:show="isSketchSelectorOpen"
+      v-model:active="isSketchSelectorOpen"
       :list="sketchList"
+      :active-id="sketchStore.currentSketchId || ''"
       @select="handleSketchSelect"
-      @new="handleSketchNew"
       @remove="handleSketchRemove"
     />
   </div>

@@ -290,8 +290,8 @@ const getTimeStr = (stamp: number) => {
   <selector-drawer
     v-model:active="activeSelector"
     :list="sketchStore.sketches.map((s) => ({ id: s.id, name: s.meta.name, tags: s.meta.tags }))"
+    :active-id="sketchStore.currentSketchId || ''"
     placement="right"
-    @new="newSketch"
     @remove="(id: string) => sketchStore.deleteSketch(id)"
     @select="(id: string) => sketchStore.setCurrentSketchId(id)"
   />

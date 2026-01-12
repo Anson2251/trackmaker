@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { ref, watch, nextTick } from "vue";
-import { NPopover, NInput } from "naive-ui";
+import { ref, watch } from "vue";
+import { NPopover, NInput, NButton, NIcon } from "naive-ui";
+import { X } from "@vicons/tabler";
 
 interface Props {
   show: boolean;
@@ -88,31 +89,36 @@ const handleClose = () => {
     :y="y"
     trigger="manual"
     placement="bottom"
-    :on-clickoutside="handleClose"
   >
     <template #header>
-      <div style="display: inline-block; width: 100%">
-        <transition mode="out-in" name="slide-up">
-          <div
-            v-if="!editingName"
-            class="popover-name"
-            @click="startEditingName"
-          >
-            {{ name || "Untitled" }}
-          </div>
-          <n-input
-            v-else
-            style="position: relative"
-            ref="nameInputRef"
-            v-model:value="localName"
-            placeholder="Name"
-            maxlength="100"
-            show-count
-            autofocus
-            @blur="saveName"
-            @keydown.enter="saveName"
-          />
-        </transition>
+      <div class="popover-header">
+        <div style="display: inline-block; width: 100%;">
+          <transition mode="out-in" name="slide-up">
+            <div
+              v-if="!editingName"
+              class="popover-name"
+              @click.prevent="startEditingName"
+              @touchend.prevent="startEditingName"
+            >
+              {{ name || "Untitled" }}
+            </div>
+            <n-input
+              v-else
+              style="position: relative"
+              ref="nameInputRef"
+              v-model:value="localName"
+              placeholder="Name"
+              autofocus
+              @blur="saveName"
+              @keydown.enter="saveName"
+            />
+          </transition>
+        </div>
+        <n-button quaternary circle size="small" @click="handleClose">
+          <n-icon :size="14">
+            <X />
+          </n-icon>
+        </n-button>
       </div>
     </template>
     <div class="feature-edit-popover">
@@ -121,7 +127,8 @@ const handleClose = () => {
           v-if="!editingDescription"
           class="popover-description"
           :class="{ 'is-empty': !description }"
-          @click="startEditingDescription"
+          @click.prevent="startEditingDescription"
+          @touchend.prevent="startEditingDescription"
         >
           {{ description || "Add description..." }}
         </div>
@@ -132,8 +139,6 @@ const handleClose = () => {
           type="textarea"
           placeholder="Description"
           :rows="3"
-          maxlength="500"
-          show-count
           @blur="saveDescription"
         />
       </transition>
@@ -164,6 +169,13 @@ const handleClose = () => {
   display: inline-block;
 }
 
+.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 2.5em;
+}
+
 .popover-name {
   font-size: 15px;
   font-weight: 600;
@@ -172,9 +184,11 @@ const handleClose = () => {
   cursor: text;
   border-radius: 4px;
   min-height: 32px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.popover-name:hover {
+.popover-name:hover,
+.popover-name:active {
   background: var(--hover-color, rgba(0, 0, 0, 0.06));
 }
 
@@ -185,9 +199,11 @@ const handleClose = () => {
   cursor: text;
   border-radius: 4px;
   min-height: 24px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.popover-description:hover {
+.popover-description:hover,
+.popover-description:active {
   background: var(--hover-color, rgba(0, 0, 0, 0.06));
 }
 </style>

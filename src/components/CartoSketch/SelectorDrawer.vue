@@ -5,6 +5,7 @@ import { Minus, Plus } from '@vicons/tabler';
 import { Upload } from '@vicons/tabler';
 
 import SketchSelector from './SketchSelector.vue';
+import SketchCreateModal from './SketchCreateModal.vue';
 
 import { watch, ref, computed } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
@@ -26,10 +27,14 @@ const props = defineProps({
 	list: {
 		type: Array<{name: string, id: string, tags: string[]}>,
 		default: () => []
+	},
+	activeId: {
+		type: String,
+		default: () => ''
 	}
 });
 
-const buttonGroupItems = [
+const buttonGroupItems = computed(() => [
 	{
 		title: t('sketchEdit.import'),
 		icon: Upload,
@@ -41,7 +46,7 @@ const buttonGroupItems = [
 	{
 		title: t('sketchEdit.new'),
 		icon: Plus,
-		callback: () => emit('new'),
+		callback: () => { showNewSketchModal.value = true; },
 		secondary: true,
 		iconSize: 20,
 		type: "default"
@@ -54,9 +59,10 @@ const buttonGroupItems = [
 		iconSize: 20,
 		type: "error"
 	},
-];
+]);
 
 const activeSelectorFlag = ref(false);
+const showNewSketchModal = ref(false);
 const drawerSelectorPlacement = ref<DrawerPlacement>(props.placement as DrawerPlacement);
 
 // Responsive drawer width
@@ -74,7 +80,7 @@ watch(activeSelectorFlag, () => {
 });
 
 
-const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import']);
+const emit = defineEmits(['update:active', 'remove', 'select', 'import']);
 
 </script>
 
@@ -106,9 +112,16 @@ const emit = defineEmits(['new', 'update:active', 'remove', 'select', 'import'])
       </template>
       <sketch-selector
         :list="list"
+        :active-id="activeId"
         @remove="(id: string) => emit('remove', id)"
         @select="(id: string) => emit('select', id)"
       />
     </n-drawer-content>
   </n-drawer>
+
+  <!-- New Sketch Modal -->
+  <SketchCreateModal
+    v-model:show="showNewSketchModal"
+    @created="(sketchId) => emit('select', sketchId)"
+  />
 </template>

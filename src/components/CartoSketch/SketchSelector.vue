@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { NList, NListItem, NIcon, NButton, NTag } from 'naive-ui';
+import { NList, NListItem, NIcon, NButton, NTag, useThemeVars } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 
 import { Shape, Trash } from '@vicons/tabler';
 
 const { t } = useI18n();
+const theme =  useThemeVars();
 
 const props = defineProps({
     list: {
         type: Array<{name: string, id: string, tags: string[]}>,
         default: () => []
+    },
+    activeId: {
+        type: String,
+        default: ''
     }
 });
 
@@ -36,6 +41,7 @@ function remove(id: string) {
         v-for="sketch in props.list"
         :key="sketch.id"
         :title="sketch.name"
+        :class="{ 'active-item': sketch.id === props.activeId }"
         @click="select(sketch.id)"
       >
         <template #prefix>
@@ -115,5 +121,14 @@ function remove(id: string) {
     flex-wrap: wrap;
     gap: 4px;
     margin-top: 4px;
+}
+
+.active-item {
+    background-color: v-bind('theme.primaryColorSuppl') !important;
+    color: v-bind('theme.textColorBase') !important;
+}
+
+.active-item:deep(*) {
+  font-weight: 550 !important;
 }
 </style>

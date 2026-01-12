@@ -52,10 +52,9 @@ export { DRAW_MODES };
 
 // Create TerraDraw mode instances with full configuration
 const createDrawModes = () => [
-    new TerraDrawPointMode(),
-    new TerraDrawLineStringMode(),
     new TerraDrawSelectMode({
         allowManualDeselection: true,
+        pointerDistance: 10,
         flags: {
             point: { feature: { draggable: true } },
             polygon: {
@@ -90,6 +89,8 @@ const createDrawModes = () => [
             },
         },
     }),
+    new TerraDrawPointMode(),
+    new TerraDrawLineStringMode(),
 ];
 
 export function createTerraDrawComposable(
@@ -119,6 +120,9 @@ export function createTerraDrawComposable(
 
     // Flag to prevent circular updates when programmatically syncing
     const isProgrammaticChange = ref(false);
+
+    // Store for in-progress drawing before terradraw deletes it on mode switch
+    const pendingDrawingFeature = ref<GeoJSONStoreFeatures | null>(null);
 
     // Selected feature state for editing name/description
     const selectedFeatureId = ref<string | null>(null);
@@ -269,10 +273,31 @@ export function createTerraDrawComposable(
         draw.value.on('change', (ids: FeatureId[], type: string) => {
             if (isProgrammaticChange.value) return;
 
-            // Only handle deletes
+            // Restore pending in-progress drawing if deleted during mode switch
+            if (pendingDrawingFeature.value && ids.includes(String(pendingDrawingFeature.value.id))) {
+                const feature = pendingDrawingFeature.value;
+                // Remove currentlyDrawing flag to make it a committed feature
+                const featureCopy = cloneDeep(feature);
+                delete featureCopy.properties.currentlyDrawing;
+
+                draw.value?.addFeatures([featureCopy]);
+
+                // Save to store
+                void saveFeatureAsDraft(featureCopy);
+                pushUndoState({
+                    type: 'create',
+                    featureId: String(featureCopy.id),
+                    feature: featureCopy
+                });
+
+                pendingDrawingFeature.value = null;
+                return;
+            }
+
+            // Only handle deletes for permanent features
             if (type !== 'delete' && type !== 'remove') return;
 
-            // console.log('[TerraDraw] DELETE:', ids);
+            console.log('[TerraDraw] DELETE:', ids);
 
             for (const id of ids) {
                 if (!id) continue;
@@ -299,6 +324,9 @@ export function createTerraDrawComposable(
 
         // Handle feature selection
         draw.value.on('select', (id: FeatureId | null) => {
+            // Don't select features when in delete mode - we just want to delete them
+            if (activeDrawMethod.value === 'delete') return;
+
             if (!id) {
                 clearSelection();
                 return;
@@ -446,8 +474,23 @@ export function createTerraDrawComposable(
     const setMode = (mode: string) => {
         if (!draw.value) return;
 
+        // Check if user is currently drawing
+        const modeState = draw.value.getModeState();
+
+        if (modeState === 'drawing') {
+            const snapshot = draw.value.getSnapshot();
+            const drawingFeature = snapshot.find(
+                (f) => f.properties.currentlyDrawing === true
+            );
+
+            // Store the in-progress drawing to restore after terradraw deletes it
+            if (drawingFeature) {
+                pendingDrawingFeature.value = cloneDeep(drawingFeature);
+            }
+        }
+
+        // Switch mode (this will delete the in-progress drawing, which we restore in the event listener)
         if (mode === 'delete') {
-            // Delete mode: use select mode but with custom click handler
             draw.value.setMode('select');
             activeDrawMethod.value = 'delete';
         } else if (mode === 'select') {
