@@ -1,89 +1,22 @@
 <script lang="ts" setup>
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
 import { NIcon, NTooltip } from "naive-ui";
 import {
-  MapPin,
-  Line,
-  HandFinger,
   ArrowBack,
   ArrowForward,
   Trash,
 } from "@vicons/tabler";
-import {
-  TerraDrawPointMode,
-  TerraDrawSelectMode,
-  TerraDrawLineStringMode,
-} from "terra-draw";
-import type { Component } from "vue";
 import { useI18n } from "vue-i18n";
 import { useKeyboardShortcut } from "@/composables/useKeyboardShortcut";
+import { DRAW_MODES, type DrawModeConfig } from "@/composables/useTerraDraw";
 
 const { t } = useI18n();
-
-type DrawModes = {
-  mode: any;
-  name: string;
-  icon: Component;
-};
-
-const drawerModes: DrawModes[] = [
-  {
-    mode: new TerraDrawPointMode(),
-    name: t("trackerView.terraDrawTools.point"),
-    icon: MapPin,
-  },
-  {
-    mode: new TerraDrawLineStringMode(),
-    name: t("trackerView.terraDrawTools.line"),
-    icon: Line,
-  },
-  {
-    mode: new TerraDrawSelectMode({
-      allowManualDeselection: true,
-      flags: {
-        point: { feature: { draggable: true } },
-        polygon: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        linestring: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        freehand: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        circle: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        rectangle: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-      },
-    }),
-    name: t("trackerView.terraDrawTools.select"),
-    icon: HandFinger,
-  },
-];
 
 interface Props {
   activeDrawMethod: string;
   canUndo?: boolean;
   canRedo?: boolean;
+  drawerModes?: DrawModeConfig[];
 }
 
 interface Emits {
@@ -96,17 +29,19 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   canUndo: false,
   canRedo: false,
+  drawerModes: () => DRAW_MODES,
 });
 
 const emit = defineEmits<Emits>();
 
-const handleToolClick = (mode: DrawModes) => {
-  // TerraDraw mode objects have a 'mode' property that returns the mode name string (e.g., 'point', 'linestring', 'select')
-  const modeName = mode.mode.mode;
-  if (props.activeDrawMethod === modeName) {
+// Use provided drawerModes or fallback to centralized config
+const modes = props.drawerModes;
+
+const handleToolClick = (mode: DrawModeConfig) => {
+  if (props.activeDrawMethod === mode.name) {
     emit("setDrawMode", "select");
   } else {
-    emit("setDrawMode", modeName);
+    emit("setDrawMode", mode.name);
   }
 };
 
@@ -148,63 +83,24 @@ useKeyboardShortcut(
 </script>
 
 <template>
-  <!-- Point tool -->
   <mgl-custom-control position="top-right">
-    <n-tooltip trigger="hover" placement="left">
-      <template #trigger>
-        <button
-          :class="[
-            'btn-tool',
-            { active: activeDrawMethod === drawerModes[0].mode.mode },
-          ]"
-          :title="drawerModes[0].name"
-          @click="handleToolClick(drawerModes[0])"
-        >
-          <n-icon :size="20">
-            <component :is="drawerModes[0].icon" class="btn-icon" />
-          </n-icon>
-        </button>
-      </template>
-      {{ drawerModes[0].name }}
-    </n-tooltip>
-
-    <!-- Line tool -->
-    <n-tooltip trigger="hover" placement="left">
-      <template #trigger>
-        <button
-          :class="[
-            'btn-tool',
-            { active: activeDrawMethod === drawerModes[1].mode.mode },
-          ]"
-          :title="drawerModes[1].name"
-          @click="handleToolClick(drawerModes[1])"
-        >
-          <n-icon :size="20">
-            <component :is="drawerModes[1].icon" class="btn-icon" />
-          </n-icon>
-        </button>
-      </template>
-      {{ drawerModes[1].name }}
-    </n-tooltip>
-
-    <!-- Select tool -->
-    <n-tooltip trigger="hover" placement="left">
-      <template #trigger>
-        <button
-          :class="[
-            'btn-tool',
-            { active: activeDrawMethod === drawerModes[2].mode.mode },
-          ]"
-          :title="drawerModes[2].name"
-          @click="handleToolClick(drawerModes[2])"
-        >
-          <n-icon :size="20">
-            <component :is="drawerModes[2].icon" class="btn-icon" />
-          </n-icon>
-        </button>
-      </template>
-      {{ drawerModes[2].name }}
-    </n-tooltip>
+    <!-- Draw mode buttons -->
+    <template v-for="mode in modes" :key="mode.name">
+      <n-tooltip trigger="hover" placement="left">
+        <template #trigger>
+          <button
+            :class="['btn-tool', { active: activeDrawMethod === mode.name }, { 'btn-delete': mode.name === 'delete' }]"
+            :title="t(`trackerView.terraDrawTools.${mode.label}`)"
+            @click="handleToolClick(mode)"
+          >
+            <n-icon :size="20">
+              <component :is="mode.icon" class="btn-icon" />
+            </n-icon>
+          </button>
+        </template>
+        {{ t(`trackerView.terraDrawTools.${mode.label}`) }}
+      </n-tooltip>
+    </template>
 
     <!-- Undo button -->
     <n-tooltip trigger="hover" placement="left">
@@ -301,4 +197,18 @@ useKeyboardShortcut(
   stroke: #2563eb;
   color: #2563eb;
 }
+
+.btn-delete {
+  color: #ef4444;
+}
+
+.btn-delete .btn-icon {
+  stroke: #ef4444;
+  color: #ef4444;
+}
+
+.btn-tool.active.btn-delete {
+  background: #fef2f2 !important;
+}
+
 </style>

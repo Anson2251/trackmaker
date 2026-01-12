@@ -76,6 +76,7 @@
             "line": "Line String",
             "circle": "Circle",
             "select": "Select",
+            "delete": "Delete",
             "draw": "Free Hand"
         },
         "uiRouteCheckoutTip": "New Route added! Click Here to check it out",

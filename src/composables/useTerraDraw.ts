@@ -1,22 +1,99 @@
 import { shallowRef, ref, computed } from 'vue';
-import { TerraDraw, type GeoJSONStoreFeatures, type GeoJSONStoreGeometries, TerraDrawExtend } from 'terra-draw';
+import {
+    TerraDraw,
+    TerraDrawPointMode,
+    TerraDrawSelectMode,
+    TerraDrawLineStringMode,
+    type GeoJSONStoreFeatures,
+    type GeoJSONStoreGeometries,
+} from 'terra-draw';
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter';
 import type { GeographicShape, GeographicDraftItemProperties, GeographicDraftItemType } from '../libs/cartosketch/definitions';
 import { useSketchStore } from '../store/sketch-store';
 import { cloneDeep, isArray } from 'lodash-es';
 import type { Map as MglMap } from 'maplibre-gl';
+import type { Component } from 'vue';
+import { MapPin, Line, HandFinger, Scissors } from '@vicons/tabler';
 
 type FeatureId = string | number;
 
-export type DrawModes = {
-    mode: TerraDrawExtend.TerraDrawBaseDrawMode<any>;
-    name: string;
-    icon: any;
+// Simple mode config for UI (without the actual TerraDraw mode instances)
+export type DrawModeConfig = {
+    name: string;      // mode name string (e.g., 'point', 'linestring')
+    label: string;     // i18n key for the label
+    icon: Component;
 };
 
+// Centralized mode configurations
+const DRAW_MODES: DrawModeConfig[] = [
+    {
+        name: 'point',
+        label: 'point',
+        icon: MapPin,
+    },
+    {
+        name: 'linestring',
+        label: 'line',
+        icon: Line,
+    },
+    {
+        name: 'select',
+        label: 'select',
+        icon: HandFinger,
+    },
+    {
+        name: 'delete',
+        label: 'delete',
+        icon: Scissors,
+    },
+];
+
+export { DRAW_MODES };
+
+// Create TerraDraw mode instances with full configuration
+const createDrawModes = () => [
+    new TerraDrawPointMode(),
+    new TerraDrawLineStringMode(),
+    new TerraDrawSelectMode({
+        allowManualDeselection: true,
+        flags: {
+            point: { feature: { draggable: true } },
+            polygon: {
+                feature: {
+                    draggable: true,
+                    coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+            },
+            linestring: {
+                feature: {
+                    draggable: true,
+                    coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+            },
+            freehand: {
+                feature: {
+                    draggable: true,
+                    coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+            },
+            circle: {
+                feature: {
+                    draggable: true,
+                    coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+            },
+            rectangle: {
+                feature: {
+                    draggable: true,
+                    coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+            },
+        },
+    }),
+];
+
 export function createTerraDrawComposable(
-    map: MglMap,
-    drawerModes: DrawModes[]
+    map: MglMap
 ) {
     const sketchStore = useSketchStore();
     const draw = shallowRef<TerraDraw | null>(null);
@@ -52,7 +129,7 @@ export function createTerraDrawComposable(
 
         draw.value = new TerraDraw({
             adapter: new TerraDrawMapLibreGLAdapter({ map }),
-            modes: drawerModes.map((item) => item.mode),
+            modes: createDrawModes(),
         });
 
         draw.value.start();
@@ -132,51 +209,75 @@ export function createTerraDrawComposable(
     const setupEventListeners = () => {
         if (!draw.value) return;
 
-        // Handle feature creation/update/delete via 'change' event
-        draw.value.on('change', (ids: FeatureId[], type: string) => {
-            if (isProgrammaticChange.value) return; // Skip if change originated from programmatic sync
+        // Handle drawing/editing completion - fires once when user finishes
+        draw.value.on('finish', (id: FeatureId, context: { action: string; mode: string }) => {
+            if (isProgrammaticChange.value) return;
 
-            console.log('[TerraDraw] Change event:', type, ids);
+            const featureId = String(id);
+            // console.log('[TerraDraw] FINISH:', context.action, featureId);
 
-            // Process each affected feature ID
-            for (const id of ids) {
-                if (!id) continue;
+            const snapshot = draw.value!.getSnapshotFeature(featureId);
+            if (!snapshot) return;
 
-                // Get the current snapshot of the feature
-                const snapshot = draw.value!.getSnapshotFeature(id);
-                const featureId = String(id);
-
-                if (type === 'add' || type === 'create') {
-                    if (snapshot) {
-                        // Save draft and push undo state
-                        void saveFeatureAsDraft(snapshot);
-                        pushUndoState({
-                            type: 'create',
-                            featureId,
-                            feature: cloneDeep(snapshot)
-                        });
-                    }
-                } else if (type === 'update') {
-                    if (snapshot) {
-                        // Update draft and push undo state
-                        void saveFeatureAsDraft(snapshot, true);
-                        pushUndoState({
-                            type: 'update',
-                            featureId,
-                            feature: cloneDeep(snapshot)
-                        });
-                    }
-                } else if (type === 'delete' || type === 'remove') {
-                    // Delete draft and push undo state
-                    void deleteDraftByFeatureId(featureId);
-                    pushUndoState({
-                        type: 'delete',
-                        featureId
-                    });
-                }
+            if (context.action === 'draw') {
+                // New feature created
+                void saveFeatureAsDraft(snapshot);
+                pushUndoState({
+                    type: 'create',
+                    featureId,
+                    feature: cloneDeep(snapshot)
+                });
+            } else if (context.action === 'dragFeature' || context.action === 'dragCoordinate') {
+                // Existing feature edited
+                void saveFeatureAsDraft(snapshot, true);
+                pushUndoState({
+                    type: 'update',
+                    featureId,
+                    feature: cloneDeep(snapshot)
+                });
             }
         });
 
+        // Handle deletes via 'change' event
+        draw.value.on('change', (ids: FeatureId[], type: string) => {
+            if (isProgrammaticChange.value) return;
+
+            // Only handle deletes
+            if (type !== 'delete' && type !== 'remove') return;
+
+            // console.log('[TerraDraw] DELETE:', ids);
+
+            for (const id of ids) {
+                if (!id) continue;
+                const featureId = String(id);
+
+                void deleteDraftByFeatureId(featureId);
+                pushUndoState({
+                    type: 'delete',
+                    featureId
+                });
+            }
+        });
+
+        // Handle click on map for delete mode
+        map.on('click', (event: maplibregl.MapMouseEvent) => {
+            if (activeDrawMethod.value !== 'delete') return;
+            if (!draw.value) return;
+
+            const { lng, lat } = event.lngLat;
+            const features = draw.value.getFeaturesAtLngLat({ lng, lat }, {
+                pointerDistance: 30,
+            });
+
+            if (features.length > 0) {
+                const feature = features[0];
+                const featureId = feature.id;
+                // console.log('[TerraDraw] Delete clicked:', featureId);
+
+                // Remove the feature - 'change' event will handle undo state
+                if (featureId) draw.value.removeFeatures([featureId]);
+            }
+        });
     };
 
     // Undo: revert the last change
@@ -279,7 +380,11 @@ export function createTerraDrawComposable(
     const setMode = (mode: string) => {
         if (!draw.value) return;
 
-        if (mode === 'select') {
+        if (mode === 'delete') {
+            // Delete mode: use select mode but with custom click handler
+            draw.value.setMode('select');
+            activeDrawMethod.value = 'delete';
+        } else if (mode === 'select') {
             draw.value.setMode('select');
             activeDrawMethod.value = 'select';
         } else {
@@ -315,11 +420,11 @@ export function createTerraDrawComposable(
         if (features.length > 0) {
             isProgrammaticChange.value = true;
             try {
-                const validationResults = draw.value.addFeatures(features);
-                console.log('[TerraDraw] loadDrafts validation results:', validationResults);
+                // const validationResults = draw.value.addFeatures(features);
+                // console.log('[TerraDraw] loadDrafts validation results:', validationResults);
                 // Log added features for debugging
                 const snapshot = draw.value.getSnapshot();
-                console.log('[TerraDraw] snapshot after load:', snapshot, features);
+                // console.log('[TerraDraw] snapshot after load:', snapshot, features);
                 // Update mapping based on actual IDs (should match draft.id if validation succeeded)
                 for (const draft of drafts) {
                     const feature = snapshot.find(f => f.id === draft.id);

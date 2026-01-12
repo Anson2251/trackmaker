@@ -35,6 +35,8 @@ import { useMapStore } from "@/store/map-store";
 import PlatformInfo from "@/utils/platform";
 import type NoSleep from "nosleep.js";
 import { useImuCompass } from "@/composables/useImuCompass";
+import SelectorDrawer from "@/components/CartoSketch/SelectorDrawer.vue";
+import { Folders } from "@vicons/tabler";
 
 // Import the new components
 import MapContainer from "@/components/TrackerView/MapContainer.vue";
@@ -46,19 +48,9 @@ import StatusBar from "@/components/TrackerView/StatusBar.vue";
 import BuildingLayerToggle from "@/components/TrackerView/BuildingLayerToggle.vue";
 import CurrentLocationToggle from "@/components/TrackerView/CurrentLocationToggle.vue";
 
-import {
-  TerraDraw,
-  TerraDrawPointMode,
-  TerraDrawSelectMode,
-  TerraDrawLineStringMode,
-} from "terra-draw";
-import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
-import type { Component } from "vue";
-import { MapPin, Line, HandFinger, Folders } from "@vicons/tabler";
-import type Matrix from "ml-matrix";
-import SelectorDrawer from "@/components/CartoSketch/SelectorDrawer.vue";
+import { createTerraDrawComposable } from "@/composables/useTerraDraw";
 import { useSketchStore } from "@/store/sketch-store";
-import { createTerraDrawComposable, type DrawModes } from "@/composables/useTerraDraw";
+import type Matrix from "ml-matrix";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -115,60 +107,6 @@ const geojsonSource = computed<any>(() => {
     };
   }
 });
-
-// TerraDraw modes configuration
-const drawerModes: DrawModes[] = [
-  {
-    mode: new TerraDrawPointMode(),
-    name: t("trackerView.terraDrawTools.point"),
-    icon: MapPin,
-  },
-  {
-    mode: new TerraDrawLineStringMode(),
-    name: t("trackerView.terraDrawTools.line"),
-    icon: Line,
-  },
-  {
-    mode: new TerraDrawSelectMode({
-      allowManualDeselection: true,
-      flags: {
-        point: { feature: { draggable: true } },
-        polygon: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        linestring: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        freehand: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        circle: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-        rectangle: {
-          feature: {
-            draggable: true,
-            coordinates: { midpoints: true, draggable: true, deletable: true },
-          },
-        },
-      },
-    }),
-    name: t("trackerView.terraDrawTools.select"),
-    icon: HandFinger,
-  },
-];
 
 // TerraDraw composable
 const terraDraw = shallowRef<ReturnType<typeof createTerraDrawComposable> | null>(null);
@@ -330,7 +268,7 @@ const toggleOrientationTracking = () => {
 const handleMapInit = (event: any) => {
   // Initialize TerraDraw
   const map = event.map;
-  const terraDrawInstance = createTerraDrawComposable(map, drawerModes);
+  const terraDrawInstance = createTerraDrawComposable(map);
   terraDraw.value = terraDrawInstance;
   terraDrawInstance.initDraw();
 
@@ -429,7 +367,6 @@ watch(() => sketchStore.currentSketchId, async () => {
             ref="mapContainerRef"
             :style-url="styleUrl"
             :geojson-source="geojsonSource"
-            :drawer-modes="drawerModes"
             :on-map-init="handleMapInit"
             :on-map-touch-start="handleMapTouchStart"
             :on-map-touch-end="handleMapTouchEnd"
@@ -516,7 +453,7 @@ watch(() => sketchStore.currentSketchId, async () => {
           </MapContainer>
 
           <!-- Map Compass -->
-          <div :style="{zIndex: 99, position: 'absolute', right: '4px', top: isMobile && !devMode ? '4px' : '14em'}">
+          <div :style="{zIndex: 99, position: 'absolute', right: '4px', top: '16em'}">
             <MapCompass
               v-if="isMobile || devMode"
               v-model:bearing="mapStore.bearing"

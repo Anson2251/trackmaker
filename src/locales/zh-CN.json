@@ -76,6 +76,7 @@
             "line": "线段",
             "circle": "圆形",
             "select": "选择",
+            "delete": "删除",
             "draw": "自由绘制"
         },
         "uiRouteCheckoutTip": "已添加新路线！点击此处查看",

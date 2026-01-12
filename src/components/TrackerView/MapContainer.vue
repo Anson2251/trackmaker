@@ -12,7 +12,6 @@ import {
 } from "@indoorequal/vue-maplibre-gl";
 import { Map as Mgl } from "maplibre-gl";
 import { TerraDraw } from "terra-draw";
-import type { TerraDrawBaseDrawMode } from "terra-draw/dist/extend";
 import { useSettingsStore } from "@/store/settings-store";
 import { useMapStore } from "@/store/map-store";
 import { useImuCompass } from "@/composables/useImuCompass";
@@ -20,11 +19,6 @@ import { useImuCompass } from "@/composables/useImuCompass";
 interface Props {
   styleUrl: string;
   geojsonSource: any;
-  drawerModes: Array<{
-    mode: TerraDrawBaseDrawMode<any>;
-    name: string;
-    icon: any;
-  }>;
   onMapInit: (event: any) => void;
   onMapTouchStart: () => void;
   onMapTouchEnd: () => void;
