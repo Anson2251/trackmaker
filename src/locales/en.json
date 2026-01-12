@@ -79,6 +79,12 @@
             "delete": "Delete",
             "draw": "Free Hand"
         },
+        "sketch": {
+            "name": "Name",
+            "namePlaceholder": "Enter name",
+            "description": "Description",
+            "descriptionPlaceholder": "Enter description"
+        },
         "uiRouteCheckoutTip": "New Route added! Click Here to check it out",
         "uiRecordingStatus": {
             "on": "Recording…",
@@ -138,6 +144,7 @@
         "createFirstSketch": "Create Your First Sketch",
         "cancel": "Cancel",
         "create": "Create",
+        "save": "Save",
         "deleteConfirmation": {
             "title": "Delete Sketch",
             "prompt": "Are you sure you want to delete \"{name}\"?",
@@ -146,6 +153,7 @@
         }
     },
     "sketchEdit": {
+        "edit": "Edit",
         "saveSuccess": "Sketch saved successfully",
         "saveError": "Failed to save sketch",
         "componentCreated": "Component created successfully",

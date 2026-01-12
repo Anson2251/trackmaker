@@ -120,6 +120,12 @@ export function createTerraDrawComposable(
     // Flag to prevent circular updates when programmatically syncing
     const isProgrammaticChange = ref(false);
 
+    // Selected feature state for editing name/description
+    const selectedFeatureId = ref<string | null>(null);
+    const selectedDraftId = ref<string | null>(null);
+    const selectedFeatureName = ref('');
+    const selectedFeatureDescription = ref('');
+
     // Feature type for internal use (compatible with GeoJSONStoreFeatures)
     type DrawFeature = GeoJSONStoreFeatures;
 
@@ -133,6 +139,7 @@ export function createTerraDrawComposable(
         });
 
         draw.value.start();
+        setMode('select'); // Set default mode on initialization
         setupEventListeners();
         isDrawingEnabled.value = true;
     };
@@ -205,6 +212,26 @@ export function createTerraDrawComposable(
         }
     };
 
+    // Clear selection state
+    const clearSelection = () => {
+        selectedFeatureId.value = null;
+        selectedDraftId.value = null;
+        selectedFeatureName.value = '';
+        selectedFeatureDescription.value = '';
+    };
+
+    // Update selected feature name and description
+    const updateSelectedFeature = async () => {
+        if (!selectedDraftId.value) return;
+
+        await sketchStore.updateDraft(selectedDraftId.value, {
+            meta: {
+                name: selectedFeatureName.value,
+                description: selectedFeatureDescription.value,
+            },
+        });
+    };
+
     // Setup event listeners
     const setupEventListeners = () => {
         if (!draw.value) return;
@@ -251,12 +278,51 @@ export function createTerraDrawComposable(
                 if (!id) continue;
                 const featureId = String(id);
 
+                // Clear selection if deleted feature was selected
+                if (selectedFeatureId.value === featureId) {
+                    clearSelection();
+                }
+
+                // Only process permanent features (those in featureToDraftId)
+                // Temporary features created during drawing are not in this mapping
+                if (!featureToDraftId.value.has(featureId)) {
+                    continue;
+                }
+
                 void deleteDraftByFeatureId(featureId);
                 pushUndoState({
                     type: 'delete',
                     featureId
                 });
             }
+        });
+
+        // Handle feature selection
+        draw.value.on('select', (id: FeatureId | null) => {
+            if (!id) {
+                clearSelection();
+                return;
+            }
+
+            const featureId = String(id);
+            const draftId = featureToDraftId.value.get(featureId);
+
+            if (draftId) {
+                selectedFeatureId.value = featureId;
+                selectedDraftId.value = draftId;
+
+                // Get the draft from store
+                const draft = sketchStore.currentDrafts.find((d: { id: string; meta: { name?: string; description?: string } }) => d.id === draftId);
+                if (draft) {
+                    selectedFeatureName.value = draft.meta.name || '';
+                    selectedFeatureDescription.value = draft.meta.description || '';
+                }
+            }
+        });
+
+        // Handle feature deselection
+        draw.value.on('deselect', () => {
+            clearSelection();
         });
 
         // Handle click on map for delete mode
@@ -420,9 +486,7 @@ export function createTerraDrawComposable(
         if (features.length > 0) {
             isProgrammaticChange.value = true;
             try {
-                // const validationResults = draw.value.addFeatures(features);
-                // console.log('[TerraDraw] loadDrafts validation results:', validationResults);
-                // Log added features for debugging
+                draw.value.addFeatures(features);
                 const snapshot = draw.value.getSnapshot();
                 // console.log('[TerraDraw] snapshot after load:', snapshot, features);
                 // Update mapping based on actual IDs (should match draft.id if validation succeeded)
@@ -493,6 +557,13 @@ export function createTerraDrawComposable(
         isDrawingEnabled,
         canUndo,
         canRedo,
+        // Selected feature state for editing
+        selectedFeatureId,
+        selectedDraftId,
+        selectedFeatureName,
+        selectedFeatureDescription,
+        updateSelectedFeature,
+        // Actions
         initDraw,
         setMode,
         undo,

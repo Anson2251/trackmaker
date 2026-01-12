@@ -79,6 +79,12 @@
             "delete": "删除",
             "draw": "自由绘制"
         },
+        "sketch": {
+            "name": "名称",
+            "namePlaceholder": "输入名称",
+            "description": "描述",
+            "descriptionPlaceholder": "输入描述"
+        },
         "uiRouteCheckoutTip": "已添加新路线！点击此处查看",
         "uiRecordingStatus": {
             "on": "记录中…",
@@ -138,6 +144,7 @@
         "createFirstSketch": "创建您的第一个草图",
         "cancel": "取消",
         "create": "创建",
+        "save": "保存",
         "deleteConfirmation": {
             "title": "删除草图",
             "prompt": "您确定要删除\"{name}\"吗？",
@@ -146,6 +153,7 @@
         }
     },
     "sketchEdit": {
+        "edit": "编辑",
         "saveSuccess": "草图保存成功",
         "saveError": "草图保存失败",
         "componentCreated": "组件创建成功",

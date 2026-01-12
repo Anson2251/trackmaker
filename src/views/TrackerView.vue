@@ -4,14 +4,7 @@
 // ! TODO: the delete route points is currently removed
 // ! TODO: loading the route from a file is currently removed
 
-import {
-  ref,
-  onMounted,
-  computed,
-  inject,
-  shallowRef,
-  watch,
-} from "vue";
+import { ref, onMounted, computed, inject, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
 import {
@@ -47,10 +40,14 @@ import RecordingButton from "@/components/TrackerView/RecordingButton.vue";
 import StatusBar from "@/components/TrackerView/StatusBar.vue";
 import BuildingLayerToggle from "@/components/TrackerView/BuildingLayerToggle.vue";
 import CurrentLocationToggle from "@/components/TrackerView/CurrentLocationToggle.vue";
+import FeatureEditPopover from "@/components/TrackerView/FeatureEditPopover.vue";
 
 import { createTerraDrawComposable } from "@/composables/useTerraDraw";
 import { useSketchStore } from "@/store/sketch-store";
 import type Matrix from "ml-matrix";
+import type { GeoJSONStoreFeatures } from "terra-draw";
+import { isArray } from "lodash-es";
+import type { Position } from "gcoord";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -64,7 +61,9 @@ const { t } = useI18n();
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
 
-const mapContainerRef = shallowRef<InstanceType<typeof MapContainer> | null>(null);
+const mapContainerRef = shallowRef<InstanceType<typeof MapContainer> | null>(
+  null
+);
 const routeStore = useRouteStore();
 routeStore.setLocator(locator);
 
@@ -109,7 +108,9 @@ const geojsonSource = computed<any>(() => {
 });
 
 // TerraDraw composable
-const terraDraw = shallowRef<ReturnType<typeof createTerraDrawComposable> | null>(null);
+const terraDraw = shallowRef<ReturnType<
+  typeof createTerraDrawComposable
+> | null>(null);
 
 const isShowingBuildingLayer = ref(false);
 const isWatchingCurrentLocation = ref(true);
@@ -118,7 +119,8 @@ const changeRecordState = (() => {
   let isNewRoute = true;
   return async function () {
     try {
-      if (!routeStore.isRecording) isNewRoute = routeStore.currentRouteId === null;
+      if (!routeStore.isRecording)
+        isNewRoute = routeStore.currentRouteId === null;
       await routeStore.toggleRecording(t);
       if (!routeStore.isRecording && isNewRoute) {
         drawerTooltipOpened.value = true;
@@ -132,8 +134,111 @@ const changeRecordState = (() => {
       console.error(err);
       noSleep.disable();
     }
-  }
+  };
 })();
+
+// Feature edit popover state
+const isFeatureEditPopoverOpen = ref(false);
+const featurePopoverX = ref(0);
+const featurePopoverY = ref(0);
+
+function handleUpdateFeatureName(name: string) {
+  if (terraDraw.value) {
+    terraDraw.value.selectedFeatureName.value = name;
+  }
+}
+
+function handleUpdateFeatureDescription(description: string) {
+  if (terraDraw.value) {
+    terraDraw.value.selectedFeatureDescription.value = description;
+  }
+}
+
+async function handleSaveFeatureEdit() {
+  if (terraDraw.value) {
+    await terraDraw.value.updateSelectedFeature();
+  }
+}
+
+function handleCancelFeatureEdit() {
+  // Reset to original values
+  if (terraDraw.value) {
+    const draftId = terraDraw.value.selectedDraftId.value;
+    if (draftId) {
+      const draft = sketchStore.currentDrafts.find(
+        (d: { id: string; meta: { name?: string; description?: string } }) =>
+          d.id === draftId
+      );
+      if (draft) {
+        terraDraw.value.selectedFeatureName.value = draft.meta.name || "";
+        terraDraw.value.selectedFeatureDescription.value =
+          draft.meta.description || "";
+      }
+    }
+  }
+}
+
+// Watch for selection changes to open popover
+watch(
+  () => terraDraw.value?.selectedFeatureId.value,
+  (featureId) => {
+    if (featureId) {
+      // Get the feature and project its center to screen coordinates
+      const map = mapContainerRef.value?.map;
+      const feature =
+        terraDraw.value?.draw.value?.getSnapshotFeature(featureId);
+      if (map && feature) {
+        const lngLat = getFeatureCenter(feature);
+        const point = map.project(lngLat);
+        // Use container offset to get viewport coordinates
+        const canvas = map.getCanvas();
+        const rect = canvas.getBoundingClientRect();
+        featurePopoverX.value = rect.left + point.x;
+        featurePopoverY.value = rect.top + point.y;
+      }
+      isFeatureEditPopoverOpen.value = true;
+    } else {
+      isFeatureEditPopoverOpen.value = false;
+    }
+  }
+);
+
+// Helper to get the center of a feature
+function getFeatureCenter(feature: GeoJSONStoreFeatures): {
+  lng: number;
+  lat: number;
+} {
+  const coords = feature.geometry.coordinates;
+  if (isArray(coords[0])) {
+    if (coords.length === 0) {
+      return { lng: 0, lat: 0 };
+    }
+    if (isArray(coords[0][0])) {
+      let sumX = 0;
+      let sumY = 0;
+      let count = 0;
+      for (const row of coords as Position[][]) {
+        for (const coord of row) {
+          sumX += coord[0];
+          sumY += coord[1];
+        }
+      }
+      return { lng: sumX / count, lat: sumY / count };
+    }
+    else {
+      const midIndex = Math.floor(coords.length / 2);
+      return {
+        lng: (coords as Position[])[midIndex][0],
+        lat: (coords as Position[])[midIndex][1],
+      };
+    }
+  } else {
+    return {
+      lng: (coords as Position)[0],
+      lat: (coords as Position)[1],
+    };
+  }
+}
 
 const loadTextFileDialogCallback = ref<(contents: string[]) => Promise<void>>(
   async () => {}
@@ -150,7 +255,9 @@ watch(isRouteDrawerOpen, (val) => {
   const map = mapContainerRef.value?.map;
   if (map) {
     map.easeTo({
-      padding: isMobile ? { bottom: val ? routeDrawerWidth.value : 0 } : { left: val ? routeDrawerWidth.value : 0 },
+      padding: isMobile
+        ? { bottom: val ? routeDrawerWidth.value : 0 }
+        : { left: val ? routeDrawerWidth.value : 0 },
       duration: 500,
     });
   }
@@ -164,29 +271,33 @@ const drawerTooltipOpened = ref(false);
 const isSketchSelectorOpen = ref(false);
 
 const sketchList = computed(() => {
-    return sketchStore.sketches.map(sketch => ({
-        name: sketch.meta.name,
-        id: sketch.id,
-        tags: sketch.meta.tags
-    }));
+  return sketchStore.sketches.map((sketch) => ({
+    name: sketch.meta.name,
+    id: sketch.id,
+    tags: sketch.meta.tags,
+  }));
 });
 
 const handleSketchSelect = (id: string) => {
-    const sketch = sketchStore.sketches.find(s => s.id === id);
-    sketchStore.setCurrentSketchId(id);
-    isSketchSelectorOpen.value = false;
-    message.success(t('sketchEdit.switchSuccess', { sketch: sketch?.meta.name }));
+  const sketch = sketchStore.sketches.find((s) => s.id === id);
+  sketchStore.setCurrentSketchId(id);
+  isSketchSelectorOpen.value = false;
+  message.success(t("sketchEdit.switchSuccess", { sketch: sketch?.meta.name }));
 };
 
 const handleSketchNew = async () => {
-    const newSketch = await sketchStore.createSketch(t('sketchEdit.newSketchName'));
-    sketchStore.setCurrentSketchId(newSketch.id);
-    isSketchSelectorOpen.value = false;
-    message.success(t('sketchEdit.createSuccess', { sketch: newSketch.meta.name }));
+  const newSketch = await sketchStore.createSketch(
+    t("sketchEdit.newSketchName")
+  );
+  sketchStore.setCurrentSketchId(newSketch.id);
+  isSketchSelectorOpen.value = false;
+  message.success(
+    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name })
+  );
 };
 
 const handleSketchRemove = async (id: string) => {
-    await sketchStore.deleteSketch(id);
+  await sketchStore.deleteSketch(id);
 };
 
 const mapReady = ref<boolean>(false);
@@ -199,7 +310,7 @@ const {
   isTracking: imuIsTracking,
   isSupported: imuIsSupported,
   error: imuError,
-  startTracking: startImuTracking
+  startTracking: startImuTracking,
 } = useImuCompass({ autoStart: true });
 
 // Update device bearing when IMU bearing changes
@@ -213,17 +324,21 @@ onMounted(async () => {
   await sketchStore.init();
 
   // !TODO change the hard coded time to a setting
-  if (Date.now() - mapStore.lastUpdateTime < 60000 && mapStore.lastUpdateTime !== 0) {
+  if (
+    Date.now() - mapStore.lastUpdateTime < 60000 &&
+    mapStore.lastUpdateTime !== 0
+  ) {
     const lastLocation = locator.getLastKnownLocation();
     // Only set center if we have valid coordinates (not the default 0,0)
     if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
       mapStore.setCenter(lastLocation);
     } else {
       mapStore.setCenter(locator.getLastKnownLocation());
-      console.warn('[TrackerView] No valid last known location available, skipping map center update');
+      console.warn(
+        "[TrackerView] No valid last known location available, skipping map center update"
+      );
     }
-  }
-  else {
+  } else {
     mapStore.setCenter(locator.getLastKnownLocation());
   }
 
@@ -235,8 +350,8 @@ const devMode = !__RELEASE_MODE__;
 // Computed property to get Kalman gain for dev mode
 let kalmanGain = ref<Matrix | null>(null);
 setInterval(() => {
-  kalmanGain.value = locator.getLastKalmanGain()
-})
+  kalmanGain.value = locator.getLastKalmanGain();
+});
 
 let latestBearing = 0;
 // Handle device orientation updates when tracking is enabled
@@ -244,7 +359,14 @@ const handleDeviceOrientation = (bearing: number) => {
   latestBearing = bearing;
   if (mapStore.isTrackingOrientation) {
     const map = mapContainerRef.value?.map;
-    if (map?.isEasing() || map?.isMoving() || map?.isRotating() || map?.isZooming() || isUserSettingTheMap.value) return;
+    if (
+      map?.isEasing() ||
+      map?.isMoving() ||
+      map?.isRotating() ||
+      map?.isZooming() ||
+      isUserSettingTheMap.value
+    )
+      return;
     mapStore.setBearing(bearing);
   }
 };
@@ -271,6 +393,27 @@ const handleMapInit = (event: any) => {
   const terraDrawInstance = createTerraDrawComposable(map);
   terraDraw.value = terraDrawInstance;
   terraDrawInstance.initDraw();
+
+  // Update popover position when map moves
+  const updatePopoverPosition = () => {
+    if (!terraDraw.value) return;
+
+    const featureId = terraDraw.value?.selectedFeatureId.value;
+    if (!featureId) return;
+    const feature = terraDraw.value?.draw.value?.getSnapshotFeature(featureId);
+    if (map && feature) {
+      const lngLat = getFeatureCenter(feature);
+      const point = map.project(lngLat);
+      // Use container offset to get viewport coordinates
+      const canvas = map.getCanvas();
+      const rect = canvas.getBoundingClientRect();
+      featurePopoverX.value = rect.left + point.x;
+      featurePopoverY.value = rect.top + point.y;
+    }
+  };
+
+  // Listen to all map move events
+  map.on("render", updatePopoverPosition);
 
   // Load existing drafts from sketch store
   if (sketchStore.currentDrafts.length > 0) {
@@ -325,7 +468,9 @@ const handleToggleCurrentLocation = () => {
       if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
         map.flyTo({ center: lastLocation.toLngLatLike(), zoom: 18 });
       } else {
-        console.warn('[TrackerView] No valid current location available for navigation');
+        console.warn(
+          "[TrackerView] No valid current location available for navigation"
+        );
         // Could optionally show a user message here
       }
     }
@@ -345,24 +490,23 @@ const handleToggleBuildingLayer = () => {
 };
 
 // Watch for sketch changes to load drafts
-watch(() => sketchStore.currentSketchId, async () => {
-  if (terraDraw.value && sketchStore.currentDrafts) {
-    // Clear existing drawings and load new drafts for the current sketch
-    await terraDraw.value.clearAll();
-    terraDraw.value.loadDrafts(sketchStore.currentDrafts);
+watch(
+  () => sketchStore.currentSketchId,
+  async () => {
+    if (terraDraw.value && sketchStore.currentDrafts) {
+      // Clear existing drawings and load new drafts for the current sketch
+      await terraDraw.value.clearAll();
+      terraDraw.value.loadDrafts(sketchStore.currentDrafts);
+    }
   }
-});
-
+);
 </script>
 
 <template>
   <div class="map-layout-container">
     <div class="map-layout">
       <transition name="map-load">
-        <div
-          v-if="mapReady"
-          style="width: 100%; height: 100%"
-        >
+        <div v-if="mapReady" style="width: 100%; height: 100%">
           <MapContainer
             ref="mapContainerRef"
             :style-url="styleUrl"
@@ -390,7 +534,9 @@ watch(() => sketchStore.currentSketchId, async () => {
 
             <!-- Drawing Tools -->
             <DrawingTools
-              :active-draw-method="terraDraw?.activeDrawMethod.value ?? 'select'"
+              :active-draw-method="
+                terraDraw?.activeDrawMethod.value ?? 'select'
+              "
               :can-undo="terraDraw?.canUndo.value"
               :can-redo="terraDraw?.canRedo.value"
               @set-draw-mode="handleDrawingToolClick"
@@ -399,8 +545,22 @@ watch(() => sketchStore.currentSketchId, async () => {
               @clear-all="handleClearAll"
             />
 
+            <!-- Feature Edit Popover -->
+            <FeatureEditPopover
+              :show="isFeatureEditPopoverOpen"
+              :x="featurePopoverX"
+              :y="featurePopoverY"
+              :name="terraDraw?.selectedFeatureName.value ?? ''"
+              :description="terraDraw?.selectedFeatureDescription.value ?? ''"
+              @update:show="isFeatureEditPopoverOpen = $event"
+              @update:name="handleUpdateFeatureName"
+              @update:description="handleUpdateFeatureDescription"
+              @save="handleSaveFeatureEdit"
+              @cancel="handleCancelFeatureEdit"
+            />
+
             <!-- Route Drawer Toggle Button -->
-             <!-- Sketch Selector Toggle -->
+            <!-- Sketch Selector Toggle -->
             <mgl-custom-control position="bottom-left">
               <n-popover trigger="manual" :show="false">
                 <template #trigger>
@@ -416,16 +576,10 @@ watch(() => sketchStore.currentSketchId, async () => {
                   </button>
                 </template>
               </n-popover>
-              <n-popover
-                trigger="manual"
-                :show="drawerTooltipOpened"
-              >
+              <n-popover trigger="manual" :show="drawerTooltipOpened">
                 <template #trigger>
                   <button
-                    :class="[
-                      'btn-control',
-                      { active: isRouteDrawerOpen },
-                    ]"
+                    :class="['btn-control', { active: isRouteDrawerOpen }]"
                     @click="toggleRouteDrawer"
                   >
                     <n-icon :size="24">
@@ -440,20 +594,35 @@ watch(() => sketchStore.currentSketchId, async () => {
             <!-- Location Marker -->
             <LocationMarker
               :is-watching-current-location="isWatchingCurrentLocation"
-              :device-bearing="(mapStore.isTrackingOrientation ? 0 : (deviceBearing - mapStore.bearing) % 360) /* TODO: update continuously instead of only at drag end */"
+              :device-bearing="
+                mapStore.isTrackingOrientation
+                  ? 0
+                  : (deviceBearing - mapStore.bearing) % 360
+              "
             />
 
             <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
             <div v-if="devMode" class="kalman-gain-bar">
               <span class="kalman-gain-label">Kalman Gain:</span>
               <span class="kalman-gain-value">
-                {{ kalmanGain ? (kalmanGain.get(0, 0) * kalmanGain.get(1, 1)).toFixed(6)  : 'N/A' }}
+                {{
+                  kalmanGain
+                    ? (kalmanGain.get(0, 0) * kalmanGain.get(1, 1)).toFixed(6)
+                    : "N/A"
+                }}
               </span>
             </div>
           </MapContainer>
 
           <!-- Map Compass -->
-          <div :style="{zIndex: 99, position: 'absolute', right: '4px', top: '16em'}">
+          <div
+            :style="{
+              zIndex: 99,
+              position: 'absolute',
+              right: '4px',
+              top: '16em',
+            }"
+          >
             <MapCompass
               v-if="isMobile || devMode"
               v-model:bearing="mapStore.bearing"
@@ -538,7 +707,8 @@ watch(() => sketchStore.currentSketchId, async () => {
 
 <style scoped>
 .drawer-floating-button {
-  box-shadow: 0 0 16px -2px v-bind('lightTheme.Button.common?.successColorSuppl'), 0 1px 3px -1px #000;
+  box-shadow: 0 0 16px -2px v-bind("lightTheme.Button.common?.successColorSuppl"),
+    0 1px 3px -1px #000;
 }
 
 .map-load-enter-active,
@@ -558,9 +728,9 @@ watch(() => sketchStore.currentSketchId, async () => {
   top: 0;
   bottom: 0;
   overflow: hidden;
-  box-shadow: v-bind('theme.boxShadow3');
-  border-radius: v-bind('theme.borderRadius');
-  border: 1px solid v-bind('theme.borderColor');
+  box-shadow: v-bind("theme.boxShadow3");
+  border-radius: v-bind("theme.borderRadius");
+  border: 1px solid v-bind("theme.borderColor");
   box-sizing: border-box;
 }
 
