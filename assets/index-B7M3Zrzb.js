@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-DJeLHo4Y.js","./sketch-store-sbUV63zJ.js","./vue-i18n-B1j-tvb-.js","./App-DBMmbccd.css","./index-C_v_nrrf.js","./index-hLRW1uze.css","./index-CE7iEWGb.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-BnJenfG0.js","./sketch-store-DEEptA32.js","./vue-i18n-D86JZPDF.js","./App-DBMmbccd.css","./index-BzPdPLGz.js","./index-hLRW1uze.css","./index-Cz-4FIjY.js"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -13668,18 +13668,18 @@ ${i}`);
       moduleInit: async () => {
         var _a2;
         const e = mf((await xs(async () => {
-          const { default: n } = await import("./App-DJeLHo4Y.js");
+          const { default: n } = await import("./App-BnJenfG0.js");
           return {
             default: n
           };
         }, __vite__mapDeps([0,1,2,3]), import.meta.url)).default);
         e.use(Qf()), e.use((await xs(async () => {
-          const { default: n } = await import("./index-C_v_nrrf.js");
+          const { default: n } = await import("./index-BzPdPLGz.js");
           return {
             default: n
           };
         }, __vite__mapDeps([4,2,1,5]), import.meta.url)).default), e.use((await xs(async () => {
-          const { i18n: n } = await import("./index-CE7iEWGb.js");
+          const { i18n: n } = await import("./index-Cz-4FIjY.js");
           return {
             i18n: n
           };
