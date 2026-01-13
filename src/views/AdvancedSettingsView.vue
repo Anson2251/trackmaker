@@ -7,13 +7,21 @@ import {
   NButton,
   NSwitch,
   NSpace,
+  NIcon,
   NPopconfirm,
+  NEllipsis,
+  NCode,
+  NText,
 } from "naive-ui";
-import { computed, h, inject, ref } from "vue";
+import { computed, h, inject, ref, nextTick } from 'vue';
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "@/store/settings-store";
-import { advancedSettingsConfig, type AdvancedSettingConfig } from "@/libs/default-settings";
+import {
+  advancedSettingsConfig,
+  type AdvancedSettingConfig,
+} from "@/libs/default-settings";
+import { Edit, Check, ArrowBack, X } from "@vicons/tabler";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -60,9 +68,15 @@ const getTypeTagType = (type: string) => {
   }
 };
 
-const startEdit = (item: AdvancedSettingConfig) => {
+const startEdit = async (item: AdvancedSettingConfig) => {
   editingKey.value = item.key;
   editingValue.value = settingsStore.settings[item.key];
+  // Focus the input after render
+  await nextTick();
+  const inputEl = document.querySelector(
+    `[data-editing-key="${CSS.escape(String(item.key))}"] input`
+  ) as HTMLInputElement | null;
+  inputEl?.focus();
 };
 
 const cancelEdit = () => {
@@ -102,16 +116,22 @@ const configColumns = computed(() => [
   {
     title: t("settings.advanced.config.columns.name"),
     key: "name",
-    width: 220,
+    width: 180,
     render: (row: AdvancedSettingConfig) =>
       h("div", { style: "display: flex; flex-direction: column; gap: 2px;" }, [
-        h("span", { style: "font-weight: 500;" }, row.name),
-        h("span", { style: "font-family: monospace; font-size: 12px; color: #888; opacity: 0.8;" }, "settings." + String(row.key)),
+        h(NEllipsis, h(NText, {strong: true}, row.name)),
+        h(NEllipsis, {
+            style: "color: #888; opacity: 0.8;",
+          }, h(
+          NCode,
+          "settings." + String(row.key)
+        )),
       ]),
   },
   {
     title: t("settings.advanced.config.columns.value"),
     key: "value",
+    width: 120,
     render: (row: AdvancedSettingConfig) => {
       const currentValue = (settingsStore.settings as any)[row.key];
       if (editingKey.value === row.key) {
@@ -129,7 +149,8 @@ const configColumns = computed(() => [
             editingValue.value = row.type === "number" ? Number(val) : val;
           },
           size: "small",
-          style: "min-width: 150px; max-width: 300px;",
+          style: "width: 100%;",
+          "data-editing-key": row.key
         });
       }
       if (row.type === "boolean") {
@@ -138,7 +159,11 @@ const configColumns = computed(() => [
           disabled: true,
         });
       }
-      return h("span", { style: "font-family: monospace;" }, String(currentValue));
+      return h(
+        NText,
+        { code: true },
+        String(currentValue)
+      );
     },
   },
   {
@@ -153,6 +178,7 @@ const configColumns = computed(() => [
   {
     title: t("settings.advanced.config.columns.description"),
     key: "description",
+    width: 200,
     ellipsis: {
       tooltip: true,
     },
@@ -160,35 +186,73 @@ const configColumns = computed(() => [
   {
     title: "",
     key: "actions",
-    width: 120,
+    width: 100,
     render: (row: AdvancedSettingConfig) => {
       if (editingKey.value === row.key) {
         return h(NSpace, {}, () => [
-          h(NButton, {
-            type: "primary",
-            size: "small",
-            onClick: () => saveEdit(row),
-          }, () => t("settings.advanced.config.actions.save")),
-          h(NButton, {
-            size: "small",
-            onClick: cancelEdit,
-          }, () => t("settings.advanced.config.actions.cancel")),
+          h(
+            NButton,
+            {
+              type: "primary",
+              size: "small",
+              circle: true,
+              onClick: () => saveEdit(row),
+            },
+            () =>
+              h(
+                NIcon,
+                { title: t("settings.advanced.config.actions.save") },
+                () => h(Check)
+              )
+          ),
+          h(
+            NButton,
+            {
+              size: "small",
+              circle: true,
+              onClick: cancelEdit,
+            },
+            () =>
+              h(
+                NIcon,
+                { title: t("settings.advanced.config.actions.cancel") },
+                () => h(X)
+              )
+          ),
         ]);
       }
       return h(NSpace, {}, () => [
-        h(NButton, {
-          size: "small",
-          onClick: () => startEdit(row),
-        }, () => t("settings.advanced.config.actions.modify")),
-        h(NPopconfirm, {
-          onPositiveClick: () => resetToDefault(row),
-        }, {
-          trigger: () =>
-            h(NButton, { size: "small", quaternary: true }, () =>
-              t("settings.advanced.config.actions.reset")
-            ),
-          default: () => t("settings.advanced.config.actions.resetConfirmation"),
-        }),
+        h(
+          NButton,
+          {
+            size: "small",
+            circle: true,
+            onClick: () => startEdit(row),
+          },
+          () =>
+            h(
+              NIcon,
+              { title: t("settings.advanced.config.actions.modify") },
+              () => h(Edit)
+            )
+        ),
+        h(
+          NPopconfirm,
+          {
+            onPositiveClick: () => resetToDefault(row),
+          },
+          {
+            trigger: () =>
+              h(NButton, { size: "small", quaternary: true, circle: true }, () =>
+                h(
+                  NIcon,
+                  { title: t("settings.advanced.config.actions.reset") },
+                  () => h(ArrowBack)
+                )
+              ),
+            default: () => t("settings.advanced.config.actions.resetConfirmation"),
+          }
+        ),
       ]);
     },
   },
@@ -200,9 +264,17 @@ const configColumns = computed(() => [
     <div class="advanced-settings-header">
       <n-button quaternary circle @click="goBack">
         <template #icon>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m12 19-7-7 7-7"/>
-            <path d="M19 12H5"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
           </svg>
         </template>
       </n-button>
@@ -219,9 +291,17 @@ const configColumns = computed(() => [
             size="large"
           >
             <template #prefix>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
               </svg>
             </template>
           </n-input>
@@ -229,11 +309,12 @@ const configColumns = computed(() => [
 
         <div class="config-toolbar">
           <span class="config-count">
-            {{ filteredConfigs.length }} {{ $t("settings.advanced.config.items") }}
+            {{ filteredConfigs.length }}
+            {{ $t("settings.advanced.config.items") }}
           </span>
           <n-popconfirm @positive-click="resetAllToDefault">
             <template #trigger>
-              <n-button size="small" quaternary>
+              <n-button size="small" secondary type="error">
                 {{ $t("settings.advanced.config.resetAll") }}
               </n-button>
             </template>
@@ -242,11 +323,13 @@ const configColumns = computed(() => [
         </div>
 
         <n-data-table
+          ref="dataTable"
           :columns="configColumns"
           :data="filteredConfigs"
           :bordered="false"
           :single-line="false"
           size="small"
+          scroll-x="auto"
           :row-class-name="(_row: any, index: number) => index % 2 === 0 ? 'even-row' : 'odd-row'"
         >
           <template #empty>
