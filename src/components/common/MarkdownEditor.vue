@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch, type ComputedRef } from "vue";
 import { inject } from "vue";
-import { NButton, NIcon } from "naive-ui";
-import { Check, Edit } from "@vicons/tabler";
+// import { NButton, NIcon } from "naive-ui";
+// import { Check, Edit } from "@vicons/tabler";
 import { MdEditor, type ExposeParam, type ToolbarNames } from "md-editor-v3";
 import VueMarkdown from "vue-markdown-render";
 import "md-editor-v3/lib/style.css";
 import { useI18n } from "vue-i18n";
+import { NInput } from "naive-ui";
 
 interface Props {
   modelValue: string;
@@ -115,7 +116,7 @@ onBeforeUnmount(() => save());
   <div class="markdown-editor">
     <div class="editor-content">
       <transition mode="out-in" name="slide-up">
-        <MdEditor
+        <!-- <MdEditor
           v-if="!isPreviewMode"
           v-model="localValue"
           :language="mdEditorLocale"
@@ -128,7 +129,8 @@ onBeforeUnmount(() => save());
           :toolbars="toolbars"
           :placeholder="placeholder"
           ref="descriptionInputRef"
-        />
+        /> -->
+        <n-input v-if="!isPreviewMode" type="textarea" @blur="toggleMode" v-model:value="localValue" ref="descriptionInputRef"/>
         <VueMarkdown
           v-else
           :source="localValue"
@@ -141,7 +143,7 @@ onBeforeUnmount(() => save());
         />
       </transition>
     </div>
-    <div v-if="mode === 'toggle'" class="editor-footer">
+    <!-- <div v-if="mode === 'toggle'" class="editor-footer">
       <n-button
         :quaternary="isPreviewMode"
         :secondary="!isPreviewMode"
@@ -156,7 +158,7 @@ onBeforeUnmount(() => save());
           </n-icon>
         </template>
       </n-button>
-    </div>
+    </div> -->
   </div>
 </template>
 
