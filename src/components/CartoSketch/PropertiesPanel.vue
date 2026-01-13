@@ -3,6 +3,7 @@ import { NForm, NFormItem, NSwitch, NColorPicker, NInputNumber, NEmpty, NTabs, N
 import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
 import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
 import { useI18n } from 'vue-i18n';
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 
 const { t } = useI18n();
 
@@ -107,11 +108,11 @@ const emit = defineEmits<{
           </n-form-item>
 
           <n-form-item :label="t('sketchEdit.description')">
-            <NInput
-              :value="component.meta.description"
-              type="textarea"
-              :rows="3"
-              @update:value="(val) => emit('updateMeta', {
+            <MarkdownEditor
+              :model-value="component.meta.description"
+              :min-height="'80px'"
+              :max-height="'200px'"
+              @update:modelValue="(val) => emit('updateMeta', {
                 name: component?.meta.name ?? '',
                 description: val,
                 tags: component?.meta.tags ?? []

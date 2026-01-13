@@ -5,6 +5,7 @@ import {
   NCard,
   NGrid,
   NGridItem,
+  NSpace,
   NButton,
   NIcon,
   NText,

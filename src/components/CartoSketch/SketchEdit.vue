@@ -21,9 +21,6 @@ import {
   NForm,
   NFormItem,
   NSelect,
-  NTabs,
-  NTabPane,
-  NLayout,
   NLayoutContent,
   NLayoutFooter,
 } from "naive-ui";
@@ -34,6 +31,7 @@ import SelectorDrawer from "./SelectorDrawer.vue";
 import SketchToolbar from "./SketchToolbar.vue";
 import ComponentList from "./ComponentList.vue";
 import PropertiesPanel from "./PropertiesPanel.vue";
+import MarkdownEditor from "@/components/common/MarkdownEditor.vue";
 import { useSketchMap } from "@/composables/useSketchMap";
 import { useSketchStore } from "@/store/sketch-store";
 import {
@@ -356,11 +354,11 @@ const getTimeStr = (stamp: number) => {
       </n-form-item>
 
       <n-form-item :label="t('sketchEdit.description')">
-        <n-input
-          v-model:value="metaForm.description"
-          type="textarea"
+        <MarkdownEditor
+          v-model="metaForm.description"
           :placeholder="t('sketchEdit.sketchDescriptionPlaceholder')"
-          :rows="3"
+          :min-height="'120px'"
+          :max-height="'300px'"
         />
       </n-form-item>
 
@@ -779,11 +777,6 @@ const getTimeStr = (stamp: number) => {
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-/* Desktop Layout */
-.desktop-layout {
-  /* Desktop specific styles */
 }
 
 /* Main Grid Layout */

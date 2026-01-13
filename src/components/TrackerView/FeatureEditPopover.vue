@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import { NPopover, NInput, NButton, NIcon } from "naive-ui";
 import { X } from "@vicons/tabler";
+import MarkdownEditor from "@/components/common/MarkdownEditor.vue";
 
 interface Props {
   show: boolean;
@@ -21,11 +22,9 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-// Editing state for each field
+// Editing state for name field
 const editingName = ref(false);
-const editingDescription = ref(false);
 const nameInputRef = ref<InstanceType<typeof NInput> | null>(null);
-const descriptionInputRef = ref<InstanceType<typeof NInput> | null>(null);
 
 // Local state for editing
 const localName = ref("");
@@ -39,7 +38,6 @@ watch(
       localName.value = props.name;
       localDescription.value = props.description;
       editingName.value = false;
-      editingDescription.value = false;
     }
   },
   { immediate: true }
@@ -53,14 +51,6 @@ const startEditingName = () => {
   }, 200);
 };
 
-const startEditingDescription = () => {
-  localDescription.value = props.description;
-  editingDescription.value = true;
-  setTimeout(() => {
-    descriptionInputRef.value?.focus();
-  }, 200);
-};
-
 const saveName = () => {
   if (localName.value !== props.name) {
     emit("update:name", localName.value);
@@ -69,12 +59,11 @@ const saveName = () => {
   editingName.value = false;
 };
 
-const saveDescription = () => {
-  if (localDescription.value !== props.description) {
-    emit("update:description", localDescription.value);
+const saveDescription = (value: string) => {
+  if (value !== props.description) {
+    emit("update:description", value);
     emit("save");
   }
-  editingDescription.value = false;
 };
 
 const handleClose = () => {
@@ -83,16 +72,10 @@ const handleClose = () => {
 </script>
 
 <template>
-  <n-popover
-    :show="show"
-    :x="x"
-    :y="y"
-    trigger="manual"
-    placement="bottom"
-  >
+  <n-popover :show="show" :x="x" :y="y" trigger="manual" placement="bottom">
     <template #header>
       <div class="popover-header">
-        <div style="display: inline-block; width: 100%;">
+        <div style="display: inline-block; width: 100%">
           <transition mode="out-in" name="slide-up">
             <div
               v-if="!editingName"
@@ -122,26 +105,12 @@ const handleClose = () => {
       </div>
     </template>
     <div class="feature-edit-popover">
-      <transition mode="out-in" name="slide-up">
-        <div
-          v-if="!editingDescription"
-          class="popover-description"
-          :class="{ 'is-empty': !description }"
-          @click.prevent="startEditingDescription"
-          @touchend.prevent="startEditingDescription"
-        >
-          {{ description || "Add description..." }}
-        </div>
-        <n-input
-          v-else
-          ref="descriptionInputRef"
-          v-model:value="localDescription"
-          type="textarea"
-          placeholder="Description"
-          :rows="3"
-          @blur="saveDescription"
-        />
-      </transition>
+      <MarkdownEditor
+        v-model="localDescription"
+        :min-height="'80px'"
+        :max-height="'200px'"
+        @save="saveDescription"
+      />
     </div>
   </n-popover>
 </template>
@@ -163,10 +132,9 @@ const handleClose = () => {
 }
 
 .feature-edit-popover {
-  min-width: 260px;
-  max-width: 400px;
-  padding: 4px 0;
-  display: inline-block;
+  min-width: 280px;
+  max-width: min(1200px, 60vw);
+  padding: 8px 0;
 }
 
 .popover-header {
@@ -189,21 +157,6 @@ const handleClose = () => {
 
 .popover-name:hover,
 .popover-name:active {
-  background: var(--hover-color, rgba(0, 0, 0, 0.06));
-}
-
-.popover-description {
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 6px 8px;
-  cursor: text;
-  border-radius: 4px;
-  min-height: 24px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.popover-description:hover,
-.popover-description:active {
-  background: var(--hover-color, rgba(0, 0, 0, 0.06));
+  background: rgba(0, 0, 0, 0.06);
 }
 </style>

@@ -20,8 +20,9 @@ const settings = useSettingsStore();
 const locator = (window as { GeolocationManager?: GeolocationManager }).GeolocationManager as GeolocationManager;
 
 const osThemeValueRef = useOsTheme();
+const darkThemeEnabled = computed(() => (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme))
 const theme = computed(() =>
-  (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme) ===
+  darkThemeEnabled.value ===
     "dark"
     ? darkTheme
     : lightTheme
@@ -33,6 +34,7 @@ const themeOverride = {
   },
 };
 
+provide("applicationDarkThemeEnabled", darkThemeEnabled)
 provide("platformInfo", new PlatformInfo());
 provide("settings", settings);
 provide('noSleep', new NoSleep())
