@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { NCard, NList, NListItem, NTag, NSpace, NAlert, NDivider, NPerformantEllipsis } from "naive-ui";
+import { NCard, NList, NListItem, NTag, NSpace, NAlert, NDivider, NPerformantEllipsis, NButton } from "naive-ui";
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 const { t } = useI18n();
+const router = useRouter();
 
 interface ApiStatus {
   name: string;
@@ -92,23 +94,32 @@ const checkApiAvailability = () => {
 onMounted(() => {
   checkApiAvailability();
 });
+
+const goBack = () => {
+  router.back();
+};
 </script>
 
 <template>
   <div class="api-detection-view">
+    <div class="api-detection-header">
+      <n-button quaternary circle @click="goBack">
+        <template #icon>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+        </template>
+      </n-button>
+      <h1>{{ $t("apiDetection.title") }}</h1>
+    </div>
+
     <div class="api-detection-content">
       <n-space
         vertical
         size="large"
       >
-        <n-card :title="$t('apiDetection.title')">
-          <n-alert
-            type="info"
-            :show-icon="false"
-          >
-            {{ $t('apiDetection.description') }}
-          </n-alert>
-          <n-divider horizontal />
+        <n-card>
           <n-list>
             <n-list-item
               v-for="api in apiStatuses"
@@ -149,6 +160,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.api-detection-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.api-detection-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
 .api-detection-view {
   padding: 16px;
   max-width: 800px;

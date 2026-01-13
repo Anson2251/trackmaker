@@ -8,6 +8,7 @@ import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
 import { initProj4rsModule } from "./utils/proj4-distance";
+import { isDebugModeEnabled } from '@/libs/default-settings';
 
 // Extend Window interface for our custom properties
 declare global {
@@ -50,8 +51,9 @@ export const modules: ModuleItem[] = [
         name: "platform-services",
         displayName: "Platform Services",
         moduleInit: async () => {
+            const debugMode = isDebugModeEnabled();
             try {
-                console.time("Platform services initialise");
+                if (debugMode) console.time("Platform services initialise");
 
                 // Initialize platform services
                 const platformServicesResult = getPlatformServices();
@@ -73,7 +75,7 @@ export const modules: ModuleItem[] = [
                     throw storageInitResult.error;
                 }
 
-                console.timeEnd("Platform services initialise");
+                if (debugMode) console.timeEnd("Platform services initialise");
                 console.info("[Platform] Platform services initialized successfully");
             } catch (error) {
                 console.error("[Platform] Failed to initialize platform services:", error);
@@ -86,6 +88,7 @@ export const modules: ModuleItem[] = [
         name: "geolocation",
         displayName: "Geolocation Service",
         moduleInit: async () => {
+            const debugMode = isDebugModeEnabled();
             try {
                 // Get platform services from window
                 const platformServices = getPlatformServices();
@@ -94,7 +97,7 @@ export const modules: ModuleItem[] = [
                 }
 
                 const geolocationManager = new GeolocationManager();
-                console.time("Geolocation service initialise");
+                if (debugMode) console.time("Geolocation service initialise");
 
                 // Initialize with permission prompt callback
                 await geolocationManager.initialize(async (status) => {
@@ -114,16 +117,16 @@ export const modules: ModuleItem[] = [
                     return confirm(messageId);
                 });
 
-                console.timeEnd("Geolocation service initialise");
-                console.time("Geolocation service start");
+                if (debugMode) console.timeEnd("Geolocation service initialise");
+                if (debugMode) console.time("Geolocation service start");
 
                 // Start location updates
                 await geolocationManager.startLocationUpdates(() => {});
 
-                console.timeEnd("Geolocation service start");
+                if (debugMode) console.timeEnd("Geolocation service start");
 
                 // Temporary fix: Request IMU permissions after geolocation initialization
-                console.info("[Geolocation] Requesting IMU permissions as temporary fix");
+                if (debugMode) console.info("[Geolocation] Requesting IMU permissions as temporary fix");
 
                 window.GeolocationManager = geolocationManager; // expose new manager for direct access
 

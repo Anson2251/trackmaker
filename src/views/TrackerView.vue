@@ -48,6 +48,7 @@ import type Matrix from "ml-matrix";
 import type { GeoJSONStoreFeatures } from "terra-draw";
 import { isArray } from "lodash-es";
 import type { Position } from "gcoord";
+import { shouldShowCompass, shouldKeepScreenOn, getMapTileServer, getMapTilerApiKey, getCustomMapTileUrl, getAutoRecenterTimeout, getDefaultMapZoomLevel } from "@/libs/default-settings";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -58,8 +59,44 @@ const sketchStore = useSketchStore();
 const message = useMessage();
 const locator = inject("geolocation") as GeolocationManager;
 const { t } = useI18n();
-const mapTilerKey = __MAPTILER_KEY__;
-const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
+const buildTimeMapTilerKey = __MAPTILER_KEY__;
+
+// Get API key from settings or use build-time key
+const effectiveMapTilerKey = computed(() => {
+    const userKey = getMapTilerApiKey();
+    return userKey || buildTimeMapTilerKey;
+});
+
+// Map tile server configuration
+interface TileServerConfig {
+    type: 'maptiler' | 'openfreemap' | 'custom';
+    getUrl: () => string;
+}
+
+const mapTileServers: Record<string, TileServerConfig> = {
+    'maptiler': {
+        type: 'maptiler',
+        getUrl: () => `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
+    },
+    'openfreemap': {
+        type: 'openfreemap',
+        getUrl: () => 'https://tiles.openfreemap.org/styles/liberty/style.json',
+    },
+    'custom': {
+        type: 'custom',
+        getUrl: () => getCustomMapTileUrl() || `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
+    },
+};
+
+// Computed style URL based on mapTileServer setting
+const styleUrl = computed(() => {
+    const server = getMapTileServer();
+    const serverConfig = mapTileServers[server];
+    if (serverConfig) {
+        return serverConfig.getUrl();
+    }
+    return mapTileServers['maptiler'].getUrl();
+});
 
 const mapContainerRef = shallowRef<InstanceType<typeof MapContainer> | null>(
   null
@@ -128,7 +165,7 @@ const changeRecordState = (() => {
           drawerTooltipOpened.value = false;
         }, 3000);
       }
-      if (routeStore.isRecording) noSleep.enable();
+      if (routeStore.isRecording && shouldKeepScreenOn()) noSleep.enable();
       else noSleep.disable();
     } catch (err) {
       console.error(err);
@@ -305,9 +342,10 @@ onMounted(async () => {
   await mapStore.init();
   await sketchStore.init();
 
-  // !TODO change the hard coded time to a setting
+  // Use auto-recenter timeout setting
+  const autoRecenterTimeout = getAutoRecenterTimeout();
   if (
-    Date.now() - mapStore.lastUpdateTime < 60000 &&
+    Date.now() - mapStore.lastUpdateTime < autoRecenterTimeout &&
     mapStore.lastUpdateTime !== 0
   ) {
     const lastLocation = locator.getLastKnownLocation();
@@ -322,12 +360,17 @@ onMounted(async () => {
     }
   } else {
     mapStore.setCenter(locator.getLastKnownLocation());
+    mapStore.setBearing(0);
+    mapStore.setZoom(getDefaultMapZoomLevel());
   }
 
   mapReady.value = true;
 });
 
 const devMode = !__RELEASE_MODE__;
+
+// Computed property to determine if compass should be shown
+const showCompass = computed(() => shouldShowCompass() || isMobile || devMode);
 
 // Computed property to get Kalman gain for dev mode
 let kalmanGain = ref<Matrix | null>(null);
@@ -605,7 +648,7 @@ watch(
             }"
           >
             <MapCompass
-              v-if="isMobile || devMode"
+              v-if="showCompass"
               v-model:bearing="mapStore.bearing"
               :tracking="mapStore.isTrackingOrientation"
               @toggle-tracking="toggleOrientationTracking"

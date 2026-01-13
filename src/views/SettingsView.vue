@@ -62,6 +62,10 @@ type Section = {
 
 type Config = Section[];
 
+const navigateToAdvancedSettings = () => {
+  router.push("/advanced-settings");
+};
+
 const configs = computed<Config>(() => [
   {
     title: "appearance",
@@ -241,6 +245,19 @@ onMounted(() => {
             </n-list-item>
           </n-list>
         </n-card>
+
+        <!-- Advanced Options Button -->
+        <n-card id="advanced-options">
+          <div class="advanced-options-card">
+            <div class="advanced-options-info">
+              <h3>{{ $t('settings.advancedOptions.title') }}</h3>
+              <p>{{ $t('settings.advancedOptions.description') }}</p>
+            </div>
+            <n-button type="primary" size="large" @click="navigateToAdvancedSettings">
+              {{ $t('settings.advancedOptions.button') }}
+            </n-button>
+          </div>
+        </n-card>
       </div>
       <div
         v-if="!isExtremeNarrowScreen"
@@ -297,5 +314,36 @@ onMounted(() => {
   gap: 8px;
   flex: 1;
   min-width: 0;
+}
+
+.advanced-options-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.advanced-options-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.advanced-options-info p {
+  margin: 0;
+  color: var(--n-text-color-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .advanced-options-card {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .advanced-options-card .n-button {
+    width: 100%;
+  }
 }
 </style>

@@ -134,7 +134,7 @@ const handleClose = () => {
 .feature-edit-popover {
   min-width: 280px;
   max-width: min(1200px, 60vw);
-  padding: 8px 0;
+  padding-bottom: 8px;
 }
 
 .popover-header {

@@ -50,13 +50,48 @@
                 "title": "Sensor Check",
                 "button": "Check"
             }
+        },
+        "advancedOptions": {
+            "title": "Advanced Options",
+            "description": "Fine-tune application behavior",
+            "button": "Advanced Settings"
+        },
+        "advanced": {
+            "title": "Advanced Settings",
+            "config": {
+                "searchPlaceholder": "Search preferences...",
+                "items": "preferences",
+                "noResults": "No preferences match your search",
+                "resetAll": "Reset All",
+                "resetAllConfirmation": "Reset all preferences to their default values?",
+                "type": {
+                    "boolean": "Boolean",
+                    "string": "String",
+                    "number": "Number"
+                },
+                "columns": {
+                    "name": "Preference Name",
+                    "value": "Value",
+                    "type": "Type",
+                    "status": "Status",
+                    "description": "Description"
+                },
+                "actions": {
+                    "modify": "Modify",
+                    "save": "Save",
+                    "cancel": "Cancel",
+                    "reset": "Reset",
+                    "resetConfirmation": "Reset to default value?"
+                }
+            }
         }
     },
     "router": {
         "tracker": "Tracker",
         "sketchCentre": "Sketch Centre",
         "about": "About",
-        "settings": "Settings"
+        "settings": "Settings",
+        "advancedSettings": "Advanced Settings"
     },
     "trackerView": {
         "mapLoading": "Initialising the map, please wait a moment...",
@@ -237,28 +272,28 @@
         },
         "descriptions": {
             "fetch": {
-                "available": "Fetch API is available for making network requests. Essential for downloading maps and syncing route data.",
-                "unavailable": "Fetch API is not available. Network features like map loading and data synchronization will not work."
+                "available": "Download maps, sync tracks to cloud",
+                "unavailable": "Map downloads and cloud sync disabled"
             },
             "geolocation": {
-                "available": "Geolocation API is available for getting device position. Required for GPS tracking and location-based features.",
-                "unavailable": "Geolocation API is not available. Location tracking and navigation features will be disabled."
+                "available": "GPS tracking and location recording",
+                "unavailable": "GPS tracking unavailable"
             },
             "performance": {
-                "available": "Performance API is available for measuring performance metrics. Helps optimize app responsiveness.",
-                "unavailable": "Performance API is not available. Performance monitoring features will be limited."
+                "available": "Performance monitoring for smooth rendering",
+                "unavailable": "Performance optimizations limited"
             },
             "permission": {
-                "available": "Permissions API is available for querying and requesting permissions. Needed for accessing location and device sensors.",
-                "unavailable": "Permissions API is not available. Permission requests may not work properly."
+                "available": "Request location and sensor permissions",
+                "unavailable": "Manual permission grant required"
             },
             "deviceorientation": {
-                "available": "Device Orientation API is available for detecting device orientation. Enables map rotation and compass features.",
-                "unavailable": "Device Orientation API is not available. Map rotation and compass features will be disabled."
+                "available": "Compass and map auto-rotation",
+                "unavailable": "Map auto-rotation disabled"
             },
             "devicemotion": {
-                "available": "Device Motion API is available for detecting device motion. Used for advanced motion tracking and activity detection.",
-                "unavailable": "Device Motion API is not available. Advanced motion tracking features will be limited."
+                "available": "Step detection and motion smoothing",
+                "unavailable": "Motion features unavailable"
             }
         }
     },

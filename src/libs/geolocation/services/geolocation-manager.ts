@@ -12,6 +12,7 @@ import type { IGeolocationProvider, IIMUProvider } from '@/libs/platform/types';
 import IPGeolocationBackend from '../backends/ip';
 import { KalmanGeolocationBackend } from '../backends/kalman';
 import { cloneDeep } from 'lodash-es';
+import { isKalmanFilterEnabled } from '@/libs/default-settings';
 
 export interface LocationUpdateHandler {
     (location: GeographicPoint, ...args: unknown[]): void | Promise<void>;
@@ -148,7 +149,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
             // Step 3: Check if IMU is available for Kalman filtering
             const imuAvailable = await this.isIMUAvailable();
-            console.info(`[GeolocationManager] IMU available: ${imuAvailable}`);
+            const kalmanEnabled = isKalmanFilterEnabled();
+            console.info(`[GeolocationManager] IMU available: ${imuAvailable}, Kalman filter enabled: ${kalmanEnabled}`);
 
             // Step 4: Location Trail Strategy - Try to get location via GPS first
             console.info("[GeolocationManager] Attempting to get location via platform provider (GPS)");
@@ -158,10 +160,13 @@ export class GeolocationManager implements GeolocationManagerInterface {
                 console.info("[GeolocationManager] Successfully got location via GPS");
                 this.lastKnownLocation = gpsLocationResult.value;
 
-                // If both GPS and IMU are available, use Kalman filter
-                if (imuAvailable) {
-                    console.info("[GeolocationManager] Both GPS and IMU available, initializing Kalman filter");
+                // If both GPS and IMU are available, and Kalman filter is enabled, use Kalman filter
+                if (imuAvailable && kalmanEnabled) {
+                    console.info("[GeolocationManager] Both GPS and IMU available, Kalman filter enabled, initializing Kalman filter");
                     await this.initializeWithKalmanBackend();
+                } else if (imuAvailable && !kalmanEnabled) {
+                    console.info("[GeolocationManager] IMU available but Kalman filter disabled by settings, using GPS-only mode");
+                    this.currentBackend = 'platform';
                 } else {
                     console.info("[GeolocationManager] Using platform provider (GPS-only mode)");
                     this.currentBackend = 'platform';

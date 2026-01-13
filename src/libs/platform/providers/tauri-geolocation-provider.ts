@@ -6,6 +6,7 @@ import { Result, ok, err } from 'neverthrow';
 import { invoke } from '@tauri-apps/api/core';
 import type { IGeolocationProvider } from '../types';
 import { GeolocationProviderError, GeolocationProviderErrorCode } from '../errors';
+import { getGpsUpdateInterval } from '@/libs/default-settings';
 
 export class TauriGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
@@ -154,6 +155,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
 
     async watchPosition(callback: PositionCallback): Promise<Result<number, GeolocationProviderError>> {
         try {
+            const gpsInterval = getGpsUpdateInterval();
             const watchId = window.setInterval(async () => {
                 try {
                     const position = await this.getCurrentPosition();
@@ -163,7 +165,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
                 } catch (error) {
                     console.error('Error in watch position:', error);
                 }
-            }, 10000); // Update every 10 seconds
+            }, gpsInterval);
 
             this.watchCallbacks.set(watchId, watchId);
             return ok(watchId);
@@ -231,16 +233,16 @@ class TauriGeolocation implements Geolocation {
     watchPosition(
         successCallback: PositionCallback,
         errorCallback?: PositionErrorCallback,
-        options?: PositionOptions
+        _options?: PositionOptions
     ): number {
-        const maximumAge = options?.maximumAge ?? 10000;
+        const gpsInterval = getGpsUpdateInterval();
         const watchId = window.setInterval(() => {
             this.getTauriPosition()
                 .then(successCallback)
                 .catch((error: unknown) => {
                     errorCallback?.(this.createPositionError(error as Error));
                 });
-        }, maximumAge);
+        }, gpsInterval);
         return watchId;
     }
 

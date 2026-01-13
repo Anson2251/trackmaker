@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { NCard, NStatistic, NAlert } from 'naive-ui';
+import { useRouter } from 'vue-router';
+import { NCard, NStatistic, NAlert, NButton } from 'naive-ui';
 import { imuOrientationManager } from '@/libs/imu';
 import { GeolocationManager } from '@/libs/geolocation';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
 import type { GeographicPoint } from '@/libs/geolocation/types';
 
 const { t } = useI18n();
+const router = useRouter();
+
 // State management
 // Device orientation data
 const orientationData = ref<DeviceOrientationReading | null>(null);
@@ -222,10 +225,26 @@ function cleanup() {
   }
 }
 
+const goBack = () => {
+  router.back();
+};
+
 </script>
 
 <template>
   <div class="sensor-demo-view">
+    <div class="sensor-demo-header">
+      <n-button quaternary circle @click="goBack">
+        <template #icon>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+        </template>
+      </n-button>
+      <h1>{{ $t("sensorTest.title") }}</h1>
+    </div>
+
     <div class="demo-container">
       <!-- Device Orientation Section -->
       <NCard
@@ -431,6 +450,19 @@ function cleanup() {
 </style>
 
 <style scoped>
+.sensor-demo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sensor-demo-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
 .sensor-demo-view {
   padding: 16px;
   max-width: 1200px;

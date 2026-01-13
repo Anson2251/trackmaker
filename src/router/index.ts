@@ -2,6 +2,7 @@ import TrackerView from '@/views/TrackerView.vue';
 import SketchCentreView from '@/views/SketchCentreView.vue';
 import AboutView from '@/views/AboutView.vue';
 import SettingsView from '@/views/SettingsView.vue';
+import AdvancedSettingsView from '@/views/AdvancedSettingsView.vue';
 import ApiDetectionView from '@/views/ApiDetectionView.vue';
 import SensorTestView from '@/views/SensorTestView.vue';
 
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: (isTauri() ? SettingsView : () => import('@/views/SettingsView.vue')),
+    },
+    {
+      path: '/advanced-settings',
+      name: 'advancedSettings',
+      component: (isTauri() ? AdvancedSettingsView : () => import('@/views/AdvancedSettingsView.vue')),
     },
     {
       path: '/api-detection',

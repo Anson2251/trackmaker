@@ -5,10 +5,13 @@
 import { Result, ok, err } from 'neverthrow';
 import type { IGeolocationProvider } from '../types';
 import { GeolocationProviderError, GeolocationProviderErrorCode } from '../errors';
+import { getGpsUpdateInterval, getEarlySetting } from '@/libs/default-settings';
 
 export class WebGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
     private permissionCallback: ((state: PermissionState) => void) | undefined;
+    private compatibilityModeWatches = new Map<number, number>(); // watchId -> intervalId
+    private lastCompatibilityPosition: { lat: number; lng: number } | null = null; // For deduplication
 
     async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GeolocationProviderError>> {
         this.permissionCallback = permissionCallback;
@@ -134,6 +137,45 @@ export class WebGeolocationProvider implements IGeolocationProvider {
             }
         }
 
+        const gpsInterval = getGpsUpdateInterval();
+        const useCompatibilityMode = getEarlySetting('watchCompatibilityMode');
+
+        // Compatibility mode: use polling with getCurrentPosition instead of watchPosition
+        // This is more reliable on some devices/browsers that have issues with watchPosition
+        if (useCompatibilityMode) {
+            console.info('[Geolocation] Using compatibility mode for position watch');
+            try {
+                const watchId = Date.now(); // Generate a unique ID
+                const intervalId = window.setInterval(async () => {
+                    const result = await this.getCurrentPosition();
+                    if (result.isOk()) {
+                        const pos = result.value;
+                        const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+                        // Skip if position hasn't changed (deduplication)
+                        if (this.lastCompatibilityPosition &&
+                            this.lastCompatibilityPosition.lat === newPos.lat &&
+                            this.lastCompatibilityPosition.lng === newPos.lng) {
+                            return;
+                        }
+
+                        this.lastCompatibilityPosition = newPos;
+                        callback(pos);
+                    }
+                }, gpsInterval);
+
+                this.compatibilityModeWatches.set(watchId, intervalId);
+                return ok(watchId);
+            } catch (error) {
+                return err(new GeolocationProviderError(
+                    'Failed to start watching position (compatibility mode)',
+                    GeolocationProviderErrorCode.WATCH_FAILED,
+                    error as Error
+                ));
+            }
+        }
+
+        // Standard mode: use native watchPosition
         try {
             const watchId = navigator.geolocation.watchPosition(
                 callback,
@@ -143,7 +185,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                 {
                     enableHighAccuracy: true,
                     timeout: 30000,
-                    maximumAge: 10000
+                    maximumAge: gpsInterval
                 }
             );
 
@@ -159,7 +201,16 @@ export class WebGeolocationProvider implements IGeolocationProvider {
 
     clearWatch(watchId: number): Result<void, GeolocationProviderError> {
         try {
-            navigator.geolocation.clearWatch(watchId);
+            // Check if this is a compatibility mode watch
+            if (this.compatibilityModeWatches.has(watchId)) {
+                const intervalId = this.compatibilityModeWatches.get(watchId)!;
+                window.clearInterval(intervalId);
+                this.compatibilityModeWatches.delete(watchId);
+                this.lastCompatibilityPosition = null; // Reset deduplication state
+            } else {
+                // Standard mode: use native clearWatch
+                navigator.geolocation.clearWatch(watchId);
+            }
             return ok(undefined);
         } catch (error) {
             return err(new GeolocationProviderError(

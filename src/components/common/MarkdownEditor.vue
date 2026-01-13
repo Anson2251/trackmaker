@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch, type ComputedRef } from "vue";
 import { inject } from "vue";
 import { NButton, NIcon } from "naive-ui";
-import { Eye, Edit } from "@vicons/tabler";
+import { Check, Edit } from "@vicons/tabler";
 import { MdEditor, type ExposeParam, type ToolbarNames } from "md-editor-v3";
 import VueMarkdown from "vue-markdown-render";
 import "md-editor-v3/lib/style.css";
@@ -113,20 +113,6 @@ onBeforeUnmount(() => save());
 
 <template>
   <div class="markdown-editor">
-    <div v-if="mode === 'toggle'" class="editor-header">
-      <n-button
-        quaternary
-        circle
-        size="tiny"
-        @click="toggleMode"
-      >
-        <template #icon>
-          <n-icon :size="14">
-            <component :is="isPreviewMode ? Edit : Eye" />
-          </n-icon>
-        </template>
-      </n-button>
-    </div>
     <div class="editor-content">
       <transition mode="out-in" name="slide-up">
         <MdEditor
@@ -155,6 +141,22 @@ onBeforeUnmount(() => save());
         />
       </transition>
     </div>
+    <div v-if="mode === 'toggle'" class="editor-footer">
+      <n-button
+        :quaternary="isPreviewMode"
+        :secondary="!isPreviewMode"
+        :circle="isPreviewMode"
+        :size="isPreviewMode ? 'tiny' : 'medium'"
+        :type="isPreviewMode ? 'default' : 'success'"
+        @click="toggleMode"
+      >
+        <template #icon>
+          <n-icon :size="14">
+            <component :is="isPreviewMode ? Edit : Check" />
+          </n-icon>
+        </template>
+      </n-button>
+    </div>
   </div>
 </template>
 
@@ -163,10 +165,10 @@ onBeforeUnmount(() => save());
   width: 100%;
 }
 
-.editor-header {
+.editor-footer {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 4px;
+  margin-top: 8px;
 }
 
 .editor-content {

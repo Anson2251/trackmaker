@@ -6,6 +6,7 @@ import { Result, ok, err } from 'neverthrow';
 import { cloneDeep } from 'lodash-es';
 import type { IStorageProvider } from '../types';
 import { StorageError, StorageErrorCode } from '../errors';
+import { getEarlySetting } from '@/libs/default-settings';
 
 export class WebStorageProvider implements IStorageProvider {
     private db: IDBDatabase | null = null;
@@ -16,6 +17,62 @@ export class WebStorageProvider implements IStorageProvider {
     constructor(dbName: string = 'trackmaker-db', storeName: string = 'user-data') {
         this.dbName = dbName;
         this.storeName = storeName;
+    }
+
+    /**
+     * Get the max cache size in MB from settings, default to 100MB
+     */
+    private getMaxCacheSize(): number {
+        try {
+            return getEarlySetting('maxCacheSize') || 100;
+        } catch {
+            return 100;
+        }
+    }
+
+    /**
+     * Check if cache should be pruned based on current size
+     */
+    private async shouldPruneCache(): Promise<boolean> {
+        if (!this.db) return false;
+        return new Promise((resolve) => {
+            const transaction = this.db!.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.count();
+            request.onsuccess = () => {
+                // Simple count-based pruning: prune if more than 1000 entries
+                // For more accurate size-based pruning, we'd need to estimate sizes
+                const maxEntries = (this.getMaxCacheSize() * 10); // ~100 entries per MB
+                resolve(request.result > maxEntries);
+            };
+            request.onerror = () => resolve(false);
+        });
+    }
+
+    /**
+     * Prune old entries to keep cache under limit
+     */
+    private async pruneCache(): Promise<void> {
+        if (!this.db) return;
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction(this.storeName, 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.index('timestamp').openCursor(null, 'prev');
+            const entriesToDelete = 100; // Delete oldest 100 entries
+            let deleted = 0;
+
+            request.onsuccess = (event) => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+                if (cursor && deleted < entriesToDelete) {
+                    cursor.delete();
+                    deleted++;
+                    cursor.continue();
+                }
+            };
+
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(new Error('Failed to prune cache'));
+        });
     }
 
     async init(): Promise<Result<void, StorageError>> {
@@ -63,6 +120,11 @@ export class WebStorageProvider implements IStorageProvider {
         }
 
         try {
+            // Check if cache needs pruning before setting new value
+            if (await this.shouldPruneCache()) {
+                await this.pruneCache();
+            }
+
             await this.executeTransaction('readwrite', (store) => {
                 return new Promise<void>((resolve, reject) => {
                     const request = store.put(cloneDeep(value), key);

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import { storageGet, storageSet, storageSave } from '../libs/storage';
 import { GeographicPoint } from '../libs/geolocation/types';
+import { defaultSettings } from '@/libs/default-settings';
 
 export type MapState = {
   zoom: number;
@@ -12,7 +13,7 @@ export type MapState = {
 }
 
 export const useMapStore = defineStore('map', () => {
-  const zoom = ref(7);
+  const zoom = ref(defaultSettings.mapZoomLevel);
   const center = ref<[number, number]>([0,0]);
   const bearing = ref(0);
   const lastUpdateTime = ref(0);
@@ -59,7 +60,7 @@ export const useMapStore = defineStore('map', () => {
   }
 
   function resetToDefault() {
-    zoom.value = 7;
+    zoom.value = defaultSettings.mapZoomLevel;
     center.value = [0,0];
     bearing.value = 0;
     isTrackingOrientation.value = false;

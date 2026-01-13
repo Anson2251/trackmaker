@@ -50,13 +50,48 @@
                 "title": "传感器测试",
                 "button": "检查"
             }
+        },
+        "advancedOptions": {
+            "title": "高级选项",
+            "description": "微调应用程序行为",
+            "button": "高级设置"
+        },
+        "advanced": {
+            "title": "高级设置",
+            "config": {
+                "searchPlaceholder": "搜索偏好设置...",
+                "items": "项偏好设置",
+                "noResults": "没有匹配的偏好设置",
+                "resetAll": "全部重置",
+                "resetAllConfirmation": "将所有偏好设置重置为默认值？",
+                "type": {
+                    "boolean": "布尔值",
+                    "string": "字符串",
+                    "number": "数字"
+                },
+                "columns": {
+                    "name": "偏好设置名称",
+                    "value": "值",
+                    "type": "类型",
+                    "status": "状态",
+                    "description": "描述"
+                },
+                "actions": {
+                    "modify": "修改",
+                    "save": "保存",
+                    "cancel": "取消",
+                    "reset": "重置",
+                    "resetConfirmation": "重置为默认值？"
+                }
+            }
         }
     },
     "router": {
         "tracker": "轨迹记录",
         "sketchCentre": "草图中心",
         "about": "关于",
-        "settings": "设置"
+        "settings": "设置",
+        "advancedSettings": "高级设置"
     },
     "trackerView": {
         "mapLoading": "正在初始化地图，请稍候...",
@@ -242,28 +277,28 @@
         },
         "descriptions": {
             "fetch": {
-                "available": "Fetch API 可用于发起网络请求。对于下载地图和同步路线数据至关重要。",
-                "unavailable": "Fetch API 不可用。地图加载和数据同步等网络功能将无法工作。"
+                "available": "下载地图，同步轨迹到云端",
+                "unavailable": "地图下载和云端同步已禁用"
             },
             "geolocation": {
-                "available": "地理位置 API 可用于获取设备位置。GPS 跟踪和基于位置的功能所必需。",
-                "unavailable": "地理位置 API 不可用。位置跟踪和导航功能将被禁用。"
+                "available": "GPS 定位和轨迹记录",
+                "unavailable": "GPS 定位不可用"
             },
             "performance": {
-                "available": "性能 API 可用于测量性能指标。有助于优化应用程序响应速度。",
-                "unavailable": "性能 API 不可用。性能监控功能将受到限制。"
+                "available": "性能监控，确保流畅渲染",
+                "unavailable": "性能优化受限"
             },
             "permission": {
-                "available": "权限 API 可用于查询和请求权限。访问位置和设备传感器所必需。",
-                "unavailable": "权限 API 不可用。权限请求可能无法正常工作。"
+                "available": "请求位置和传感器权限",
+                "unavailable": "需手动在浏览器中授权"
             },
             "deviceorientation": {
-                "available": "设备方向 API 可用于检测设备方向。支持地图旋转和指南针功能。",
-                "unavailable": "设备方向 API 不可用。地图旋转和指南针功能将被禁用。"
+                "available": "指南针和地图自动旋转",
+                "unavailable": "地图自动旋转已禁用"
             },
             "devicemotion": {
-                "available": "设备运动 API 可用于检测设备运动。用于高级运动跟踪和活动检测。",
-                "unavailable": "设备运动 API 不可用。高级运动跟踪功能将受到限制。"
+                "available": "步数检测和运动平滑",
+                "unavailable": "运动功能不可用"
             }
         }
     },
