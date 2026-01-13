@@ -169,6 +169,11 @@ export function getEarlySetting<K extends keyof Settings>(
     key: K
 ): Settings[K] {
     try {
+        // Check if localStorage is available (may not be in some iframe/private browsing contexts)
+        if (typeof localStorage === 'undefined') {
+            return defaultSettings[key];
+        }
+
         if (isTauri) {
             // In Tauri, try to use invoke (simplified - actual impl would use @tauri-apps/api)
             // For now, fall back to localStorage
@@ -192,6 +197,11 @@ export function getEarlySetting<K extends keyof Settings>(
  */
 export function getAllEarlySettings(): Settings {
     try {
+        // Check if localStorage is available
+        if (typeof localStorage === 'undefined') {
+            return { ...defaultSettings };
+        }
+
         if (isTauri) {
             // In Tauri, try to use invoke (simplified)
         }

@@ -343,6 +343,7 @@ export function getPlatformServices(config?: PlatformServicesConfig): Result<Pla
  * Convenience function to check if running in Tauri
  */
 export function isTauri(): boolean {
+    if (typeof navigator === 'undefined') return false;
     return platformDetector.detectEnvironment() === RuntimeEnvironment.TAURI;
 }
 
@@ -350,6 +351,7 @@ export function isTauri(): boolean {
  * Convenience function to check if running in web environment
  */
 export function isWeb(): boolean {
+    if (typeof navigator === 'undefined') return false;
     const env = platformDetector.detectEnvironment();
     return env === RuntimeEnvironment.WEB || env === RuntimeEnvironment.MOBILE_WEB;
 }
@@ -358,6 +360,7 @@ export function isWeb(): boolean {
  * Convenience function to check if running on mobile
  */
 export function isMobile(): boolean {
+    if (typeof navigator === 'undefined') return false;
     const context = platformDetector.getPlatformContext();
     return context.isMobile;
 }

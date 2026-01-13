@@ -5,7 +5,7 @@ import { modules } from "./configs";
 import { t } from "./utils/splash-i18n";
 
 const loadingProgress = ref(0);
-const loadingMessage = ref(t('loading'));
+const loadingMessage = ref("");
 const currentModule = ref("");
 const totalModules = ref(0);
 const completedModules = ref(0);
@@ -16,7 +16,6 @@ const errorMessage = ref("");
 // Permission dialog state
 const showPermissionDialog = ref(false);
 const permissionMessage = ref("");
-const permissionType = ref<'prompt' | 'denied'>('prompt');
 let permissionResolve: ((value: boolean) => void) | null = null;
 
 // Theme detection
@@ -464,7 +463,6 @@ onMounted(() => {
 .retry-button:hover {
   background: var(--button-bg);
   opacity: 0.8;
-  transform: translateY(-1px);
 }
 
 .permission-section {
@@ -479,8 +477,8 @@ onMounted(() => {
   border: 1px solid var(--text-quaternary);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   z-index: 10000;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 .permission-icon {
@@ -532,10 +530,6 @@ onMounted(() => {
 
 .permission-button:hover {
   opacity: 0.85;
-}
-
-.permission-button.allow:hover {
-  transform: translateY(-1px);
 }
 
 @media (max-width: 480px) {

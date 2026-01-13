@@ -14,7 +14,9 @@ export class PlatformDetector {
     private parser: UAParser;
 
     constructor() {
-        this.parser = new UAParser(navigator.userAgent);
+        // Safety check for navigator availability (may not be available in some contexts)
+        const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+        this.parser = new UAParser(userAgent);
     }
 
     /**
@@ -56,7 +58,7 @@ export class PlatformDetector {
             environment,
             capabilities: this.getPlatformCapabilities(environment),
             configuration: this.getDefaultConfiguration(environment),
-            userAgent: navigator.userAgent,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
             isMobile: device.type === 'mobile',
             isTablet: device.type === 'tablet',
             browser: browser.name || undefined,

@@ -51,7 +51,12 @@ export const modules: ModuleItem[] = [
         name: "platform-services",
         displayName: "Platform Services",
         moduleInit: async () => {
-            const debugMode = isDebugModeEnabled();
+            let debugMode = false;
+            try {
+                debugMode = isDebugModeEnabled();
+            } catch {
+                // Silently fail, debug mode defaults to off
+            }
             try {
                 if (debugMode) console.time("Platform services initialise");
 
@@ -88,7 +93,12 @@ export const modules: ModuleItem[] = [
         name: "geolocation",
         displayName: "Geolocation Service",
         moduleInit: async () => {
-            const debugMode = isDebugModeEnabled();
+            let debugMode = false;
+            try {
+                debugMode = isDebugModeEnabled();
+            } catch {
+                // Silently fail, debug mode defaults to off
+            }
             try {
                 // Get platform services from window
                 const platformServices = getPlatformServices();

@@ -1,3 +1,6 @@
+// oxlint-disable no-unsafe-call
+// oxlint-disable no-unsafe-member-access
+
 import { Result, ok, err } from 'neverthrow';
 import { getPlatformServices } from '@/libs/platform';
 import type {
