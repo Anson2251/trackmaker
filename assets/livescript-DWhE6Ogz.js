@@ -1,0 +1,36 @@
+var e = function(e2, t2) {
+  var n2 = t2.next || `start`;
+  if (n2) {
+    t2.next = t2.next;
+    var r2 = a[n2];
+    if (r2.splice) {
+      for (var i2 = 0; i2 < r2.length; ++i2) {
+        var o = r2[i2];
+        if (o.regex && e2.match(o.regex)) return t2.next = o.next || t2.next, o.token;
+      }
+      return e2.next(), `error`;
+    }
+    if (e2.match(o = a[n2])) return o.regex && e2.match(o.regex) ? (t2.next = o.next, o.token) : (e2.next(), `error`);
+  }
+  return e2.next(), `error`;
+}, t = `(?![\\d\\s])[$\\w\\xAA-\\uFFDC](?:(?!\\s)[$\\w\\xAA-\\uFFDC]|-[A-Za-z])*`, n = RegExp(`(?:[({[=:]|[-~]>|\\b(?:e(?:lse|xport)|d(?:o|efault)|t(?:ry|hen)|finally|import(?:\\s*all)?|const|var|let|new|catch(?:\\s*` + t + `)?))\\s*$`), r = `(?![$\\w]|-[A-Za-z]|\\s*:(?![:=]))`, i = { token: `string`, regex: `.+` }, a = { start: [{ token: `docComment`, regex: `/\\*`, next: `comment` }, { token: `comment`, regex: `#.*` }, { token: `keyword`, regex: `(?:t(?:h(?:is|row|en)|ry|ypeof!?)|c(?:on(?:tinue|st)|a(?:se|tch)|lass)|i(?:n(?:stanceof)?|mp(?:ort(?:\\s+all)?|lements)|[fs])|d(?:e(?:fault|lete|bugger)|o)|f(?:or(?:\\s+own)?|inally|unction)|s(?:uper|witch)|e(?:lse|x(?:tends|port)|val)|a(?:nd|rguments)|n(?:ew|ot)|un(?:less|til)|w(?:hile|ith)|o[fr]|return|break|let|var|loop)` + r }, { token: `atom`, regex: `(?:true|false|yes|no|on|off|null|void|undefined)` + r }, { token: `invalid`, regex: `(?:p(?:ackage|r(?:ivate|otected)|ublic)|i(?:mplements|nterface)|enum|static|yield)` + r }, { token: `className.standard`, regex: `(?:R(?:e(?:gExp|ferenceError)|angeError)|S(?:tring|yntaxError)|E(?:rror|valError)|Array|Boolean|Date|Function|Number|Object|TypeError|URIError)` + r }, { token: `variableName.function.standard`, regex: `(?:is(?:NaN|Finite)|parse(?:Int|Float)|Math|JSON|(?:en|de)codeURI(?:Component)?)` + r }, { token: `variableName.standard`, regex: `(?:t(?:hat|il|o)|f(?:rom|allthrough)|it|by|e)` + r }, { token: `variableName`, regex: t + `\\s*:(?![:=])` }, { token: `variableName`, regex: t }, { token: `operatorKeyword`, regex: `(?:\\.{3}|\\s+\\?)` }, { token: `keyword`, regex: `(?:@+|::|\\.\\.)`, next: `key` }, { token: `operatorKeyword`, regex: `\\.\\s*`, next: `key` }, { token: `string`, regex: `\\\\\\S[^\\s,;)}\\]]*` }, { token: `docString`, regex: `'''`, next: `qdoc` }, { token: `docString`, regex: `"""`, next: `qqdoc` }, { token: `string`, regex: `'`, next: `qstring` }, { token: `string`, regex: `"`, next: `qqstring` }, { token: `string`, regex: "`", next: `js` }, { token: `string`, regex: `<\\[`, next: `words` }, { token: `regexp`, regex: `//`, next: `heregex` }, { token: `regexp`, regex: `\\/(?:[^[\\/\\n\\\\]*(?:(?:\\\\.|\\[[^\\]\\n\\\\]*(?:\\\\.[^\\]\\n\\\\]*)*\\])[^[\\/\\n\\\\]*)*)\\/[gimy$]{0,4}`, next: `key` }, { token: `number`, regex: `(?:0x[\\da-fA-F][\\da-fA-F_]*|(?:[2-9]|[12]\\d|3[0-6])r[\\da-zA-Z][\\da-zA-Z_]*|(?:\\d[\\d_]*(?:\\.\\d[\\d_]*)?|\\.\\d[\\d_]*)(?:e[+-]?\\d[\\d_]*)?[\\w$]*)` }, { token: `paren`, regex: `[({[]` }, { token: `paren`, regex: `[)}\\]]`, next: `key` }, { token: `operatorKeyword`, regex: `\\S+` }, { token: `content`, regex: `\\s+` }], heregex: [{ token: `regexp`, regex: `.*?//[gimy$?]{0,4}`, next: `start` }, { token: `regexp`, regex: `\\s*#{` }, { token: `comment`, regex: `\\s+(?:#.*)?` }, { token: `regexp`, regex: `\\S+` }], key: [{ token: `operatorKeyword`, regex: `[.?@!]+` }, { token: `variableName`, regex: t, next: `start` }, { token: `content`, regex: ``, next: `start` }], comment: [{ token: `docComment`, regex: `.*?\\*/`, next: `start` }, { token: `docComment`, regex: `.+` }], qdoc: [{ token: `string`, regex: `.*?'''`, next: `key` }, i], qqdoc: [{ token: `string`, regex: `.*?"""`, next: `key` }, i], qstring: [{ token: `string`, regex: `[^\\\\']*(?:\\\\.[^\\\\']*)*'`, next: `key` }, i], qqstring: [{ token: `string`, regex: `[^\\\\"]*(?:\\\\.[^\\\\"]*)*"`, next: `key` }, i], js: [{ token: `string`, regex: "[^\\\\`]*(?:\\\\.[^\\\\`]*)*`", next: `key` }, i], words: [{ token: `string`, regex: `.*?\\]>`, next: `key` }, i] };
+for (var o in a) {
+  var s = a[o];
+  if (s.splice) for (var c = 0, l = s.length; c < l; ++c) {
+    var u = s[c];
+    typeof u.regex == `string` && (a[o][c].regex = RegExp(`^` + u.regex));
+  }
+  else typeof u.regex == `string` && (a[o].regex = RegExp(`^` + s.regex));
+}
+const d = { name: `livescript`, startState: function() {
+  return { next: `start`, lastToken: { style: null, indent: 0, content: `` } };
+}, token: function(t2, n2) {
+  for (; t2.pos == t2.start; ) var r2 = e(t2, n2);
+  return n2.lastToken = { style: r2, indent: t2.indentation(), content: t2.current() }, r2.replace(/\./g, ` `);
+}, indent: function(e2) {
+  var t2 = e2.lastToken.indent;
+  return e2.lastToken.content.match(n) && (t2 += 2), t2;
+} };
+export {
+  d as liveScript
+};
