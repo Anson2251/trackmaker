@@ -469,8 +469,8 @@ onMounted(() => {
   position: fixed;
 
   top: 30%;
-  left: 32px;
-  right: 32px;
+  left: max(32px, calc(50vw - 200px));
+  right: max(32px, calc(50vw - 200px));
   background: var(--splash-overlay-bg);
   padding: 2rem 2.5rem;
   border-radius: 12px;
