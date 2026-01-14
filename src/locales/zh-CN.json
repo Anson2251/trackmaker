@@ -347,5 +347,8 @@
             "backendIP": "网络 (IP)",
             "noData": "无 GPS 数据可用"
         }
+    },
+    "markdownEditor": {
+        "title": "富文本编辑器"
     }
 }

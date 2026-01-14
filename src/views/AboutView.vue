@@ -19,10 +19,10 @@ import {
 } from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
-import VueMarkdown from "vue-markdown-render";
 import { BrandGithub, Link, FileText } from "@vicons/tabler";
 import { credits, dataProviders } from "@/configs";
 import aboutPageLicense from "@/assets/about-page-license.txt?raw";
+import MarkdownViewer from "@/components/common/MarkdownViewer.vue";
 
 const theme = useThemeVars();
 
@@ -127,7 +127,7 @@ const sideIconSize = ref(20);
                 </n-tag>
               </n-space>
             </template>
-            <vue-markdown
+            <MarkdownViewer
               :source="aboutPageLicense"
               class="license-text"
             />
@@ -181,7 +181,7 @@ const sideIconSize = ref(20);
         </n-list>
 
         <template #footer>
-          <vue-markdown
+          <MarkdownViewer
             :source="t('aboutView.mapInaccuracyDeclaration')"
             class="markdown-resource"
           />

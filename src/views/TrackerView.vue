@@ -4,7 +4,7 @@
 // ! TODO: the delete route points is currently removed
 // ! TODO: loading the route from a file is currently removed
 
-import { ref, onMounted, computed, inject, shallowRef, watch } from "vue";
+import { ref, onMounted, computed, inject, shallowRef, watch, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
 import {
@@ -49,6 +49,7 @@ import type { GeoJSONStoreFeatures } from "terra-draw";
 import { isArray } from "lodash-es";
 import type { Position } from "gcoord";
 import { shouldShowCompass, shouldKeepScreenOn, getMapTileServer, getMapTilerApiKey, getCustomMapTileUrl, getAutoRecenterTimeout, getDefaultMapZoomLevel } from "@/libs/default-settings";
+import { onBeforeRouteLeave } from "vue-router";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -336,6 +337,10 @@ const {
 watch(imuBearing, (newBearing) => {
   deviceBearing.value = newBearing;
 });
+
+onBeforeRouteLeave(() => {
+  isFeatureEditPopoverOpen.value = false;
+})
 
 onMounted(async () => {
   await routeStore.init();

@@ -107,7 +107,7 @@ const handleClose = () => {
     <div class="feature-edit-popover">
       <MarkdownEditor
         v-model="localDescription"
-        :min-height="'80px'"
+        :min-height="'160px'"
         :max-height="'200px'"
         @save="saveDescription"
       />

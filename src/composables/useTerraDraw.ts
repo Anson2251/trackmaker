@@ -297,7 +297,7 @@ export function createTerraDrawComposable(
             // Only handle deletes for permanent features
             if (type !== 'delete' && type !== 'remove') return;
 
-            console.log('[TerraDraw] DELETE:', ids);
+            // console.log('[TerraDraw] DELETE:', ids);
 
             for (const id of ids) {
                 if (!id) continue;
