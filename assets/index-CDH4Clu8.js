@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-BnJenfG0.js","./sketch-store-DEEptA32.js","./vue-i18n-D86JZPDF.js","./App-DBMmbccd.css","./index-BzPdPLGz.js","./index-hLRW1uze.css","./index-Cz-4FIjY.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-BKvSLB3j.js","./sketch-store-B5ao7bhT.js","./vue-i18n-DrGxXH7Y.js","./App-DBMmbccd.css","./index-DWuEvf6h.js","./index-CBav9Puj.css","./index-B4gGkZN3.js"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -10,7 +10,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-let br, o0, Ji, i0, ra, Xv, Pt, qb, ds, On, n0, Jv, fi, hd, dd, r0, Eu, qv, vt, Hn, Kv, Xh, ts, s0, at, Ca, Vh, $v, Ge, R, st, Ot, Qv, t0, Yv, Zv, Id, a0, b0, l0, pm, Fi, Gn, Ff, bm, vf, xg, Bo, Sf, sw, Ow, Jm, bf, qw, Hh, Zi, fs, Ni, nu, Sh, kd, Hv, Vn, c0, xi, sr, x, Hs, Ct, er, w0, d0, m0, g0, f0, p0, h0, E0, I0, u0, wv, xs, Hb, Sn, hi, ci, Bl, Sg, Pg, Rg, _g, Ha, Ef, Ut, y0, tu, kn, ud, gd, Ua, rs, dp, Nr, za, Yr, ja, rp, Pa, rn, Nd, v0, Zs, lo, Vv, Rt, Ki, e0, sd, ip, Ln;
+let br, s0, Ji, r0, ra, Xv, Pt, qb, ds, On, i0, Jv, fi, hd, dd, o0, Eu, qv, vt, Hn, Kv, Xh, ts, a0, at, Ca, Vh, $v, Ge, sr, st, Ot, e0, n0, Yv, Qv, Id, l0, v0, c0, Ha, Ef, pm, Fi, Gn, Ff, bm, vf, xg, Bo, Sf, sw, Ow, Jm, bf, qw, Hh, Zi, fs, Ni, nu, Sh, kd, Hv, Vn, u0, xi, Hs, Ct, er, Ce, Zv, y0, p0, w0, m0, h0, g0, d0, I0, T0, f0, wv, xs, Hb, Sn, hi, ci, Bl, Sg, Pg, Rg, _g, Ut, x, R, b0, tu, kn, ud, gd, Ua, rs, dp, Nr, za, Yr, ja, rp, Pa, rn, Nd, E0, Zs, lo, Vv, Rt, Ki, t0, sd, ip, Ln;
 let __tla = (async () => {
   (function() {
     const t = document.createElement("link").relList;
@@ -769,10 +769,10 @@ let __tla = (async () => {
   function os(e) {
     return e ? !!e.__v_raw : false;
   }
-  function Ce(e) {
+  Ce = function(e) {
     const t = e && e.__v_raw;
     return t ? Ce(t) : e;
-  }
+  };
   Ca = function(e) {
     return !We(e, "__v_skip") && Object.isExtensible(e) && Jc(e, "__v_skip", true), e;
   };
@@ -1714,7 +1714,18 @@ let __tla = (async () => {
     else l = [];
     return l;
   };
-  Zv = function(e, t, n = {}, i, l) {
+  Zv = function(e, t) {
+    for (let n = 0; n < t.length; n++) {
+      const i = t[n];
+      if (Ie(i)) for (let l = 0; l < i.length; l++) e[i[l].name] = i[l].fn;
+      else i && (e[i.name] = i.key ? (...l) => {
+        const c = i.fn(...l);
+        return c && (c.key = i.key), c;
+      } : i.fn);
+    }
+    return e;
+  };
+  Qv = function(e, t, n = {}, i, l) {
     if (Et.ce || Et.parent && Mi(Et.parent) && Et.parent.ce) {
       const v = Object.keys(n).length > 0;
       return t !== "default" && (n.name = t), rn(), ra(Pt, null, [
@@ -1797,7 +1808,7 @@ let __tla = (async () => {
   function Lo(e) {
     return Ie(e) ? e.reduce((t, n) => (t[n] = null, t), {}) : e;
   }
-  Qv = function(e, t) {
+  e0 = function(e, t) {
     return !e || !t ? e || t : Ie(e) && Ie(t) ? e.concat(t) : ft({}, Lo(e), Lo(t));
   };
   let ta = true;
@@ -2055,7 +2066,7 @@ let __tla = (async () => {
     return !!(fi() || Ri);
   };
   const Ld = /* @__PURE__ */ Symbol.for("v-scx"), Cd = () => Nr(Ld);
-  e0 = function(e, t) {
+  t0 = function(e, t) {
     return cs(e, null, t);
   };
   function Fd(e, t) {
@@ -2107,7 +2118,7 @@ let __tla = (async () => {
       return i;
     };
   }
-  t0 = function(e, t, n = Fe) {
+  n0 = function(e, t, n = Fe) {
     const i = fi(), l = Jt(t), c = Kn(t), f = Hu(e, l), h = Jh((p, v) => {
       let g, E = Fe, P;
       return Fd(() => {
@@ -2933,7 +2944,7 @@ let __tla = (async () => {
   ip = function(e = " ", t = 0) {
     return Rt(fs, null, e, t);
   };
-  n0 = function(e, t) {
+  i0 = function(e, t) {
     const n = Rt(kr, null, e);
     return n.staticCount = t, n;
   };
@@ -3267,7 +3278,7 @@ let __tla = (async () => {
   };
   cf = ft({}, ku, lf);
   yp = (e) => (e.displayName = "Transition", e.props = cf, e);
-  i0 = yp((e, { slots: t }) => dp(cd, uf(e), t));
+  r0 = yp((e, { slots: t }) => dp(cd, uf(e), t));
   yi = (e, t = []) => {
     Ie(e) ? e.forEach((n) => n(...t)) : e && e(...t);
   };
@@ -3412,7 +3423,7 @@ let __tla = (async () => {
   let jo, hf;
   jo = /* @__PURE__ */ Symbol("_vod");
   hf = /* @__PURE__ */ Symbol("_vsh");
-  r0 = {
+  o0 = {
     name: "show",
     beforeMount(e, { value: t }, { transition: n }) {
       e[jo] = e.style.display === "none" ? "" : e.style.display, n && t ? n.beforeEnter(e) : fr(e, t);
@@ -3433,7 +3444,7 @@ let __tla = (async () => {
     e.style.display = t ? e[jo] : "none", e[hf] = !t;
   }
   const df = /* @__PURE__ */ Symbol("");
-  o0 = function(e) {
+  s0 = function(e) {
     const t = fi();
     if (!t) return;
     const n = t.ut = (l = e(t.proxy)) => {
@@ -3666,7 +3677,7 @@ let __tla = (async () => {
       };
     }
   });
-  s0 = xp;
+  a0 = xp;
   function Dp(e) {
     const t = e.el;
     t[Wo] && t[Wo](), t[Dl] && t[Dl]();
@@ -3714,7 +3725,7 @@ let __tla = (async () => {
     right: (e) => "button" in e && e.button !== 2,
     exact: (e, t) => Wp.some((n) => e[`${n}Key`] && !t.includes(n))
   };
-  a0 = (e, t) => {
+  l0 = (e, t) => {
     const n = e._withMods || (e._withMods = {}), i = t.join(".");
     return n[i] || (n[i] = ((l, ...c) => {
       for (let f = 0; f < t.length; f++) {
@@ -3733,7 +3744,7 @@ let __tla = (async () => {
     down: "arrow-down",
     delete: "backspace"
   };
-  l0 = (e, t) => {
+  c0 = (e, t) => {
     const n = e._withKeys || (e._withKeys = {}), i = t.join(".");
     return n[i] || (n[i] = ((l) => {
       if (!("key" in l)) return;
@@ -8379,7 +8390,7 @@ ${kt(e[1])}`
     }
   }
   const Za = new Rb();
-  c0 = function() {
+  u0 = function() {
     return Za.getPlatformContext();
   };
   function Nb(e, t, n, i) {
@@ -8647,7 +8658,7 @@ ${kt(e[1])}`
     enableKalmanFilter: true,
     mapZoomLevel: 15
   };
-  u0 = [
+  f0 = [
     {
       key: "theme",
       name: "Theme",
@@ -8770,25 +8781,25 @@ ${kt(e[1])}`
   function Gb() {
     return on("enableKalmanFilter");
   }
-  f0 = function() {
+  h0 = function() {
     return on("mapZoomLevel");
   };
-  h0 = function() {
+  d0 = function() {
     return on("keepScreenOn");
   };
-  d0 = function() {
+  p0 = function() {
     return on("mapTileServer");
   };
-  p0 = function() {
+  g0 = function() {
     return on("showCompass");
   };
-  g0 = function() {
+  m0 = function() {
     return on("autoRecenterTimeout");
   };
-  m0 = function() {
+  w0 = function() {
     return on("customMapTileUrl");
   };
-  w0 = function() {
+  y0 = function() {
     return on("mapTilerApiKey");
   };
   class Wb {
@@ -12342,13 +12353,13 @@ ${i}`);
       return console.warn("Failed to use proj4 distance calculation, falling back to haversine:", c), Wc(e, t);
     }
   }
-  y0 = async function(e, t = {}) {
+  b0 = async function(e, t = {}) {
     if (e.length < 2) return 0;
     let n = 0;
     for (let i = 1; i < e.length; i++) n += await pv(e[i - 1], e[i], t);
     return n;
   };
-  b0 = function(e) {
+  v0 = function(e) {
     return e < 1e3 ? `${Math.round(e)} m` : e < 1e4 ? `${(e / 1e3).toFixed(1)} km` : `${Math.round(e / 1e3)} km`;
   };
   class Jf {
@@ -13650,7 +13661,7 @@ ${i}`);
       })));
     }), C && c && n.hydrate && n.hydrate(pe.$state, C), v = true, g = true, pe;
   }
-  v0 = function(e, t, n) {
+  E0 = function(e, t, n) {
     let i;
     const l = typeof t == "function";
     i = l ? n : t;
@@ -13668,18 +13679,18 @@ ${i}`);
       moduleInit: async () => {
         var _a2;
         const e = mf((await xs(async () => {
-          const { default: n } = await import("./App-BnJenfG0.js");
+          const { default: n } = await import("./App-BKvSLB3j.js");
           return {
             default: n
           };
         }, __vite__mapDeps([0,1,2,3]), import.meta.url)).default);
         e.use(Qf()), e.use((await xs(async () => {
-          const { default: n } = await import("./index-BzPdPLGz.js");
+          const { default: n } = await import("./index-DWuEvf6h.js");
           return {
             default: n
           };
         }, __vite__mapDeps([4,2,1,5]), import.meta.url)).default), e.use((await xs(async () => {
-          const { i18n: n } = await import("./index-Cz-4FIjY.js");
+          const { i18n: n } = await import("./index-B4gGkZN3.js");
           return {
             i18n: n
           };
@@ -13773,8 +13784,8 @@ ${i}`);
       ]
     }
   ];
-  E0 = cb;
-  I0 = lb;
+  I0 = cb;
+  T0 = lb;
   _a = {
     en: {
       "permission.location.prompt": "Your browser will request permission to access your location.",
@@ -14062,21 +14073,21 @@ ${i}`);
 })();
 export {
   br as $,
-  o0 as A,
+  s0 as A,
   Ji as B,
-  i0 as C,
+  r0 as C,
   ra as D,
   Xv as E,
   Pt as F,
   qb as G,
   ds as H,
   On as I,
-  n0 as J,
+  i0 as J,
   Jv as K,
   fi as L,
   hd as M,
   dd as N,
-  r0 as O,
+  o0 as O,
   Eu as P,
   qv as Q,
   vt as R,
@@ -14084,80 +14095,82 @@ export {
   Kv as T,
   Xh as U,
   ts as V,
-  s0 as W,
+  a0 as W,
   at as X,
   Ca as Y,
   Vh as Z,
   $v as _,
   __tla,
   Ge as a,
-  R as a$,
+  sr as a$,
   st as a0,
   Ot as a1,
-  Qv as a2,
-  t0 as a3,
+  e0 as a2,
+  n0 as a3,
   Yv as a4,
-  Zv as a5,
+  Qv as a5,
   Id as a6,
-  a0 as a7,
-  b0 as a8,
-  l0 as a9,
-  pm as aA,
-  Fi as aB,
-  Gn as aC,
-  Ff as aD,
-  bm as aE,
-  vf as aF,
-  xg as aG,
-  Bo as aH,
-  Sf as aI,
-  sw as aJ,
-  Ow as aK,
-  Jm as aL,
-  bf as aM,
-  qw as aN,
-  Hh as aO,
-  Zi as aP,
-  fs as aQ,
-  Ni as aR,
-  nu as aS,
-  Sh as aT,
-  kd as aU,
-  Hv as aV,
-  Vn as aW,
-  c0 as aX,
-  xi as aY,
-  sr as aZ,
-  x as a_,
+  l0 as a7,
+  v0 as a8,
+  c0 as a9,
+  Ha as aA,
+  Ef as aB,
+  pm as aC,
+  Fi as aD,
+  Gn as aE,
+  Ff as aF,
+  bm as aG,
+  vf as aH,
+  xg as aI,
+  Bo as aJ,
+  Sf as aK,
+  sw as aL,
+  Ow as aM,
+  Jm as aN,
+  bf as aO,
+  qw as aP,
+  Hh as aQ,
+  Zi as aR,
+  fs as aS,
+  Ni as aT,
+  nu as aU,
+  Sh as aV,
+  kd as aW,
+  Hv as aX,
+  Vn as aY,
+  u0 as aZ,
+  xi as a_,
   Hs as aa,
   Ct as ab,
   er as ac,
-  w0 as ad,
-  d0 as ae,
-  m0 as af,
-  g0 as ag,
-  f0 as ah,
-  p0 as ai,
+  Ce as ad,
+  Zv as ae,
+  y0 as af,
+  p0 as ag,
+  w0 as ah,
+  m0 as ai,
   h0 as aj,
-  E0 as ak,
-  I0 as al,
-  u0 as am,
-  wv as an,
-  xs as ao,
-  Hb as ap,
-  Sn as aq,
-  hi as ar,
-  ci as as,
-  Bl as at,
-  Sg as au,
-  Pg as av,
-  Rg as aw,
-  _g as ax,
-  Ha as ay,
-  Ef as az,
+  g0 as ak,
+  d0 as al,
+  I0 as am,
+  T0 as an,
+  f0 as ao,
+  wv as ap,
+  xs as aq,
+  Hb as ar,
+  Sn as as,
+  hi as at,
+  ci as au,
+  Bl as av,
+  Sg as aw,
+  Pg as ax,
+  Rg as ay,
+  _g as az,
   Ut as b,
-  y0 as b0,
-  tu as b1,
+  x as b0,
+  R as b1,
+  b0 as b2,
+  tu as b3,
   kn as c,
   ud as d,
   gd as e,
@@ -14172,13 +14185,13 @@ export {
   Pa as n,
   rn as o,
   Nd as p,
-  v0 as q,
+  E0 as q,
   Zs as r,
   lo as s,
   Vv as t,
   Rt as u,
   Ki as v,
-  e0 as w,
+  t0 as w,
   sd as x,
   ip as y,
   Ln as z
