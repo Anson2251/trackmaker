@@ -103,7 +103,7 @@ const selectedComponent = computed(() => {
   }
 });
 
-const infoPropertyUpdated = debounce(() => message.success(t("sketchEdit.propertiesUpdated")), 1000)
+// const infoPropertyUpdated = debounce(() => message.success(t("sketchEdit.propertiesUpdated")), 1000)
 
 const componentOptions = computed(() => {
   return createComponentOptions(currentDrafts.value, currentRoutes.value);
@@ -119,7 +119,6 @@ async function saveSketch() {
       description: currentSketch.value.meta.description,
       tags: currentSketch.value.meta.tags,
     });
-    message.success(t("sketchEdit.saveSuccess"));
   } catch (error) {
     message.error(t("sketchEdit.saveError"));
     console.error(error);
@@ -196,7 +195,7 @@ const updateComponentProperties = async (
     } else {
       await sketchStore.updateRoute(selectedComponentId.value!, { properties });
     }
-    infoPropertyUpdated()
+    // infoPropertyUpdated()
   } catch (error) {
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
@@ -212,7 +211,7 @@ const updateComponentMeta = async (meta: { name: string; description: string; ta
     } else {
       await sketchStore.updateRoute(selectedComponentId.value!, { meta });
     }
-    infoPropertyUpdated()
+    // infoPropertyUpdated()
   } catch (error) {
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
@@ -254,7 +253,6 @@ async function updateSketchMeta() {
       tags: metaForm.value.tags,
     });
     showMetaModal.value = false;
-    message.success(t("sketchEdit.saveSuccess"));
   } catch (error) {
     message.error(t("sketchEdit.saveError"));
     console.error(error);

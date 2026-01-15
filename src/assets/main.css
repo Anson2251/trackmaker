@@ -1,4 +1,5 @@
 @import "./fonts/barlow.css";
+@import "./fonts/maplemono.css";
 
 /* Global CSS Variables for Splash Screen theming */
 html[data-theme="light"] {
@@ -73,7 +74,17 @@ html[data-theme="dark"] {
 	--nav-bar-height: 3em;
 }
 
-code, pre, input, textarea {
+code, pre {
+	font-family: 'Maple Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+	user-select: text !important;
+	-moz-user-select: text !important;
+	-webkit-user-select: text !important;
+	-ms-user-select: text !important;
+	cursor: text !important;
+}
+
+input, textarea {
+	font-family: inherit;
 	user-select: text !important;
 	-moz-user-select: text !important;
 	-webkit-user-select: text !important;

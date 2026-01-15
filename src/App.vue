@@ -30,7 +30,9 @@ const theme = computed(() =>
 const themeOverride = {
   common: {
     fontFamily:
-      'Barlow, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
+      'Barlow, "Maple Mono", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
+    fontFamilyMono:
+      '"Maple Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
   },
 };
 

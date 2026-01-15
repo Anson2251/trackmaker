@@ -87,13 +87,20 @@ const startEditing = () => {
 watch(
   () => props.modelValue,
   (newVal) => {
-    localValue.value = newVal;
+    // Only sync from props when not actively editing to avoid cursor jumping
+    if (!isPreviewMode.value && descriptionInputRef.value?.value !== newVal) {
+      localValue.value = newVal;
+    } else if (isPreviewMode.value) {
+      localValue.value = newVal;
+    }
   }
 );
 
-watch(localValue, (newVal) => {
-  emit("update:modelValue", newVal);
-});
+// Only emit on blur or explicit save, not every keystroke
+const handleBlur = () => {
+  emit("update:modelValue", localValue.value);
+  isPreviewMode.value = true;
+};
 
 const openRichTextEditor = (e: Event) => {
   showDrawer.value = true;
@@ -181,7 +188,7 @@ const editorConfig = {
         v-model:value="localValue"
         :placeholder="placeholder"
         :style="{ minHeight, maxHeight }"
-        @blur="() => confirmEdit()"
+        @blur="handleBlur"
         ref="descriptionInputRef"
       >
         <template #suffix>
@@ -310,7 +317,7 @@ const editorConfig = {
   transition: all 0.1s;
 }
 
-div[data-purpose="wang-editor-mobile"] .n-drawer-body-content-wrapper {
+div .n-drawer-body-content-wrapper {
   padding: 0 !important;
 }
 </style>

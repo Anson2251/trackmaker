@@ -62,6 +62,59 @@ function createSitdown() {
     },
   });
 
+  // Handle tables
+  service.addRule("table", {
+    filter: "table",
+    replacement: function (content: string) {
+      return `\n${content}\n`;
+    },
+  });
+
+  // Handle table header cells
+  service.addRule("tableHeader", {
+    filter: "th",
+    replacement: function (content: string) {
+      return content.trim();
+    },
+  });
+
+  // Handle table data cells
+  service.addRule("tableCell", {
+    filter: "td",
+    replacement: function (content: string) {
+      return content.trim();
+    },
+  });
+
+  // Handle table rows
+  service.addRule("tableRow", {
+    filter: "tr",
+    replacement: function (content: string, node: Element) {
+      // Get all cells in this row
+      const cells = node.querySelectorAll("th, td");
+      if (cells.length === 0) return "";
+      
+      // Extract cell contents
+      const cellContents = Array.from(cells).map(cell => {
+        const cellContent = cell.textContent || "";
+        return cellContent.trim();
+      });
+      
+      // Create the row with pipe separators
+      const row = `| ${cellContents.join(" | ")} |\n`;
+      
+      // Check if this is a header row (contains th elements)
+      const hasHeaderCells = node.querySelectorAll("th").length > 0;
+      if (hasHeaderCells) {
+        // Add separator line after header row
+        const separator = cellContents.map(() => "---").join(" | ");
+        return `${row}| ${separator} |\n`;
+      }
+      
+      return row;
+    },
+  });
+
   return sitdown;
 }
 
