@@ -27,6 +27,7 @@
             "interfaceLanguage": {
                 "title": "Interface Language",
                 "options": {
+                    "system": "System Default",
                     "zh-CN": "中文（简体）",
                     "en": "English"
                 }

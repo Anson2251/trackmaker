@@ -106,10 +106,16 @@ const configs = computed<Config>(() => [
       {
         title: "interfaceLanguage",
         type: "select",
-        items: availableLocales.map((l) => ({
-          value: l,
-          label: t(`settings.language.interfaceLanguage.options.${l}`),
-        })),
+        items: [
+          {
+            value: "system",
+            label: t("settings.language.interfaceLanguage.options.system"),
+          },
+          ...availableLocales.map((l) => ({
+            value: l,
+            label: t(`settings.language.interfaceLanguage.options.${l}`),
+          })),
+        ],
       },
       {
         title: "mapLanguage",

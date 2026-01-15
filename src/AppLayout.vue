@@ -11,6 +11,7 @@ import { useSettingsStore } from "./store/settings-store";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "./utils/platform";
 import TitleBar from "./components/TitleBar.vue";
+import { getSystemLocale } from "./locales";
 
 const router = useRoute();
 const settings = useSettingsStore();
@@ -21,13 +22,23 @@ function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
 
+// Function to get actual locale based on setting
+function getActualLocale(setting: string | 'system'): string {
+  if (setting === 'system') {
+    return getSystemLocale();
+  }
+  return setting || getSystemLocale();
+}
+
+// Initialize locale based on settings
 settings.settings.interfaceLanguage =
-  settings.settings.interfaceLanguage ?? locale.value;
-locale.value = settings.settings.interfaceLanguage;
+  settings.settings.interfaceLanguage ?? 'system';
+locale.value = getActualLocale(settings.settings.interfaceLanguage);
+
 watch(
   () => settings.settings.interfaceLanguage,
   (v) => {
-    if (v) locale.value = v;
+    if (v) locale.value = getActualLocale(v);
   }
 );
 

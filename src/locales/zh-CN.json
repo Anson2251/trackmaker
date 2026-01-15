@@ -27,6 +27,7 @@
             "interfaceLanguage": {
                 "title": "界面语言",
                 "options": {
+                    "system": "跟随系统",
                     "zh-CN": "中文（简体）",
                     "en": "English"
                 }

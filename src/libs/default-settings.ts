@@ -8,7 +8,7 @@ import type { Settings } from '@/libs/settings-types';
 export const defaultSettings: Settings = {
     // User-facing settings
     theme: 'system',
-    interfaceLanguage: 'en',
+    interfaceLanguage: 'system',
     mapLanguage: 'interface',
     watchCompatibilityMode: true,
     geolocationCorrection: false,
