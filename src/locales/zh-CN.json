@@ -315,7 +315,9 @@
             "beta": "Beta (X轴)",
             "gamma": "Gamma (Y轴)",
             "tiltAngle": "倾斜角度",
-            "iosHeading": "iOS 方位"
+            "iosHeading": "iOS 方位",
+            "notSupported": "此设备或浏览器不支持设备方向传感器",
+            "noData": "无方向数据可用。可能需要移动设备来触发传感器更新。"
         },
         "deviceMotion": {
             "title": "设备运动 (IMU)",
@@ -334,7 +336,9 @@
                 "y": "Y (β)",
                 "z": "Z (γ)",
                 "rotationSpeed": "旋转速度"
-            }
+            },
+            "notSupported": "此设备或浏览器不支持设备运动传感器",
+            "noData": "无运动数据可用。可能需要移动设备来触发传感器更新。"
         },
         "gps": {
             "title": "GPS 位置",

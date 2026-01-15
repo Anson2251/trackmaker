@@ -310,7 +310,9 @@
             "beta": "Beta (X-axis)",
             "gamma": "Gamma (Y-axis)",
             "tiltAngle": "Tilt Angle",
-            "iosHeading": "iOS Heading"
+            "iosHeading": "iOS Heading",
+            "notSupported": "Device orientation is not supported on this device or browser",
+            "noData": "No orientation data available. Device may need to be moved to trigger sensor updates."
         },
         "deviceMotion": {
             "title": "Device Motion (IMU)",
@@ -329,7 +331,9 @@
                 "y": "Y (β)",
                 "z": "Z (γ)",
                 "rotationSpeed": "Rotation Speed"
-            }
+            },
+            "notSupported": "Device motion sensors are not supported on this device or browser",
+            "noData": "No motion data available. Device may need to be moved to trigger sensor updates."
         },
         "gps": {
             "title": "GPS Location",

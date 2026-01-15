@@ -78,47 +78,44 @@ export class KalmanGeolocationBackend implements GeolocationBackend {
     }
 
     async watchPosition(callback: (location: GeographicPoint) => void): Promise<number> {
-        if (this.watchId !== null) {
-            throw new Error('Watch already active');
-        }
-
         const callbackId = this.nextCallbackId++;
         this.watchCallbacks.set(callbackId, callback);
 
-        // Start watching with the wrapped backend
-        this.watchId = await this.wrappedBackend.watchPosition(
-            (position) => {
-                (async () => {
-                    const filteredPosition = await this.applyKalmanFilter(position);
-                    this.watchCallbacks.forEach(cb => cb(filteredPosition));
-                })().catch((error: unknown) => {
-                    console.warn('[KalmanGeolocationBackend] Failed to process position update:', error);
-                });
-            }
-        );
+        if (this.watchId === null) {
+            // Start watching with the wrapped backend
+            this.watchId = await this.wrappedBackend.watchPosition(
+                (position) => {
+                    (async () => {
+                        const filteredPosition = await this.applyKalmanFilter(position);
+                        this.watchCallbacks.forEach(cb => cb(filteredPosition));
+                    })().catch((error: unknown) => {
+                        console.warn('[KalmanGeolocationBackend] Failed to process position update:', error);
+                    });
+                }
+            );
 
-        // Start IMU fusion if enabled and available
-        if (this.config.enableIMUFusion && this.isIMUAvailable()) {
-            // Fire and forget - errors are handled inside startIMUFusion
-            this.startIMUFusion().catch((error: unknown) => {
-                console.warn('[KalmanGeolocationBackend] Failed to start IMU fusion:', error);
-            });
-        } else if (this.config.enableIMUFusion && !this.isIMUAvailable()) {
-            console.warn('[KalmanGeolocationBackend] IMU fusion enabled but IMU not available, falling back to GPS-only');
+            // Start IMU fusion if enabled and available
+            if (this.config.enableIMUFusion && this.isIMUAvailable()) {
+                // Fire and forget - errors are handled inside startIMUFusion
+                this.startIMUFusion().catch((error: unknown) => {
+                    console.warn('[KalmanGeolocationBackend] Failed to start IMU fusion:', error);
+                });
+            } else if (this.config.enableIMUFusion && !this.isIMUAvailable()) {
+                console.warn('[KalmanGeolocationBackend] IMU fusion enabled but IMU not available, falling back to GPS-only');
+            }
         }
 
         return callbackId;
     }
 
     clearWatch(callbackId: number): void {
-        // Clear IMU fusion if active
-        this.stopIMUFusion();
-
         // Remove the callback
         this.watchCallbacks.delete(callbackId);
 
         // If no more callbacks, clear the wrapped backend's watch
         if (this.watchCallbacks.size === 0 && this.watchId !== null) {
+            // Clear IMU fusion if active
+            this.stopIMUFusion();
             this.wrappedBackend.clearWatch(this.watchId);
             this.watchId = null;
             this.lastGPSReading = null;

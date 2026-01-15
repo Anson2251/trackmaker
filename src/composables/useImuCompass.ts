@@ -1,5 +1,5 @@
 import { ref, onUnmounted, type Ref } from 'vue';
-import { imuOrientationManager } from '@/libs/imu';
+import { ImuOrientationManager } from '@/libs/imu';
 import type { DeviceOrientationReading } from '@/libs/platform';
 import { logError, toAppError } from '@/libs/error-handling';
 
@@ -64,21 +64,21 @@ export function useImuCompass(options: UseImuCompassOptions = {}): UseImuCompass
     try {
       if (isTracking.value) return;
 
-      // Initialize IMU manager if not already initialized
-      const initResult = await imuOrientationManager.initialize();
-      if (initResult.isErr()) {
-        throw initResult.error;
+      const imuResult = await ImuOrientationManager.getInstance(async () => false);
+      if (imuResult.isErr()) {
+        throw imuResult.error;
       }
+      const imuManager = imuResult.value;
 
       // Check if orientation is supported
-      if (!imuOrientationManager.isSupported()) {
+      if (!imuManager.isSupported()) {
         throw new Error('Device orientation is not supported on this device');
       }
 
       isSupported.value = true;
 
       // Start orientation updates
-      const startResult = await imuOrientationManager.startOrientationUpdates(handleOrientationUpdate);
+      const startResult = await imuManager.startOrientationUpdates(handleOrientationUpdate);
       if (startResult.isErr()) {
         throw startResult.error;
       }
@@ -88,7 +88,7 @@ export function useImuCompass(options: UseImuCompassOptions = {}): UseImuCompass
       error.value = null;
 
       // Try to get current orientation
-      const currentResult = await imuOrientationManager.getCurrentOrientation();
+      const currentResult = await imuManager.getCurrentOrientation();
       if (currentResult.isOk() && currentResult.value) {
         handleOrientationUpdate(currentResult.value);
       }
@@ -106,7 +106,8 @@ export function useImuCompass(options: UseImuCompassOptions = {}): UseImuCompass
     if (!isTracking.value || listenerId === null) return;
 
     try {
-      imuOrientationManager.stopOrientationUpdates(listenerId);
+      const imuManager = ImuOrientationManager.getExistingInstance();
+      imuManager.stopOrientationUpdates(listenerId);
       listenerId = null;
       isTracking.value = false;
     } catch (err) {

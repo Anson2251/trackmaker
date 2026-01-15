@@ -41,6 +41,7 @@ export interface GeolocationManagerInterface {
 }
 
 export class GeolocationManager implements GeolocationManagerInterface {
+    private static instance: GeolocationManager | null = null;
     private permissionService: PermissionService;
     private isInitialized = false;
     private platformGeolocationProvider: IGeolocationProvider | null = null;
@@ -53,11 +54,47 @@ export class GeolocationManager implements GeolocationManagerInterface {
     private lastKnownLocation: GeographicPoint | null = null;
     private currentBackend: 'kalman' | 'platform' | 'ip' | null = null;
 
-    constructor(
+    private constructor(
         permissionService?: PermissionService,
     ) {
         this.permissionService = permissionService || new PermissionService();
         this.ipBackend = new IPGeolocationBackend();
+    }
+
+    /**
+     * Get singleton instance of GeolocationManager
+     */
+    static async getInstance(permissionService?: PermissionService, promptCallback?: PermissionPromptCallback): Promise<Result<GeolocationManager, GeolocationError>> {
+        if (!GeolocationManager.instance) {
+            GeolocationManager.instance = new GeolocationManager(permissionService);
+        }
+        
+        // Initialize if not already initialized
+        if (!GeolocationManager.instance.isInitialized) {
+            const initResult = await GeolocationManager.instance.initialize(promptCallback);
+            if (initResult.isErr()) {
+                return err(initResult.error);
+            }
+        }
+        
+        return ok(GeolocationManager.instance);
+    }
+
+    /**
+     * Get existing instance without initialization (throws if not created)
+     */
+    static getExistingInstance(): GeolocationManager {
+        if (!GeolocationManager.instance) {
+            throw new Error('GeolocationManager not initialized. Call getInstance() first.');
+        }
+        return GeolocationManager.instance;
+    }
+
+    /**
+     * Reset singleton instance (for testing)
+     */
+    static reset(): void {
+        GeolocationManager.instance = null;
     }
 
     /**

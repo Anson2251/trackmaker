@@ -20,9 +20,49 @@ import { logError, toAppError } from '@/libs/error-handling';
 import { cloneDeep } from 'lodash-es';
 
 export class ImuOrientationManager {
+    private static instance: ImuOrientationManager | null = null;
     private orientationProvider: IDeviceOrientationProvider | null = null;
     private motionProvider: IIMUProvider | null = null;
     private isInitialized = false;
+
+    private constructor() {
+    }
+
+    /**
+     * Get singleton instance of ImuOrientationManager
+     */
+    static async getInstance(onPermissionRequest?: (messageId: string) => Promise<boolean>): Promise<Result<ImuOrientationManager, ImuError>> {
+        if (!ImuOrientationManager.instance) {
+            ImuOrientationManager.instance = new ImuOrientationManager();
+        }
+        
+        // Initialize if not already initialized
+        if (!ImuOrientationManager.instance.isInitialized) {
+            const initResult = await ImuOrientationManager.instance.initialize(onPermissionRequest || (() => Promise.resolve(false)));
+            if (initResult.isErr()) {
+                return err(initResult.error);
+            }
+        }
+        
+        return ok(ImuOrientationManager.instance);
+    }
+
+    /**
+     * Get existing instance without initialization (throws if not created)
+     */
+    static getExistingInstance(): ImuOrientationManager {
+        if (!ImuOrientationManager.instance) {
+            throw new Error('ImuOrientationManager not initialized. Call getInstance() first.');
+        }
+        return ImuOrientationManager.instance;
+    }
+
+    /**
+     * Reset singleton instance (for testing)
+     */
+    static reset(): void {
+        ImuOrientationManager.instance = null;
+    }
 
     // Orientation
     private orientationListeners: Map<number, (orientation: DeviceOrientationReading) => void> = new Map();
@@ -730,4 +770,4 @@ export class ImuOrientationManager {
     }
 }
 
-export const imuOrientationManager = new ImuOrientationManager();
+

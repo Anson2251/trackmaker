@@ -3,7 +3,7 @@ import type { ModuleItem } from "@/utils/load-modules";
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
 import { GeolocationManager } from './libs/geolocation';
-import { ImuOrientationManager, imuOrientationManager } from '@/libs/imu/services/imu-orientation-manager';
+import { ImuOrientationManager } from '@/libs/imu/services/imu-orientation-manager';
 import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
@@ -106,18 +106,16 @@ export const modules: ModuleItem[] = [
                     throw new Error("Platform services not initialized");
                 }
 
-                const geolocationManager = new GeolocationManager();
                 if (debugMode) console.time("Geolocation service initialise");
 
-                // Initialize with permission prompt callback
-                await geolocationManager.initialize(async (status) => {
+                const geoResult = await GeolocationManager.getInstance(undefined, async (status) => {
                     if (isTauri()) {
                         return; // Tauri environment handles permissions differently
                     }
 
                     const messageId = status === "prompt"
                         ? "permission.location.prompt"
-                        : "permission.location.required"
+                        : "permission.location.required";
 
                     // Use custom permission dialog from splash screen
                     if (window.permissionConfirm) {
@@ -126,6 +124,10 @@ export const modules: ModuleItem[] = [
                     // Fallback to native confirm if splash screen not available
                     return confirm(messageId);
                 });
+                if (geoResult.isErr()) {
+                    throw geoResult.error;
+                }
+                const geolocationManager = geoResult.value;
 
                 if (debugMode) console.timeEnd("Geolocation service initialise");
                 if (debugMode) console.time("Geolocation service start");
@@ -157,26 +159,28 @@ export const modules: ModuleItem[] = [
                 console.time("IMU & Orientation service initialise");
 
                 // Initialize IMU and orientation manager
-                const initResult = await imuOrientationManager.initialize(async () => {
+                const imuResult = await ImuOrientationManager.getInstance(async () => {
                     if (window.permissionConfirm) {
                         return window.permissionConfirm("permission.imu.required");
                     }
                     return confirm("permission.imu.required");
                 });
-                if (initResult.isErr()) {
-                    throw initResult.error;
+                if (imuResult.isErr()) {
+                    throw imuResult.error;
                 }
+                const imuManager = imuResult.value;
+
 
                 // Start services continuously to get the data
-                await imuOrientationManager.startOrientationUpdates(() => {});
-                await imuOrientationManager.startAccelerationUpdates({}, () => {});
-                await imuOrientationManager.startGyroscopeUpdates({}, () => {});
+                await imuManager.startOrientationUpdates(() => {});
+                await imuManager.startAccelerationUpdates({}, () => {});
+                await imuManager.startGyroscopeUpdates({}, () => {});
 
                 console.timeEnd("IMU & Orientation service initialise");
                 console.info("[IMU & Orientation] Service initialized successfully with initial values");
 
                 // Expose for direct access if needed
-                window.ImuOrientationManager = imuOrientationManager;
+                window.ImuOrientationManager = imuManager;
             } catch (error) {
                 console.error("[IMU & Orientation] Failed to initialize service:", error);
                 return Promise.reject(error instanceof Error ? error : new Error(String(error)));
