@@ -254,7 +254,8 @@
         "selectComponent": "选择组件",
         "switchSuccess": "已切换到 {sketch}",
         "createSuccess": "已创建 {sketch}",
-        "newSketchName": "新建草图"
+        "newSketchName": "新草图",
+        "sketchDescriptionPlaceholder": "输入草图描述"
     },
     "apiDetection": {
         "title": "Web API 检测",

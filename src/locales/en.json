@@ -254,7 +254,8 @@
         "selectComponent": "Select a component",
         "switchSuccess": "Switched to {sketch}",
         "createSuccess": "Created {sketch}",
-        "newSketchName": "New Sketch"
+        "newSketchName": "New Sketch",
+        "sketchDescriptionPlaceholder": "Enter sketch description"
     },
     "apiDetection": {
         "title": "Web API Detection",

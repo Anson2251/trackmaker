@@ -88,6 +88,7 @@ const selectSketch = (sketchId: string) => {
 
 // Show sketch editor in drawer
 const editSketch = (sketchId: string) => {
+  selectSketch(sketchId);
   editingSketchId.value = sketchId;
   showEditDrawer.value = true;
 };

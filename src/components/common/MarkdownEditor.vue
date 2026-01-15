@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  ref,
+  shallowRef,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import {
   NInput,
@@ -135,7 +142,7 @@ const handleEditorCreated = (editor: any) => {
   // Set initial content
   if (localValue.value) {
     const html = markdownToHtml(localValue.value.trim());
-    editor.setHtml(html);
+    setTimeout(() => editor.setHtml(html), 100);
   }
 };
 

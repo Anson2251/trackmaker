@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NIcon, NFlex, NText, NTag } from 'naive-ui';
+import { NIcon, NFlex, NPerformantEllipsis, NText, NTag, NSpace } from 'naive-ui';
 import { DeviceFloppy, Folder, Plus, Settings } from '@vicons/tabler';
 import { useI18n } from 'vue-i18n';
 
@@ -51,13 +51,16 @@ const toolTipBarItems = [
 
 <template>
   <n-flex
-    justify="space-between"
+    :justify="'space-between'"
     align="center"
   >
-    <n-text strong>
-      {{ sketchName || t('sketchEdit.noSketchSelectedToolbar') }}
-    </n-text>
-    <n-flex align="center">
+    <n-performant-ellipsis>
+      <n-text strong>
+        {{ sketchName || t('sketchEdit.noSketchSelectedToolbar') }}
+      </n-text>
+    </n-performant-ellipsis>
+    <n-flex :justify="'space-between'">
+      <n-space>
       <n-tag
         v-if="sketchName !== undefined"
         type="info"
@@ -65,17 +68,20 @@ const toolTipBarItems = [
       >
         {{ draftCount || 0 }} {{ t('sketchEdit.drafts') }}, {{ routeCount || 0 }} {{ t('sketchEdit.routes') }}
       </n-tag>
-      <div
-        v-for="(item, index) in toolTipBarItems"
-        :key="index"
-        :title="item.title"
-        class="tool-tip-item"
-        @click="item.callback"
-      >
-        <n-icon :size="item.iconSize">
-          <component :is="item.icon" />
-        </n-icon>
-      </div>
+      </n-space>
+      <n-space>
+        <div
+          v-for="(item, index) in toolTipBarItems"
+          :key="index"
+          :title="item.title"
+          class="tool-tip-item"
+          @click="item.callback"
+        >
+          <n-icon :size="item.iconSize">
+            <component :is="item.icon" />
+          </n-icon>
+        </div>
+      </n-space>
     </n-flex>
   </n-flex>
 </template>

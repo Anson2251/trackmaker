@@ -24,7 +24,7 @@ import {
   NLayoutContent,
   NLayoutFooter,
 } from "naive-ui";
-import { Map, Plus, List, Settings, InfoCircle } from '@vicons/tabler';
+import { Map, Plus, List, Settings, InfoCircle } from "@vicons/tabler";
 import { useWindowSize } from "@vueuse/core";
 
 import SelectorDrawer from "./SelectorDrawer.vue";
@@ -56,7 +56,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const locator = inject("geolocation") as GeolocationManager;
-const mapCenter = ref(locator.getLastKnownLocation().toLngLatLike())
+const mapCenter = ref(locator.getLastKnownLocation().toLngLatLike());
 
 const { t } = useI18n();
 const message = useMessage();
@@ -68,7 +68,7 @@ const { width, height } = useWindowSize();
 const isMobile = computed(() => width.value < 768);
 
 // Mobile tab navigation
-const activeMobileTab = ref<'components' | 'map' | 'properties'>('components');
+const activeMobileTab = ref<"components" | "map" | "properties">("components");
 
 // State management
 const activeSelector = ref(false);
@@ -200,9 +200,13 @@ const updateComponentProperties = async (
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
   }
-}
+};
 
-const updateComponentMeta = async (meta: { name: string; description: string; tags: string[] }) => {
+const updateComponentMeta = async (meta: {
+  name: string;
+  description: string;
+  tags: string[];
+}) => {
   if (!selectedComponent.value || !selectedComponentType.value) return;
 
   try {
@@ -216,7 +220,7 @@ const updateComponentMeta = async (meta: { name: string; description: string; ta
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
   }
-}
+};
 
 // Metadata editing
 function openMetaModal() {
@@ -233,14 +237,17 @@ function openMetaModal() {
 }
 
 function addTag() {
-  if (newTag.value.trim() && !metaForm.value.tags.includes(newTag.value.trim())) {
+  if (
+    newTag.value.trim() &&
+    !metaForm.value.tags.includes(newTag.value.trim())
+  ) {
     metaForm.value.tags.push(newTag.value.trim());
     newTag.value = "";
   }
 }
 
 function removeTag(tag: string) {
-  metaForm.value.tags = metaForm.value.tags.filter(t => t !== tag);
+  metaForm.value.tags = metaForm.value.tags.filter((t) => t !== tag);
 }
 
 async function updateSketchMeta() {
@@ -279,13 +286,19 @@ watch(
 
 const getTimeStr = (stamp: number) => {
   return new Date(stamp).toLocaleString();
-}
+};
 </script>
 
 <template>
   <selector-drawer
     v-model:active="activeSelector"
-    :list="sketchStore.sketches.map((s) => ({ id: s.id, name: s.meta.name, tags: s.meta.tags }))"
+    :list="
+      sketchStore.sketches.map((s) => ({
+        id: s.id,
+        name: s.meta.name,
+        tags: s.meta.tags,
+      }))
+    "
     :active-id="sketchStore.currentSketchId || ''"
     placement="right"
     @remove="(id: string) => sketchStore.deleteSketch(id)"
@@ -300,10 +313,7 @@ const getTimeStr = (stamp: number) => {
   >
     <n-form>
       <div style="display: flex; flex-direction: row; gap: 8px">
-        <n-formItem
-          :label="t('sketchEdit.name')"
-          style="flex-grow: 1"
-        >
+        <n-formItem :label="t('sketchEdit.name')" style="flex-grow: 1">
           <n-input
             v-model:value="newComponentName"
             :placeholder="t('sketchEdit.enterComponentName')"
@@ -313,7 +323,6 @@ const getTimeStr = (stamp: number) => {
           <n-select
             v-model:value="newComponentType"
             :consistent-menu-width="false"
-
             :options="[
               { label: t('sketchEdit.draftShape'), value: 'draft' },
               { label: t('sketchEdit.routePath'), value: 'route' },
@@ -324,14 +333,14 @@ const getTimeStr = (stamp: number) => {
     </n-form>
     <template #action>
       <n-button @click="showCreateModal = false">
-        {{ t('sketchEdit.cancel') }}
+        {{ t("sketchEdit.cancel") }}
       </n-button>
       <NButton
         type="primary"
         :disabled="!newComponentName.trim()"
         @click="createComponent"
       >
-        {{ t('sketchEdit.create') }}
+        {{ t("sketchEdit.create") }}
       </NButton>
     </template>
   </n-modal>
@@ -341,7 +350,8 @@ const getTimeStr = (stamp: number) => {
     v-model:show="showMetaModal"
     preset="dialog"
     :title="t('sketchEdit.editMetadata')"
-    style="max-width: 600px;"
+    style="max-width: 600px"
+    @close="updateSketchMeta"
   >
     <n-form>
       <n-form-item :label="t('sketchEdit.name')">
@@ -361,25 +371,29 @@ const getTimeStr = (stamp: number) => {
       </n-form-item>
 
       <n-form-item :label="t('sketchEdit.tags')">
-        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-          <n-input
-            v-model:value="newTag"
-            :placeholder="t('sketchEdit.addTagPlaceholder')"
-            @keydown.enter.prevent="addTag"
-          />
-          <n-button @click="addTag">
-            {{ t('sketchEdit.add') }}
-          </n-button>
+        <div style="display: flex; flex-direction: column; width: 100%;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px">
+            <n-input
+              v-model:value="newTag"
+              :placeholder="t('sketchEdit.addTagPlaceholder')"
+              @keydown.enter.prevent="addTag"
+            />
+            <n-button @click="addTag">
+              {{ t("sketchEdit.add") }}
+            </n-button>
+          </div>
+          <div style="display: flex">
+            <n-tag
+              v-for="tag in metaForm.tags"
+              :key="tag"
+              closable
+              style="margin-right: 8px; margin-bottom: 8px"
+              @close="removeTag(tag)"
+            >
+              {{ tag }}
+            </n-tag>
+          </div>
         </div>
-        <n-tag
-          v-for="tag in metaForm.tags"
-          :key="tag"
-          closable
-          style="margin-right: 8px; margin-bottom: 8px;"
-          @close="removeTag(tag)"
-        >
-          {{ tag }}
-        </n-tag>
         <n-empty
           v-if="metaForm.tags.length === 0"
           :description="t('sketchEdit.noTags')"
@@ -389,14 +403,14 @@ const getTimeStr = (stamp: number) => {
     </n-form>
     <template #action>
       <n-button @click="showMetaModal = false">
-        {{ t('sketchEdit.cancel') }}
+        {{ t("sketchEdit.cancel") }}
       </n-button>
       <n-button
         type="primary"
         :disabled="!metaForm.name.trim()"
         @click="updateSketchMeta"
       >
-        {{ t('sketchEdit.save') }}
+        {{ t("sketchEdit.save") }}
       </n-button>
     </template>
   </n-modal>
@@ -429,10 +443,7 @@ const getTimeStr = (stamp: number) => {
       >
         <!-- Map Section (Bottom Left) -->
         <template #1>
-          <n-split
-            style="height: 100%"
-            direction="vertical"
-          >
+          <n-split style="height: 100%" direction="vertical">
             <template #1>
               <n-card
                 style="height: 100%"
@@ -452,11 +463,7 @@ const getTimeStr = (stamp: number) => {
                   @create="showCreateModal = true"
                 />
                 <template #header-extra>
-                  <n-button
-                    quaternary
-                    circle
-                    @click="showCreateModal = true"
-                  >
+                  <n-button quaternary circle @click="showCreateModal = true">
                     <template #icon>
                       <plus />
                     </template>
@@ -465,10 +472,7 @@ const getTimeStr = (stamp: number) => {
               </n-card>
             </template>
             <template #2>
-              <n-card
-                class="map-container"
-                content-style="padding: 0;"
-              >
+              <n-card class="map-container" content-style="padding: 0;">
                 <mgl-map
                   :map-style="styleUrl"
                   :center="mapCenter"
@@ -496,11 +500,8 @@ const getTimeStr = (stamp: number) => {
               </n-icon>
             </template>
             <template #extra>
-              <n-button
-                size="small"
-                @click="activeSelector = true"
-              >
-                {{ t('sketchEdit.selectSketch') }}
+              <n-button size="small" @click="activeSelector = true">
+                {{ t("sketchEdit.selectSketch") }}
               </n-button>
             </template>
           </n-empty>
@@ -519,22 +520,26 @@ const getTimeStr = (stamp: number) => {
               @update-meta="updateComponentMeta"
             />
             <template #footer>
-              <n-text
-                v-if="selectedComponent"
-                depth="3"
-                class="metadata"
-              >
+              <n-text v-if="selectedComponent" depth="3" class="metadata">
                 <div class="metadata-item">
-                  {{ t('sketchEdit.createdTimeBy', {
-                    user: selectedComponent.meta.created_by,
-                    time: getTimeStr(selectedComponent.meta.creation_timestamp)
-                  }) }}
+                  {{
+                    t("sketchEdit.createdTimeBy", {
+                      user: selectedComponent.meta.created_by,
+                      time: getTimeStr(
+                        selectedComponent.meta.creation_timestamp
+                      ),
+                    })
+                  }}
                 </div>
                 <div class="metadata-item">
-                  {{ t('sketchEdit.modifiedTimeBy', {
-                    user: selectedComponent.meta.modified_by,
-                    time: getTimeStr(selectedComponent.meta.modification_timestamp)
-                  }) }}
+                  {{
+                    t("sketchEdit.modifiedTimeBy", {
+                      user: selectedComponent.meta.modified_by,
+                      time: getTimeStr(
+                        selectedComponent.meta.modification_timestamp
+                      ),
+                    })
+                  }}
                 </div>
               </n-text>
             </template>
@@ -547,175 +552,173 @@ const getTimeStr = (stamp: number) => {
   <!-- Mobile Layout -->
   <div v-else class="sketch-edit-container mobile-layout">
     <!-- Mobile Header -->
-      <div class="mobile-header">
-        <SketchToolbar
-            :sketch-name="currentSketch?.meta.name"
-            :draft-count="currentDrafts.length"
-            :route-count="currentRoutes.length"
-            @save="saveSketch"
-            @open="activeSelector = true"
-            @create="showCreateModal = true"
-            @edit-meta="openMetaModal"
-          />
-      </div>
-
+    <div class="mobile-header">
+      <SketchToolbar
+        :sketch-name="currentSketch?.meta.name"
+        :draft-count="currentDrafts.length"
+        :route-count="currentRoutes.length"
+        @save="saveSketch"
+        @open="activeSelector = true"
+        @create="showCreateModal = true"
+        @edit-meta="openMetaModal"
+      />
+    </div>
 
     <!-- Mobile Content -->
-      <div class="mobile-content">
-        <n-layout-content>
-          <!-- Components Tab -->
-          <div v-if="activeMobileTab === 'components'" class="mobile-tab-content">
-            <n-card
-              v-if="hasSelection"
-              :title="t('sketchEdit.components')"
-              content-style="min-height: 0; overflow-y: auto;"
-              style="height: 100%"
-            >
-              <component-list
-                :components="componentOptions"
-                :selected-id="selectedComponentId"
-                @select="
-                  (id, type) => {
-                    selectedComponentId = id;
-                    selectedComponentType = type;
-                    activeMobileTab = 'properties';
-                  }
-                "
-                @delete="deleteComponent"
-                @create="showCreateModal = true"
-              />
-              <template #header-extra>
-                <n-button
-                  quaternary
-                  circle
-                  size="small"
-                  @click="showCreateModal = true"
-                >
-                  <template #icon>
-                    <plus />
-                  </template>
-                </n-button>
-              </template>
-            </n-card>
-            <n-empty
-              v-else
-              :description="t('sketchEdit.noSketchSelected')"
-              size="huge"
-              style="height: 100%; justify-content: center"
-            >
-              <template #icon>
-                <n-icon>
-                  <Map />
-                </n-icon>
-              </template>
-              <template #extra>
-                <n-button
-                  size="small"
-                  @click="activeSelector = true"
-                >
-                  {{ t('sketchEdit.selectSketch') }}
-                </n-button>
-              </template>
-            </n-empty>
-          </div>
-
-          <!-- Map Tab -->
-          <div v-if="activeMobileTab === 'map'" class="mobile-tab-content mobile-map-content">
-            <n-card
-              v-if="hasSelection"
-              class="map-container"
-              content-style="padding: 0;"
-            >
-              <mgl-map
-                :map-style="styleUrl"
-                :center="mapCenter"
-                :zoom="zoom"
-                height="100%"
-                @map:load="initMap"
+    <div class="mobile-content">
+      <n-layout-content>
+        <!-- Components Tab -->
+        <div v-if="activeMobileTab === 'components'" class="mobile-tab-content">
+          <n-card
+            v-if="hasSelection"
+            :title="t('sketchEdit.components')"
+            content-style="min-height: 0; overflow-y: auto;"
+            style="height: 100%"
+          >
+            <component-list
+              :components="componentOptions"
+              :selected-id="selectedComponentId"
+              @select="
+                (id, type) => {
+                  selectedComponentId = id;
+                  selectedComponentType = type;
+                  activeMobileTab = 'properties';
+                }
+              "
+              @delete="deleteComponent"
+              @create="showCreateModal = true"
+            />
+            <template #header-extra>
+              <n-button
+                quaternary
+                circle
+                size="small"
+                @click="showCreateModal = true"
               >
-                <mgl-navigation-control position="top-left" />
-                <mgl-scale-control position="bottom-left" />
-                <mgl-fullscreen-control position="top-left" />
-              </mgl-map>
-            </n-card>
-            <n-empty
-              v-else
-              :description="t('sketchEdit.noSketchSelected')"
-              size="huge"
-              style="height: 100%; justify-content: center"
-            >
-              <template #icon>
-                <n-icon>
-                  <Map />
-                </n-icon>
-              </template>
-              <template #extra>
-                <n-button
-                  size="small"
-                  @click="activeSelector = true"
-                >
-                  {{ t('sketchEdit.selectSketch') }}
-                </n-button>
-              </template>
-            </n-empty>
-          </div>
+                <template #icon>
+                  <plus />
+                </template>
+              </n-button>
+            </template>
+          </n-card>
+          <n-empty
+            v-else
+            :description="t('sketchEdit.noSketchSelected')"
+            size="huge"
+            style="height: 100%; justify-content: center"
+          >
+            <template #icon>
+              <n-icon>
+                <Map />
+              </n-icon>
+            </template>
+            <template #extra>
+              <n-button size="small" @click="activeSelector = true">
+                {{ t("sketchEdit.selectSketch") }}
+              </n-button>
+            </template>
+          </n-empty>
+        </div>
 
-          <!-- Properties Tab -->
-          <div v-if="activeMobileTab === 'properties'" class="mobile-tab-content">
-            <n-card
-              v-if="selectedComponent"
-              class="component-info-container"
-              content-style="min-height: 0; overflow: auto;"
+        <!-- Map Tab -->
+        <div
+          v-if="activeMobileTab === 'map'"
+          class="mobile-tab-content mobile-map-content"
+        >
+          <n-card
+            v-if="hasSelection"
+            class="map-container"
+            content-style="padding: 0;"
+          >
+            <mgl-map
+              :map-style="styleUrl"
+              :center="mapCenter"
+              :zoom="zoom"
+              height="100%"
+              @map:load="initMap"
             >
-              <PropertiesPanel
-                :component="(selectedComponent as any)"
-                :type="selectedComponentType"
-                @update-properties="updateComponentProperties"
-                @update-meta="updateComponentMeta"
-              />
-              <template #footer>
-                <n-text
-                  depth="3"
-                  class="metadata"
-                >
-                  <div class="metadata-item">
-                    {{ t('sketchEdit.createdTimeBy', {
+              <mgl-navigation-control position="top-left" />
+              <mgl-scale-control position="bottom-left" />
+              <mgl-fullscreen-control position="top-left" />
+            </mgl-map>
+          </n-card>
+          <n-empty
+            v-else
+            :description="t('sketchEdit.noSketchSelected')"
+            size="huge"
+            style="height: 100%; justify-content: center"
+          >
+            <template #icon>
+              <n-icon>
+                <Map />
+              </n-icon>
+            </template>
+            <template #extra>
+              <n-button size="small" @click="activeSelector = true">
+                {{ t("sketchEdit.selectSketch") }}
+              </n-button>
+            </template>
+          </n-empty>
+        </div>
+
+        <!-- Properties Tab -->
+        <div v-if="activeMobileTab === 'properties'" class="mobile-tab-content">
+          <n-card
+            v-if="selectedComponent"
+            class="component-info-container"
+            content-style="min-height: 0; overflow: auto;"
+          >
+            <PropertiesPanel
+              :component="(selectedComponent as any)"
+              :type="selectedComponentType"
+              @update-properties="updateComponentProperties"
+              @update-meta="updateComponentMeta"
+            />
+            <template #footer>
+              <n-text depth="3" class="metadata">
+                <div class="metadata-item">
+                  {{
+                    t("sketchEdit.createdTimeBy", {
                       user: selectedComponent.meta.created_by,
-                      time: getTimeStr(selectedComponent.meta.creation_timestamp)
-                    }) }}
-                  </div>
-                  <div class="metadata-item">
-                    {{ t('sketchEdit.modifiedTimeBy', {
+                      time: getTimeStr(
+                        selectedComponent.meta.creation_timestamp
+                      ),
+                    })
+                  }}
+                </div>
+                <div class="metadata-item">
+                  {{
+                    t("sketchEdit.modifiedTimeBy", {
                       user: selectedComponent.meta.modified_by,
-                      time: getTimeStr(selectedComponent.meta.modification_timestamp)
-                    }) }}
-                  </div>
-                </n-text>
-              </template>
-            </n-card>
-            <n-empty
-              v-else
-              :description="t('sketchEdit.noComponentSelected')"
-              size="huge"
-              style="height: 100%; justify-content: center"
-            >
-              <template #icon>
-                <n-icon>
-                  <InfoCircle />
-                </n-icon>
-              </template>
-              <template #extra>
-                <n-button
-                  size="small"
-                  @click="activeMobileTab = 'components'"
-                >
-                  {{ t('sketchEdit.selectComponent') }}
-                </n-button>
-              </template>
-            </n-empty>
-          </div>
-        </n-layout-content>
-      </div>
+                      time: getTimeStr(
+                        selectedComponent.meta.modification_timestamp
+                      ),
+                    })
+                  }}
+                </div>
+              </n-text>
+            </template>
+          </n-card>
+          <n-empty
+            v-else
+            :description="t('sketchEdit.noComponentSelected')"
+            size="huge"
+            style="height: 100%; justify-content: center"
+          >
+            <template #icon>
+              <n-icon>
+                <InfoCircle />
+              </n-icon>
+            </template>
+            <template #extra>
+              <n-button size="small" @click="activeMobileTab = 'components'">
+                {{ t("sketchEdit.selectComponent") }}
+              </n-button>
+            </template>
+          </n-empty>
+        </div>
+      </n-layout-content>
+    </div>
 
     <!-- Mobile Bottom Navigation -->
     <n-layout-footer v-if="hasSelection" class="mobile-footer">
@@ -731,7 +734,7 @@ const getTimeStr = (stamp: number) => {
               <List />
             </n-icon>
           </template>
-          {{ t('sketchEdit.components') }}
+          {{ t("sketchEdit.components") }}
         </n-button>
         <n-button
           :type="activeMobileTab === 'map' ? 'primary' : 'default'"
@@ -744,7 +747,7 @@ const getTimeStr = (stamp: number) => {
               <Map />
             </n-icon>
           </template>
-          {{ t('sketchEdit.map') }}
+          {{ t("sketchEdit.map") }}
         </n-button>
         <n-button
           :type="activeMobileTab === 'properties' ? 'primary' : 'default'"
@@ -757,7 +760,7 @@ const getTimeStr = (stamp: number) => {
               <Settings />
             </n-icon>
           </template>
-          {{ t('sketchEdit.properties') }}
+          {{ t("sketchEdit.properties") }}
         </n-button>
       </div>
     </n-layout-footer>
