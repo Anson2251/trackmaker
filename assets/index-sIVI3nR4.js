@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-Cuv5mgYi.js","./sketch-store-BW0aOjew.js","./vue-i18n-WdrDEK0s.js","./App-DBMmbccd.css","./index-h3BoguXb.js","./index-aRPrJIOg.css","./index-BpzgRrKD.js"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-CmjDX_-n.js","./sketch-store-5RyMB1Sx.js","./vue-i18n-I7ahBOu0.js","./index-Ago1O-NR.js","./App-BkoMreV2.css","./index-DWNokp8r.js","./index-tto555vO.css"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -8642,7 +8642,7 @@ ${kt(e[1])}`
   let Ub, jb;
   Hs = {
     theme: "system",
-    interfaceLanguage: "en",
+    interfaceLanguage: "system",
     mapLanguage: "interface",
     watchCompatibilityMode: true,
     geolocationCorrection: false,
@@ -13679,22 +13679,22 @@ ${i}`);
       moduleInit: async () => {
         var _a2;
         const e = mf((await xs(async () => {
-          const { default: n } = await import("./App-Cuv5mgYi.js");
+          const { default: n } = await import("./App-CmjDX_-n.js");
           return {
             default: n
           };
-        }, __vite__mapDeps([0,1,2,3]), import.meta.url)).default);
+        }, __vite__mapDeps([0,1,2,3,4]), import.meta.url)).default);
         e.use(Qf()), e.use((await xs(async () => {
-          const { default: n } = await import("./index-h3BoguXb.js");
+          const { default: n } = await import("./index-DWNokp8r.js");
           return {
             default: n
           };
-        }, __vite__mapDeps([4,2,1,5]), import.meta.url)).default), e.use((await xs(async () => {
-          const { i18n: n } = await import("./index-BpzgRrKD.js");
+        }, __vite__mapDeps([5,2,1,6]), import.meta.url)).default), e.use((await xs(async () => {
+          const { i18n: n } = await import("./index-Ago1O-NR.js");
           return {
             i18n: n
           };
-        }, __vite__mapDeps([6,2]), import.meta.url)).i18n), window.splashScreen && window.splashScreen.unmount(), (_a2 = document.getElementById("splash")) == null ? void 0 : _a2.remove();
+        }, __vite__mapDeps([3,2]), import.meta.url)).i18n), window.splashScreen && window.splashScreen.unmount(), (_a2 = document.getElementById("splash")) == null ? void 0 : _a2.remove();
         const t = document.getElementById("app");
         t && (t.style.display = "inherit"), e.mount("#app");
       },
