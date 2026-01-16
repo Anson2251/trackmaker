@@ -53,6 +53,25 @@ export interface PlatformCapabilities {
         highAccuracy: boolean;
     };
 }
+/**
+ * Platform services configuration
+ */
+export interface PlatformServicesConfig {
+    storage?: {
+        tauriStorePath?: string;
+        webDbName?: string;
+        webStoreName?: string;
+    };
+    geolocation?: {
+        tauriHandlerName?: string;
+        enableKalmanFilter?: boolean;
+        kalmanConfig?: any;
+        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
+    };
+    permissions?: {
+        onPermissionChange?: (provider: string, state: PermissionState) => void;
+    };
+}
 
 /**
  * Platform-specific configuration
@@ -95,20 +114,13 @@ export interface IStorageProvider {
  * Geolocation provider interface for platform-agnostic location services
  */
 export interface IGeolocationProvider {
-    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, AppError>>;
     getPermissionStatus(): Promise<Result<PermissionState, AppError>>;
     requestPermission(): Promise<Result<PermissionState, AppError>>;
     getCurrentPosition(): Promise<Result<GeolocationPosition, AppError>>;
-    watchPosition(callback: PositionCallback): Promise<Result<number, AppError>>;
+    watchPosition(callback: PositionCallback, options?: { highFrequency?: boolean }): Promise<Result<number, AppError>>;
     clearWatch(watchId: number): Result<void, AppError>;
     isSupported(): boolean;
-}
-
-/**
- * Extended interface for geolocation providers that support IMU integration
- */
-export interface IIMUEnabledGeolocationProvider extends IGeolocationProvider {
-    updateWithIMU?(acceleration: { x: number; y: number; z: number }): void;
 }
 
 /**
@@ -149,7 +161,7 @@ export interface DeviceOrientationReading {
  * IMU provider interface for platform-agnostic IMU operations
  */
 export interface IIMUProvider {
-    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, AppError>>;
     startAcceleration(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
     startGyroscope(options?: { frequency?: number; normalizeToENU?: boolean }): Promise<Result<void, AppError>>;
     stopAcceleration(): Result<void, AppError>;
@@ -159,20 +171,20 @@ export interface IIMUProvider {
     onAccelerationReading(callback: (reading: IMUReading) => void): number;
     onGyroscopeReading(callback: (reading: IMUReading) => void): number;
     removeEventListener(id: number): Result<void, AppError>;
-    isSupported(): boolean;
+    isSupported(): Promise<boolean>;
 }
 
 /**
  * Device orientation provider interface for platform-agnostic orientation operations
  */
 export interface IDeviceOrientationProvider {
-    init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState) => Promise<void>): Promise<Result<void, AppError>>;
     start(): Promise<Result<void, AppError>>;
     stop(): Result<void, AppError>;
     getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;
     onOrientationChange(callback: (orientation: DeviceOrientationReading) => void): number;
     removeEventListener(id: number): Result<void, AppError>;
-    isSupported(): boolean;
+    isSupported(): Promise<boolean>;
 }
 
 /**

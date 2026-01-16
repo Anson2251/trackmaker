@@ -14,6 +14,7 @@ export type {
     PlatformContext,
     PlatformCapabilities,
     PlatformConfiguration,
+    PlatformServicesConfig,
     RuntimeEnvironment
 } from './types';
 
@@ -53,6 +54,3 @@ export { TauriGeolocationProvider } from './providers/tauri-geolocation-provider
 export { WebGeolocationProvider } from './providers/web-geolocation-provider';
 export { WebDeviceOrientationProvider } from './providers/web-device-orientation-provider';
 export { WebIMUProvider } from './providers/web-imu-provider';
-
-// Configuration types
-export type { PlatformServicesConfig } from './platform-services';

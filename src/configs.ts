@@ -3,7 +3,6 @@ import type { ModuleItem } from "@/utils/load-modules";
 import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
 import { GeolocationManager } from './libs/geolocation';
-import { ImuOrientationManager } from '@/libs/imu/services/imu-orientation-manager';
 import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices } from "@/libs/platform";
@@ -14,7 +13,6 @@ import { isDebugModeEnabled } from '@/libs/default-settings';
 declare global {
     interface Window {
         GeolocationManager: GeolocationManager;
-        ImuOrientationManager: ImuOrientationManager;
         permissionConfirm?: (messageId: string) => Promise<boolean>;
     }
 }
@@ -37,7 +35,7 @@ export const modules: ModuleItem[] = [
 
             app.mount("#app");
         },
-        dependencies: ["platform-services", "geolocation", "proj4-wasm", "imu-orientation"]
+        dependencies: ["geolocation", "platform-services", "proj4-wasm"]
     },
     {
         name: "proj4-wasm",
@@ -60,24 +58,54 @@ export const modules: ModuleItem[] = [
             try {
                 if (debugMode) console.time("Platform services initialise");
 
-                // Initialize platform services
-                const platformServicesResult = getPlatformServices();
+                const geoPermissionCallback = async (status: PermissionState, messageId: string): Promise<boolean> => {
+                    if (isTauri()) {
+                        return false;
+                    }
+                    if (window.permissionConfirm) {
+                        return window.permissionConfirm(messageId);
+                    }
+                    return false;
+                };
+
+                const platformServicesResult = getPlatformServices({
+                    geolocation: {
+                        permissionCallback: geoPermissionCallback
+                    }
+                });
                 if (platformServicesResult.isErr()) {
                     throw platformServicesResult.error;
                 }
 
                 const platformServices = platformServicesResult.value;
 
-                // Initialize storage through platform services
                 const storageProvider = platformServices.getStorage();
                 if (storageProvider.isErr()) {
                     throw storageProvider.error;
                 }
 
-                // Initialize the storage provider
                 const storageInitResult = await storageProvider.value.init();
                 if (storageInitResult.isErr()) {
                     throw storageInitResult.error;
+                }
+
+                // Initialize IMU and orientation providers
+                const orientationResult = platformServices.getDeviceOrientation();
+                if (orientationResult.isOk()) {
+                    const orientationProvider = orientationResult.value;
+                    const orientationInitResult = await orientationProvider.init();
+                    if (orientationInitResult.isErr()) {
+                        console.warn("[Platform] DeviceOrientation not supported on this platform");
+                    }
+                }
+
+                const imuResult = platformServices.getIMU();
+                if (imuResult.isOk()) {
+                    const imuProvider = imuResult.value;
+                    const imuInitResult = await imuProvider.init();
+                    if (imuInitResult.isErr()) {
+                        console.warn("[Platform] IMU not supported on this platform");
+                    }
                 }
 
                 if (debugMode) console.timeEnd("Platform services initialise");
@@ -108,22 +136,7 @@ export const modules: ModuleItem[] = [
 
                 if (debugMode) console.time("Geolocation service initialise");
 
-                const geoResult = await GeolocationManager.getInstance(undefined, async (status) => {
-                    if (isTauri()) {
-                        return; // Tauri environment handles permissions differently
-                    }
-
-                    const messageId = status === "prompt"
-                        ? "permission.location.prompt"
-                        : "permission.location.required";
-
-                    // Use custom permission dialog from splash screen
-                    if (window.permissionConfirm) {
-                        return window.permissionConfirm(messageId);
-                    }
-                    // Fallback to native confirm if splash screen not available
-                    return confirm(messageId);
-                });
+                const geoResult = await GeolocationManager.getInstance();
                 if (geoResult.isErr()) {
                     throw geoResult.error;
                 }
@@ -137,52 +150,12 @@ export const modules: ModuleItem[] = [
 
                 if (debugMode) console.timeEnd("Geolocation service start");
 
-                // Temporary fix: Request IMU permissions after geolocation initialization
-                if (debugMode) console.info("[Geolocation] Requesting IMU permissions as temporary fix");
-
                 window.GeolocationManager = geolocationManager; // expose new manager for direct access
 
                 console.info("[Geolocation] Unified geolocation service initialized successfully using platform providers");
             }
             catch (error) {
                 console.error("[Geolocation] Failed to initialize geolocation service:", error);
-                return Promise.reject(error instanceof Error ? error : new Error(String(error)));
-            }
-        },
-        dependencies: ["platform-services"]
-    },
-    {
-        name: "imu-orientation",
-        displayName: "IMU & Orientation Service",
-        moduleInit: async () => {
-            try {
-                console.time("IMU & Orientation service initialise");
-
-                // Initialize IMU and orientation manager
-                const imuResult = await ImuOrientationManager.getInstance(async () => {
-                    if (window.permissionConfirm) {
-                        return window.permissionConfirm("permission.imu.required");
-                    }
-                    return confirm("permission.imu.required");
-                });
-                if (imuResult.isErr()) {
-                    throw imuResult.error;
-                }
-                const imuManager = imuResult.value;
-
-
-                // Start services continuously to get the data
-                await imuManager.startOrientationUpdates(() => {});
-                await imuManager.startAccelerationUpdates({}, () => {});
-                await imuManager.startGyroscopeUpdates({}, () => {});
-
-                console.timeEnd("IMU & Orientation service initialise");
-                console.info("[IMU & Orientation] Service initialized successfully with initial values");
-
-                // Expose for direct access if needed
-                window.ImuOrientationManager = imuManager;
-            } catch (error) {
-                console.error("[IMU & Orientation] Failed to initialize service:", error);
                 return Promise.reject(error instanceof Error ? error : new Error(String(error)));
             }
         },

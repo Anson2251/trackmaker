@@ -3,13 +3,18 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { NCard, NStatistic, NAlert, NButton } from 'naive-ui';
-import { ImuOrientationManager } from '@/libs/imu';
 import { GeolocationManager } from '@/libs/geolocation';
+import { getPlatformServices } from '@/libs/platform/platform-services';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
+import type { IIMUProvider, IDeviceOrientationProvider } from '@/libs/platform/types';
 import type { GeographicPoint } from '@/libs/geolocation/types';
 
 const { t } = useI18n();
 const router = useRouter();
+
+// Platform services
+let imuProvider: IIMUProvider | null = null;
+let deviceOrientationProvider: IDeviceOrientationProvider | null = null;
 
 // State management
 // Device orientation data
@@ -26,7 +31,7 @@ const gyroscopeListenerId = ref<number | null>(null);
 const gpsData = ref<GeographicPoint | null>(null);
 const gpsListenerId = ref<number | null>(null);
 const gpsError = ref<string | null>(null);
-const gpsBackend = ref<'kalman' | 'platform' | 'ip' | null>(null);
+const gpsBackend = ref<'kalman' | 'gps' | 'ip' | null>(null);
 const gpsTimestamp = ref<Date | null>(null);
 
 // Error handling
@@ -65,7 +70,7 @@ const rotationSpeed = computed(() => {
 });
 
 onMounted(async () => {
-  await initializeManager();
+  await initializePlatformServices();
   await initializeGPS();
 });
 
@@ -73,105 +78,79 @@ onUnmounted(() => {
   cleanup();
 });
 
-async function initializeManager() {
+async function initializePlatformServices() {
   try {
-    const imuResult = await ImuOrientationManager.getInstance(async () => false);
-    if (imuResult.isErr()) {
-      console.error('Failed to initialize IMU manager:', imuResult.error);
-      orientationError.value = 'IMU manager initialization failed';
-      motionError.value = 'IMU manager initialization failed';
+    const platformResult = getPlatformServices();
+    if (platformResult.isErr()) {
+      console.error('Failed to get platform services:', platformResult.error);
+      orientationError.value = 'Platform services initialization failed';
+      motionError.value = 'Platform services initialization failed';
       return;
     }
 
-    const imuManager = imuResult.value;
+    const platform = platformResult.value;
 
-    // Check if IMU is supported
-    orientationSupported.value = imuManager.isSupported();
-    motionSupported.value = imuManager.isSupported();
+    const imuResult = platform.getIMU();
+    const orientationResult = platform.getDeviceOrientation();
 
-    // Automatically start monitoring if supported
-    if (orientationSupported.value) {
-      await startOrientationMonitoring();
-    }
-    if (motionSupported.value) {
-      await startMotionMonitoring();
+    if (imuResult.isErr()) {
+      motionSupported.value = false;
+    } else {
+      imuProvider = imuResult.value;
+      subscribeToMotionUpdates();
     }
 
-    // Get initial readings if available
-    const lastOrientation = imuManager.getLastKnownOrientation();
-    if (lastOrientation) {
-      orientationData.value = lastOrientation;
-    }
-
-    const lastMotion = imuManager.getLastKnownMotion();
-    if (lastMotion) {
-      accelerationData.value = lastMotion.acceleration;
-      gyroscopeData.value = lastMotion.gyroscope;
+    if (orientationResult.isErr()) {
+      orientationSupported.value = false;
+    } else {
+      deviceOrientationProvider = orientationResult.value;
+      subscribeToOrientationUpdates();
     }
   } catch (error) {
-    console.error('Error initializing IMU manager:', error);
+    console.error('Error initializing platform services:', error);
     orientationError.value = 'Initialization error';
     motionError.value = 'Initialization error';
   }
 }
 
-async function startOrientationMonitoring() {
+function subscribeToOrientationUpdates() {
+  if (!deviceOrientationProvider) {
+    orientationError.value = 'Device orientation provider not available';
+    return;
+  }
+
   try {
-    const imuManager = ImuOrientationManager.getExistingInstance();
-    const startResult = await imuManager.startOrientationUpdates((orientation: DeviceOrientationReading) => {
+    const listenerId = deviceOrientationProvider.onOrientationChange((orientation: DeviceOrientationReading) => {
       orientationData.value = orientation;
       orientationError.value = null;
     });
 
-    if (startResult.isOk()) {
-      orientationListenerId.value = startResult.value;
-      orientationError.value = null;
-    } else {
-      orientationError.value = `Start failed: ${startResult.error.message}`;
-    }
+    orientationListenerId.value = listenerId;
+    orientationError.value = null;
   } catch (error) {
     orientationError.value = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
 }
 
-async function startMotionMonitoring() {
+function subscribeToMotionUpdates() {
+  if (!imuProvider) {
+    motionError.value = 'IMU provider not available';
+    return;
+  }
+
   try {
-    const imuManager = ImuOrientationManager.getExistingInstance();
+    const accListenerId = imuProvider.onAccelerationReading((reading: IMUReading) => {
+      accelerationData.value = reading;
+      motionError.value = null;
+    });
 
-    // Start acceleration updates
-    const accStartResult = await imuManager.startAccelerationUpdates(
-      { normalizeToENU: true },
-      (reading: IMUReading) => {
-        accelerationData.value = reading;
-        motionError.value = null;
-      }
-    );
+    const gyroListenerId = imuProvider.onGyroscopeReading((reading: IMUReading) => {
+      gyroscopeData.value = reading;
+      motionError.value = null;
+    });
 
-    if (accStartResult.isErr()) {
-      motionError.value = `Acceleration start failed: ${accStartResult.error.message}`;
-      return;
-    }
-
-    // Start gyroscope updates
-    const gyroStartResult = await imuManager.startGyroscopeUpdates(
-      { normalizeToENU: false },
-      (reading: IMUReading) => {
-        gyroscopeData.value = reading;
-        motionError.value = null;
-      }
-    );
-
-    if (gyroStartResult.isErr()) {
-      // Stop acceleration if gyroscope failed
-      if (accStartResult.isOk()) {
-        imuManager.stopAccelerationUpdates(accStartResult.value);
-      }
-      motionError.value = `Gyroscope start failed: ${gyroStartResult.error.message}`;
-      return;
-    }
-
-    accelerationListenerId.value = accStartResult.value;
-    gyroscopeListenerId.value = gyroStartResult.value;
+    accelerationListenerId.value = accListenerId;
+    gyroscopeListenerId.value = gyroListenerId;
     motionError.value = null;
   } catch (error) {
     motionError.value = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -228,19 +207,17 @@ async function startGPSMonitoring() {
 }
 
 function cleanup() {
-  try {
-    const imuManager = ImuOrientationManager.getExistingInstance();
-    if (orientationListenerId.value !== null) {
-      imuManager.stopOrientationUpdates(orientationListenerId.value);
-    }
+  if (deviceOrientationProvider && orientationListenerId.value !== null) {
+    deviceOrientationProvider.removeEventListener(orientationListenerId.value);
+  }
+
+  if (imuProvider) {
     if (accelerationListenerId.value !== null) {
-      imuManager.stopAccelerationUpdates(accelerationListenerId.value);
+      imuProvider.removeEventListener(accelerationListenerId.value);
     }
     if (gyroscopeListenerId.value !== null) {
-      imuManager.stopGyroscopeUpdates(gyroscopeListenerId.value);
+      imuProvider.removeEventListener(gyroscopeListenerId.value);
     }
-  } catch {
-    // IMU manager not initialized, ignore
   }
 
   try {
@@ -336,7 +313,7 @@ const goBack = () => {
           </div>
         </div>
         <NAlert
-          v-else-if="!orientationError && orientationSupported === true"
+          v-else-if="!orientationError && (orientationSupported === true || orientationSupported === null)"
           type="warning"
           :title="t('sensorTest.deviceOrientation.noData')"
           style="margin-top: 16px;"
@@ -431,7 +408,7 @@ const goBack = () => {
           </div>
         </div>
         <NAlert
-          v-else-if="!motionError && motionSupported === true"
+          v-else-if="!motionError && (motionSupported === true || motionSupported === null)"
           type="warning"
           :title="t('sensorTest.deviceMotion.noData')"
           style="margin-top: 16px;"
@@ -475,7 +452,7 @@ const goBack = () => {
             <div class="gps-row">
               <NStatistic
                 :label="t('sensorTest.gps.backend')"
-                :value="gpsBackend === 'platform' || gpsBackend === 'kalman' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
+                :value="gpsBackend === 'gps' || gpsBackend === 'kalman' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
               />
               <NStatistic
                 v-if="gpsTimestamp"

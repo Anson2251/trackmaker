@@ -1,855 +1,326 @@
-import { Result, err, ok } from 'neverthrow';
-import { Matrix } from 'ml-matrix';
-import { GeographicPoint } from '../types';
+import { Result, err, ok } from "neverthrow";
+import { Matrix } from "ml-matrix";
+import { GeographicPoint } from "../types";
 import {
     GeolocationError,
-    GeolocationUpdateServiceError
-} from '../../error-handling/geolocation';
-import { logError, toAppError } from '../../error-handling';
-import { PermissionService, type PermissionPromptCallback } from './permission-service';
-import { getPlatformServices } from '@/libs/platform';
-import type { IGeolocationProvider, IIMUProvider } from '@/libs/platform/types';
-import IPGeolocationBackend from '../backends/ip';
-import { KalmanGeolocationBackend } from '../backends/kalman';
-import { cloneDeep } from 'lodash-es';
-import { isKalmanFilterEnabled } from '@/libs/default-settings';
+    GeolocationUpdateServiceError,
+} from "../../error-handling/geolocation";
+import { logError, toAppError } from "../../error-handling";
+import { BackendManager } from "../core/backend-manager";
+import { LocationStateManager } from "../core/location-state-manager";
+import { GPSBackend } from "../backends/gps-backend";
+import { IPFallbackBackend } from "../backends/ip-fallback-backend";
+import { KalmanBackend } from "../backends/kalman-backend";
+import { cloneDeep } from "lodash-es";
+import { isKalmanFilterEnabled } from "@/libs/default-settings";
+import { wgs2gcj } from "../utils/coordinate-transformer";
+import { getEarlySetting } from "@/libs/default-settings";
 
 export interface LocationUpdateHandler {
     (location: GeographicPoint, ...args: unknown[]): void | Promise<void>;
 }
 
-export interface LocationServiceInterface {
-    getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>>;
-    startWatching(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>>;
-    stopWatching(handlerId: number): Result<void, GeolocationError>;
-    isWatching(): boolean;
-    getLastKnownLocation(): GeographicPoint;
-}
-
 export interface GeolocationManagerInterface {
-    initialize(promptCallback?: PermissionPromptCallback): Promise<Result<void, GeolocationError>>;
+    initialize(): Promise<Result<void, GeolocationError>>;
     getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>>;
-    startLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>>;
-    stopLocationUpdates(handlerId: number): Result<void, GeolocationError>;
+    startLocationUpdates(
+        callback: LocationUpdateHandler,
+    ): Promise<Result<number, GeolocationError>>;
+    stopLocationUpdates(
+        handlerId: number,
+    ): Promise<Result<void, GeolocationError>>;
     isServiceRunning(): boolean;
     isUsingGPS(): boolean;
     getLastKnownLocation(): GeographicPoint;
     addLocationListener(callback: LocationUpdateHandler): number;
     removeLocationListener(id: number): void;
-    getCurrentBackend(): 'kalman' | 'platform' | 'ip' | null;
+    getCurrentBackend(): "kalman" | "gps" | "ip" | null;
     getLastKalmanGain(): Matrix | null;
 }
 
 export class GeolocationManager implements GeolocationManagerInterface {
     private static instance: GeolocationManager | null = null;
-    private permissionService: PermissionService;
     private isInitialized = false;
-    private platformGeolocationProvider: IGeolocationProvider | null = null;
-    private imuProvider: IIMUProvider | null = null;
-    private ipBackend: IPGeolocationBackend | null = null;
-    private kalmanBackend: KalmanGeolocationBackend | null = null;
-    private isWatching = false;
-    private watchId: number | null = null;
-    private locationUpdateCallbacks: Map<number, LocationUpdateHandler> = new Map();
-    private lastKnownLocation: GeographicPoint | null = null;
-    private currentBackend: 'kalman' | 'platform' | 'ip' | null = null;
+    private backendManager: BackendManager;
+    private stateManager: LocationStateManager;
+    private locationUpdateCallbacks: Map<number, LocationUpdateHandler> =
+        new Map();
+    private nextCallbackId = 1;
 
-    private constructor(
-        permissionService?: PermissionService,
-    ) {
-        this.permissionService = permissionService || new PermissionService();
-        this.ipBackend = new IPGeolocationBackend();
+    private constructor() {
+        // Initialize backends in priority order, conditionally include Kalman based on settings
+        const strategies = [];
+
+        // Include Kalman backend only if enabled in settings
+        if (isKalmanFilterEnabled()) {
+            strategies.push(new KalmanBackend());
+        }
+
+        // Always include GPS backend
+        strategies.push(new GPSBackend());
+
+        // Always include IP fallback backend
+        strategies.push(new IPFallbackBackend());
+
+        this.backendManager = new BackendManager(strategies);
+        this.stateManager = new LocationStateManager();
     }
 
-    /**
-     * Get singleton instance of GeolocationManager
-     */
-    static async getInstance(permissionService?: PermissionService, promptCallback?: PermissionPromptCallback): Promise<Result<GeolocationManager, GeolocationError>> {
+    static async getInstance(): Promise<Result<GeolocationManager, GeolocationError>> {
         if (!GeolocationManager.instance) {
-            GeolocationManager.instance = new GeolocationManager(permissionService);
+            GeolocationManager.instance = new GeolocationManager();
         }
-        
-        // Initialize if not already initialized
+
         if (!GeolocationManager.instance.isInitialized) {
-            const initResult = await GeolocationManager.instance.initialize(promptCallback);
+            const initResult = await GeolocationManager.instance.initialize();
             if (initResult.isErr()) {
                 return err(initResult.error);
             }
         }
-        
+
         return ok(GeolocationManager.instance);
     }
 
-    /**
-     * Get existing instance without initialization (throws if not created)
-     */
     static getExistingInstance(): GeolocationManager {
         if (!GeolocationManager.instance) {
-            throw new Error('GeolocationManager not initialized. Call getInstance() first.');
+            throw new Error(
+                "GeolocationManager not initialized. Call getInstance() first.",
+            );
         }
         return GeolocationManager.instance;
     }
 
-    /**
-     * Reset singleton instance (for testing)
-     */
     static reset(): void {
         GeolocationManager.instance = null;
     }
 
-    /**
-     * Check if IMU is available and supported
-     */
-    private async isIMUAvailable(): Promise<boolean> {
-        try {
-            const platformServices = getPlatformServices();
-            if (platformServices.isErr()) {
-                return false;
-            }
-
-            const imuResult = platformServices.value.getIMU();
-            if (imuResult.isErr()) {
-                return false;
-            }
-
-            const imuProvider = imuResult.value;
-            const initResult = await imuProvider.init();
-            if (initResult.isErr()) {
-                return false;
-            }
-
-            return imuProvider.isSupported();
-        } catch (error) {
-            console.warn('[GeolocationManager] Error checking IMU availability:', error);
-            return false;
-        }
-    }
-
-    async initialize(promptCallback?: PermissionPromptCallback): Promise<Result<void, GeolocationError>> {
+    async initialize(): Promise<Result<void, GeolocationError>> {
         if (this.isInitialized) {
             console.info("[GeolocationManager] Already initialized");
             return ok(undefined);
         }
 
-        console.info("[GeolocationManager] Initializing geolocation services with location trail strategy");
+        console.info(
+            "[GeolocationManager] Initializing geolocation services with new architecture",
+        );
 
         try {
-            // Get platform services and geolocation provider
-            const platformServices = getPlatformServices();
-            if (platformServices.isErr()) {
-                console.warn("[GeolocationManager] Failed to get platform services, will try IP backend");
-                return await this.initializeWithIPBackend();
-            }
-
-            const geolocationProvider = platformServices.value.getGeolocation();
-            if (geolocationProvider.isErr()) {
-                console.warn("[GeolocationManager] Failed to get geolocation provider, will try IP backend");
-                return await this.initializeWithIPBackend();
-            }
-
-            this.platformGeolocationProvider = geolocationProvider.value;
-
-            // Initialize the platform provider
-            const initResult = await this.platformGeolocationProvider.init();
-            if (initResult.isErr()) {
-                console.warn("[GeolocationManager] Failed to initialize platform provider, will try IP backend");
-                return await this.initializeWithIPBackend();
-            }
-
-            // Set platform provider in permission service for unified handling
-            this.permissionService.setPlatformProvider(this.platformGeolocationProvider);
-
-            // Step 1: Get permission status from platform provider
-            const permissionResult = await this.permissionService.getPermissionStatus();
-            if (permissionResult.isErr()) {
-                logError(permissionResult.error, 'GeolocationManager.initialize.permission');
-                console.warn("[GeolocationManager] Failed to get permission status, will try IP backend");
-                return await this.initializeWithIPBackend();
-            }
-
-            const permissionState = permissionResult.value;
-
-            // Step 2: Handle permission prompting if needed
-            if (permissionState === 'prompt' && promptCallback) {
-                console.log("GPS Permission not granted, prompting user.");
-                const userResponse = await promptCallback(permissionState);
-                if (userResponse) {
-                    // Request permission through platform provider
-                    const requestResult = await this.platformGeolocationProvider.requestPermission();
-                    if (requestResult.isErr()) {
-                        logError(requestResult.error, 'GeolocationManager.initialize.requestPermission');
-                        console.warn("[GeolocationManager] Failed to request permission, will try IP backend");
-                        return await this.initializeWithIPBackend();
-                    }
-                }
-            }
-
-            // Step 3: Check if IMU is available for Kalman filtering
-            const imuAvailable = await this.isIMUAvailable();
-            const kalmanEnabled = isKalmanFilterEnabled();
-            console.info(`[GeolocationManager] IMU available: ${imuAvailable}, Kalman filter enabled: ${kalmanEnabled}`);
-
-            // Step 4: Location Trail Strategy - Try to get location via GPS first
-            console.info("[GeolocationManager] Attempting to get location via platform provider (GPS)");
-            const gpsLocationResult = await this.tryGetGPSLocation();
-
-            if (gpsLocationResult.isOk()) {
-                console.info("[GeolocationManager] Successfully got location via GPS");
-                this.lastKnownLocation = gpsLocationResult.value;
-
-                // If both GPS and IMU are available, and Kalman filter is enabled, use Kalman filter
-                if (imuAvailable && kalmanEnabled) {
-                    console.info("[GeolocationManager] Both GPS and IMU available, Kalman filter enabled, initializing Kalman filter");
-                    await this.initializeWithKalmanBackend();
-                } else if (imuAvailable && !kalmanEnabled) {
-                    console.info("[GeolocationManager] IMU available but Kalman filter disabled by settings, using GPS-only mode");
-                    this.currentBackend = 'platform';
-                } else {
-                    console.info("[GeolocationManager] Using platform provider (GPS-only mode)");
-                    this.currentBackend = 'platform';
-                }
-            } else {
-                console.warn("[GeolocationManager] Failed to get location via GPS, falling back to IP backend", gpsLocationResult.error);
-                return await this.initializeWithIPBackend();
-            }
-
-            // Set up permission change listener through platform provider
-            // Note: Platform providers handle their own permission change notifications
-            this.permissionService.addPermissionChangeListener((newState) => {
-                console.info(`[GeolocationManager] Permission changed to: ${newState}`);
-
-                if (newState === 'denied' && this.isWatching) {
-                    // Stop location updates if permission is denied
-                    if (this.watchId !== null) {
-                        this.stopLocationUpdates(this.watchId);
-                    }
-                }
+            this.stateManager.subscribe((location, _source) => {
+                this.notifyCallbacks(location);
             });
 
-            this.isInitialized = true;
-            console.info("[GeolocationManager] Geolocation services initialized successfully using platform provider");
-            return ok(undefined);
+            const backendInitResult = await this.backendManager.initialise();
+            if (backendInitResult.isErr()) {
+                console.warn(
+                    "[GeolocationManager] No backend available for location",
+                );
+                return err(
+                    new GeolocationUpdateServiceError(
+                        "No geolocation backend available",
+                        "no_backend_available",
+                        backendInitResult.error,
+                    ),
+                );
+            }
 
-        } catch {
-            console.warn("[GeolocationManager] Exception during platform initialization, will try IP backend");
-            return this.initializeWithIPBackend();
-        }
-    }
+            console.log("initialised")
 
-    /**
-     * Try to get location via GPS/platform provider
-     */
-    private async tryGetGPSLocation(): Promise<Result<GeographicPoint, GeolocationError>> {
-        if (!this.platformGeolocationProvider) {
-            return err(new GeolocationUpdateServiceError(
-                'No platform geolocation provider available',
-                'no_platform_provider'
-            ));
-        }
+            const testLocation = await this.backendManager.getCurrentPosition();
+            if (testLocation.isOk()) {
+                this.stateManager.updateLocation(
+                    testLocation.value,
+                    this.backendManager.getActiveBackend()!,
+                );
 
-        try {
-            console.log("Trying to get the location via Geolocation API")
-            const positionResult = await this.platformGeolocationProvider.getCurrentPosition();
-            if (positionResult.isOk()) {
-                const position = positionResult.value;
-                return ok(new GeographicPoint(
-                position.coords.latitude,
-                position.coords.longitude,
-                position.coords.accuracy
-                ));
+                this.isInitialized = true;
+                console.info(
+                    "[GeolocationManager] Geolocation services initialized successfully",
+                );
+                return ok(undefined);
             } else {
-                console.log("Geolocation API Calling Failed")
-                return err(new GeolocationUpdateServiceError(
-                    'Failed to get location from platform provider',
-                    'platform_location_failed',
-                    positionResult.error
-                ));
+                return err(
+                    new GeolocationUpdateServiceError(
+                        "Backend selected fail to obtain geolocation",
+                        "backend_error",
+                        testLocation.error,
+                    ),
+                );
             }
         } catch (error) {
-            return err(new GeolocationUpdateServiceError(
-                'Exception while getting location from platform provider',
-                'platform_location_exception',
-                error as Error
-            ));
-        }
-    }
-
-    /**
-     * Initialize with IP backend as fallback
-     */
-    private async initializeWithIPBackend(): Promise<Result<void, GeolocationError>> {
-        console.info("[GeolocationManager] Initializing with IP backend as fallback");
-
-        if (!this.ipBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'IP backend not available',
-                'ip_backend_unavailable'
-            ));
-        }
-
-        try {
-            // Try to get location via IP backend
-            const ipLocation = await this.ipBackend.getCurrentPosition();
-            console.info("[GeolocationManager] Successfully got location via IP backend");
-
-            this.currentBackend = 'ip';
-            this.lastKnownLocation = ipLocation;
-            this.isInitialized = true;
-
-            console.info("[GeolocationManager] Geolocation services initialized successfully using IP backend");
-            return ok(undefined);
-
-        } catch (error) {
-            const initError = new GeolocationUpdateServiceError(
-                'Failed to initialize geolocation manager with IP backend',
-                'ip_backend_failed',
-                error as Error
+            const appError = toAppError(
+                error,
+                "Failed to initialize geolocation manager",
             );
-            logError(initError, 'GeolocationManager.initializeWithIPBackend');
-            return err(initError);
-        }
-    }
-
-    /**
-     * Initialize with Kalman backend (GPS + IMU fusion)
-     */
-    private async initializeWithKalmanBackend(): Promise<Result<void, GeolocationError>> {
-        console.info("[GeolocationManager] Initializing with Kalman backend (GPS + IMU fusion)");
-
-        if (!this.platformGeolocationProvider) {
-            return err(new GeolocationUpdateServiceError(
-                'Platform geolocation provider not available',
-                'platform_provider_unavailable'
-            ));
-        }
-
-        try {
-            // Get IMU provider
-            const platformServices = getPlatformServices();
-            if (platformServices.isErr()) {
-                console.warn("[GeolocationManager] Failed to get platform services for IMU, falling back to GPS-only");
-                this.currentBackend = 'platform';
-                return ok(undefined);
-            }
-
-            const imuResult = platformServices.value.getIMU();
-            if (imuResult.isErr()) {
-                console.warn("[GeolocationManager] Failed to get IMU provider, falling back to GPS-only");
-                this.currentBackend = 'platform';
-                return ok(undefined);
-            }
-
-            this.imuProvider = imuResult.value;
-
-            // Create a platform backend adapter
-            const platformBackend = {
-                getPermissionStatus: async () => {
-                    const status = await this.permissionService.getPermissionStatus();
-                    return status.isOk() ? status.value : 'unknown';
-                },
-                getCurrentPosition: async () => {
-                    const result = await this.platformGeolocationProvider!.getCurrentPosition();
-                    if (result.isOk()) {
-                        return new GeographicPoint(
-                            result.value.coords.latitude,
-                            result.value.coords.longitude,
-                            result.value.coords.accuracy
-                        );
-                    }
-                    throw new Error('Failed to get position');
-                },
-                watchPosition: async (callback: (location: GeographicPoint) => void) => {
-                    const watchResult = await this.platformGeolocationProvider!.watchPosition((position) => {
-                        callback(new GeographicPoint(
-                            position.coords.latitude,
-                            position.coords.longitude,
-                            position.coords.accuracy
-                        ));
-                    });
-                    if (watchResult.isErr()) {
-                        throw new Error('Failed to watch position');
-                    }
-                    return watchResult.value;
-                },
-                clearWatch: (channelId: number) => {
-                    this.platformGeolocationProvider!.clearWatch(channelId);
-                }
-            };
-
-            // Create Kalman backend with IMU fusion enabled
-            this.kalmanBackend = new KalmanGeolocationBackend(
-                platformBackend,
-                {
-                    enableIMUFusion: true,
-                    imuUpdateInterval: 100, // 10Hz IMU updates
-                    maxAge: 5000, // 5 seconds max age
-                    sigmaAcceleration: 1.0,
-                    initialPositionUncertainty: 20,
-                    initialVelocityUncertainty: 4
-                },
-                this.imuProvider
+            logError(appError, "GeolocationManager.initialize");
+            return err(
+                new GeolocationUpdateServiceError(
+                    "Exception during initialization",
+                    "initialization_failed",
+                    appError,
+                ),
             );
-
-            this.currentBackend = 'kalman';
-            console.info("[GeolocationManager] Kalman backend initialized successfully");
-            return ok(undefined);
-
-        } catch (error) {
-            console.warn("[GeolocationManager] Failed to initialize Kalman backend, falling back to GPS-only:", error);
-            this.currentBackend = 'platform';
-            return ok(undefined);
         }
     }
 
-    async getCurrentLocation(): Promise<Result<GeographicPoint, GeolocationError>> {
+    async getCurrentLocation(): Promise<
+        Result<GeographicPoint, GeolocationError>
+    > {
         if (!this.isInitialized) {
-            const error = new GeolocationUpdateServiceError("Geolocation manager not initialized", 'not_initialized');
-            logError(error, 'GeolocationManager.getCurrentLocation');
+            const error = new GeolocationUpdateServiceError(
+                "Geolocation manager not initialized",
+                "not_initialized",
+            );
+            logError(error, "GeolocationManager.getCurrentLocation");
             return err(error);
         }
 
-        // Use the determined backend from initialization
-        if (this.currentBackend === 'kalman' && this.kalmanBackend) {
-            return this.getLocationFromKalmanBackend();
-        } else if (this.currentBackend === 'platform' && this.platformGeolocationProvider) {
-            return this.getLocationFromPlatformProvider();
-        } else if (this.currentBackend === 'ip' && this.ipBackend) {
-            return this.getLocationFromIPBackend();
-        } else {
-            // Fallback - try Kalman first, then platform, then IP if available
-            console.warn("[GeolocationManager] No backend determined, attempting fallback strategy");
-
-            if (this.kalmanBackend) {
-                const kalmanResult = await this.getLocationFromKalmanBackend();
-                if (kalmanResult.isOk()) {
-                    this.currentBackend = 'kalman';
-                    return kalmanResult;
-                }
-            }
-
-            if (this.platformGeolocationProvider) {
-                const platformResult = await this.getLocationFromPlatformProvider();
-                if (platformResult.isOk()) {
-                    this.currentBackend = 'platform';
-                    return platformResult;
-                }
-            }
-
-            if (this.ipBackend) {
-                const ipResult = await this.getLocationFromIPBackend();
-                if (ipResult.isOk()) {
-                    this.currentBackend = 'ip';
-                    return ipResult;
-                }
-            }
-
-            return err(new GeolocationUpdateServiceError(
-                'No working geolocation backend available',
-                'no_working_backend'
-            ));
-        }
-    }
-
-    /**
-     * Get location from Kalman backend
-     */
-    private async getLocationFromKalmanBackend(): Promise<Result<GeographicPoint, GeolocationError>> {
-        if (!this.kalmanBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'Kalman backend not available',
-                'kalman_backend_unavailable'
-            ));
-        }
-
         try {
-            const location = await this.kalmanBackend.getCurrentPosition();
-            console.info("[GeolocationManager] Location retrieved from Kalman backend");
-            this.doLocationUpdate(location);
-            return ok(location);
+            const result = await this.backendManager.getCurrentPosition();
+            if (result.isOk()) {
+                this.stateManager.updateLocation(
+                    result.value,
+                    this.backendManager.getActiveBackend() || "gps",
+                );
+            }
+            return result;
         } catch (error) {
-            const appError = toAppError(error, 'Failed to get location from Kalman backend');
-            logError(appError, 'GeolocationManager.getLocationFromKalmanBackend');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to get location from Kalman backend',
-                'kalman_backend_failed',
-                appError
-            ));
-        }
-    }
-
-    /**
-     * Get location from platform provider
-     */
-    private async getLocationFromPlatformProvider(): Promise<Result<GeographicPoint, GeolocationError>> {
-        if (!this.platformGeolocationProvider) {
-            return err(new GeolocationUpdateServiceError(
-                'Platform geolocation provider not available',
-                'platform_provider_unavailable'
-            ));
-        }
-
-        const platformResult = await this.platformGeolocationProvider.getCurrentPosition();
-        if (platformResult.isOk()) {
-            const position = platformResult.value;
-            const geographicPoint = new GeographicPoint(
-                position.coords.latitude,
-                position.coords.longitude,
-                position.coords.accuracy
+            const appError = toAppError(
+                error,
+                "Failed to get current location",
             );
-            console.info("[GeolocationManager] Location retrieved from platform provider");
-            this.doLocationUpdate(geographicPoint);
-            return ok(geographicPoint);
-        } else {
-            // If platform provider failed, return the error
-            logError(platformResult.error, 'GeolocationManager.getLocationFromPlatformProvider');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to get location from platform provider',
-                'platform_provider_failed',
-                platformResult.error
-            ));
+            logError(appError, "GeolocationManager.getCurrentLocation");
+            return err(
+                new GeolocationUpdateServiceError(
+                    "Failed to get current location",
+                    "get_location_failed",
+                    appError,
+                ),
+            );
         }
     }
 
-    /**
-     * Get location from IP backend
-     */
-    private async getLocationFromIPBackend(): Promise<Result<GeographicPoint, GeolocationError>> {
-        if (!this.ipBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'IP backend not available',
-                'ip_backend_unavailable'
-            ));
-        }
-
-        try {
-            const location = await this.ipBackend.getCurrentPosition();
-            console.info("[GeolocationManager] Location retrieved from IP backend");
-            this.doLocationUpdate(location);
-            return ok(location);
-        } catch (error) {
-            const appError = toAppError(error, 'Failed to get location from IP backend');
-            logError(appError, 'GeolocationManager.getLocationFromIPBackend');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to get location from IP backend',
-                'ip_backend_failed',
-                appError
-            ));
-        }
-    }
-
-    async startLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>> {
+    async startLocationUpdates(
+        callback: LocationUpdateHandler,
+    ): Promise<Result<number, GeolocationError>> {
         if (!this.isInitialized) {
-            const error = new GeolocationUpdateServiceError("Geolocation manager not initialized", 'not_initialized');
-            logError(error, 'GeolocationManager.startLocationUpdates');
+            const error = new GeolocationUpdateServiceError(
+                "Geolocation manager not initialized",
+                "not_initialized",
+            );
+            logError(error, "GeolocationManager.startLocationUpdates");
             return err(error);
         }
 
         console.info("[GeolocationManager] Starting location updates");
 
-        // Use the determined backend from initialization
-        if (this.currentBackend === 'kalman' && this.kalmanBackend) {
-            return this.startKalmanLocationUpdates(callback);
-        } else if (this.currentBackend === 'platform' && this.platformGeolocationProvider) {
-            return this.startPlatformLocationUpdates(callback);
-        } else if (this.currentBackend === 'ip' && this.ipBackend) {
-            return this.startIPLocationUpdates(callback);
-        } else {
-            // Fallback - try Kalman first, then platform, then IP if available
-            console.warn("[GeolocationManager] No backend determined, attempting fallback strategy");
-
-            if (this.kalmanBackend) {
-                const kalmanResult = await this.startKalmanLocationUpdates(callback);
-                if (kalmanResult.isOk()) {
-                    this.currentBackend = 'kalman';
-                    return kalmanResult;
-                }
-            }
-
-            if (this.platformGeolocationProvider) {
-                const platformResult = await this.startPlatformLocationUpdates(callback);
-                if (platformResult.isOk()) {
-                    this.currentBackend = 'platform';
-                    return platformResult;
-                }
-            }
-
-            if (this.ipBackend) {
-                const ipResult = await this.startIPLocationUpdates(callback);
-                if (ipResult.isOk()) {
-                    this.currentBackend = 'ip';
-                    return ipResult;
-                }
-            }
-
-            return err(new GeolocationUpdateServiceError(
-                'No working geolocation backend available for location updates',
-                'no_working_backend_for_updates'
-            ));
-        }
-    }
-
-    /**
-     * Start location updates using Kalman backend
-     */
-    private async startKalmanLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>> {
-        if (!this.kalmanBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'Kalman backend not available',
-                'kalman_backend_unavailable'
-            ));
-        }
-
         try {
-            const watchId = await this.kalmanBackend.watchPosition((location) => {
-                this.lastKnownLocation = location;
-                this.doLocationUpdate(location);
-                void callback(location);
-            });
+            const callbackId = this.nextCallbackId++;
+            this.locationUpdateCallbacks.set(callbackId, callback);
 
-            console.info("[GeolocationManager] Location updates started via Kalman backend");
-            this.isWatching = true;
-            this.watchId = watchId;
-            return ok(watchId);
+            // Start location updates with state manager callback
+            const startResult = await this.backendManager.startWatching(
+                (location, source) => {
+                    this.stateManager.updateLocation(location, source);
+                    this.notifyCallbacks(location);
+                },
+            );
+
+            if (startResult.isErr()) {
+                this.locationUpdateCallbacks.delete(callbackId);
+                return err(startResult.error);
+            }
+
+            console.info(
+                `[GeolocationManager] Location updates started with handler ${callbackId}`,
+            );
+            return ok(callbackId);
         } catch (error) {
-            const appError = toAppError(error, 'Failed to start location updates via Kalman backend');
-            logError(appError, 'GeolocationManager.startKalmanLocationUpdates');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to start location updates via Kalman backend',
-                'kalman_watch_failed',
-                appError
-            ));
+            const appError = toAppError(
+                error,
+                "Failed to start location updates",
+            );
+            logError(appError, "GeolocationManager.startLocationUpdates");
+            return err(
+                new GeolocationUpdateServiceError(
+                    "Failed to start location updates",
+                    "start_updates_failed",
+                    appError,
+                ),
+            );
         }
     }
 
-    /**
-     * Start location updates using platform provider
-     */
-    private async startPlatformLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>> {
-        if (!this.platformGeolocationProvider) {
-            return err(new GeolocationUpdateServiceError(
-                'Platform geolocation provider not available',
-                'platform_provider_unavailable'
-            ));
-        }
-
-        const watchResult = await this.platformGeolocationProvider.watchPosition((position) => {
-            const geographicPoint = new GeographicPoint(
-                position.coords.latitude,
-                position.coords.longitude,
-                position.coords.accuracy
-            )
-            this.doLocationUpdate(geographicPoint);
-            void callback(geographicPoint);
-        });
-
-        if (watchResult.isOk()) {
-            console.info("[GeolocationManager] Location updates started via platform provider");
-            this.isWatching = true;
-            this.watchId = watchResult.value;
-            return ok(watchResult.value);
-        } else {
-            // If platform provider watch failed, return the error
-            return err(new GeolocationUpdateServiceError(
-                'Failed to start location updates via platform provider',
-                'platform_watch_failed',
-                watchResult.error
-            ));
-        }
-    }
-
-    /**
-     * Start location updates using IP backend
-     */
-    private async startIPLocationUpdates(callback: LocationUpdateHandler): Promise<Result<number, GeolocationError>> {
-        if (!this.ipBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'IP backend not available',
-                'ip_backend_unavailable'
-            ));
-        }
-
-        try {
-            const watchId = await this.ipBackend.watchPosition((location) => {
-                this.lastKnownLocation = location;
-                this.doLocationUpdate(location);
-                void callback(location);
-            });
-
-            console.info("[GeolocationManager] Location updates started via IP backend");
-            this.isWatching = true;
-            this.watchId = watchId;
-            return ok(watchId);
-        } catch (error) {
-            const appError = toAppError(error, 'Failed to start location updates via IP backend');
-            logError(appError, 'GeolocationManager.startIPLocationUpdates');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to start location updates via IP backend',
-                'ip_watch_failed',
-                appError
-            ));
-        }
-    }
-
-    stopLocationUpdates(handlerId: number): Result<void, GeolocationError> {
+    async stopLocationUpdates(
+        handlerId: number,
+    ): Promise<Result<void, GeolocationError>> {
         if (!this.isInitialized) {
-            const error = new GeolocationUpdateServiceError("Geolocation manager not initialized", 'not_initialized');
-            logError(error, 'GeolocationManager.stopLocationUpdates');
+            const error = new GeolocationUpdateServiceError(
+                "Geolocation manager not initialized",
+                "not_initialized",
+            );
+            logError(error, "GeolocationManager.stopLocationUpdates");
             return err(error);
         }
 
         console.info("[GeolocationManager] Stopping location updates");
 
-        // Use the determined backend
-        if (this.currentBackend === 'kalman' && this.kalmanBackend) {
-            return this.stopKalmanLocationUpdates(handlerId);
-        } else if (this.currentBackend === 'platform' && this.platformGeolocationProvider) {
-            return this.stopPlatformLocationUpdates(handlerId);
-        } else if (this.currentBackend === 'ip' && this.ipBackend) {
-            return this.stopIPLocationUpdates(handlerId);
-        } else {
-            // Fallback - try all backends
-            let lastError: GeolocationError | null = null;
-
-            if (this.kalmanBackend) {
-                const kalmanResult = this.stopKalmanLocationUpdates(handlerId);
-                if (kalmanResult.isOk()) {
-                    return kalmanResult;
-                }
-                lastError = kalmanResult.error;
-            }
-
-            if (this.platformGeolocationProvider) {
-                const platformResult = this.stopPlatformLocationUpdates(handlerId);
-                if (platformResult.isOk()) {
-                    return platformResult;
-                }
-                lastError = platformResult.error;
-            }
-
-            if (this.ipBackend) {
-                const ipResult = this.stopIPLocationUpdates(handlerId);
-                if (ipResult.isOk()) {
-                    return ipResult;
-                }
-                lastError = ipResult.error;
-            }
-
-            return err(lastError || new GeolocationUpdateServiceError(
-                'No working geolocation backend available for stopping updates',
-                'no_working_backend_for_stop'
-            ));
-        }
-    }
-
-    /**
-     * Stop location updates using Kalman backend
-     */
-    private stopKalmanLocationUpdates(handlerId: number): Result<void, GeolocationError> {
-        if (!this.kalmanBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'Kalman backend not available',
-                'kalman_backend_unavailable'
-            ));
-        }
-
         try {
-            this.kalmanBackend.clearWatch(handlerId);
-            console.info("[GeolocationManager] Location updates stopped via Kalman backend");
-            this.isWatching = false;
-            this.watchId = null;
+            this.locationUpdateCallbacks.delete(handlerId);
+
+            // If no more callbacks, stop watching
+            if (this.locationUpdateCallbacks.size === 0) {
+                const stopResult = await this.backendManager.stopWatching();
+                if (stopResult.isErr()) {
+                    return err(stopResult.error);
+                }
+            }
+
+            console.info(
+                `[GeolocationManager] Location updates stopped for handler ${handlerId}`,
+            );
             return ok(undefined);
         } catch (error) {
-            const appError = toAppError(error, 'Failed to stop location updates via Kalman backend');
-            logError(appError, 'GeolocationManager.stopKalmanLocationUpdates');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to stop location updates via Kalman backend',
-                'kalman_clear_watch_failed',
-                appError
-            ));
-        }
-    }
-
-    /**
-     * Stop location updates using platform provider
-     */
-    private stopPlatformLocationUpdates(handlerId: number): Result<void, GeolocationError> {
-        if (!this.platformGeolocationProvider) {
-            return err(new GeolocationUpdateServiceError(
-                'Platform geolocation provider not available',
-                'platform_provider_unavailable'
-            ));
-        }
-
-        const clearResult = this.platformGeolocationProvider.clearWatch(handlerId);
-        if (clearResult.isOk()) {
-            console.info("[GeolocationManager] Location updates stopped via platform provider");
-            this.isWatching = false;
-            this.watchId = null;
-            return ok(undefined);
-        } else {
-            // If platform provider clear watch failed, return the error
-            return err(new GeolocationUpdateServiceError(
-                'Failed to stop location updates via platform provider',
-                'platform_clear_watch_failed',
-                clearResult.error
-            ));
-        }
-    }
-
-    /**
-     * Stop location updates using IP backend
-     */
-    private stopIPLocationUpdates(handlerId: number): Result<void, GeolocationError> {
-        if (!this.ipBackend) {
-            return err(new GeolocationUpdateServiceError(
-                'IP backend not available',
-                'ip_backend_unavailable'
-            ));
-        }
-
-        try {
-            this.ipBackend.clearWatch(handlerId);
-            console.info("[GeolocationManager] Location updates stopped via IP backend");
-            this.isWatching = false;
-            this.watchId = null;
-            return ok(undefined);
-        } catch (error) {
-            const appError = toAppError(error, 'Failed to stop location updates via IP backend');
-            logError(appError, 'GeolocationManager.stopIPLocationUpdates');
-            return err(new GeolocationUpdateServiceError(
-                'Failed to stop location updates via IP backend',
-                'ip_clear_watch_failed',
-                appError
-            ));
+            const appError = toAppError(
+                error,
+                "Failed to stop location updates",
+            );
+            logError(appError, "GeolocationManager.stopLocationUpdates");
+            return err(
+                new GeolocationUpdateServiceError(
+                    "Failed to stop location updates",
+                    "stop_updates_failed",
+                    appError,
+                ),
+            );
         }
     }
 
     isServiceRunning(): boolean {
-        return this.isWatching;
+        return this.backendManager.isWatchingActive();
     }
 
     isUsingGPS(): boolean {
-        // Return true if using platform provider (GPS), false if using IP backend
-        return this.currentBackend === 'platform' || this.currentBackend === 'kalman';
+        const backend = this.backendManager.getActiveBackend();
+        return backend === "gps" || backend === "kalman";
     }
 
-    /**
-     * Get the current backend being used
-     */
-    getCurrentBackend(): 'kalman' | 'platform' | 'ip' | null {
-        return this.currentBackend;
+    getCurrentBackend(): "kalman" | "gps" | "ip" | null {
+        return this.backendManager.getActiveBackend();
     }
 
     getLastKnownLocation(): GeographicPoint {
-        if (!this.lastKnownLocation) {
-            console.warn('[GeolocationManager] No known location available - returning default coordinates (0, 0)');
+        const location = this.stateManager.getCurrentLocation();
+        if (!location) {
+            console.warn(
+                "[GeolocationManager] No known location available - returning default coordinates (0, 0)",
+            );
             return new GeographicPoint(0, 0);
         }
-        return this.lastKnownLocation;
+        return location;
     }
 
     addLocationListener(callback: LocationUpdateHandler): number {
-        const id = Number(`${Date.now()} + ${Math.floor(Math.random() * 10000)}`);
+        const id = this.nextCallbackId++;
         this.locationUpdateCallbacks.set(id, callback);
         return id;
     }
@@ -858,29 +329,47 @@ export class GeolocationManager implements GeolocationManagerInterface {
         this.locationUpdateCallbacks.delete(id);
     }
 
-    doLocationUpdate(location: GeographicPoint): void {
-        this.lastKnownLocation = cloneDeep(location);
-        this.locationUpdateCallbacks.forEach((callback) => void callback(cloneDeep(location)));
+    getLastKalmanGain(): Matrix | null {
+        const backend = this.backendManager.getActiveBackend();
+        if (backend === "kalman") {
+            // Get the KalmanBackend instance from backend manager
+            const kalmanBackend = this.backendManager.strategies.find(
+                (s) => s.name === "kalman",
+            );
+            if (kalmanBackend && "getLastKalmanGain" in kalmanBackend) {
+                return (kalmanBackend as KalmanBackend).getLastKalmanGain();
+            }
+        }
+        return null;
     }
 
-    // Additional utility methods
-    getPermissionStatus() {
-        return this.permissionService.currentPermission;
+    private applyGeolocationCorrection(
+        location: GeographicPoint,
+    ): GeographicPoint {
+        // Apply WGS2GCJ correction if enabled in settings
+        if (getEarlySetting("geolocationCorrection")) {
+            return wgs2gcj(location);
+        }
+
+        // Return original coordinates if correction is disabled
+        return location;
+    }
+
+    private notifyCallbacks(location: GeographicPoint): void {
+        // Apply geolocation correction before notifying callbacks
+        const correctedLocation = this.applyGeolocationCorrection(location);
+        const clonedLocation = cloneDeep(correctedLocation);
+        for (const callback of this.locationUpdateCallbacks.values()) {
+            try {
+                void callback(clonedLocation);
+            } catch (error) {
+                console.error("[GeolocationManager] Callback error:", error);
+            }
+        }
     }
 
     async refreshBackend(): Promise<Result<void, GeolocationError>> {
-        // With platform providers, backend refresh is handled automatically
+        // With new architecture, backend refresh is handled automatically
         return ok(undefined);
-    }
-
-    /**
-     * Get the last calculated Kalman gain matrix
-     * Returns null if not using Kalman backend or no GPS update has been processed yet
-     */
-    getLastKalmanGain(): Matrix | null {
-        if (this.currentBackend === 'kalman' && this.kalmanBackend) {
-            return this.kalmanBackend.getLastKalmanGain();
-        }
-        return null;
     }
 }

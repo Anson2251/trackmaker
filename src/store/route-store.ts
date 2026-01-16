@@ -87,9 +87,8 @@ export const useRouteStore = defineStore('routes', () => {
 
         recordingTimespanTrackingHandler = setInterval(async () => {
             const currentRoute = sketchStore.getRouteById(currentRouteId.value!)!;
-            if (currentRoute.recordTimespan !== undefined && currentRoute.meta.modification_timestamp) {
-                currentRouteRecordTimespan.value = currentRoute.recordTimespan + (Date.now() - currentRoute.meta.modification_timestamp);
-                // console.log(currentRouteRecordTimespan.value)
+            if (currentRoute.meta.record_timespan !== undefined && currentRoute.meta.modification_timestamp) {
+                currentRouteRecordTimespan.value = currentRoute.meta.record_timespan + (Date.now() - currentRoute.meta.modification_timestamp);
                 await sketchStore.updateRoute(currentRouteId.value!, { meta: { record_timespan: currentRouteRecordTimespan.value } });
             }
         }, 100) as unknown as number;

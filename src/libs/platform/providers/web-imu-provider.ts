@@ -3,12 +3,12 @@
  */
 
 import { Result, ok, err } from 'neverthrow';
+import { Matrix } from 'ml-matrix';
 import type { IIMUProvider, IMUReading } from '../types';
 import { GenericError } from '@/libs/error-handling';
 
 export class WebIMUProvider implements IIMUProvider {
     private initialized = false;
-    private permissionCallback: ((state: PermissionState) => void) | undefined;
     private accelerationListeners: Map<number, (reading: IMUReading) => void> = new Map();
     private gyroscopeListeners: Map<number, (reading: IMUReading) => void> = new Map();
     private nextListenerId = 0;
@@ -28,23 +28,61 @@ export class WebIMUProvider implements IIMUProvider {
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
     }
 
-    async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GenericError>> {
-        this.permissionCallback = permissionCallback;
+    async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
         if (this.initialized) {
             return ok(undefined);
         }
 
-        if (!this.isSupported()) {
+        const permissionResult = await this.getPermissionStatus();
+        if (permissionResult.isErr()) {
+            return err(permissionResult.error);
+        }
+
+        if (permissionResult.value === 'prompt' && permissionCallback) {
+            const granted = await permissionCallback(permissionResult.value, 'permission.imu.required');
+            if (!granted) {
+                return err(new GenericError('IMU permission denied'));
+            }
+            const recheckResult = await this.getPermissionStatus();
+            if (recheckResult.isErr()) {
+                return err(recheckResult.error);
+            }
+            if (recheckResult.value === 'denied') {
+                return err(new GenericError('IMU permission denied'));
+            }
+        }
+
+        // Checking the availability requires to get a trail data after the permission is granted
+        if (!await this.isSupported()) {
             return err(new GenericError('Device motion is not supported by this browser'));
         }
 
-        // Listen to device orientation for ENU normalization
         if ('DeviceOrientationEvent' in window) {
             window.addEventListener('deviceorientation', this.boundHandleOrientationEvent);
         }
 
         this.initialized = true;
         return ok(undefined);
+    }
+
+    private async getPermissionStatus(): Promise<Result<PermissionState, GenericError>> {
+        try {
+            // oxlint-disable-next-line no-unsafe-member-access
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+                // oxlint-disable-next-line no-unsafe-call no-unsafe-member-access
+                const permission = await (DeviceMotionEvent as any).requestPermission();
+                if (permission === 'granted') {
+                    return ok('granted');
+                } else if (permission === 'denied') {
+                    return ok('denied');
+                }
+                return ok('prompt');
+            } else {
+                return ok('granted');
+            }
+        } catch {
+            return ok('prompt');
+        }
     }
 
     async startAcceleration(options: { frequency?: number; normalizeToENU?: boolean } = {}): Promise<Result<void, GenericError>> {
@@ -195,8 +233,63 @@ export class WebIMUProvider implements IIMUProvider {
         return ok(undefined);
     }
 
-    isSupported(): boolean {
-        return 'DeviceMotionEvent' in window;
+    async isSupported(): Promise<boolean> {
+        // Check if the browser APIs exist
+        if (!('DeviceOrientationEvent' in window) || !('DeviceMotionEvent' in window)) {
+            return false;
+        }
+
+        try {
+            // Create a promise that resolves when we receive either orientation or motion data
+            const dataPromise = new Promise<boolean>((resolve) => {
+                let orientationResolved = false;
+                let motionResolved = false;
+
+                const cleanup = () => {
+                    window.removeEventListener('deviceorientation', onOrientation);
+                    window.removeEventListener('devicemotion', onMotion);
+                };
+
+                const onOrientation = (event: DeviceOrientationEvent) => {
+                    if (event.alpha !== null || event.beta !== null || event.gamma !== null) {
+                        if (!orientationResolved) {
+                            orientationResolved = true;
+                            cleanup();
+                            resolve(true);
+                        }
+                    }
+                };
+
+                const onMotion = (event: DeviceMotionEvent) => {
+                    if (event.acceleration || event.accelerationIncludingGravity || event.rotationRate) {
+                        if (!motionResolved) {
+                            motionResolved = true;
+                            cleanup();
+                            resolve(true);
+                        }
+                    }
+                };
+
+                // Add event listeners
+                window.addEventListener('deviceorientation', onOrientation, { once: false });
+                window.addEventListener('devicemotion', onMotion, { once: false });
+
+                // Also check if we already have permission and data might be flowing
+                // Some browsers may not fire events without user interaction
+                // We'll rely on the timeout for those cases
+            });
+
+            // Create a timeout promise that rejects after 1 second
+            const timeoutPromise = new Promise<boolean>((_, reject) => {
+                setTimeout(() => reject(new Error('IMU detection timeout')), 1000);
+            });
+
+            // Race between getting data and timeout
+            return await Promise.race([dataPromise, timeoutPromise]);
+        } catch {
+            // If we timeout or get an error, assume IMU is not available
+            return false;
+        }
     }
 
     private handleOrientationEvent(event: DeviceOrientationEvent): void {
@@ -226,7 +319,7 @@ export class WebIMUProvider implements IIMUProvider {
                     x: acc.x,
                     y: acc.y,
                     z: acc.z,
-                    timestamp: performance.now()
+                    timestamp: event.timeStamp || performance.now()
                 };
 
                 // If using accelerationIncludingGravity, we need to remove gravity component
@@ -264,7 +357,7 @@ export class WebIMUProvider implements IIMUProvider {
                     x: rot.alpha, // rotation around Z axis
                     y: rot.beta,  // rotation around X axis
                     z: rot.gamma, // rotation around Y axis
-                    timestamp: performance.now()
+                    timestamp: event.timeStamp || performance.now()
                 };
 
                 // Apply ENU normalization if requested
@@ -288,45 +381,51 @@ export class WebIMUProvider implements IIMUProvider {
 
     /**
      * Normalize IMU reading from device coordinates to ENU (East-North-Up) coordinates
-     * This is a simplified transformation using device orientation
+     * Using proper rotation matrices with ml-matrix
+     * DeviceOrientationEvent angles: alpha (yaw, Z-axis), beta (pitch, X-axis), gamma (roll, Y-axis)
      */
     private normalizeToENU(reading: IMUReading, orientation: { alpha: number; beta: number; gamma: number }): IMUReading {
         // Convert angles to radians
-        const alpha = (orientation.alpha * Math.PI) / 180; // Azimuth (yaw)
-        const beta = (orientation.beta * Math.PI) / 180;   // Pitch
-        const gamma = (orientation.gamma * Math.PI) / 180; // Roll
+        const alpha = (orientation.alpha * Math.PI) / 180; // Yaw - rotation around Z axis
+        const beta = (orientation.beta * Math.PI) / 180;   // Pitch - rotation around X axis
+        const gamma = (orientation.gamma * Math.PI) / 180; // Roll - rotation around Y axis
 
-        // Simplified rotation matrices for yaw (alpha), pitch (beta), roll (gamma)
-        // Full transformation: R = R_z(gamma) * R_y(beta) * R_x(alpha)
-        // But for basic ENU, we primarily need yaw and pitch corrections
+        // Create rotation matrices
+        // R_z(alpha) - yaw rotation around Z axis
+        const Rz = new Matrix([
+            [Math.cos(alpha), -Math.sin(alpha), 0],
+            [Math.sin(alpha), Math.cos(alpha), 0],
+            [0, 0, 1]
+        ]);
 
-        const cosAlpha = Math.cos(alpha);
-        const sinAlpha = Math.sin(alpha);
-        const cosBeta = Math.cos(beta);
-        const sinBeta = Math.sin(beta);
-        const cosGamma = Math.cos(gamma);
-        const sinGamma = Math.sin(gamma);
+        // R_y(gamma) - roll rotation around Y axis
+        const Ry = new Matrix([
+            [Math.cos(gamma), 0, Math.sin(gamma)],
+            [0, 1, 0],
+            [-Math.sin(gamma), 0, Math.cos(gamma)]
+        ]);
 
-        // Apply yaw rotation (around Z)
-        const xTemp = reading.x * cosAlpha - reading.y * sinAlpha;
-        const yTemp = reading.x * sinAlpha + reading.y * cosAlpha;
-        const zTemp = reading.z;
+        // R_x(beta) - pitch rotation around X axis
+        const Rx = new Matrix([
+            [1, 0, 0],
+            [0, Math.cos(beta), -Math.sin(beta)],
+            [0, Math.sin(beta), Math.cos(beta)]
+        ]);
 
-        // Apply pitch rotation (around Y)
-        const xEnu = xTemp * cosBeta + zTemp * sinBeta;
-        const yEnu = yTemp;
-        const zEnu = -xTemp * sinBeta + zTemp * cosBeta;
+        // Combined rotation: R = R_z(alpha) * R_y(gamma) * R_x(beta)
+        // Apply roll (gamma) first, then pitch (beta), then yaw (alpha)
+        const R = Rz.mmul(Ry).mmul(Rx);
 
-        // Apply roll rotation (around X) - minimal effect for ENU
-        // Often roll is ignored for basic ENU, but included here
-        const finalX = xEnu;
-        const finalY = yEnu * cosGamma - zEnu * sinGamma;
-        const finalZ = yEnu * sinGamma + zEnu * cosGamma;
+        // Input vector in device coordinates
+        const v = new Matrix([[reading.x], [reading.y], [reading.z]]);
+
+        // Transform to ENU coordinates
+        const vENU = R.mmul(v);
 
         return {
-            x: finalX,  // East
-            y: finalY,  // North
-            z: finalZ,  // Up
+            x: vENU.get(0, 0),  // East
+            y: vENU.get(1, 0),  // North
+            z: vENU.get(2, 0),  // Up
             timestamp: reading.timestamp
         };
     }
@@ -334,36 +433,53 @@ export class WebIMUProvider implements IIMUProvider {
     /**
      * Estimate gravity vector in device coordinates based on orientation
      * Gravity points down in world coordinates (-Z in ENU)
+     * DeviceOrientationEvent angles: alpha (yaw, Z-axis), beta (pitch, X-axis), gamma (roll, Y-axis)
      */
     private estimateGravityVector(orientation: { alpha: number; beta: number; gamma: number }): IMUReading {
         // Gravity magnitude
         const g = 9.81;
 
-        // Convert to radians
-        const alpha = (orientation.alpha * Math.PI) / 180;
-        const beta = (orientation.beta * Math.PI) / 180;
-        const gamma = (orientation.gamma * Math.PI) / 180;
+        // Convert angles to radians
+        const alpha = (orientation.alpha * Math.PI) / 180; // Yaw - rotation around Z axis
+        const beta = (orientation.beta * Math.PI) / 180;   // Pitch - rotation around X axis
+        const gamma = (orientation.gamma * Math.PI) / 180; // Roll - rotation around Y axis
 
-        // Gravity in world ENU: (0, 0, -g) - down
-        // Transform back to device coordinates using inverse rotation
-        // This is simplified; assumes basic orientation
+        // Create rotation matrices
+        // R_z(alpha) - yaw rotation around Z axis
+        const Rz = new Matrix([
+            [Math.cos(alpha), -Math.sin(alpha), 0],
+            [Math.sin(alpha), Math.cos(alpha), 0],
+            [0, 0, 1]
+        ]);
 
-        const cosAlpha = Math.cos(alpha);
-        const sinAlpha = Math.sin(alpha);
-        const sinBeta = Math.sin(beta);
-        const cosGamma = Math.cos(gamma);
-        const sinGamma = Math.sin(gamma);
+        // R_y(gamma) - roll rotation around Y axis
+        const Ry = new Matrix([
+            [Math.cos(gamma), 0, Math.sin(gamma)],
+            [0, 1, 0],
+            [-Math.sin(gamma), 0, Math.cos(gamma)]
+        ]);
 
-        // Simplified gravity components in device frame
-        // For full accuracy, use the transpose of the rotation matrix
-        const gx = g * (sinBeta * cosGamma);
-        const gy = g * (sinAlpha * sinBeta * sinGamma + cosAlpha * cosGamma);
-        const gz = g * (cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma);
+        // R_x(beta) - pitch rotation around X axis
+        const Rx = new Matrix([
+            [1, 0, 0],
+            [0, Math.cos(beta), -Math.sin(beta)],
+            [0, Math.sin(beta), Math.cos(beta)]
+        ]);
+
+        // Combined rotation: R = R_z(alpha) * R_y(gamma) * R_x(beta)
+        // Apply roll (gamma) first, then pitch (beta), then yaw (alpha)
+        const R = Rz.mmul(Ry).mmul(Rx);
+
+        // Gravity in ENU coordinates: (0, 0, -g)
+        const gravityENU = new Matrix([[0], [0], [-g]]);
+
+        // Transform to device coordinates: R^T * gravityENU (inverse rotation)
+        const gravityDevice = R.transpose().mmul(gravityENU);
 
         return {
-            x: gx,
-            y: gy,
-            z: gz,
+            x: gravityDevice.get(0, 0),
+            y: gravityDevice.get(1, 0),
+            z: gravityDevice.get(2, 0),
             timestamp: performance.now()
         };
     }

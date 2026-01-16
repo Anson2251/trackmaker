@@ -10,7 +10,6 @@ import { getGpsUpdateInterval } from '@/libs/default-settings';
 
 export class TauriGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
-    private permissionCallback: ((state: PermissionState) => void) | undefined;
     private tauriHandlerName: string;
     private watchCallbacks = new Map<number, number>();
 
@@ -18,14 +17,37 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
         this.tauriHandlerName = tauriHandlerName;
     }
 
-    async init(permissionCallback?: (state: PermissionState) => void): Promise<Result<void, GeolocationProviderError>> {
-        this.permissionCallback = permissionCallback;
+    async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GeolocationProviderError>> {
         if (this.initialized) {
             return ok(undefined);
         }
 
+        const permissionResult = await this.getPermissionStatus();
+        if (permissionResult.isErr()) {
+            return err(permissionResult.error);
+        }
+
+        if (permissionResult.value === 'prompt' && permissionCallback) {
+            const granted = await permissionCallback(permissionResult.value, 'permission.location.prompt');
+            if (!granted) {
+                return err(new GeolocationProviderError(
+                    'Geolocation permission denied',
+                    GeolocationProviderErrorCode.PERMISSION_DENIED
+                ));
+            }
+            const recheckResult = await this.getPermissionStatus();
+            if (recheckResult.isErr()) {
+                return err(recheckResult.error);
+            }
+            if (recheckResult.value === 'denied') {
+                return err(new GeolocationProviderError(
+                    'Geolocation permission denied',
+                    GeolocationProviderErrorCode.PERMISSION_DENIED
+                ));
+            }
+        }
+
         try {
-            // Inject Tauri geolocation provider into navigator.geolocation
             await this.injectTauriProvider();
             this.initialized = true;
             return ok(undefined);
@@ -153,9 +175,10 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
         };
     }
 
-    async watchPosition(callback: PositionCallback): Promise<Result<number, GeolocationProviderError>> {
+    async watchPosition(callback: PositionCallback, options?: { highFrequency?: boolean }): Promise<Result<number, GeolocationProviderError>> {
         try {
             const gpsInterval = getGpsUpdateInterval();
+            const highFrequency = options?.highFrequency ?? false;
             const watchId = window.setInterval(async () => {
                 try {
                     const position = await this.getCurrentPosition();
@@ -165,7 +188,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
                 } catch (error) {
                     console.error('Error in watch position:', error);
                 }
-            }, gpsInterval);
+            }, highFrequency ? 100 : gpsInterval);
 
             this.watchCallbacks.set(watchId, watchId);
             return ok(watchId);
@@ -233,16 +256,17 @@ class TauriGeolocation implements Geolocation {
     watchPosition(
         successCallback: PositionCallback,
         errorCallback?: PositionErrorCallback,
-        _options?: PositionOptions
+        options?: PositionOptions
     ): number {
         const gpsInterval = getGpsUpdateInterval();
+        const highFrequency = (options as { highFrequency?: boolean })?.highFrequency ?? false;
         const watchId = window.setInterval(() => {
             this.getTauriPosition()
                 .then(successCallback)
                 .catch((error: unknown) => {
                     errorCallback?.(this.createPositionError(error as Error));
                 });
-        }, gpsInterval);
+        }, highFrequency ? 100 : gpsInterval);
         return watchId;
     }
 

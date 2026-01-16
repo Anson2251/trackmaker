@@ -28,6 +28,10 @@ export interface PlatformServicesConfig {
         tauriHandlerName?: string;
         enableKalmanFilter?: boolean;
         kalmanConfig?: any;
+        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
+    };
+    permissions?: {
+        onPermissionChange?: (provider: string, state: PermissionState) => void;
     };
 }
 
@@ -82,14 +86,6 @@ export class PlatformServices {
 
             // Initialize geolocation provider
             this.geolocationProvider = this.createGeolocationProvider(config?.geolocation);
-
-            // TODO: Re-enable IMU fusion after Kalman filter migration
-            // Set up IMU fusion if Kalman filter is enabled
-            // if (config?.geolocation?.enableKalmanFilter &&
-            //     this.geolocationProvider instanceof KalmanGeolocationProvider &&
-            //     this.imuProvider) {
-            //     this.setupIMUFusion();
-            // }
 
             // Initialize file provider (placeholder for now)
             this.fileProvider = this.createFileProvider();
@@ -148,20 +144,15 @@ export class PlatformServices {
                 break;
         }
 
-        // Wrap with Kalman filter if enabled
-        // TODO: Re-enable Kalman filter after migration to geolocation backend
-        // if (geoConfig?.enableKalmanFilter) {
-        //     return new KalmanGeolocationProvider(baseProvider, geoConfig.kalmanConfig);
-        // }
+        // Initialize provider with permission callback if provided
+        if (geoConfig?.permissionCallback) {
+            const permissionCallback = geoConfig.permissionCallback;
+            void baseProvider.init(async (state: PermissionState, messageId: string) => {
+                return permissionCallback(state, messageId);
+            });
+        }
 
         return baseProvider;
-    }
-
-    /**
-     * Set up IMU fusion with Kalman filter
-     */
-    private setupIMUFusion(): void {
-        // TODO: Re-enable IMU fusion after Kalman filter migration
     }
 
     /**

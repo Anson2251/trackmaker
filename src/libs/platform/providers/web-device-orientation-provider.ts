@@ -18,17 +18,53 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
     }
 
-    async init(): Promise<Result<void, GenericError>> {
+    async init(permissionCallback?: (state: PermissionState) => Promise<void>): Promise<Result<void, GenericError>> {
         if (this.initialized) {
             return ok(undefined);
         }
 
-        if (!this.isSupported()) {
+        const supported = await this.isSupported();
+        if (!supported) {
             return err(new GenericError('Device orientation is not supported by this browser'));
+        }
+
+        const permissionResult = await this.getPermissionStatus();
+        if (permissionResult.isErr()) {
+            return err(permissionResult.error);
+        }
+
+        if (permissionResult.value === 'prompt' && permissionCallback) {
+            await permissionCallback(permissionResult.value);
+            const recheckResult = await this.getPermissionStatus();
+            if (recheckResult.isErr()) {
+                return err(recheckResult.error);
+            }
+            if (recheckResult.value === 'denied') {
+                return err(new GenericError('Device orientation permission denied'));
+            }
         }
 
         this.initialized = true;
         return ok(undefined);
+    }
+
+    private async getPermissionStatus(): Promise<Result<PermissionState, GenericError>> {
+        try {
+            // oxlint-disable-next-line no-unsafe-member-access
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                // oxlint-disable-next-line no-unsafe-call no-unsafe-member-access
+                const permission = await (DeviceOrientationEvent as any).requestPermission();
+                if (permission === 'granted') {
+                    return ok('granted');
+                } else if (permission === 'denied') {
+                    return ok('denied');
+                }
+                return ok('prompt');
+            }
+            return ok('granted');
+        } catch {
+            return ok('prompt');
+        }
     }
 
     async start(): Promise<Result<void, GenericError>> {
@@ -106,8 +142,37 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         return ok(undefined);
     }
 
-    isSupported(): boolean {
-        return 'DeviceOrientationEvent' in window;
+    async isSupported(): Promise<boolean> {
+        // Check if the browser API exists
+        if (!('DeviceOrientationEvent' in window)) {
+            return false;
+        }
+
+        try {
+            // Create a promise that resolves when we receive orientation data
+            const dataPromise = new Promise<boolean>((resolve) => {
+                const onOrientation = (event: DeviceOrientationEvent) => {
+                    if (event.alpha !== null || event.beta !== null || event.gamma !== null) {
+                        window.removeEventListener('deviceorientation', onOrientation);
+                        resolve(true);
+                    }
+                };
+
+                // Add event listener
+                window.addEventListener('deviceorientation', onOrientation);
+            });
+
+            // Create a timeout promise that rejects after 1 second
+            const timeoutPromise = new Promise<boolean>((_, reject) => {
+                setTimeout(() => reject(new Error('Device orientation detection timeout')), 1000);
+            });
+
+            // Race between getting data and timeout
+            return await Promise.race([dataPromise, timeoutPromise]);
+        } catch {
+            // If we timeout or get an error, assume orientation is not available
+            return false;
+        }
     }
 
     private handleOrientationEvent(event: DeviceOrientationEvent): void {

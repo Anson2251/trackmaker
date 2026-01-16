@@ -92,3 +92,37 @@ export interface GeolocationProviderLike {
 export interface GeolocationProviderLikeConstructor {
 	new (handlerName: string): GeolocationProviderLike;
 }
+
+// New Architecture Types
+
+export type LocationSource = 'kalman' | 'gps' | 'ip';
+
+export interface LocationCallback {
+    (location: GeographicPoint, source: LocationSource): void;
+}
+
+import { Result } from 'neverthrow';
+import { GeolocationError } from '../error-handling/geolocation';
+
+export interface BackendStrategy {
+    readonly name: LocationSource;
+    initialize(): Promise<Result<void, GeolocationError>>;
+    isAvailable(): Promise<boolean>;
+    startWatching(callback: LocationCallback): Promise<Result<void, GeolocationError>>;
+    stopWatching(): Promise<Result<void, GeolocationError>>;
+    getCurrentPosition(): Promise<Result<GeographicPoint, GeolocationError>>;
+}
+
+export interface IMUReading {
+    timestamp: number;
+    acceleration?: { x: number; y: number; z: number };
+    gyroscope?: { x: number; y: number; z: number };
+    magnetometer?: { x: number; y: number; z: number };
+}
+
+export interface GPSReading {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    timestamp: number;
+}

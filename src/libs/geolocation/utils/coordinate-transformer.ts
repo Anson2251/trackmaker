@@ -6,6 +6,9 @@
 import { Projection, Point, transform } from 'proj4rs';
 import type { GeoCoordinate, ProjectedCoordinate } from '@/utils/proj4-distance';
 import { PROJECTIONS } from '@/utils/proj4-distance';
+import { GeographicPoint } from '../types';
+import gcoord from "gcoord";
+import { getEarlySetting } from '@/libs/default-settings';
 
 /**
  * Coordinate transformation options
@@ -23,11 +26,19 @@ export interface TransformOptions {
 export class CoordinateTransformer {
     private referencePoint: GeoCoordinate | null = null;
     private localProjection: string | null = null;
+    private geolocationCorrectionEnabled: boolean;
 
-    constructor(options: TransformOptions = {}) {
-        if (options.referencePoint) {
+    constructor(options?: TransformOptions) {
+        // Check if geolocation correction is enabled
+        this.geolocationCorrectionEnabled = this.getGeolocationCorrectionSetting();
+
+        if (options?.referencePoint) {
             this.setReferencePoint(options.referencePoint, options.projection);
         }
+    }
+
+    private getGeolocationCorrectionSetting(): boolean {
+        return getEarlySetting('geolocationCorrection') ?? false;
     }
 
     /**
@@ -170,6 +181,17 @@ export class CoordinateTransformer {
     public isInitialized(): boolean {
         return this.referencePoint !== null && this.localProjection !== null;
     }
+}
+
+/**
+ * Convert WGS84 coordinate to GCJ02 coordinate (China coordinate system)
+ * Simple pure transformation function
+ * @param location - WGS84 geographic point
+ * @returns GCJ02 corrected geographic point
+ */
+export function wgs2gcj(location: GeographicPoint): GeographicPoint {
+    const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
+    return new GeographicPoint(converted[1], converted[0]);
 }
 
 /**
