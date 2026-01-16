@@ -3,6 +3,8 @@ import {
   computed,
   nextTick,
   onBeforeUnmount,
+  onMounted,
+  onUnmounted,
   ref,
   shallowRef,
   watch,
@@ -25,6 +27,7 @@ import wangEditorToMarkdown from "@/utils/wangEditorToMarkdown";
 import markdownToHtml from "@/utils/markdownToHtml";
 import MarkdownViewer from "./MarkdownViewer.vue";
 import { i18nChangeLanguage } from "@wangeditor/editor";
+import { debounce } from "lodash-es";
 
 const { t, locale } = useI18n();
 i18nChangeLanguage(locale.value);
@@ -56,6 +59,7 @@ const emit = defineEmits<{
 
 const platformInfo = new PlatformInfo();
 const isMobile = computed(() => platformInfo.isMobile);
+const TOOLBAR_HEIGHT = 40;
 
 const themeVars = useThemeVars();
 
@@ -83,6 +87,29 @@ const showDrawer = ref(false);
 const editorRef = shallowRef();
 const descriptionInputRef = ref();
 const localValue = ref(props.modelValue);
+const keyboardHeight = ref(0);
+const visibleHeight = computed(() => window.innerHeight - keyboardHeight.value);
+
+const updateKeyboardHeight = () => {
+  let newKeyboardHeight = 0;
+  if (typeof window.visualViewport !== "undefined" && window.visualViewport) {
+    const viewport = window.visualViewport;
+    const windowHeight = window.innerHeight;
+    const viewportHeight = viewport.height;
+    // Calculate keyboard height (difference between window and visual viewport)
+    newKeyboardHeight = windowHeight - viewportHeight;
+  } else {
+    // Fallback for browsers without visualViewport API
+    // This is less reliable but can help in some cases
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.clientHeight;
+    newKeyboardHeight = Math.max(0, windowHeight - documentHeight);
+  }
+  // Only apply if keyboard is substantial (more than 50px)
+  // Also cap at reasonable height (max 400px)
+  keyboardHeight.value =
+    newKeyboardHeight > 50 ? Math.min(newKeyboardHeight, 400) : 0;
+};
 
 const startEditing = () => {
   isPreviewMode.value = false;
@@ -106,7 +133,9 @@ watch(
 // Only emit on blur or explicit save, not every keystroke
 const handleBlur = () => {
   emit("update:modelValue", localValue.value);
-  isPreviewMode.value = true;
+  setTimeout(() => {
+    isPreviewMode.value = true;
+  }, 50);
 };
 
 const openRichTextEditor = (e: Event) => {
@@ -146,11 +175,76 @@ const handleEditorCreated = (editor: any) => {
   }
 };
 
+// Visual viewport handling for mobile keyboard
+const setupVisualViewportListeners = () => {
+  if (typeof window.visualViewport !== "undefined" && window.visualViewport) {
+    const viewport = window.visualViewport;
+    viewport.addEventListener("resize", updateKeyboardHeight);
+  } else {
+    // Fallback for browsers without visualViewport
+    window.addEventListener("resize", updateKeyboardHeight);
+  }
+  // Initial calculation
+  updateKeyboardHeight();
+};
+
+const cleanupVisualViewportListeners = () => {
+  if (typeof window.visualViewport !== "undefined" && window.visualViewport) {
+    const viewport = window.visualViewport;
+    viewport.removeEventListener("resize", updateKeyboardHeight);
+  } else {
+    window.removeEventListener("resize", updateKeyboardHeight);
+  }
+  keyboardHeight.value = 0;
+};
+
+// Scroll prevention functions
+const preventPageScroll = () => {
+  document.body.style.overflow = "hidden";
+  document.body.style.position = "fixed";
+  document.body.style.width = "100%";
+  document.body.style.height = "100%";
+  window.addEventListener("scroll", handleScroll, { passive: false });
+};
+
+const restorePageScroll = () => {
+  document.body.style.overflow = "";
+  document.body.style.position = "";
+  document.body.style.width = "";
+  document.body.style.height = "";
+  window.removeEventListener("scroll", handleScroll);
+};
+
+const handleScroll = debounce((e: Event) => {
+  e.preventDefault();
+  window.scrollTo(0, 0);
+}, 100);
+
+// Set up listeners when drawer opens/closes
+watch(
+  () => showDrawer.value,
+  (newVal) => {
+    if (newVal) {
+      // Drawer opened
+      preventPageScroll();
+      nextTick(() => {
+        setupVisualViewportListeners();
+      });
+    } else {
+      // Drawer closed
+      restorePageScroll();
+      cleanupVisualViewportListeners();
+    }
+  }
+);
+
 // Destroy editor on unmount
 onBeforeUnmount(() => {
   if (editorRef.value) {
     editorRef.value.destroy();
   }
+  cleanupVisualViewportListeners();
+  restorePageScroll();
 });
 
 // Toolbar configuration
@@ -228,11 +322,19 @@ const editorConfig = {
       :placement="isMobile ? 'right' : 'right'"
       :mask-closable="true"
       :data-purpose="`wang-editor-${isMobile ? 'mobile' : 'desktop'}`"
+      :style="
+        isMobile
+          ? {
+              '--keyboard-height': `${keyboardHeight}px`,
+              '--visible-height': visibleHeight,
+            }
+          : {}
+      "
     >
       <n-drawer-content
         :title="t('markdownEditor.title')"
         :closable="!isMobile"
-        :style="{ height: '100%', padding: 0, flex: 1 }"
+        :style="{ height: `${visibleHeight}px`, padding: 0, flex: 1 }"
       >
         <!-- Mobile: Top buttons in header -->
         <template v-if="isMobile" #header>
@@ -280,6 +382,7 @@ const editorConfig = {
                 ? `1px solid ${themeVars.borderColor}`
                 : 'none',
               flex: 1,
+              paddingBottom: isMobile ? `${TOOLBAR_HEIGHT}px` : undefined,
             }"
           >
             <Editor
@@ -290,13 +393,14 @@ const editorConfig = {
               @onChange="handleEditorChange"
             />
           </div>
-          <Toolbar
-            v-if="isMobile"
-            :editor="editorRef"
-            :defaultConfig="toolbarConfig"
-            mode="simple"
-            :style="{ borderTop: `1px solid ${themeVars.borderColor}` }"
-          />
+          <div v-if="isMobile" class="mobile-toolbar-wrapper">
+            <Toolbar
+              :editor="editorRef"
+              :defaultConfig="toolbarConfig"
+              mode="simple"
+              :style="{ borderTop: `1px solid ${themeVars.borderColor}` }"
+            />
+          </div>
         </n-card>
 
         <!-- Desktop: Bottom buttons -->
@@ -350,9 +454,10 @@ div[data-purpose="wang-editor-mobile"] .w-e-bar-item-menus-container {
   position: fixed !important;
   left: 8px !important;
   right: 8px !important;
-  bottom: 52px !important; /* Position above the toolbar */
+  bottom: calc(52px + var(--keyboard-height, 0px)) !important;
   top: auto !important;
   max-width: calc(100vw - 16px) !important;
+  max-height: calc(var(--visible-height, 0px) - 48px) !important;
   width: calc(100vw - 16px) !important;
   transform: none !important;
 }
@@ -362,9 +467,10 @@ div[data-purpose="wang-editor-mobile"] .w-e-drop-panel {
   position: fixed !important;
   left: 8px !important;
   right: 8px !important;
-  bottom: 52px !important;
+  bottom: calc(52px + var(--keyboard-height, 0px)) !important;
   top: auto !important;
   max-width: calc(100vw - 16px) !important;
+  max-height: calc(var(--visible-height, 0px) - 48px) !important;
   transform: none !important;
 }
 
@@ -373,9 +479,10 @@ div[data-purpose="wang-editor-mobile"] .w-e-select-list {
   position: fixed !important;
   left: 8px !important;
   right: 8px !important;
-  bottom: 52px !important;
+  bottom: calc(52px + var(--keyboard-height, 0px)) !important;
   top: auto !important;
   max-width: calc(100vw - 16px) !important;
+  max-height: calc(var(--visible-height, 0px) - 48px) !important;
 }
 
 /* Ensure menu items are properly styled */
@@ -501,5 +608,18 @@ div[data-purpose="wang-editor-mobile"]
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.mobile-editor {
+  position: relative;
+}
+
+.mobile-toolbar-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--w-e-toolbar-bg-color);
+  z-index: 10;
 }
 </style>
