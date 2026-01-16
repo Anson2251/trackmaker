@@ -18,7 +18,7 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
     }
 
-    async init(permissionCallback?: (state: PermissionState) => Promise<void>): Promise<Result<void, GenericError>> {
+    async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
         if (this.initialized) {
             return ok(undefined);
         }
@@ -34,12 +34,12 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         }
 
         if (permissionResult.value === 'prompt' && permissionCallback) {
-            await permissionCallback(permissionResult.value);
+            const permitted = await permissionCallback(permissionResult.value, 'permission.imu.required');
             const recheckResult = await this.getPermissionStatus();
             if (recheckResult.isErr()) {
                 return err(recheckResult.error);
             }
-            if (recheckResult.value === 'denied') {
+            if (recheckResult.value === 'denied' || !permitted) {
                 return err(new GenericError('Device orientation permission denied'));
             }
         }
@@ -142,7 +142,7 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         return ok(undefined);
     }
 
-    async isSupported(): Promise<boolean> {
+    private async isSupported(): Promise<boolean> {
         // Check if the browser API exists
         if (!('DeviceOrientationEvent' in window)) {
             return false;

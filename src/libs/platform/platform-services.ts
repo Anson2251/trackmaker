@@ -33,6 +33,12 @@ export interface PlatformServicesConfig {
     permissions?: {
         onPermissionChange?: (provider: string, state: PermissionState) => void;
     };
+    deviceOrientation?: {
+        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
+    };
+    imu?: {
+        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
+    }
 }
 
 /**
@@ -52,21 +58,26 @@ export class PlatformServices {
         this.context = context;
     }
 
+    static async init(config?: PlatformServicesConfig): Promise<Result<PlatformServices, PlatformDetectionError>> {
+        const context = platformDetector.getPlatformContext();
+        const services = new PlatformServices(context);
+
+        // Initialize providers based on platform
+        const initResult = await services.initializeProviders(config);
+        if (initResult.isErr()) {
+            return err(initResult.error);
+        }
+
+        PlatformServices.instance = services;
+        return ok(services);
+    }
+
     /**
      * Get the singleton instance of PlatformServices
      */
-    static getInstance(config?: PlatformServicesConfig): Result<PlatformServices, PlatformDetectionError> {
+    static getInstance(): Result<PlatformServices, PlatformDetectionError> {
         if (!PlatformServices.instance) {
-            const context = platformDetector.getPlatformContext();
-            const services = new PlatformServices(context);
-
-            // Initialize providers based on platform
-            const initResult = services.initializeProviders(config);
-            if (initResult.isErr()) {
-                return err(initResult.error);
-            }
-
-            PlatformServices.instance = services;
+            return err(new PlatformDetectionError("Platform services not initialized", PlatformDetectionErrorCode.NOT_INITIALIZED))
         }
 
         return ok(PlatformServices.instance);
@@ -75,17 +86,20 @@ export class PlatformServices {
     /**
      * Initialize platform-specific providers
      */
-    private initializeProviders(config?: PlatformServicesConfig): Result<void, PlatformDetectionError> {
+    private async initializeProviders(config?: PlatformServicesConfig): Promise<Result<void, PlatformDetectionError>> {
         try {
             // Initialize storage provider
             this.storageProvider = this.createStorageProvider(config?.storage);
 
             // Initialize sensor providers first (needed for Kalman IMU fusion)
-            this.imuProvider = this.createIMUProvider();
-            this.deviceOrientationProvider = this.createDeviceOrientationProvider();
+            const providers = await Promise.all([
+                this.createIMUProvider(config?.imu),
+                this.createDeviceOrientationProvider(config?.deviceOrientation),
+            ])
 
-            // Initialize geolocation provider
-            this.geolocationProvider = this.createGeolocationProvider(config?.geolocation);
+            this.imuProvider = providers[0];
+            this.deviceOrientationProvider = providers[1];
+            this.geolocationProvider = await this.createGeolocationProvider(config?.geolocation);
 
             // Initialize file provider (placeholder for now)
             this.fileProvider = this.createFileProvider();
@@ -125,7 +139,7 @@ export class PlatformServices {
     /**
      * Create appropriate geolocation provider based on platform
      */
-    private createGeolocationProvider(geoConfig?: PlatformServicesConfig['geolocation']): IGeolocationProvider {
+    private async createGeolocationProvider(geoConfig?: PlatformServicesConfig['geolocation']): Promise<IGeolocationProvider> {
         // Create base provider based on platform
         let baseProvider: IGeolocationProvider;
 
@@ -145,12 +159,7 @@ export class PlatformServices {
         }
 
         // Initialize provider with permission callback if provided
-        if (geoConfig?.permissionCallback) {
-            const permissionCallback = geoConfig.permissionCallback;
-            void baseProvider.init(async (state: PermissionState, messageId: string) => {
-                return permissionCallback(state, messageId);
-            });
-        }
+        await baseProvider.init(geoConfig?.permissionCallback);
 
         return baseProvider;
     }
@@ -175,37 +184,24 @@ export class PlatformServices {
     /**
      * Create appropriate IMU provider based on platform
      */
-    private createIMUProvider(): IIMUProvider {
-        switch (this.context.environment) {
-            case RuntimeEnvironment.TAURI:
-                // TODO: Implement Tauri IMU provider when needed
-                // For now, return web provider as fallback
-                return new WebIMUProvider();
+    private async createIMUProvider(config: PlatformServicesConfig['imu']): Promise<IIMUProvider> {
+        // TODO: Implement Tauri IMU provider when needed
 
-            case RuntimeEnvironment.WEB:
-            case RuntimeEnvironment.MOBILE_WEB:
-            case RuntimeEnvironment.UNKNOWN:
-            default:
-                return new WebIMUProvider();
-        }
+        const provider = new WebIMUProvider();
+        await provider.init(config?.permissionCallback);
+        return provider;
     }
 
     /**
      * Create appropriate device orientation provider based on platform
      */
-    private createDeviceOrientationProvider(): IDeviceOrientationProvider {
-        switch (this.context.environment) {
-            case RuntimeEnvironment.TAURI:
-                // TODO: Implement Tauri device orientation provider when needed
-                // For now, return web provider as fallback
-                return new WebDeviceOrientationProvider();
+    private async createDeviceOrientationProvider(config: PlatformServicesConfig['deviceOrientation']): Promise<IDeviceOrientationProvider> {
+        // TODO: Implement Tauri device orientation provider when needed
 
-            case RuntimeEnvironment.WEB:
-            case RuntimeEnvironment.MOBILE_WEB:
-            case RuntimeEnvironment.UNKNOWN:
-            default:
-                return new WebDeviceOrientationProvider();
-        }
+        const provider = new WebDeviceOrientationProvider();
+        await provider.init(config?.permissionCallback);
+        return provider;
+
     }
 
     /**
@@ -326,8 +322,8 @@ export class PlatformServices {
 /**
  * Convenience function to get platform services
  */
-export function getPlatformServices(config?: PlatformServicesConfig): Result<PlatformServices, PlatformDetectionError> {
-    return PlatformServices.getInstance(config);
+export function getPlatformServices(): Result<PlatformServices, PlatformDetectionError> {
+    return PlatformServices.getInstance();
 }
 
 /**

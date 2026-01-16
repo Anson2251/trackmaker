@@ -233,7 +233,7 @@ export class WebIMUProvider implements IIMUProvider {
         return ok(undefined);
     }
 
-    async isSupported(): Promise<boolean> {
+    private async isSupported(): Promise<boolean> {
         // Check if the browser APIs exist
         if (!('DeviceOrientationEvent' in window) || !('DeviceMotionEvent' in window)) {
             return false;

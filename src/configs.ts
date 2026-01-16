@@ -5,7 +5,7 @@ import dataProviderInfo from "@/assets/data-provider.json";
 import { GeolocationManager } from './libs/geolocation';
 import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
-import { isTauri, getPlatformServices } from "@/libs/platform";
+import { isTauri, getPlatformServices, PlatformServices } from "@/libs/platform";
 import { initProj4rsModule } from "./utils/proj4-distance";
 import { isDebugModeEnabled } from '@/libs/default-settings';
 
@@ -68,8 +68,14 @@ export const modules: ModuleItem[] = [
                     return false;
                 };
 
-                const platformServicesResult = getPlatformServices({
+                const platformServicesResult = await PlatformServices.init({
                     geolocation: {
+                        permissionCallback: geoPermissionCallback
+                    },
+                    imu: {
+                        permissionCallback: geoPermissionCallback
+                    },
+                    deviceOrientation: {
                         permissionCallback: geoPermissionCallback
                     }
                 });

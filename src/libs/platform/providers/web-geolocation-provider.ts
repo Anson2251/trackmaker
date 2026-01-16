@@ -272,7 +272,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
         }
     }
 
-    isSupported(): boolean {
+    private isSupported(): boolean {
         return 'geolocation' in navigator;
     }
 

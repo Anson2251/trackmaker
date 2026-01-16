@@ -1,7 +1,7 @@
 import { Result, ok, err } from 'neverthrow';
 import { GeographicPoint } from '../types';
 import type { GPSReading, IMUReading, LocationCallback } from '../types';
-import { PureKalmanFilter } from './kalman-filter';
+import { PureKalmanFilter, type KalmanConfig } from './kalman-filter';
 import { IMUFusionManager } from './imu-fusion-manager';
 import { GeolocationError } from '../../error-handling/geolocation';
 import { Matrix } from 'ml-matrix';
@@ -16,11 +16,7 @@ export class LocationProcessor {
 
     constructor(
         callback: LocationCallback,
-        kalmanConfig: {
-            sigmaAcceleration: number;
-            initialPositionUncertainty: number;
-            initialVelocityUncertainty: number;
-        },
+        kalmanConfig: KalmanConfig,
         imuUpdateInterval: number = 100
     ) {
         this.kalmanFilter = new PureKalmanFilter(kalmanConfig);

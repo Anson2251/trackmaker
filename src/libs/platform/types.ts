@@ -120,7 +120,6 @@ export interface IGeolocationProvider {
     getCurrentPosition(): Promise<Result<GeolocationPosition, AppError>>;
     watchPosition(callback: PositionCallback, options?: { highFrequency?: boolean }): Promise<Result<number, AppError>>;
     clearWatch(watchId: number): Result<void, AppError>;
-    isSupported(): boolean;
 }
 
 /**
@@ -171,20 +170,18 @@ export interface IIMUProvider {
     onAccelerationReading(callback: (reading: IMUReading) => void): number;
     onGyroscopeReading(callback: (reading: IMUReading) => void): number;
     removeEventListener(id: number): Result<void, AppError>;
-    isSupported(): Promise<boolean>;
 }
 
 /**
  * Device orientation provider interface for platform-agnostic orientation operations
  */
 export interface IDeviceOrientationProvider {
-    init(permissionCallback?: (state: PermissionState) => Promise<void>): Promise<Result<void, AppError>>;
+    init(permissionCallback?: (state: PermissionState) => Promise<boolean>): Promise<Result<void, AppError>>;
     start(): Promise<Result<void, AppError>>;
     stop(): Result<void, AppError>;
     getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;
     onOrientationChange(callback: (orientation: DeviceOrientationReading) => void): number;
     removeEventListener(id: number): Result<void, AppError>;
-    isSupported(): Promise<boolean>;
 }
 
 /**

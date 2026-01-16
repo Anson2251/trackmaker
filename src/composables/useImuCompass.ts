@@ -34,6 +34,21 @@ export function useImuCompass(
     let orientationProvider: IDeviceOrientationProvider | null = null;
     let listenerId: number | null = null;
 
+    const platformResult = getPlatformServices();
+    if (platformResult.isErr()) {
+        throw platformResult.error;
+    }
+    const platformServices = platformResult.value;
+
+    const orientationResult = platformServices.getDeviceOrientation();
+    if (orientationResult.isErr()) {
+        isSupported.value = false;
+    }
+    else {
+        orientationProvider = orientationResult.value;
+        isSupported.value = true
+    }
+
     const orientationToBearing = (
         orientation: DeviceOrientationReading,
     ): number => {
@@ -57,35 +72,10 @@ export function useImuCompass(
         try {
             if (isTracking.value) return;
 
-            const platformResult = getPlatformServices();
-            if (platformResult.isErr()) {
-                throw platformResult.error;
-            }
-            const platformServices = platformResult.value;
-
-            const orientationResult = platformServices.getDeviceOrientation();
-            if (orientationResult.isErr()) {
-                throw orientationResult.error;
-            }
-            orientationProvider = orientationResult.value;
-
-            const orientationSupported = await orientationProvider.isSupported();
-            if (!orientationSupported) {
+            if (!isSupported.value || !orientationProvider) {
                 throw new Error(
                     "Device orientation is not supported on this device",
                 );
-            }
-
-            isSupported.value = true;
-
-            const initResult = await orientationProvider.init();
-            if (initResult.isErr()) {
-                throw initResult.error;
-            }
-
-            const startResult = await orientationProvider.start();
-            if (startResult.isErr()) {
-                throw startResult.error;
             }
 
             const wrappedCallback = (orientation: DeviceOrientationReading) => {

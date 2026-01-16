@@ -125,4 +125,6 @@ export interface GPSReading {
     longitude: number;
     accuracy: number;
     timestamp: number;
+    speed?: number;          // meters per second
+    heading?: number;        // degrees clockwise from true north
 }

@@ -217,7 +217,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
         }
     }
 
-    isSupported(): boolean {
+    private isSupported(): boolean {
         return __TAURI_ENVIRONMENT__;
     }
 

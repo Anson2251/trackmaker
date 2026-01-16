@@ -11,6 +11,8 @@ interface KalmanBackendConfig {
     initialPositionUncertainty: number;
     initialVelocityUncertainty: number;
     imuUpdateInterval: number;
+    gpsSpeedUncertainty?: number;
+    debugEnabled?: boolean;
 }
 
 export class KalmanBackend implements BackendStrategy {
@@ -26,7 +28,9 @@ export class KalmanBackend implements BackendStrategy {
             sigmaAcceleration: 1.0,
             initialPositionUncertainty: 20,
             initialVelocityUncertainty: 4,
-            imuUpdateInterval: 100
+            imuUpdateInterval: 100,
+            gpsSpeedUncertainty: 2.0,
+            debugEnabled: false
         }
     ) {}
 
@@ -64,7 +68,13 @@ export class KalmanBackend implements BackendStrategy {
 
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
-                this.config,
+                {
+                    sigmaAcceleration: this.config.sigmaAcceleration,
+                    initialPositionUncertainty: this.config.initialPositionUncertainty,
+                    initialVelocityUncertainty: this.config.initialVelocityUncertainty,
+                    gpsSpeedUncertainty: this.config.gpsSpeedUncertainty,
+                    debugEnabled: this.config.debugEnabled
+                },
                 this.config.imuUpdateInterval
             );
 
@@ -72,7 +82,9 @@ export class KalmanBackend implements BackendStrategy {
                 latitude: trailGeolocation.value.coords.latitude,
                 longitude: trailGeolocation.value.coords.longitude,
                 accuracy: trailGeolocation.value.coords.accuracy,
-                timestamp: performance.now()
+                timestamp: performance.now(),
+                speed: trailGeolocation.value.coords.speed ?? undefined,
+                heading: trailGeolocation.value.coords.heading ?? undefined
             });
             if (processorInitResult.isErr()) {
                 return processorInitResult;
@@ -122,7 +134,9 @@ export class KalmanBackend implements BackendStrategy {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                     accuracy: position.coords.accuracy,
-                    timestamp: performance.now()
+                    timestamp: performance.now(),
+                    speed: position.coords.speed ?? undefined,
+                    heading: position.coords.heading ?? undefined
                 };
                 void this.processor?.processGPSLocation(gpsReading);
             }, { highFrequency: true });
@@ -206,7 +220,9 @@ export class KalmanBackend implements BackendStrategy {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
                 accuracy: position.coords.accuracy,
-                timestamp: position.timestamp || performance.now()
+                timestamp: position.timestamp || performance.now(),
+                speed: position.coords.speed ?? undefined,
+                heading: position.coords.heading ?? undefined
             };
 
             await this.processor.processGPSLocation(gpsReading);
