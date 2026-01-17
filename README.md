@@ -19,7 +19,7 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 - **Map Drawing**: Pushpin support and drawing module integration with Terra Draw with undo/redo
 - **Route Management**: Record, track, export, and import routes
 - **Sketch Centre**: Route editing page with shape loading, management, and metadata editing
-- **Settings Page**: Theme customization, language selection (interface & map), geolocation settings, advanced settings with early access
+- **Settings Page**: Theme customization, language selection (interface & map), geolocation settings, advanced settings
 - **About Page**: Application information and credits
 - **Multi-platform**: Web app and Tauri desktop application
 - **Internationalization**: Support for multiple languages (English, Chinese, System Default)
@@ -36,6 +36,7 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 
 ### High Priority
 
+- [ ] **Accuracy-Weighted Route Optimization**: Store GPS accuracy (W3C spec) in route points and implement post-recording path optimization using accuracy as weights. Higher accuracy = higher weight = more influence on final path. Algorithm should minimize weighted distance to original points while penalizing excessive path length.
 - [x] Route distance calculation
 - [x] Route management module refactoring
 - [x] Bug fixes for the latest major version
