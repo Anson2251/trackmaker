@@ -101,7 +101,7 @@ const sideIconSize = ref(20);
               <n-p :depth="3" style="display: flex; align-items: center; gap: 12px">
                 <n-tag v-if="devMode" type="warning">DEV MODE</n-tag>
                 <n-tag v-else type="info">COMMIT</n-tag>
-                <n-code :code="devMode ? 'N/A' : commitId" language="bash" />
+                <n-code :code="commitId.length > 0 ? commitId : 'N/A'" />
               </n-p>
             </div>
           </div>
