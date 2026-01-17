@@ -3,7 +3,7 @@ import type { IMUReading } from '../types';
 import { GeolocationError } from '../../error-handling/geolocation';
 import { getPlatformServices } from '@/libs/platform';
 import type { IIMUProvider } from '@/libs/platform/types';
-import { getIMUUpdateFrequency } from '@/libs/default-settings';
+// import { getIMUUpdateFrequency } from '@/libs/default-settings';
 
 export class IMUFusionManager {
     private imuProvider: IIMUProvider | null = null;

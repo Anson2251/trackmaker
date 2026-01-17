@@ -11,7 +11,7 @@ export interface KalmanState {
 }
 
 export interface KalmanConfig {
-    sigmaAcceleration: number;
+    initialAccelerationUncertainty: number;
     initialPositionUncertainty: number;
     initialVelocityUncertainty: number;
     gpsSpeedUncertainty?: number; // meters per second
@@ -29,11 +29,11 @@ export class PureKalmanFilter {
 
     constructor(config: Partial<KalmanConfig>) {
         this.config = {
-            sigmaAcceleration: 0.1,
+            initialAccelerationUncertainty: 2,
             initialPositionUncertainty: 20,
             initialVelocityUncertainty: 10,
-            gpsSpeedUncertainty: 2.0,
-            imuAccelerationUncertainty: 4.0,
+            gpsSpeedUncertainty: 4.0,
+            imuAccelerationUncertainty: 0.5,
             ...config
         };
 
@@ -51,8 +51,8 @@ export class PureKalmanFilter {
                 [0, Math.pow(this.config.initialPositionUncertainty, 2), 0, 0, 0, 0],
                 [0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0, 0, 0],
                 [0, 0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0, 0],
-                [0, 0, 0, 0, Math.pow(this.config.sigmaAcceleration, 2), 0],
-                [0, 0, 0, 0, 0, Math.pow(this.config.sigmaAcceleration, 2)]
+                [0, 0, 0, 0, Math.pow(this.config.initialAccelerationUncertainty, 2), 0],
+                [0, 0, 0, 0, 0, Math.pow(this.config.initialAccelerationUncertainty, 2)]
             ]),
             timestamp: performance.now()
         };
@@ -90,7 +90,7 @@ export class PureKalmanFilter {
 
         const sigmaGPS = this.gpsAccuracyToSigma(gpsReading.accuracy);
         const velocityUncertainty = hasVelocity ? this.config.gpsSpeedUncertainty! : this.config.initialVelocityUncertainty;
-        const accelerationUncertainty = this.config.sigmaAcceleration;
+        const accelerationUncertainty = this.config.initialAccelerationUncertainty;
         this.state.covariance = new Matrix([
             [sigmaGPS * sigmaGPS, 0, 0, 0, 0, 0],
             [0, sigmaGPS * sigmaGPS, 0, 0, 0, 0],
@@ -186,7 +186,7 @@ export class PureKalmanFilter {
             [0, 0, 0, 0, 0, 1]
         ]);
 
-        const sigmaA = this.config.sigmaAcceleration;
+        const sigmaA = this.config.initialAccelerationUncertainty;
         const Q = new Matrix([
             [Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2, 0],
             [0, Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2],

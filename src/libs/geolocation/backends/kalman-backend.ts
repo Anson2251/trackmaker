@@ -69,7 +69,7 @@ export class KalmanBackend implements BackendStrategy {
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
                 {
-                    sigmaAcceleration: this.config.sigmaAcceleration,
+                    initialAccelerationUncertainty: this.config.sigmaAcceleration,
                     initialPositionUncertainty: this.config.initialPositionUncertainty,
                     initialVelocityUncertainty: this.config.initialVelocityUncertainty,
                     gpsSpeedUncertainty: this.config.gpsSpeedUncertainty,

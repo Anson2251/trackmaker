@@ -172,7 +172,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                 {
                     enableHighAccuracy: true,
                     timeout: 30000,
-                    maximumAge: 10000
+                    maximumAge: 0
                 }
             );
         });
@@ -220,6 +220,8 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                                 return;
                             }
 
+                            console.log('[Geolocation] Position updated:', newPos);
+
                             this.lastCompatibilityPosition = newPos;
 
                             // Notify all callbacks
@@ -232,7 +234,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                             }
                             this.lastCompatibilityUpdateTime = now;
                         }
-                    }, highFrequency ? 100 : gpsInterval);
+                    }, highFrequency ? 2000 : gpsInterval);
                 }
 
                 this.compatibilityModeWatches.set(watchId, this.compatibilityIntervalId);
