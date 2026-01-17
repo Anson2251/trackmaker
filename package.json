@@ -8,6 +8,7 @@
     "tauri": "TAURI_ENVIRONMENT=true tauri",
     "serve": "export RELEASE_MODE=false; vite dev --host",
     "build": "export RELEASE_MODE=true; vite build",
+    "build-dev": "export RELEASE_MODE=false; vite build",
     "preview": "vite preview",
     "lint": "pnpm dlx oxlint --type-aware",
     "build-preview": "pnpm run build; cd ./dist; python3 -m http.server 5173"

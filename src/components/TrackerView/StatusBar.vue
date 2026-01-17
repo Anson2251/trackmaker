@@ -12,7 +12,6 @@ import type Matrix from "ml-matrix";
 const { t } = useI18n();
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
-const devMode = !__RELEASE_MODE__;
 const routeStore = useRouteStore();
 
 interface Props {
@@ -138,7 +137,7 @@ const formattedVelocityAccuracy = computed(() => {
 <template>
   <!-- Mobile status bar positioned at bottom -->
   <div
-    v-if="isMobile || devMode"
+    v-if="isMobile"
     class="mobile-status-bar"
     :class="{ 'drawer-open': isRouteDrawerOpen }"
   >
@@ -206,7 +205,7 @@ const formattedVelocityAccuracy = computed(() => {
 
         <!-- Kalman State (dev mode only) -->
         <div
-          v-if="devMode && formattedCoordinates"
+          v-if="formattedCoordinates"
           class="status-item"
         >
           <n-text class="status-label">
@@ -218,7 +217,7 @@ const formattedVelocityAccuracy = computed(() => {
         </div>
 
         <div
-          v-if="devMode && formattedVelocity"
+          v-if="formattedVelocity"
           class="status-item"
         >
           <n-text class="status-label">
@@ -229,7 +228,7 @@ const formattedVelocityAccuracy = computed(() => {
           </n-text>
         </div>
         <div
-          v-if="devMode && formattedPositionAccuracy"
+          v-if="formattedPositionAccuracy"
           class="status-item"
         >
           <n-text class="status-label">
@@ -240,7 +239,7 @@ const formattedVelocityAccuracy = computed(() => {
           </n-text>
         </div>
         <div
-          v-if="devMode && formattedVelocityAccuracy"
+          v-if="formattedVelocityAccuracy"
           class="status-item"
         >
           <n-text class="status-label">
@@ -251,7 +250,7 @@ const formattedVelocityAccuracy = computed(() => {
           </n-text>
         </div>
         <div
-          v-if="devMode && formattedAcceleration"
+          v-if="formattedAcceleration"
           class="status-item"
         >
           <n-text class="status-label">
@@ -273,7 +272,8 @@ const formattedVelocityAccuracy = computed(() => {
   left: 0;
   right: 0;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding: 8px 16px;
   padding-bottom: 96px;

@@ -6,14 +6,20 @@ import { Result, ok, err } from 'neverthrow';
 import type { IDeviceOrientationProvider, DeviceOrientationReading } from '../types';
 import { GenericError } from '@/libs/error-handling';
 
+interface DeviceOrientationEventWithPermission {
+    requestPermission(): Promise<'granted' | 'denied' | 'prompt'>;
+}
+
 export class WebDeviceOrientationProvider implements IDeviceOrientationProvider {
     private initialized = false;
+    private initPromise: Promise<Result<void, GenericError>> | null = null;
     private isWatching = false;
     private listeners: Map<number, (orientation: DeviceOrientationReading) => void> = new Map();
     private nextListenerId = 0;
     private lastReading: DeviceOrientationReading | null = null;
     private boundHandleOrientationEvent: (event: DeviceOrientationEvent) => void;
-    private initPromise: Promise<Result<void, GenericError>> | null = null;
+    private disposed = false;
+    private orientationEventListenerCount = 0;
 
     constructor() {
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
@@ -38,56 +44,107 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         return result;
     }
 
-    async doInit(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
-        if (this.initialized) {
-            return ok(undefined);
+    private async doInit(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
+        if (this.disposed) {
+            return err(new GenericError('Device orientation provider has been disposed'));
         }
 
-        const supported = await this.isSupported();
-        if (!supported) {
-            return err(new GenericError('Device orientation is not supported by this browser'));
-        }
-
-        const permissionResult = await this.getPermissionStatus();
+        const permissionResult = await this.requestPermissionIfNeeded(permissionCallback);
         if (permissionResult.isErr()) {
             return err(permissionResult.error);
         }
 
-        if (permissionResult.value === 'prompt' && permissionCallback) {
-            const permitted = await permissionCallback(permissionResult.value, 'permission.imu.required');
-            const recheckResult = await this.getPermissionStatus();
-            if (recheckResult.isErr()) {
-                return err(recheckResult.error);
-            }
-            if (recheckResult.value === 'denied' || !permitted) {
-                return err(new GenericError('Device orientation permission denied'));
-            }
+        if (!await this.checkHardwareSupport()) {
+            return err(new GenericError('Device orientation is not supported by this browser'));
         }
 
         this.initialized = true;
         return ok(undefined);
     }
 
-    private async getPermissionStatus(): Promise<Result<PermissionState, GenericError>> {
+    private async requestPermissionIfNeeded(
+        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>
+    ): Promise<Result<void, GenericError>> {
         try {
-            // oxlint-disable-next-line no-unsafe-member-access
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-                // oxlint-disable-next-line no-unsafe-call no-unsafe-member-access
-                const permission = await (DeviceOrientationEvent as any).requestPermission();
-                if (permission === 'granted') {
-                    return ok('granted');
-                } else if (permission === 'denied') {
-                    return ok('denied');
+            if (typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof (DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission).requestPermission === 'function') {
+
+                let permission = "prompt"
+                try {
+                    permission = await (DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission).requestPermission();
                 }
-                return ok('prompt');
+                catch { }
+
+                if (permissionCallback && permission === 'prompt') {
+                    const userWantsToGrant = await permissionCallback('prompt', 'permission.device-orientation.required');
+                    if (!userWantsToGrant) {
+                        return err(new GenericError('User declined to grant device orientation permission'));
+                    }
+
+                    const newPermission = await (DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission).requestPermission();
+                    if (newPermission !== 'granted') {
+                        return err(new GenericError('Device orientation permission denied'));
+                    }
+                }
+                else if (permission === 'denied') {
+                    return err(new GenericError('Device orientation permission denied'));
+                }
+                else {
+                    return ok(undefined);
+                }
             }
-            return ok('granted');
-        } catch {
-            return ok('prompt');
+
+            return ok(undefined);
+        } catch (error) {
+            return err(new GenericError('Failed to request device orientation permission', undefined, error as Error));
         }
     }
 
+    private async checkHardwareSupport(): Promise<boolean> {
+        if (!('DeviceOrientationEvent' in window)) {
+            return false;
+        }
+
+        return new Promise<boolean>((resolve) => {
+            let resolved = false;
+
+            const cleanup = () => {
+                window.removeEventListener('deviceorientation', onOrientation);
+            };
+
+            const succeed = () => {
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    resolve(true);
+                }
+            };
+
+            const fail = () => {
+                if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    resolve(false);
+                }
+            };
+
+            const onOrientation = (event: DeviceOrientationEvent) => {
+                if (event.alpha !== null || event.beta !== null || event.gamma !== null) {
+                    succeed();
+                }
+            };
+
+            window.addEventListener('deviceorientation', onOrientation);
+
+            setTimeout(fail, 1000);
+        });
+    }
+
     async start(): Promise<Result<void, GenericError>> {
+        if (this.disposed) {
+            return err(new GenericError('Device orientation provider has been disposed'));
+        }
+
         if (!this.initialized) {
             const initResult = await this.init();
             if (initResult.isErr()) {
@@ -100,7 +157,10 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         }
 
         try {
-            window.addEventListener('deviceorientation', this.boundHandleOrientationEvent, true);
+            if (this.orientationEventListenerCount === 0) {
+                window.addEventListener('deviceorientation', this.boundHandleOrientationEvent, true);
+            }
+            this.orientationEventListenerCount++;
             this.isWatching = true;
             return ok(undefined);
         } catch (error) {
@@ -114,9 +174,13 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         }
 
         try {
-            window.removeEventListener('deviceorientation', this.boundHandleOrientationEvent, true);
+            this.orientationEventListenerCount--;
             this.isWatching = false;
             this.lastReading = null;
+
+            if (this.orientationEventListenerCount === 0) {
+                window.removeEventListener('deviceorientation', this.boundHandleOrientationEvent, true);
+            }
             return ok(undefined);
         } catch (error) {
             return err(new GenericError('Failed to stop device orientation', undefined, error as Error));
@@ -124,6 +188,10 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
     }
 
     async getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, GenericError>> {
+        if (this.disposed) {
+            return err(new GenericError('Device orientation provider has been disposed'));
+        }
+
         if (!this.initialized) {
             const initResult = await this.init();
             if (initResult.isErr()) {
@@ -138,12 +206,6 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
         const id = this.nextListenerId++;
         this.listeners.set(id, callback);
 
-        // Start watching if this is the first listener
-        if (!this.isWatching && this.listeners.size === 1) {
-            this.start().catch(console.error);
-        }
-
-        // Immediately call callback with last reading if available
         if (this.lastReading) {
             callback(this.lastReading);
         }
@@ -152,52 +214,29 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
     }
 
     removeEventListener(id: number): Result<void, GenericError> {
-        const removed = this.listeners.delete(id);
-
-        if (removed && this.listeners.size === 0) {
-            // Stop watching if there are no more listeners
-            this.stop();
-        }
-
+        this.listeners.delete(id);
         return ok(undefined);
     }
 
-    private async isSupported(): Promise<boolean> {
-        // Check if the browser API exists
-        if (!('DeviceOrientationEvent' in window)) {
-            return false;
+    dispose(): void {
+        if (this.disposed) {
+            return;
         }
 
-        try {
-            // Create a promise that resolves when we receive orientation data
-            const dataPromise = new Promise<boolean>((resolve) => {
-                const onOrientation = (event: DeviceOrientationEvent) => {
-                    if (event.alpha !== null || event.beta !== null || event.gamma !== null) {
-                        window.removeEventListener('deviceorientation', onOrientation);
-                        resolve(true);
-                    }
-                };
+        this.disposed = true;
 
-                // Add event listener
-                window.addEventListener('deviceorientation', onOrientation);
-            });
+        this.stop();
 
-            // Create a timeout promise that rejects after 1 second
-            const timeoutPromise = new Promise<boolean>((_, reject) => {
-                setTimeout(() => reject(new Error('Device orientation detection timeout')), 1000);
-            });
+        this.listeners.clear();
 
-            // Race between getting data and timeout
-            return await Promise.race([dataPromise, timeoutPromise]);
-        } catch {
-            // If we timeout or get an error, assume orientation is not available
-            return false;
-        }
+        this.initialized = false;
+        this.initPromise = null;
+        this.lastReading = null;
     }
 
     private handleOrientationEvent(event: DeviceOrientationEvent): void {
         if (event.alpha === null && event.beta === null && event.gamma === null) {
-            return; // Ignore null events
+            return;
         }
 
         const reading: DeviceOrientationReading = {
@@ -205,12 +244,11 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
             beta: event.beta ?? 0,
             gamma: event.gamma ?? 0,
             webkitCompassHeading: (event as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading,
-            timestamp: performance.now()
+            timestamp: event.timeStamp || performance.now()
         };
 
         this.lastReading = reading;
 
-        // Notify all listeners
         for (const callback of this.listeners.values()) {
             try {
                 callback(reading);

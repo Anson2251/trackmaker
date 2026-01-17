@@ -104,18 +104,29 @@ export class WebIMUProvider implements IIMUProvider {
             if (typeof DeviceMotionEvent !== 'undefined' &&
                 typeof (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission === 'function') {
 
-                const permission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
+
+                let permission = "prompt"
+                try {
+                    permission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
+                }
+                catch { }
 
                 if (permissionCallback && permission === 'prompt') {
                     const userWantsToGrant = await permissionCallback('prompt', 'permission.imu.required');
                     if (!userWantsToGrant) {
                         return err(new GenericError('User declined to grant IMU permission'));
                     }
-                }
 
-                const newPermission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
-                if (newPermission !== 'granted') {
+                    const newPermission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
+                    if (newPermission !== 'granted') {
+                        return err(new GenericError('IMU permission denied'));
+                    }
+                }
+                else if (permission === 'denied') {
                     return err(new GenericError('IMU permission denied'));
+                }
+                else {
+                    return ok(undefined);
                 }
             }
 

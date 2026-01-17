@@ -103,6 +103,9 @@ export const modules: ModuleItem[] = [
                     if (orientationInitResult.isErr()) {
                         console.warn("[Platform] DeviceOrientation not supported on this platform");
                     }
+                    else {
+                        await orientationProvider.start();
+                    }
                 }
 
                 const imuResult = platformServices.getIMU();
@@ -111,6 +114,10 @@ export const modules: ModuleItem[] = [
                     const imuInitResult = await imuProvider.init();
                     if (imuInitResult.isErr()) {
                         console.warn("[Platform] IMU not supported on this platform");
+                    }
+                    else {
+                        await imuProvider.startAcceleration();
+                        await imuProvider.startGyroscope();
                     }
                 }
 
