@@ -13,12 +13,32 @@ export class WebDeviceOrientationProvider implements IDeviceOrientationProvider 
     private nextListenerId = 0;
     private lastReading: DeviceOrientationReading | null = null;
     private boundHandleOrientationEvent: (event: DeviceOrientationEvent) => void;
+    private initPromise: Promise<Result<void, GenericError>> | null = null;
 
     constructor() {
         this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this);
     }
 
     async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
+        if (this.initialized) {
+            return ok(undefined);
+        }
+
+        if (this.initPromise) {
+            return this.initPromise;
+        }
+
+        this.initPromise = this.doInit(permissionCallback);
+        const result = await this.initPromise;
+
+        if (result.isErr()) {
+            this.initPromise = null;
+        }
+
+        return result;
+    }
+
+    async doInit(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GenericError>> {
         if (this.initialized) {
             return ok(undefined);
         }

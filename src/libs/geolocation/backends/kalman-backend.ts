@@ -241,6 +241,10 @@ export class KalmanBackend implements BackendStrategy {
         return this.processor ? this.processor.getLastKalmanGain() : null;
     }
 
+    getKalmanState() {
+        return this.processor ? this.processor.getKalmanState() : null;
+    }
+
     private handleLocationUpdate(location: GeographicPoint): void {
         if (this.userCallback) {
             try {

@@ -6,6 +6,8 @@ import { useI18n } from "vue-i18n";
 import PlatformInfo from "@/utils/platform";
 import { useRouteStore } from "@/store/route-store";
 import type { GeographicPoint } from "@/libs/geolocation/types";
+import type { KalmanState } from "@/libs/geolocation";
+import type Matrix from "ml-matrix";
 
 const { t } = useI18n();
 const platform = new PlatformInfo();
@@ -18,6 +20,8 @@ interface Props {
   recordTimespan?: number;
   isRouteDrawerOpen: boolean;
   currentLocation?: GeographicPoint;
+  kalmanState?: KalmanState;
+  kalmanGain?: Matrix | null;
 }
 
 const props = defineProps<Props>();
@@ -33,14 +37,19 @@ const routeDistance = computed(() => {
   return currentRoute.value.meta.distance;
 });
 
-// Kalman gain computation (simplified for display)
+// Kalman gain computation (use prop if available, otherwise placeholder)
 const kalmanGain = computed(() => {
-  // For now, return a placeholder value since the KalmanFilter doesn't expose the gain
-  // In a real implementation, you'd need to modify KalmanFilter to expose the current gain
-  if (!props.isRecording || !props.currentLocation) return null;
+  // Use prop if provided
+  if (props.kalmanGain !== undefined) {
+    if (!props.kalmanGain) return null;
+    // Compute norm of Kalman gain matrix for display
+    const values = props.kalmanGain.to1DArray();
+    const norm = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0));
+    return norm.toFixed(3);
+  }
 
-  // Placeholder: simulate a typical Kalman gain value (0-1 range)
-  // Higher values mean more trust in measurements, lower values mean more trust in predictions
+  // Fallback to placeholder
+  if (!props.isRecording || !props.currentLocation) return null;
   const accuracy = props.currentLocation.accuracy || 10;
   const gain = Math.max(0.1, Math.min(0.9, 1 / (1 + accuracy / 10)));
   return gain.toFixed(2);
@@ -71,6 +80,59 @@ function formatDistance(meters: number) {
     return `${(meters / 1000).toFixed(2)}km`;
   }
 }
+
+// Format Kalman state for display
+const formattedCoordinates = computed(() => {
+  if (!props.currentLocation) return null;
+  return `${props.currentLocation.latitude.toFixed(5)}, ${props.currentLocation.longitude.toFixed(5)}`;
+});
+
+const formattedVelocity = computed(() => {
+  if (!props.kalmanState) return null;
+  const speed = Math.sqrt(props.kalmanState.velocity.x ** 2 + props.kalmanState.velocity.y ** 2);
+  return `${speed.toFixed(1)} m/s`;
+});
+
+const formattedAcceleration = computed(() => {
+  if (!props.kalmanState) return null;
+  const accel = Math.sqrt(props.kalmanState.acceleration.x ** 2 + props.kalmanState.acceleration.y ** 2);
+  return `${accel.toFixed(6)} m/s²`;
+});
+
+// Compute 95% confidence radius from 2x2 covariance submatrix
+// r_95 = sqrt(lambda_max * chi2_2_0.95) where chi2_2_0.95 = 5.991
+function computeAccuracy95(covariance: Matrix | null, rowStart: number): number | null {
+  if (!covariance) return null;
+  const a = covariance.get(rowStart, rowStart);
+  const b = covariance.get(rowStart, rowStart + 1);
+  const c = covariance.get(rowStart + 1, rowStart);
+  const d = covariance.get(rowStart + 1, rowStart + 1);
+  const trace = a + d;
+  const det = a * d - b * c;
+  const discriminant = Math.max(trace * trace - 4 * det, 0);
+  const lambdaMax = (trace + Math.sqrt(discriminant)) / 2;
+  return Math.sqrt(lambdaMax * 5.991);
+}
+
+const positionAccuracy = computed(() => {
+  if (!props.kalmanState?.covariance) return null;
+  return computeAccuracy95(props.kalmanState.covariance, 0);
+});
+
+const velocityAccuracy = computed(() => {
+  if (!props.kalmanState?.covariance) return null;
+  return computeAccuracy95(props.kalmanState.covariance, 2);
+});
+
+const formattedPositionAccuracy = computed(() => {
+  if (positionAccuracy.value === null) return null;
+  return `±${positionAccuracy.value.toFixed(1)}m`;
+});
+
+const formattedVelocityAccuracy = computed(() => {
+  if (velocityAccuracy.value === null) return null;
+  return `±${velocityAccuracy.value.toFixed(1)}m/s`;
+});
 </script>
 
 <template>
@@ -110,6 +172,7 @@ function formatDistance(meters: number) {
           <n-text class="status-value">
             {{ formatDistance(routeDistance) }}
           </n-text>
+
         </div>
 
         <!-- Kalman Gain (if available and recording) -->
@@ -140,6 +203,64 @@ function formatDistance(meters: number) {
             {{ currentLocation ? 'GPS' : 'No GPS' }}
           </n-text>
         </div>
+
+        <!-- Kalman State (dev mode only) -->
+        <div
+          v-if="devMode && formattedCoordinates"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            Pos:
+          </n-text>
+          <n-text class="status-value">
+            {{ formattedCoordinates }}
+          </n-text>
+        </div>
+
+        <div
+          v-if="devMode && formattedVelocity"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            Vel:
+          </n-text>
+          <n-text class="status-value">
+            {{ formattedVelocity }}
+          </n-text>
+        </div>
+        <div
+          v-if="devMode && formattedPositionAccuracy"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            PosAcc:
+          </n-text>
+          <n-text class="status-value">
+            {{ formattedPositionAccuracy }}
+          </n-text>
+        </div>
+        <div
+          v-if="devMode && formattedVelocityAccuracy"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            VelAcc:
+          </n-text>
+          <n-text class="status-value">
+            {{ formattedVelocityAccuracy }}
+          </n-text>
+        </div>
+        <div
+          v-if="devMode && formattedAcceleration"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            Acc:
+          </n-text>
+          <n-text class="status-value">
+            {{ formattedAcceleration }}
+          </n-text>
+        </div>
       </n-space>
     </n-config-provider>
   </div>
@@ -147,14 +268,20 @@ function formatDistance(meters: number) {
 
 <style scoped>
 .mobile-status-bar {
+    position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding: 8px 16px;
+  padding-bottom: 96px;
+  transition: transform 0.3s ease-in-out;
 }
 
 .mobile-status-bar.drawer-open {
-  margin-bottom: 48px; /* Make space when drawer opens */
+  transform: translateY(128px);
 }
 
 .status-item {

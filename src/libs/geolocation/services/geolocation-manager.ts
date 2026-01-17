@@ -15,6 +15,7 @@ import { cloneDeep } from "lodash-es";
 import { isKalmanFilterEnabled } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
 import { getEarlySetting } from "@/libs/default-settings";
+import type { KalmanState } from "../kalman/kalman-filter";
 
 export interface LocationUpdateHandler {
     (location: GeographicPoint, ...args: unknown[]): void | Promise<void>;
@@ -36,6 +37,7 @@ export interface GeolocationManagerInterface {
     removeLocationListener(id: number): void;
     getCurrentBackend(): "kalman" | "gps" | "ip" | null;
     getLastKalmanGain(): Matrix | null;
+    getKalmanState(): KalmanState | null;
 }
 
 export class GeolocationManager implements GeolocationManagerInterface {
@@ -122,8 +124,6 @@ export class GeolocationManager implements GeolocationManagerInterface {
                     ),
                 );
             }
-
-            console.log("initialised")
 
             const testLocation = await this.backendManager.getCurrentPosition();
             if (testLocation.isOk()) {
@@ -338,6 +338,20 @@ export class GeolocationManager implements GeolocationManagerInterface {
             );
             if (kalmanBackend && "getLastKalmanGain" in kalmanBackend) {
                 return (kalmanBackend as KalmanBackend).getLastKalmanGain();
+            }
+        }
+        return null;
+    }
+
+    getKalmanState(): KalmanState | null {
+        const backend = this.backendManager.getActiveBackend();
+        if (backend === "kalman") {
+            // Get the KalmanBackend instance from backend manager
+            const kalmanBackend = this.backendManager.strategies.find(
+                (s) => s.name === "kalman",
+            );
+            if (kalmanBackend && "getKalmanState" in kalmanBackend) {
+                return (kalmanBackend as KalmanBackend).getKalmanState();
             }
         }
         return null;

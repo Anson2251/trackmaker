@@ -5,6 +5,7 @@ import { CoordinateTransformer } from '../utils/coordinate-transformer';
 export interface KalmanState {
     position: { x: number; y: number };
     velocity: { x: number; y: number };
+    acceleration: { x: number; y: number };
     covariance: Matrix;
     timestamp: number;
 }
@@ -14,6 +15,7 @@ export interface KalmanConfig {
     initialPositionUncertainty: number;
     initialVelocityUncertainty: number;
     gpsSpeedUncertainty?: number; // meters per second
+    imuAccelerationUncertainty?: number; // meters per second squared
     debugEnabled?: boolean;
 }
 
@@ -29,13 +31,11 @@ export class PureKalmanFilter {
         this.config = {
             sigmaAcceleration: 0.1,
             initialPositionUncertainty: 20,
-            initialVelocityUncertainty: 4,
+            initialVelocityUncertainty: 10,
             gpsSpeedUncertainty: 2.0,
-            debugEnabled: false,
+            imuAccelerationUncertainty: 4.0,
             ...config
         };
-
-        this.debugEnabled = this.config.debugEnabled!;
 
         this.coordinateTransformer = new CoordinateTransformer();
         this.state = this.createInitialState();
@@ -45,11 +45,14 @@ export class PureKalmanFilter {
         return {
             position: { x: 0, y: 0 },
             velocity: { x: 0, y: 0 },
+            acceleration: { x: 0, y: 0 },
             covariance: new Matrix([
-                [Math.pow(this.config.initialPositionUncertainty, 2), 0, 0, 0],
-                [0, Math.pow(this.config.initialPositionUncertainty, 2), 0, 0],
-                [0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0],
-                [0, 0, 0, Math.pow(this.config.initialVelocityUncertainty, 2)]
+                [Math.pow(this.config.initialPositionUncertainty, 2), 0, 0, 0, 0, 0],
+                [0, Math.pow(this.config.initialPositionUncertainty, 2), 0, 0, 0, 0],
+                [0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0, 0, 0],
+                [0, 0, 0, Math.pow(this.config.initialVelocityUncertainty, 2), 0, 0],
+                [0, 0, 0, 0, Math.pow(this.config.sigmaAcceleration, 2), 0],
+                [0, 0, 0, 0, 0, Math.pow(this.config.sigmaAcceleration, 2)]
             ]),
             timestamp: performance.now()
         };
@@ -78,7 +81,7 @@ export class PureKalmanFilter {
         this.state.timestamp = gpsReading.timestamp;
 
         // Set initial velocity from GPS if available
-        const hasVelocity = gpsReading.speed !== undefined && gpsReading.speed !== null && 
+        const hasVelocity = gpsReading.speed !== undefined && gpsReading.speed !== null &&
                            gpsReading.heading !== undefined && gpsReading.heading !== null;
         if (hasVelocity) {
             const velocity = this.gpsVelocityToLocal(gpsReading.speed!, gpsReading.heading!);
@@ -87,11 +90,14 @@ export class PureKalmanFilter {
 
         const sigmaGPS = this.gpsAccuracyToSigma(gpsReading.accuracy);
         const velocityUncertainty = hasVelocity ? this.config.gpsSpeedUncertainty! : this.config.initialVelocityUncertainty;
+        const accelerationUncertainty = this.config.sigmaAcceleration;
         this.state.covariance = new Matrix([
-            [sigmaGPS * sigmaGPS, 0, 0, 0],
-            [0, sigmaGPS * sigmaGPS, 0, 0],
-            [0, 0, velocityUncertainty * velocityUncertainty, 0],
-            [0, 0, 0, velocityUncertainty * velocityUncertainty]
+            [sigmaGPS * sigmaGPS, 0, 0, 0, 0, 0],
+            [0, sigmaGPS * sigmaGPS, 0, 0, 0, 0],
+            [0, 0, velocityUncertainty * velocityUncertainty, 0, 0, 0],
+            [0, 0, 0, velocityUncertainty * velocityUncertainty, 0, 0],
+            [0, 0, 0, 0, accelerationUncertainty * accelerationUncertainty, 0],
+            [0, 0, 0, 0, 0, accelerationUncertainty * accelerationUncertainty]
         ]);
 
         if (this.debugEnabled) {
@@ -136,9 +142,13 @@ export class PureKalmanFilter {
         if (!this.isInitialized) return;
 
         const dt = (imuReading.timestamp - this.state.timestamp) / 1000;
-        if (dt > 0 && imuReading.acceleration) {
-            this.predictInternal(dt, imuReading.acceleration);
+        if (dt > 0) {
+            this.predictInternal(dt);
             this.state.timestamp = imuReading.timestamp;
+        }
+
+        if (imuReading.acceleration) {
+            this.updateIMUInternal(imuReading.acceleration);
         }
     }
 
@@ -166,61 +176,56 @@ export class PureKalmanFilter {
         return this.isInitialized;
     }
 
-    private predictInternal(dt: number, acceleration?: { x: number; y: number }): void {
+    private predictInternal(dt: number): void {
         const F = new Matrix([
-            [1, 0, dt, 0],
-            [0, 1, 0, dt],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]
-        ]);
-
-        const B = new Matrix([
-            [0.5 * dt * dt, 0],
-            [0, 0.5 * dt * dt],
-            [dt, 0],
-            [0, dt]
-        ]);
-
-        const u = new Matrix([
-            [acceleration ? acceleration.x : 0],
-            [acceleration ? acceleration.y : 0]
+            [1, 0, dt, 0, 0.5 * dt * dt, 0],
+            [0, 1, 0, dt, 0, 0.5 * dt * dt],
+            [0, 0, 1, 0, dt, 0],
+            [0, 0, 0, 1, 0, dt],
+            [0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 1]
         ]);
 
         const sigmaA = this.config.sigmaAcceleration;
         const Q = new Matrix([
-            [Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0],
-            [0, Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2],
-            [Math.pow(dt, 3) / 2, 0, dt * dt, 0],
-            [0, Math.pow(dt, 3) / 2, 0, dt * dt]
+            [Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2, 0],
+            [0, Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2],
+            [Math.pow(dt, 3) / 2, 0, dt * dt, 0, dt, 0],
+            [0, Math.pow(dt, 3) / 2, 0, dt * dt, 0, dt],
+            [Math.pow(dt, 2) / 2, 0, dt, 0, 1, 0],
+            [0, Math.pow(dt, 2) / 2, 0, dt, 0, 1]
         ]).mul(sigmaA * sigmaA);
 
         const x = new Matrix([
             [this.state.position.x],
             [this.state.position.y],
             [this.state.velocity.x],
-            [this.state.velocity.y]
+            [this.state.velocity.y],
+            [this.state.acceleration.x],
+            [this.state.acceleration.y]
         ]);
 
-        const xPred = F.mmul(x).add(B.mmul(u));
+        const xPred = F.mmul(x);
         const PPred = F.mmul(this.state.covariance).mmul(F.transpose()).add(Q);
 
         if (this.debugEnabled && dt > 0.1) {
-            // Log significant predictions (dt > 100ms)
             const covTrace = PPred.trace();
             const posVar = Math.sqrt(PPred.get(0, 0) + PPred.get(1, 1));
             const velVar = Math.sqrt(PPred.get(2, 2) + PPred.get(3, 3));
+            const accVar = Math.sqrt(PPred.get(4, 4) + PPred.get(5, 5));
             console.log('[KalmanFilter] Prediction:', {
                 dt,
                 sigmaA,
                 covarianceTrace: covTrace,
                 positionUncertainty: posVar,
                 velocityUncertainty: velVar,
-                acceleration: acceleration ? { x: acceleration.x, y: acceleration.y } : null
+                accelerationUncertainty: accVar
             });
         }
 
         this.state.position = { x: xPred.get(0, 0), y: xPred.get(1, 0) };
         this.state.velocity = { x: xPred.get(2, 0), y: xPred.get(3, 0) };
+        this.state.acceleration = { x: xPred.get(4, 0), y: xPred.get(5, 0) };
         this.state.covariance = PPred;
     }
 
@@ -231,19 +236,24 @@ export class PureKalmanFilter {
         });
 
         // Check if GPS provides velocity information
-        const hasVelocity = gpsReading.speed !== undefined && gpsReading.speed !== null && 
+        const hasVelocity = gpsReading.speed !== undefined && gpsReading.speed !== null &&
                            gpsReading.heading !== undefined && gpsReading.heading !== null;
-        
+
         // Create observation matrix
         let H: Matrix;
         if (hasVelocity) {
-            // Observe both position and velocity
-            H = Matrix.identity(4, 4);
+            // Observe both position and velocity (not acceleration)
+            H = new Matrix([
+                [1, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0]
+            ]);
         } else {
             // Observe only position
             H = new Matrix([
-                [1, 0, 0, 0],
-                [0, 1, 0, 0]
+                [1, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0]
             ]);
         }
 
@@ -282,9 +292,12 @@ export class PureKalmanFilter {
             ]);
         }
 
+        const epsilon = 1e-6;
         const HPred = H.mmul(this.state.covariance).mmul(H.transpose());
         const S = HPred.add(R);
-        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(S));
+        // Add small epsilon to diagonal to ensure invertibility
+        const Sreg = S.add(Matrix.identity(S.rows, S.columns).mul(epsilon));
+        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
 
         this.lastKalmanGain = K;
 
@@ -304,20 +317,22 @@ export class PureKalmanFilter {
             [this.state.position.x],
             [this.state.position.y],
             [this.state.velocity.x],
-            [this.state.velocity.y]
+            [this.state.velocity.y],
+            [this.state.acceleration.x],
+            [this.state.acceleration.y]
         ]);
 
         const y = z.subtract(H.mmul(x));
         const xUpdated = x.add(K.mmul(y));
-        const I = Matrix.identity(4, 4);
+        const I = Matrix.identity(6, 6);
         const PUpdated = I.subtract(K.mmul(H)).mmul(this.state.covariance);
 
         // Add small epsilon to diagonal to ensure positive definiteness
-        const epsilon = 1e-6;
-        const PStabilized = PUpdated.add(Matrix.identity(4, 4).mul(epsilon));
+        const PStabilized = PUpdated.add(Matrix.identity(6, 6).mul(epsilon));
 
         this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
         this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
+        this.state.acceleration = { x: xUpdated.get(4, 0), y: xUpdated.get(5, 0) };
         this.state.covariance = PStabilized;
     }
 
@@ -325,7 +340,9 @@ export class PureKalmanFilter {
         // HTML5 Geolocation API spec: accuracy is "the radius of 95% confidence"
         // Convert to standard deviation (sigma): σ = accuracy / sqrt(2 * ln(20))
         // For 1D Gaussian: P(|X| < accuracy) = 0.95 => σ² = accuracy² / (2 * ln(20))
-        return accuracy / Math.sqrt(2 * Math.log(20));
+        const minAccuracy = 1.0; // Minimum 1 meter accuracy to avoid singular matrices
+        const effectiveAccuracy = Math.max(accuracy, minAccuracy);
+        return effectiveAccuracy / Math.sqrt(2 * Math.log(20));
     }
 
     private gpsVelocityToLocal(speed: number, heading: number): { x: number; y: number } {
@@ -336,5 +353,63 @@ export class PureKalmanFilter {
         const vEast = speed * Math.sin(headingRad);
         const vNorth = speed * Math.cos(headingRad);
         return { x: vEast, y: vNorth };
+    }
+
+    private updateIMUInternal(acceleration: { x: number; y: number }): void {
+        // IMU measures acceleration directly
+        const H = new Matrix([
+            [0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 1]
+        ]);
+
+        const z = new Matrix([
+            [acceleration.x],
+            [acceleration.y]
+        ]);
+
+        // Measurement noise for IMU acceleration
+        const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty!, 0.1);
+        const epsilon = 1e-6;
+        const R = new Matrix([
+            [sigmaAcc * sigmaAcc, 0],
+            [0, sigmaAcc * sigmaAcc]
+        ]);
+
+        const HPred = H.mmul(this.state.covariance).mmul(H.transpose());
+        const S = HPred.add(R);
+        // Add small epsilon to diagonal to ensure invertibility
+        const Sreg = S.add(Matrix.identity(S.rows, S.columns).mul(epsilon));
+        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
+
+        this.lastKalmanGain = K;
+
+        if (this.debugEnabled) {
+            console.log('[KalmanFilter] IMU update:', {
+                acceleration: { x: acceleration.x, y: acceleration.y },
+                kalmanGain: K.to2DArray(),
+                gainNorm: Math.sqrt(K.to1DArray().reduce((sum, val) => sum + val * val, 0))
+            });
+        }
+
+        const x = new Matrix([
+            [this.state.position.x],
+            [this.state.position.y],
+            [this.state.velocity.x],
+            [this.state.velocity.y],
+            [this.state.acceleration.x],
+            [this.state.acceleration.y]
+        ]);
+
+        const y = z.subtract(H.mmul(x));
+        const xUpdated = x.add(K.mmul(y));
+        const I = Matrix.identity(6, 6);
+        const PUpdated = I.subtract(K.mmul(H)).mmul(this.state.covariance);
+
+        const PStabilized = PUpdated.add(Matrix.identity(6, 6).mul(epsilon));
+
+        this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
+        this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
+        this.state.acceleration = { x: xUpdated.get(4, 0), y: xUpdated.get(5, 0) };
+        this.state.covariance = PStabilized;
     }
 }

@@ -15,7 +15,7 @@ export const defaultSettings: Settings = {
     // Advanced settings (Firefox config style)
     debugMode: false,
     maxCacheSize: 100,
-    gpsUpdateInterval: 1000,
+    gpsUpdateInterval: 500,
     mapTileServer: 'maptiler',
     customMapTileUrl: '',
     mapTilerApiKey: '',

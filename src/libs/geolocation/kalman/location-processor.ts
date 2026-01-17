@@ -192,6 +192,10 @@ export class LocationProcessor {
         return this.kalmanFilter.getLastKalmanGain();
     }
 
+    getKalmanState() {
+        return this.kalmanFilter.getState();
+    }
+
     isProcessorInitialized(): boolean {
         return this.isInitialized;
     }

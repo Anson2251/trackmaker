@@ -226,7 +226,7 @@ export class PlatformDetector {
                         ...baseConfig.geolocation,
                         timeout: 20000,
                         maximumAge: 5000,
-                        enableHighAccuracy: false
+                        enableHighAccuracy: true
                     }
                 };
 

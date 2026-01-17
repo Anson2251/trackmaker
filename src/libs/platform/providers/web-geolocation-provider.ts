@@ -12,9 +12,30 @@ export class WebGeolocationProvider implements IGeolocationProvider {
     private compatibilityModeWatches = new Map<number, number>();
     private compatibilityModeCallbacks = new Map<number, PositionCallback>();
     private lastCompatibilityPosition: { lat: number; lng: number, acc: number } | null = null;
+    private lastCompatibilityUpdateTime: number = 0;
     private compatibilityIntervalId: number | null = null;
+    private initPromise: Promise<Result<void, GeolocationProviderError>> | null = null;
 
     async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GeolocationProviderError>> {
+        if (this.initialized) {
+            return ok(undefined);
+        }
+
+        if (this.initPromise) {
+            return this.initPromise;
+        }
+
+        this.initPromise = this.doInit(permissionCallback);
+        const result = await this.initPromise;
+
+        if (result.isErr()) {
+            this.initPromise = null;
+        }
+
+        return result;
+    }
+
+    async doInit(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GeolocationProviderError>> {
         if (this.initialized) {
             return ok(undefined);
         }
@@ -84,7 +105,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                         resolve(ok('prompt'));
                     }
                 },
-                { timeout: 5000, maximumAge: Infinity, enableHighAccuracy: false }
+                { timeout: 5000, maximumAge: Infinity, enableHighAccuracy: true }
             );
         });
     }
@@ -186,9 +207,12 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                         if (result.isOk()) {
                             const pos = result.value;
                             const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+                            const now = Date.now();
+                            const forceUpdate = !highFrequency && (now - this.lastCompatibilityUpdateTime > gpsInterval);
 
                             // Skip if position hasn't changed (deduplication)
-                            if (this.lastCompatibilityPosition &&
+                            // Always update in high frequency mode for Kalman filter
+                            if (!forceUpdate && !highFrequency && this.lastCompatibilityPosition &&
                                 this.lastCompatibilityPosition.lat === newPos.lat &&
                                 this.lastCompatibilityPosition.lng === newPos.lng &&
                                 this.lastCompatibilityPosition.acc === newPos.acc
@@ -206,6 +230,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                                     console.error('[Geolocation] Callback error:', error);
                                 }
                             }
+                            this.lastCompatibilityUpdateTime = now;
                         }
                     }, highFrequency ? 100 : gpsInterval);
                 }

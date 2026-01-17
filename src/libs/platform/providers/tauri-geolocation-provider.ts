@@ -108,7 +108,7 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
                         resolve(ok('prompt'));
                     }
                 },
-                { timeout: 5000, maximumAge: Infinity, enableHighAccuracy: false }
+                { timeout: 5000, maximumAge: Infinity, enableHighAccuracy: true }
             );
         });
     }

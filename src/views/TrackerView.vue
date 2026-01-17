@@ -50,6 +50,7 @@ import { isArray } from "lodash-es";
 import type { Position } from "gcoord";
 import { shouldShowCompass, shouldKeepScreenOn, getMapTileServer, getMapTilerApiKey, getCustomMapTileUrl, getAutoRecenterTimeout, getDefaultMapZoomLevel } from "@/libs/default-settings";
 import { onBeforeRouteLeave } from "vue-router";
+import type { KalmanState } from "@/libs/geolocation";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -379,8 +380,14 @@ const showCompass = computed(() => shouldShowCompass() || isMobile || devMode);
 
 // Computed property to get Kalman gain for dev mode
 let kalmanGain = ref<Matrix | null>(null);
-setInterval(() => {
+let kalmanState = ref<KalmanState | null>(null);
+const kalmanUpdateInterval = setInterval(() => {
   kalmanGain.value = locator.getLastKalmanGain();
+  kalmanState.value = locator.getKalmanState();
+});
+
+onBeforeUnmount(() => {
+  clearInterval(kalmanUpdateInterval);
 });
 
 let latestBearing = 0;
@@ -629,18 +636,6 @@ watch(
                   : (deviceBearing - mapStore.bearing) % 360
               "
             />
-
-            <!-- Kalman Gain Debug Bar (Dev Mode Only) -->
-            <div v-if="devMode" class="kalman-gain-bar">
-              <span class="kalman-gain-label">Kalman Gain:</span>
-              <span class="kalman-gain-value">
-                {{
-                  kalmanGain
-                    ? (kalmanGain.get(0, 0) * kalmanGain.get(1, 1)).toFixed(6)
-                    : "N/A"
-                }}
-              </span>
-            </div>
           </MapContainer>
 
           <!-- Map Compass -->
@@ -712,11 +707,13 @@ watch(
     />
 
     <!-- Mobile status bar positioned at bottom -->
-    <StatusBar
+    <StatusBar v-if="devMode && kalmanState"
       :is-recording="routeStore.isRecording"
       :record-timespan="routeStore.currentRouteRecordTimespan"
       :is-route-drawer-open="isRouteDrawerOpen"
       :current-location="locator.getLastKnownLocation()"
+      :kalman-state="kalmanState"
+      :kalman-gain="kalmanGain"
     />
 
     <!-- Sketch Selector Drawer -->
@@ -796,31 +793,5 @@ watch(
   stroke: #075985;
   fill: #0369a1;
   color: #075985;
-}
-
-.kalman-gain-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.75);
-  color: #00ff00;
-  padding: 4px 8px;
-  font-family: monospace;
-  font-size: 11px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  backdrop-filter: blur(4px);
-}
-
-.kalman-gain-label {
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.kalman-gain-value {
-  color: #00ff00;
 }
 </style>
