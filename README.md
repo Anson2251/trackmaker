@@ -15,17 +15,24 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 
 ✅ **Implemented Features:**
 
-- **Route Tracking**: Real-time geolocation tracking with MapLibre GL JS support
-- **Map Drawing**: Pushpin support and drawing module integration with Terra Draw
+- **Route Tracking**: Real-time geolocation tracking with MapLibre GL JS support and Kalman filter for improved accuracy
+- **Map Drawing**: Pushpin support and drawing module integration with Terra Draw with undo/redo
 - **Route Management**: Record, track, export, and import routes
-- **Sketch Centre**: Basic route editing page with shape loading and management
-- **Settings Page**: Theme customization, language selection (interface & map), geolocation settings
+- **Sketch Centre**: Route editing page with shape loading, management, and metadata editing
+- **Settings Page**: Theme customization, language selection (interface & map), geolocation settings, advanced settings with early access
 - **About Page**: Application information and credits
 - **Multi-platform**: Web app and Tauri desktop application
-- **Internationalization**: Support for multiple languages (English, Chinese)
+- **Internationalization**: Support for multiple languages (English, Chinese, System Default)
 - **Storage**: Persistent data storage using IndexedDB and Tauri Store
+- **Mobile Support**: Responsive mobile layout with touch-optimized controls
+- **Sensor Support**: IMU sensor integration for device orientation tracking
+- **Rich Text Editing**: Markdown and rich text editor for route notes and descriptions
 
 ## Todo
+
+### Urgent
+
+- [ ] **Write-Ahead Log (WAL) Architecture**: Refactor tracking feature to use WAL + Merge architecture for improved performance during GPS recording. See [`docs/write-ahead-log-architecture.md`](./docs/write-ahead-log-architecture.md) for full design specification.
 
 ### High Priority
 
@@ -33,12 +40,15 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 - [x] Route management module refactoring
 - [x] Bug fixes for the latest major version
 - [x] Dead Reckoning (DR) system for better geolocation accuracy
-- [ ] Edit routes functionality
+- [x] Edit routes functionality
    - [x] History of drawing actions for Redo and Undo
    - [ ] MarkDown notes with images
 - [x] Implement keep alive feature for the web app
 - [x] Save shape edits on the map
 - [x] Widgets for editing and modifying shape information
+- [x] Feature edit popover with inline editing
+- [x] Kalman filter with GPS velocity integration for improved tracking
+- [x] Advanced settings system with early access support
 - [ ] Share routes capability
 
 
@@ -46,7 +56,10 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 
 - [ ] Pin with note functionality
 - [x] Multiple tracks with note/tags system
-- [ ] Enhanced Tauri geolocation support
+- [x] Enhanced Tauri geolocation support
+- [x] IMU sensor support for device orientation tracking
+- [x] Mobile responsive design improvements
+- [x] Drawing tools with delete mode
 
 ## Technology Stack
 
@@ -56,28 +69,51 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 - **UI Framework**: Naive UI
 - **Desktop**: Tauri 2.x
 - **Storage**: IndexedDB, LocalForage, Tauri Store
-- **Geolocation**: Browser Geolocation API, Tauri Geolocation Plugin
+- **Geolocation**: Browser Geolocation API, Tauri Geolocation Plugin, Kalman Filter for GPS accuracy
+- **Sensors**: IMU sensor integration (Accelerometer, Gyroscope, Device Orientation)
 - **Build Tool**: Vite
 - **Internationalization**: Vue I18n
+- **Text Editing**: WangEditor for rich text, Markdown support
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Vue components
-├── composables/        # Vue composables
-├── libs/              # Library modules
-│   ├── cartosketch/   # CartoSketch drawing system
-│   ├── geolocation/   # Geolocation services
-│   └── store/         # Storage implementations
-├── locales/           # Internationalization files
-├── router/            # Vue Router configuration
-├── store/            # Pinia stores
-├── utils/            # Utility functions
-└── views/            # Main application views
+├── composables/         # Vue composables (useTerraDraw, useImuCompass, etc.)
+├── libs/                # Library modules
+│   ├── cartosketch/     # CartoSketch drawing system
+│   ├── geolocation/     # Geolocation services with Kalman filter
+│   ├── map-backends/    # Map backend implementations
+│   └── store/           # Storage implementations
+├── locales/             # Internationalization files
+├── router/              # Vue Router configuration
+├── store/               # Pinia stores
+├── utils/               # Utility functions
+├── views/               # Main application views
+└── libs/                # Platform services (IMU, Geolocation, Permissions)
 ```
 
 ## Notice
+
+### About the Dev Branch Merge
+
+The `dev` branch is **frozen for feature development** and will be merged to `main` after bug fixing. This update introduces significant improvements:
+
+**Major New Features:**
+
+- **Enhanced Geolocation**: Upgraded 6D Kalman filter with GPS velocity integration apart from position for improved tracking accuracy
+- **Advanced Settings**: New settings management system with early access features
+- **Rich Text Editing**: WangEditor integration for route notes and descriptions
+- **Mobile Responsiveness**: Complete mobile layout overhaul with touch-optimized controls
+- **Drawing Tools**: Undo/redo support and delete mode for map drawings
+- **System Language**: Auto-detect system language preference
+
+**Architecture Improvements:**
+
+- Backend refactoring for geolocation services with modular architecture
+- Singleton pattern for IMU and geolocation managers
+- Platform services abstraction layer
 
 ### About the inaccurate map data
 
@@ -89,7 +125,7 @@ This project is still under development. Many features are being implemented.
 
 - **DEV Branch:**
 
-   This [online demo](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo-dev` branch) is for experimental use only. It is now automatically built with the latest code on the `dev` branch. Some features may not work properly.
+   This [online demo](https://anson2251.github.io/trackmaker/) (on the `gh-page-demo-dev` branch) is currently in **feature freeze**. It contains the latest features that will be merged to main after bug fixing. Some features may not work properly during this phase.
 
 - **Main Branch:**
 
@@ -109,6 +145,10 @@ This application requires modern browser features including:
 - IndexedDB
 - ES6+ JavaScript features
 - Web Workers
+- Device Orientation API (for IMU features on mobile devices)
+- Permissions API (for geolocation and sensor access)
+
+> **Note**: IMU sensor features (device orientation tracking) are primarily supported on mobile browsers and require explicit user permission.
 
 ## Development
 
@@ -185,4 +225,4 @@ Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 
 ---
 
-Last update: Aug. 31, 2025.
+Last update: Jan. 18, 2026.
