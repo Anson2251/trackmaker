@@ -36,6 +36,8 @@ import MapContainer from "@/components/TrackerView/MapContainer.vue";
 import MapControls from "@/components/TrackerView/MapControls.vue";
 import DrawingTools from "@/components/TrackerView/DrawingTools.vue";
 import LocationMarker from "@/components/TrackerView/LocationMarker.vue";
+import VelocityMarker from "@/components/TrackerView/VelocityMarker.vue";
+import AccelerationMarker from "@/components/TrackerView/AccelerationMarker.vue";
 import RecordingButton from "@/components/TrackerView/RecordingButton.vue";
 import StatusBar from "@/components/TrackerView/StatusBar.vue";
 import BuildingLayerToggle from "@/components/TrackerView/BuildingLayerToggle.vue";
@@ -635,6 +637,18 @@ watch(
                   ? 0
                   : (deviceBearing - mapStore.bearing) % 360
               "
+            />
+
+            <!-- Velocity Marker -->
+            <VelocityMarker
+              v-if="devMode"
+              :is-watching-current-location="isWatchingCurrentLocation"
+            />
+
+            <!-- Acceleration Marker -->
+            <AccelerationMarker
+              v-if="devMode"
+              :is-watching-current-location="isWatchingCurrentLocation"
             />
           </MapContainer>
 

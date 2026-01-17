@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { NCard, NStatistic, NAlert, NButton } from 'naive-ui';
+import { NCard, NStatistic, NAlert, NButton, useThemeVars } from 'naive-ui';
 import { GeolocationManager } from '@/libs/geolocation';
 import { getPlatformServices } from '@/libs/platform/platform-services';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
@@ -11,6 +11,7 @@ import type { GeographicPoint } from '@/libs/geolocation/types';
 
 const { t } = useI18n();
 const router = useRouter();
+const theme = useThemeVars();
 
 // Platform services
 let imuProvider: IIMUProvider | null = null;
@@ -234,6 +235,11 @@ const goBack = () => {
   router.back();
 };
 
+const formatNumberString = (value: string) => {
+  if (value.trim().startsWith('-')) return value;
+  return `+${value}`;
+}
+
 </script>
 
 <template>
@@ -352,17 +358,18 @@ const goBack = () => {
             <div class="xyz-row">
               <NStatistic
                 :label="t('sensorTest.deviceMotion.acceleration.x')"
-                :value="accelerationData.x.toFixed(3)"
+                :value="formatNumberString(accelerationData.x.toFixed(3))"
                 suffix="m/s²"
+
               />
               <NStatistic
                 :label="t('sensorTest.deviceMotion.acceleration.y')"
-                :value="accelerationData.y.toFixed(3)"
+                :value="formatNumberString(accelerationData.y.toFixed(3))"
                 suffix="m/s²"
               />
               <NStatistic
                 :label="t('sensorTest.deviceMotion.acceleration.z')"
-                :value="accelerationData.z.toFixed(3)"
+                :value="formatNumberString(accelerationData.z.toFixed(3))"
                 suffix="m/s²"
               />
             </div>
@@ -384,17 +391,17 @@ const goBack = () => {
             <div class="xyz-row">
               <NStatistic
                 :label="t('sensorTest.deviceMotion.gyroscope.x')"
-                :value="gyroscopeData.x.toFixed(3)"
+                :value="formatNumberString(gyroscopeData.x.toFixed(3))"
                 suffix="rad/s"
               />
               <NStatistic
                 :label="t('sensorTest.deviceMotion.gyroscope.y')"
-                :value="gyroscopeData.y.toFixed(3)"
+                :value="formatNumberString(gyroscopeData.y.toFixed(3))"
                 suffix="rad/s"
               />
               <NStatistic
                 :label="t('sensorTest.deviceMotion.gyroscope.z')"
-                :value="gyroscopeData.z.toFixed(3)"
+                :value="formatNumberString(gyroscopeData.z.toFixed(3))"
                 suffix="rad/s"
               />
             </div>
@@ -481,6 +488,11 @@ const goBack = () => {
 </style>
 
 <style scoped>
+.demo-container:deep(.n-statistic-value__content) {
+  font-family: v-bind('theme.fontFamilyMono') !important;
+  font-size: 16px !important;
+}
+
 .sensor-demo-header {
   display: flex;
   align-items: center;

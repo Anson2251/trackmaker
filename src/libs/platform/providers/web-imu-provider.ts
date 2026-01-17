@@ -469,7 +469,7 @@ export class WebIMUProvider implements IIMUProvider {
      * R = Rz(alpha) * Ry(gamma) * Rx(beta)
      */
     private updateRotationMatrices(orientation: { alpha: number; beta: number; gamma: number }): void {
-        const alpha = orientation.alpha * WebIMUProvider.DEG_TO_RAD;
+        const alpha = ((orientation.alpha + 270) % 360) * WebIMUProvider.DEG_TO_RAD;
         const beta = orientation.beta * WebIMUProvider.DEG_TO_RAD;
         const gamma = orientation.gamma * WebIMUProvider.DEG_TO_RAD;
 
@@ -482,15 +482,15 @@ export class WebIMUProvider implements IIMUProvider {
         this.matrixRz.set(1, 0, sa); this.matrixRz.set(1, 1, ca); this.matrixRz.set(1, 2, 0);
         this.matrixRz.set(2, 0, 0); this.matrixRz.set(2, 1, 0); this.matrixRz.set(2, 2, 1);
 
-        // Ry (roll - 绕 Y 轴)
-        this.matrixRy.set(0, 0, cg); this.matrixRy.set(0, 1, 0); this.matrixRy.set(0, 2, sg);
+        // Ry (beta - rotation around Y axis)
+        this.matrixRy.set(0, 0, cb); this.matrixRy.set(0, 1, 0); this.matrixRy.set(0, 2, sb);
         this.matrixRy.set(1, 0, 0); this.matrixRy.set(1, 1, 1); this.matrixRy.set(1, 2, 0);
-        this.matrixRy.set(2, 0, -sg); this.matrixRy.set(2, 1, 0); this.matrixRy.set(2, 2, cg);
+        this.matrixRy.set(2, 0, -sb); this.matrixRy.set(2, 1, 0); this.matrixRy.set(2, 2, cb);
 
-        // Rx (pitch - 绕 X 轴)
+        // Rx (gamma - rotation around X axis)
         this.matrixRx.set(0, 0, 1); this.matrixRx.set(0, 1, 0); this.matrixRx.set(0, 2, 0);
-        this.matrixRx.set(1, 0, 0); this.matrixRx.set(1, 1, cb); this.matrixRx.set(1, 2, -sb);
-        this.matrixRx.set(2, 0, 0); this.matrixRx.set(2, 1, sb); this.matrixRx.set(2, 2, cb);
+        this.matrixRx.set(1, 0, 0); this.matrixRx.set(1, 1, cg); this.matrixRx.set(1, 2, -sg);
+        this.matrixRx.set(2, 0, 0); this.matrixRx.set(2, 1, sg); this.matrixRx.set(2, 2, cg);
 
         // R = Rz * Ry * Rx
         // calc Rz * Ry -> matrixRTemp
