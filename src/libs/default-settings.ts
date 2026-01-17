@@ -24,6 +24,7 @@ export const defaultSettings: Settings = {
     keepScreenOn: true,
     enableKalmanFilter: true,
     mapZoomLevel: 15,
+    imuUpdateFrequency: 10,
 };
 
 // Advanced settings configuration (for UI display)
@@ -138,6 +139,12 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Default Map Zoom Level',
         type: 'number',
         description: 'Default zoom level when opening the map',
+    },
+    {
+        key: 'imuUpdateFrequency',
+        name: 'IMU Update Frequency (Hz)',
+        type: 'number',
+        description: 'Update frequency for IMU sensors (0 = immediate, 10-20Hz recommended)',
     },
 ];
 
@@ -286,5 +293,12 @@ export function getCustomMapTileUrl(): string {
  */
 export function getMapTilerApiKey(): string {
     return getEarlySetting('mapTilerApiKey');
+}
+
+/**
+ * Get IMU update frequency in Hz
+ */
+export function getIMUUpdateFrequency(): number {
+    return getEarlySetting('imuUpdateFrequency');
 }
 

@@ -27,6 +27,24 @@ export class WebIMUProvider implements IIMUProvider {
     private motionEventListenerCount = 0;
     private disposed = false;
 
+    // Rate limiting configuration
+    private accelerationIntervalMs = 0;
+    private gyroscopeIntervalMs = 0;
+    private accelerationPrevReading: IMUReading | null = null;
+    private accelerationAccumulatedX = 0;
+    private accelerationAccumulatedY = 0;
+    private accelerationAccumulatedZ = 0;
+    private accelerationAccumulatedTime = 0;
+    private accelerationLastEmitTime = 0;
+    private gyroscopePrevReading: IMUReading | null = null;
+    private gyroscopeAccumulatedX = 0;
+    private gyroscopeAccumulatedY = 0;
+    private gyroscopeAccumulatedZ = 0;
+    private gyroscopeAccumulatedTime = 0;
+    private gyroscopeLastEmitTime = 0;
+    private accelerationTimer: number | null = null;
+    private gyroscopeTimer: number | null = null;
+
     private readonly boundHandleMotionEvent: (event: DeviceMotionEvent) => void;
     private readonly boundHandleOrientationEvent: (event: DeviceOrientationEvent) => void;
 
@@ -201,6 +219,17 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         this.normalizeAccelerationToENU = options.normalizeToENU ?? false;
+        this.accelerationIntervalMs = options.frequency && options.frequency > 0 ? Math.floor(1000 / options.frequency) : 0;
+        this.accelerationPrevReading = null;
+        this.accelerationAccumulatedX = 0;
+        this.accelerationAccumulatedY = 0;
+        this.accelerationAccumulatedZ = 0;
+        this.accelerationAccumulatedTime = 0;
+        this.accelerationLastEmitTime = 0;
+        if (this.accelerationTimer !== null) {
+            clearTimeout(this.accelerationTimer);
+            this.accelerationTimer = null;
+        }
 
         try {
             if (this.motionEventListenerCount === 0) {
@@ -231,6 +260,17 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         this.normalizeGyroscopeToENU = options.normalizeToENU ?? false;
+        this.gyroscopeIntervalMs = options.frequency && options.frequency > 0 ? Math.floor(1000 / options.frequency) : 0;
+        this.gyroscopePrevReading = null;
+        this.gyroscopeAccumulatedX = 0;
+        this.gyroscopeAccumulatedY = 0;
+        this.gyroscopeAccumulatedZ = 0;
+        this.gyroscopeAccumulatedTime = 0;
+        this.gyroscopeLastEmitTime = 0;
+        if (this.gyroscopeTimer !== null) {
+            clearTimeout(this.gyroscopeTimer);
+            this.gyroscopeTimer = null;
+        }
 
         try {
             if (this.motionEventListenerCount === 0) {
@@ -254,6 +294,17 @@ export class WebIMUProvider implements IIMUProvider {
             this.isAccelerationActive = false;
             this.lastAccelerationReading = null;
             this.normalizeAccelerationToENU = false;
+            this.accelerationIntervalMs = 0;
+            this.accelerationPrevReading = null;
+            this.accelerationAccumulatedX = 0;
+            this.accelerationAccumulatedY = 0;
+            this.accelerationAccumulatedZ = 0;
+            this.accelerationAccumulatedTime = 0;
+            this.accelerationLastEmitTime = 0;
+            if (this.accelerationTimer !== null) {
+                clearTimeout(this.accelerationTimer);
+                this.accelerationTimer = null;
+            }
 
             if (this.motionEventListenerCount === 0) {
                 window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
@@ -274,6 +325,17 @@ export class WebIMUProvider implements IIMUProvider {
             this.isGyroscopeActive = false;
             this.lastGyroscopeReading = null;
             this.normalizeGyroscopeToENU = false;
+            this.gyroscopeIntervalMs = 0;
+            this.gyroscopePrevReading = null;
+            this.gyroscopeAccumulatedX = 0;
+            this.gyroscopeAccumulatedY = 0;
+            this.gyroscopeAccumulatedZ = 0;
+            this.gyroscopeAccumulatedTime = 0;
+            this.gyroscopeLastEmitTime = 0;
+            if (this.gyroscopeTimer !== null) {
+                clearTimeout(this.gyroscopeTimer);
+                this.gyroscopeTimer = null;
+            }
 
             if (this.motionEventListenerCount === 0) {
                 window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
@@ -388,6 +450,178 @@ export class WebIMUProvider implements IIMUProvider {
         }
     }
 
+    private addAccelerationReading(reading: IMUReading): void {
+        if (this.accelerationIntervalMs === 0) {
+            this.lastAccelerationReading = reading;
+            this.notifyListeners(this.accelerationListeners, reading, 'acceleration');
+            return;
+        }
+
+        if (this.accelerationPrevReading === null) {
+            this.accelerationPrevReading = reading;
+            this.accelerationAccumulatedX = reading.x;
+            this.accelerationAccumulatedY = reading.y;
+            this.accelerationAccumulatedZ = reading.z;
+            this.accelerationAccumulatedTime = 0;
+            this.accelerationLastEmitTime = reading.timestamp;
+            if (this.accelerationTimer === null) {
+                this.accelerationTimer = window.setTimeout(() => this.flushAccelerationReadings(), this.accelerationIntervalMs);
+            }
+            return;
+        }
+
+        const deltaTime = reading.timestamp - this.accelerationPrevReading.timestamp;
+        if (deltaTime <= 0) {
+            this.accelerationPrevReading = reading;
+            return;
+        }
+
+        this.accelerationAccumulatedX += reading.x * deltaTime;
+        this.accelerationAccumulatedY += reading.y * deltaTime;
+        this.accelerationAccumulatedZ += reading.z * deltaTime;
+        this.accelerationAccumulatedTime += deltaTime;
+
+        if (reading.timestamp - this.accelerationLastEmitTime >= this.accelerationIntervalMs) {
+            this.flushAccelerationReadings();
+            this.accelerationPrevReading = reading;
+            this.accelerationAccumulatedX = reading.x;
+            this.accelerationAccumulatedY = reading.y;
+            this.accelerationAccumulatedZ = reading.z;
+            this.accelerationAccumulatedTime = 0;
+            this.accelerationLastEmitTime = reading.timestamp;
+            if (this.accelerationTimer !== null) {
+                clearTimeout(this.accelerationTimer);
+            }
+            this.accelerationTimer = window.setTimeout(() => this.flushAccelerationReadings(), this.accelerationIntervalMs);
+        } else {
+            this.accelerationPrevReading = reading;
+        }
+    }
+
+    private flushAccelerationReadings(): void {
+        if (this.accelerationPrevReading === null) {
+            if (this.accelerationTimer !== null) {
+                clearTimeout(this.accelerationTimer);
+                this.accelerationTimer = null;
+            }
+            return;
+        }
+
+        let reading: IMUReading;
+        if (this.accelerationAccumulatedTime === 0) {
+            reading = this.accelerationPrevReading;
+        } else {
+            const avgX = this.accelerationAccumulatedX / this.accelerationAccumulatedTime;
+            const avgY = this.accelerationAccumulatedY / this.accelerationAccumulatedTime;
+            const avgZ = this.accelerationAccumulatedZ / this.accelerationAccumulatedTime;
+            reading = {
+                x: avgX,
+                y: avgY,
+                z: avgZ,
+                timestamp: this.accelerationPrevReading.timestamp
+            };
+        }
+
+        this.lastAccelerationReading = reading;
+        this.notifyListeners(this.accelerationListeners, reading, 'acceleration');
+
+        this.accelerationPrevReading = null;
+        this.accelerationAccumulatedX = 0;
+        this.accelerationAccumulatedY = 0;
+        this.accelerationAccumulatedZ = 0;
+        this.accelerationAccumulatedTime = 0;
+        if (this.accelerationTimer !== null) {
+            clearTimeout(this.accelerationTimer);
+            this.accelerationTimer = null;
+        }
+    }
+
+    private addGyroscopeReading(reading: IMUReading): void {
+        if (this.gyroscopeIntervalMs === 0) {
+            this.lastGyroscopeReading = reading;
+            this.notifyListeners(this.gyroscopeListeners, reading, 'gyroscope');
+            return;
+        }
+
+        if (this.gyroscopePrevReading === null) {
+            this.gyroscopePrevReading = reading;
+            this.gyroscopeAccumulatedX = reading.x;
+            this.gyroscopeAccumulatedY = reading.y;
+            this.gyroscopeAccumulatedZ = reading.z;
+            this.gyroscopeAccumulatedTime = 0;
+            this.gyroscopeLastEmitTime = reading.timestamp;
+            if (this.gyroscopeTimer === null) {
+                this.gyroscopeTimer = window.setTimeout(() => this.flushGyroscopeReadings(), this.gyroscopeIntervalMs);
+            }
+            return;
+        }
+
+        const deltaTime = reading.timestamp - this.gyroscopePrevReading.timestamp;
+        if (deltaTime <= 0) {
+            this.gyroscopePrevReading = reading;
+            return;
+        }
+
+        this.gyroscopeAccumulatedX += reading.x * deltaTime;
+        this.gyroscopeAccumulatedY += reading.y * deltaTime;
+        this.gyroscopeAccumulatedZ += reading.z * deltaTime;
+        this.gyroscopeAccumulatedTime += deltaTime;
+
+        if (reading.timestamp - this.gyroscopeLastEmitTime >= this.gyroscopeIntervalMs) {
+            this.flushGyroscopeReadings();
+            this.gyroscopePrevReading = reading;
+            this.gyroscopeAccumulatedX = reading.x;
+            this.gyroscopeAccumulatedY = reading.y;
+            this.gyroscopeAccumulatedZ = reading.z;
+            this.gyroscopeAccumulatedTime = 0;
+            this.gyroscopeLastEmitTime = reading.timestamp;
+            if (this.gyroscopeTimer !== null) {
+                clearTimeout(this.gyroscopeTimer);
+            }
+            this.gyroscopeTimer = window.setTimeout(() => this.flushGyroscopeReadings(), this.gyroscopeIntervalMs);
+        } else {
+            this.gyroscopePrevReading = reading;
+        }
+    }
+
+    private flushGyroscopeReadings(): void {
+        if (this.gyroscopePrevReading === null) {
+            if (this.gyroscopeTimer !== null) {
+                clearTimeout(this.gyroscopeTimer);
+                this.gyroscopeTimer = null;
+            }
+            return;
+        }
+
+        let reading: IMUReading;
+        if (this.gyroscopeAccumulatedTime === 0) {
+            reading = this.gyroscopePrevReading;
+        } else {
+            const avgX = this.gyroscopeAccumulatedX / this.gyroscopeAccumulatedTime;
+            const avgY = this.gyroscopeAccumulatedY / this.gyroscopeAccumulatedTime;
+            const avgZ = this.gyroscopeAccumulatedZ / this.gyroscopeAccumulatedTime;
+            reading = {
+                x: avgX,
+                y: avgY,
+                z: avgZ,
+                timestamp: this.gyroscopePrevReading.timestamp
+            };
+        }
+
+        this.lastGyroscopeReading = reading;
+        this.notifyListeners(this.gyroscopeListeners, reading, 'gyroscope');
+
+        this.gyroscopePrevReading = null;
+        this.gyroscopeAccumulatedX = 0;
+        this.gyroscopeAccumulatedY = 0;
+        this.gyroscopeAccumulatedZ = 0;
+        this.gyroscopeAccumulatedTime = 0;
+        if (this.gyroscopeTimer !== null) {
+            clearTimeout(this.gyroscopeTimer);
+            this.gyroscopeTimer = null;
+        }
+    }
+
     private processAccelerationData(event: DeviceMotionEvent, timestamp: number): void {
         let acc = event.acceleration;
         let needsGravityRemoval = false;
@@ -419,8 +653,7 @@ export class WebIMUProvider implements IIMUProvider {
             reading = { x, y, z, timestamp };
         }
 
-        this.lastAccelerationReading = reading;
-        this.notifyListeners(this.accelerationListeners, reading, 'acceleration');
+        this.addAccelerationReading(reading);
     }
 
     private processGyroscopeData(event: DeviceMotionEvent, timestamp: number): void {
@@ -446,8 +679,7 @@ export class WebIMUProvider implements IIMUProvider {
             reading = { x, y, z, timestamp };
         }
 
-        this.lastGyroscopeReading = reading;
-        this.notifyListeners(this.gyroscopeListeners, reading, 'gyroscope');
+        this.addGyroscopeReading(reading);
     }
 
     private notifyListeners(
@@ -469,7 +701,7 @@ export class WebIMUProvider implements IIMUProvider {
      * R = Rz(alpha) * Ry(gamma) * Rx(beta)
      */
     private updateRotationMatrices(orientation: { alpha: number; beta: number; gamma: number }): void {
-        const alpha = ((orientation.alpha + 270) % 360) * WebIMUProvider.DEG_TO_RAD;
+        const alpha = orientation.alpha * WebIMUProvider.DEG_TO_RAD;
         const beta = orientation.beta * WebIMUProvider.DEG_TO_RAD;
         const gamma = orientation.gamma * WebIMUProvider.DEG_TO_RAD;
 

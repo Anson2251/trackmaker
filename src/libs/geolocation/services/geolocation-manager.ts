@@ -12,9 +12,8 @@ import { GPSBackend } from "../backends/gps-backend";
 import { IPFallbackBackend } from "../backends/ip-fallback-backend";
 import { KalmanBackend } from "../backends/kalman-backend";
 import { cloneDeep } from "lodash-es";
-import { isKalmanFilterEnabled } from "@/libs/default-settings";
+import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
-import { getEarlySetting } from "@/libs/default-settings";
 import type { KalmanState } from "../kalman/kalman-filter";
 
 export interface LocationUpdateHandler {
@@ -55,7 +54,16 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
         // Include Kalman backend only if enabled in settings
         if (isKalmanFilterEnabled()) {
-            strategies.push(new KalmanBackend());
+            const frequency = getIMUUpdateFrequency();
+            const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
+            strategies.push(new KalmanBackend({
+                imuUpdateInterval,
+                sigmaAcceleration: 1.0,
+                initialPositionUncertainty: 20,
+                initialVelocityUncertainty: 4,
+                gpsSpeedUncertainty: 2.0,
+                debugEnabled: false
+            }));
         }
 
         // Always include GPS backend

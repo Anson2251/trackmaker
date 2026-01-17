@@ -3,6 +3,7 @@ import type { IMUReading } from '../types';
 import { GeolocationError } from '../../error-handling/geolocation';
 import { getPlatformServices } from '@/libs/platform';
 import type { IIMUProvider } from '@/libs/platform/types';
+import { getIMUUpdateFrequency } from '@/libs/default-settings';
 
 export class IMUFusionManager {
     private imuProvider: IIMUProvider | null = null;
@@ -66,15 +67,15 @@ export class IMUFusionManager {
 
         try {
             // Start IMU sensors with ENU normalization for consistent coordinate system
-            const accelResult = await this.imuProvider.startAcceleration({ frequency: 10, normalizeToENU: true });
-            if (accelResult.isErr()) {
-                console.warn('[IMUFusionManager] Failed to start acceleration sensor:', accelResult.error);
-            }
+            // const accelResult = await this.imuProvider.startAcceleration({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
+            // if (accelResult.isErr()) {
+            //     console.warn('[IMUFusionManager] Failed to start acceleration sensor:', accelResult.error);
+            // }
 
-            const gyroResult = await this.imuProvider.startGyroscope({ frequency: 10, normalizeToENU: true });
-            if (gyroResult.isErr()) {
-                console.warn('[IMUFusionManager] Failed to start gyroscope sensor:', gyroResult.error);
-            }
+            // const gyroResult = await this.imuProvider.startGyroscope({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
+            // if (gyroResult.isErr()) {
+            //     console.warn('[IMUFusionManager] Failed to start gyroscope sensor:', gyroResult.error);
+            // }
 
             // Register callback
             this.imuCallbacks.push(callback);

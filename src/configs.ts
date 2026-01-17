@@ -7,7 +7,7 @@ import { createApp, type App } from "vue";
 import { createPinia } from "pinia";
 import { isTauri, getPlatformServices, PlatformServices } from "@/libs/platform";
 import { initProj4rsModule } from "./utils/proj4-distance";
-import { isDebugModeEnabled } from '@/libs/default-settings';
+import { getIMUUpdateFrequency, isDebugModeEnabled } from '@/libs/default-settings';
 
 // Extend Window interface for our custom properties
 declare global {
@@ -116,8 +116,8 @@ export const modules: ModuleItem[] = [
                         console.warn("[Platform] IMU not supported on this platform");
                     }
                     else {
-                        await imuProvider.startAcceleration();
-                        await imuProvider.startGyroscope();
+                        await imuProvider.startAcceleration({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
+                        await imuProvider.startGyroscope({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
                     }
                 }
 

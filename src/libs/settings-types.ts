@@ -22,6 +22,7 @@ export type Settings = {
     keepScreenOn: boolean;
     enableKalmanFilter: boolean;
     mapZoomLevel: number;
+    imuUpdateFrequency: number;
 };
 
 export type SettingKey = keyof Settings;
