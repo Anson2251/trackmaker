@@ -56,7 +56,7 @@ async function generateConfig(): Promise<UserConfig> {
             __MAPTILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
             __RELEASE_MODE__: releaseMode ? "true" : "false",
             __TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
-            __MOST_RECENT_COMMIT__: releaseMode ? JSON.stringify(await getMostRecentCommitId()) : "''"
+            __MOST_RECENT_COMMIT__: JSON.stringify(await getMostRecentCommitId())
         },
         base: './',
         plugins: plugins,
