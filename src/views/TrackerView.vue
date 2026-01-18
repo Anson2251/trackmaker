@@ -377,7 +377,6 @@ onMounted(async () => {
 
 const devMode = !__RELEASE_MODE__;
 
-// Computed property to determine if compass should be shown
 const showCompass = computed(() => shouldShowCompass() || isMobile || devMode);
 
 // Computed property to get Kalman gain for dev mode

@@ -139,7 +139,7 @@ export class PlatformServices {
     /**
      * Create appropriate geolocation provider based on platform
      */
-    private async createGeolocationProvider(geoConfig?: PlatformServicesConfig['geolocation']): Promise<IGeolocationProvider> {
+    private async createGeolocationProvider(geoConfig?: PlatformServicesConfig['geolocation']): Promise<IGeolocationProvider | null> {
         // Create base provider based on platform
         let baseProvider: IGeolocationProvider;
 
@@ -159,7 +159,11 @@ export class PlatformServices {
         }
 
         // Initialize provider with permission callback if provided
-        await baseProvider.init(geoConfig?.permissionCallback);
+        const result = await baseProvider.init(geoConfig?.permissionCallback);
+        if (result.isErr()) {
+            console.error('Failed to initialize geolocation provider', result.error);
+            return null;
+        }
 
         return baseProvider;
     }
@@ -184,22 +188,30 @@ export class PlatformServices {
     /**
      * Create appropriate IMU provider based on platform
      */
-    private async createIMUProvider(config: PlatformServicesConfig['imu']): Promise<IIMUProvider> {
+    private async createIMUProvider(config: PlatformServicesConfig['imu']): Promise<IIMUProvider | null> {
         // TODO: Implement Tauri IMU provider when needed
 
         const provider = new WebIMUProvider();
-        await provider.init(config?.permissionCallback);
+        const result = await provider.init(config?.permissionCallback);
+        if (result.isErr()) {
+            console.error('Failed to initialize IMU provider', result.error);
+            return null;
+        }
         return provider;
     }
 
     /**
      * Create appropriate device orientation provider based on platform
      */
-    private async createDeviceOrientationProvider(config: PlatformServicesConfig['deviceOrientation']): Promise<IDeviceOrientationProvider> {
+    private async createDeviceOrientationProvider(config: PlatformServicesConfig['deviceOrientation']): Promise<IDeviceOrientationProvider | null> {
         // TODO: Implement Tauri device orientation provider when needed
 
         const provider = new WebDeviceOrientationProvider();
-        await provider.init(config?.permissionCallback);
+        const result = await provider.init(config?.permissionCallback);
+        if (result.isErr()) {
+            console.error('Failed to initialize device orientation provider', result.error);
+            return null;
+        }
         return provider;
 
     }

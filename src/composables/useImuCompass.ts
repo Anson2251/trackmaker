@@ -73,9 +73,8 @@ export function useImuCompass(
             if (isTracking.value) return;
 
             if (!isSupported.value || !orientationProvider) {
-                throw new Error(
-                    "Device orientation is not supported on this device",
-                );
+                console.warn("[useImuCompass] Device orientation not supported, failed to start tracking");
+                return;
             }
 
             const wrappedCallback = (orientation: DeviceOrientationReading) => {

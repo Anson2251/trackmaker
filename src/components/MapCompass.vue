@@ -21,8 +21,6 @@ const emit = defineEmits<{
 const {
   bearing: imuBearing,
   isTracking: imuIsTracking,
-  isSupported: imuIsSupported,
-  error: imuError,
   toggleTracking: toggleImuTracking
 } = useImuCompass();
 

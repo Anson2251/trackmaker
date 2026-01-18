@@ -220,7 +220,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                                 return;
                             }
 
-                            console.log('[Geolocation] Position updated:', newPos);
+                            // console.log('[Geolocation] Position updated:', newPos);
 
                             this.lastCompatibilityPosition = newPos;
 
