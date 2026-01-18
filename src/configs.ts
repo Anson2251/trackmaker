@@ -1,6 +1,5 @@
 import type { ModuleItem } from "@/utils/load-modules";
 
-import creditInfo from "@/assets/credits.json";
 import dataProviderInfo from "@/assets/data-provider.json";
 import { GeolocationManager } from './libs/geolocation';
 import { createApp, type App } from "vue";
@@ -178,16 +177,6 @@ export const modules: ModuleItem[] = [
 
 export const mapTilerKey = __MAPTILER_KEY__;
 
-export type CreditItem = {
-    id: string
-    name: string
-    description: string
-    url: string
-    homepage?: string
-    licenseType?: string
-    license?: string
-}
-
 export type DataProviderItem = {
     id: string
     name: string
@@ -197,4 +186,4 @@ export type DataProviderItem = {
 
 export const dataProviders: DataProviderItem[] = dataProviderInfo;
 
-export const credits: CreditItem[] = creditInfo;
+export const credits: CreditItem[] = __PROJECT_CREDITS__;

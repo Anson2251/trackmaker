@@ -227,6 +227,12 @@ const sideIconSize = ref(20);
                   >
                     {{ type }}
                   </n-tag>
+                  <n-tag
+                    v-if="credit.isDev"
+                    round
+                    type="warning"
+                    size="small"
+                  >DEV</n-tag>
                 </n-space>
               </n-space>
             </template>

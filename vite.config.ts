@@ -9,7 +9,7 @@ import topLevelAwait from "vite-plugin-top-level-await";
 
 import vue from '@vitejs/plugin-vue';
 import basicSsl from '@vitejs/plugin-basic-ssl'
-
+import { generateCredits } from './scripts/generate-credits';
 
 const compression = viteCompression({
     verbose: true,
@@ -56,7 +56,8 @@ async function generateConfig(): Promise<UserConfig> {
             __MAPTILER_KEY__: JSON.stringify(process.env.MAP_TILER_KEY ?? ""),
             __RELEASE_MODE__: releaseMode ? "true" : "false",
             __TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
-            __MOST_RECENT_COMMIT__: JSON.stringify(await getMostRecentCommitId())
+            __MOST_RECENT_COMMIT__: JSON.stringify(await getMostRecentCommitId()),
+            __PROJECT_CREDITS__: JSON.stringify(generateCredits()),
         },
         base: './',
         plugins: plugins,

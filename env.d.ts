@@ -15,9 +15,21 @@ declare interface Window {
     permissionConfirm?: (messageId: string) => Promise<boolean>
 }
 
+declare interface CreditItem {
+    id: string
+    name: string
+    description: string
+    url: string
+    homepage?: string
+    licenseType?: string
+    license?: string
+    isDev?: boolean
+}
+
 
 declare const __MAPTILER_KEY__: string;
 
 declare const __RELEASE_MODE__: boolean;
 declare const __TAURI_ENVIRONMENT__: boolean;
 declare const __MOST_RECENT_COMMIT__: string;
+declare const __PROJECT_CREDITS__: CreditItem[];
