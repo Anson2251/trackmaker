@@ -4,6 +4,7 @@ import type { GeographicPoint } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicRouteItemType } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
+import { MergeProcessor } from '@/libs/route-wal';
 
 const RECORDING_TIMESPAN_INTERVAL_MS = 200;
 
@@ -114,6 +115,13 @@ export const useRouteStore = defineStore('routes', () => {
         }
 
         isRecording.value = false;
+
+        if (currentRouteId.value) {
+            void (MergeProcessor.getInstance().forceMerge(currentRouteId.value)
+                .catch((err: unknown) => {
+                    console.warn('[RouteStore] Failed to force merge on stopRecording:', err);
+                }))
+        }
     }
 
     async function toggleRecording(t: (key: string) => string) {

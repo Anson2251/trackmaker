@@ -219,6 +219,13 @@ export class MergeProcessor {
         console.error(`[MergeProcessor] Recording merge failure for route ${routeId}:`, error);
     }
 
+    async forceMerge(routeId: string): Promise<void> {
+        const logEntries = await WriteAheadLogManagerInstance.getUnmergedEntries(routeId);
+        if (logEntries.length > 0) {
+            await this.mergeRoute(routeId);
+        }
+    }
+
     getQueueLength(): number {
         return this.mergeQueue.length;
     }

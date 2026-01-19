@@ -150,15 +150,7 @@ export const useSketchStore = defineStore('sketches', () => {
 
         for (const sketch of sketches) {
             for (const route of sketch.routes.routes) {
-                const metadata = {
-                    routeId: route.id,
-                    lastMergeTime: Date.now(),
-                    unmergedCount: 0,
-                    lastSequence: 0,
-                    totalPoints: route.points.length
-                };
-
-                await storageSet(`route:${route.id}:metadata`, metadata);
+                await storageSet(`route:${route.id}:metadata`, route.meta);
                 activeRoutes.push(route.id);
             }
         }
