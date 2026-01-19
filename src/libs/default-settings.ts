@@ -25,7 +25,7 @@ export const defaultSettings: Settings = {
     enableKalmanFilter: true,
     mapZoomLevel: 15,
     imuUpdateFrequency: 10,
-    kalmanGpsUpdateInterval: 1
+    kalmanGpsUpdateInterval: 1000,
 };
 
 // Advanced settings configuration (for UI display)

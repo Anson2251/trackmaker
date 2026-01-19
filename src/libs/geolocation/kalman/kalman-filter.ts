@@ -17,6 +17,7 @@ export interface KalmanConfig {
     gpsSpeedUncertainty?: number; // meters per second
     imuAccelerationUncertainty?: number; // meters per second squared
     debugEnabled?: boolean;
+    velocityProcessNoise?: number;
 }
 
 export class PureKalmanFilter {
@@ -32,8 +33,9 @@ export class PureKalmanFilter {
             initialAccelerationUncertainty: 2,
             initialPositionUncertainty: 20,
             initialVelocityUncertainty: 10,
-            gpsSpeedUncertainty: 4.0,
-            imuAccelerationUncertainty: 0.1,
+            gpsSpeedUncertainty: 0.05,
+            imuAccelerationUncertainty: 0.05,
+            velocityProcessNoise: 2.0,
             ...config
         };
 
@@ -216,7 +218,7 @@ export class PureKalmanFilter {
         ]);
 
         const sigmaA = this.config.initialAccelerationUncertainty;
-        const Q = new Matrix([
+        const Q_ca = new Matrix([
             [Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2, 0],
             [0, Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2],
             [Math.pow(dt, 3) / 2, 0, dt * dt, 0, dt, 0],
@@ -224,6 +226,19 @@ export class PureKalmanFilter {
             [Math.pow(dt, 2) / 2, 0, dt, 0, 1, 0],
             [0, Math.pow(dt, 2) / 2, 0, dt, 0, 1]
         ]).mul(sigmaA * sigmaA);
+
+        // ADD: Extra velocity process noise to allow direction changes
+        const sigmaVelocityJerk = this.config.velocityProcessNoise ?? 1.0; // m/s per second
+        const Q_velocity = new Matrix([
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, dt * sigmaVelocityJerk * sigmaVelocityJerk, 0, 0, 0],
+            [0, 0, 0, dt * sigmaVelocityJerk * sigmaVelocityJerk, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0]
+        ]);
+
+        const Q = Q_ca.add(Q_velocity);
 
         const x = new Matrix([
             [this.state.position.x],

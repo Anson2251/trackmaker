@@ -7,6 +7,7 @@
 import { ref, onMounted, computed, inject, shallowRef, watch, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
+import { type Map as MglMap} from "maplibre-gl";
 import {
   lightTheme,
   NConfigProvider,
@@ -48,11 +49,12 @@ import { createTerraDrawComposable } from "@/composables/useTerraDraw";
 import { useSketchStore } from "@/store/sketch-store";
 import type Matrix from "ml-matrix";
 import type { GeoJSONStoreFeatures } from "terra-draw";
-import { isArray } from "lodash-es";
+import { isArray, throttle } from "lodash-es";
 import type { Position } from "gcoord";
 import { shouldShowCompass, shouldKeepScreenOn, getMapTileServer, getMapTilerApiKey, getCustomMapTileUrl, getAutoRecenterTimeout, getDefaultMapZoomLevel } from "@/libs/default-settings";
 import { onBeforeRouteLeave } from "vue-router";
 import type { KalmanState } from "@/libs/geolocation";
+import type { GeographicPoint } from "@/libs/geolocation/types";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -341,6 +343,8 @@ watch(imuBearing, (newBearing) => {
   deviceBearing.value = newBearing;
 });
 
+let toCenterTheMapHandler = -1;
+
 onBeforeRouteLeave(() => {
   isFeatureEditPopoverOpen.value = false;
 })
@@ -372,6 +376,19 @@ onMounted(async () => {
     mapStore.setZoom(getDefaultMapZoomLevel());
   }
 
+  toCenterTheMapHandler = locator.addLocationListener((point: GeographicPoint) => {
+    if (mapRef.value) {
+      const userOperating = mapRef.value.isEasing() || mapRef.value.isMoving() || mapRef.value.isRotating() || mapRef.value.isZooming() || isUserSettingTheMap.value;
+      if (!userOperating) {
+        mapStore.setCenter(point);
+      }
+    }
+  })
+
+  throttle((point: GeographicPoint) => {
+    if(isWatchingCurrentLocation.value) mapStore.setCenter(point);
+  }, 200)
+
   mapReady.value = true;
 });
 
@@ -389,6 +406,7 @@ const kalmanUpdateInterval = setInterval(() => {
 
 onBeforeUnmount(() => {
   clearInterval(kalmanUpdateInterval);
+  locator.removeLocationListener(toCenterTheMapHandler);
 });
 
 let latestBearing = 0;
@@ -424,10 +442,13 @@ const toggleOrientationTracking = () => {
   }
 };
 
+
+const mapRef = shallowRef<MglMap | null>(null);
 // Map event handlers
 const handleMapInit = (event: any) => {
   // Initialize TerraDraw
   const map = event.map;
+  mapRef.value = map;
   const terraDrawInstance = createTerraDrawComposable(map);
   terraDraw.value = terraDrawInstance;
   terraDrawInstance.initDraw();
@@ -642,12 +663,14 @@ watch(
             <VelocityMarker
               v-if="devMode"
               :is-watching-current-location="isWatchingCurrentLocation"
+              :map-bearing="mapStore.bearing"
             />
 
             <!-- Acceleration Marker -->
             <AccelerationMarker
               v-if="devMode"
               :is-watching-current-location="isWatchingCurrentLocation"
+              :map-bearing="mapStore.bearing"
             />
           </MapContainer>
 

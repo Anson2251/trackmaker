@@ -5,6 +5,7 @@ import type { GeographicRouteItemProperties, GeographicRouteItemType } from '../
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
 import { MergeProcessor } from '@/libs/route-wal';
+import { throttle } from 'lodash-es';
 
 const RECORDING_TIMESPAN_INTERVAL_MS = 200;
 
@@ -81,11 +82,13 @@ export const useRouteStore = defineStore('routes', () => {
             void addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
-        watchingHandler.value = locator.value.addLocationListener(async (newPoint: GeographicPoint) => {
+        const handleNewPoints = async (newPoint: GeographicPoint) => {
             if (currentRouteId.value) {
                 await addPointToRoute(currentRouteId.value, newPoint);
             }
-        });
+        }
+
+        watchingHandler.value = locator.value.addLocationListener(throttle(handleNewPoints, 1000, { leading: true, trailing: true }));
 
         if (currentRouteId.value) {
             void sketchStore.updateRoute(currentRouteId.value, { meta: { modification_timestamp: Date.now() } });

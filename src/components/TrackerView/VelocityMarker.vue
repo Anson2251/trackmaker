@@ -6,6 +6,7 @@ import type { GeographicPoint } from "@/libs/geolocation/types";
 
 interface Props {
   isWatchingCurrentLocation: boolean;
+  mapBearing: number
 }
 
 const props = defineProps<Props>();
@@ -49,7 +50,7 @@ const pointLngLatLike = computed<[number, number]>(() => currentLocation.value ?
 const velocityDirection = computed(() => {
   if (!kalmanState.value) return 0;
   const { x, y } = kalmanState.value.velocity;
-  return Math.atan2(y, x) * (180 / Math.PI); // Convert to degrees
+  return (-Math.atan2(y, x) * (180 / Math.PI) - props.mapBearing) % 360; // Convert to degrees
 });
 </script>
 
@@ -70,7 +71,7 @@ const velocityDirection = computed(() => {
             transform: rotate(180deg);
             transform-origin: 0.5em 3em;
           "
-          :style="{ transform: `rotate(${180 + velocityDirection}deg)` }"
+          :style="{ transform: `rotate(${90 + velocityDirection}deg)` }"
         ></div>
       </div>
     </template>
