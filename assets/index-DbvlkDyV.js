@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-pCgip8V6.js","./sketch-store-CCDTaTa-.js","./vue-i18n-CHuvWltl.js","./index-DOHjoVFI.js","./App-BkoMreV2.css","./index-Wr8_Y8Cc.js","./index-CdfVsmwz.css"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-CJ8Y970M.js","./sketch-store-sIWbpcMv.js","./vue-i18n-zOLqNIXT.js","./index-Bzj-TB9N.js","./App-BkoMreV2.css","./index-DUao4xt6.js","./index-CMrekE26.css"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -10,7 +10,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-let Ls, fR, Xo, hR, Ia, rR, Rt, Pg, As, wi, uR, nR, To, Wf, _f, dR, Fu, eR, At, ji, iR, If, ls, pR, at, za, hf, XO, Be, dn, No, Tr, cR, lR, oR, aR, $f, TR, bR, IR, Mh, Ph, FI, un, fl, ME, Fi, _h, hn, HI, GI, Fh, tI, yE, $E, IE, Dh, pm, uf, Qo, gs, Tu, xd, bf, ZO, Vi, ER, ia, Kh, Rs, Pe, sR, NR, RR, SR, wR, gR, AR, OR, vR, CR, mR, ai, $s, Vg, Eo, Io, tn, Qc, jT, $T, qT, xT, Gt, ir, _, v, $l, yR, pu, vi, Pf, kf, Xa, ds, Dp, Dn, ic, er, Ja, wp, ka, oi, yf, LR, ua, pr, QO, Ct, Ko, tR, Nf, Ap, Hi;
+let Ls, fR, Xo, hR, Ia, rR, Rt, Pg, As, wi, uR, nR, To, Wf, _f, dR, Fu, eR, At, ji, iR, If, ls, pR, at, za, hf, XO, Ye, dn, No, Tr, cR, lR, oR, aR, $f, TR, bR, IR, Mh, Ph, FI, un, fl, ME, Fi, _h, hn, HI, GI, Fh, tI, yE, $E, IE, Dh, pm, uf, Qo, gs, Tu, xd, bf, ZO, Vi, ER, ia, Kh, Rs, Pe, sR, NR, RR, SR, wR, gR, AR, OR, vR, CR, mR, ai, $s, Vg, Eo, Io, tn, Qc, jT, $T, qT, xT, Gt, ir, _, v, $l, yR, pu, vi, Pf, kf, Xa, ds, Dp, Dn, ic, er, Ja, wp, ka, oi, yf, LR, ua, pr, QO, Ct, Ko, tR, Nf, Ap, Hi;
 let __tla = (async () => {
   var _a2;
   (function() {
@@ -1434,9 +1434,9 @@ let __tla = (async () => {
         let Ie = O, Le = T, fe = w;
         if (!i.isMounted) if (l) Ie = ie || O, Le = K || T, fe = V || w;
         else return;
-        let ke = false;
+        let Be = false;
         const ht = te[dr] = (xt) => {
-          ke || (ke = true, xt ? Te(fe, [
+          Be || (Be = true, xt ? Te(fe, [
             te
           ]) : Te(Le, [
             te
@@ -1454,7 +1454,7 @@ let __tla = (async () => {
           te
         ]);
         let fe = false;
-        const ke = te[Mi] = (ht) => {
+        const Be = te[Mi] = (ht) => {
           fe || (fe = true, Ie(), ht ? Te(D, [
             te
           ]) : Te(P, [
@@ -1463,8 +1463,8 @@ let __tla = (async () => {
         };
         ue[Le] = e, L ? ne(L, [
           te,
-          ke
-        ]) : ke();
+          Be
+        ]) : Be();
       },
       clone(te) {
         const Ie = Vn(te, t, i, o, c);
@@ -1887,7 +1887,7 @@ let __tla = (async () => {
   function qf(e) {
     const t = ih(e), i = e.proxy, o = e.ctx;
     fa = false, t.beforeCreate && Nc(t.beforeCreate, e, "bc");
-    const { data: c, computed: l, methods: h, watch: d, provide: p, inject: O, created: T, beforeMount: w, mounted: C, beforeUpdate: L, updated: P, activated: D, deactivated: de, beforeDestroy: ie, beforeUnmount: K, destroyed: V, unmounted: G, render: ue, renderTracked: Te, renderTriggered: ne, errorCaptured: he, serverPrefetch: te, expose: Ie, inheritAttrs: Le, components: fe, directives: ke, filters: ht } = t;
+    const { data: c, computed: l, methods: h, watch: d, provide: p, inject: O, created: T, beforeMount: w, mounted: C, beforeUpdate: L, updated: P, activated: D, deactivated: de, beforeDestroy: ie, beforeUnmount: K, destroyed: V, unmounted: G, render: ue, renderTracked: Te, renderTriggered: ne, errorCaptured: he, serverPrefetch: te, expose: Ie, inheritAttrs: Le, components: fe, directives: Be, filters: ht } = t;
     if (O && Xf(O, o, null), h) for (const He in h) {
       const Ve = h[He];
       Ne(Ve) && (o[He] = Ve.bind(i));
@@ -1929,7 +1929,7 @@ let __tla = (async () => {
         });
       });
     } else e.exposed || (e.exposed = {});
-    ue && e.render === ui && (e.render = ue), Le != null && (e.inheritAttrs = Le), fe && (e.components = fe), ke && (e.directives = ke), te && Xu(e);
+    ue && e.render === ui && (e.render = ue), Le != null && (e.inheritAttrs = Le), fe && (e.components = fe), Be && (e.directives = Be), te && Xu(e);
   }
   function Xf(e, t, i = ui) {
     Ae(e) && (e = pa(e));
@@ -2431,7 +2431,7 @@ let __tla = (async () => {
           fe(A, y, F, q, $, X, se, Z, oe);
           break;
         default:
-          ae & 1 ? ue(A, y, F, q, $, X, se, Z, oe) : ae & 6 ? ke(A, y, F, q, $, X, se, Z, oe) : (ae & 64 || ae & 128) && z.process(A, y, F, q, $, X, se, Z, oe, go);
+          ae & 1 ? ue(A, y, F, q, $, X, se, Z, oe) : ae & 6 ? Be(A, y, F, q, $, X, se, Z, oe) : (ae & 64 || ae & 128) && z.process(A, y, F, q, $, X, se, Z, oe, go);
       }
       Ee != null && $ ? Fn(Ee, A && A.ref, X, y || A, !y) : Ee == null && A && A.ref != null && Fn(A.ref, null, X, A, true);
     }, de = (A, y, F, q) => {
@@ -2527,7 +2527,7 @@ let __tla = (async () => {
       const z = y.el = A ? A.el : d(""), Ee = y.anchor = A ? A.anchor : d("");
       let { patchFlag: ae, dynamicChildren: me, slotScopeIds: we } = y;
       we && (Z = Z ? Z.concat(we) : we), A == null ? (o(z, F, q), o(Ee, F, q), he(y.children || [], F, Ee, $, X, se, Z, oe)) : ae > 0 && ae & 64 && me && A.dynamicChildren && A.dynamicChildren.length === me.length ? (Ie(A.dynamicChildren, me, F, $, X, se, Z), (y.key != null || $ && y === $.subTree) && ec(A, y, true)) : Ve(A, y, F, Ee, $, X, se, Z, oe);
-    }, ke = (A, y, F, q, $, X, se, Z, oe) => {
+    }, Be = (A, y, F, q, $, X, se, Z, oe) => {
       y.slotScopeIds = Z, A == null ? y.shapeFlag & 512 ? $.ctx.activate(y, F, q, se, oe) : ht(y, F, q, $, X, se, oe) : xt(A, y, oe);
     }, ht = (A, y, F, q, $, X, se) => {
       const Z = A.component = yp(A, q, $);
@@ -2845,7 +2845,7 @@ let __tla = (async () => {
     return e.dynamicChildren = zn > 0 ? Kt || zo : null, gp(), zn > 0 && Kt && Kt.push(e), e;
   }
   vi = function(e, t, i, o, c, l) {
-    return Ih(Be(e, t, i, o, c, l, true));
+    return Ih(Ye(e, t, i, o, c, l, true));
   };
   Ia = function(e, t, i, o, c) {
     return Ih(Ct(e, t, i, o, c, true));
@@ -2862,7 +2862,7 @@ let __tla = (async () => {
     k: t,
     f: !!i
   } : e : null);
-  Be = function(e, t = null, i = null, o = 0, c = null, l = e === Rt ? 0 : 1, h = false, d = false) {
+  Ye = function(e, t = null, i = null, o = 0, c = null, l = e === Rt ? 0 : 1, h = false, d = false) {
     const p = {
       __v_isVNode: true,
       __v_skip: true,
@@ -2906,7 +2906,7 @@ let __tla = (async () => {
       d && !st(d) && (t.class = ka(d)), Ke(p) && (fs(p) && !Ae(p) && (p = ft({}, p)), t.style = ls(p));
     }
     const h = st(e) ? 1 : Br(e) ? 128 : Yu(e) ? 64 : Ke(e) ? 4 : Ne(e) ? 2 : 0;
-    return Be(e, t, i, o, c, h, l, true);
+    return Ye(e, t, i, o, c, h, l, true);
   }
   function Rp(e) {
     return e ? fs(e) || ch(e) ? ft({}, e) : e : null;
@@ -3294,17 +3294,17 @@ let __tla = (async () => {
     const t = {};
     for (const fe in e) fe in Rh || (t[fe] = e[fe]);
     if (e.css === false) return t;
-    const { name: i = "v", type: o, duration: c, enterFromClass: l = `${i}-enter-from`, enterActiveClass: h = `${i}-enter-active`, enterToClass: d = `${i}-enter-to`, appearFromClass: p = l, appearActiveClass: O = h, appearToClass: T = d, leaveFromClass: w = `${i}-leave-from`, leaveActiveClass: C = `${i}-leave-active`, leaveToClass: L = `${i}-leave-to` } = e, P = _p(c), D = P && P[0], de = P && P[1], { onBeforeEnter: ie, onEnter: K, onEnterCancelled: V, onLeave: G, onLeaveCancelled: ue, onBeforeAppear: Te = ie, onAppear: ne = K, onAppearCancelled: he = V } = t, te = (fe, ke, ht, xt) => {
-      fe._enterCancelled = xt, eo(fe, ke ? T : d), eo(fe, ke ? O : h), ht && ht();
-    }, Ie = (fe, ke) => {
-      fe._isLeaving = false, eo(fe, w), eo(fe, L), eo(fe, C), ke && ke();
-    }, Le = (fe) => (ke, ht) => {
-      const xt = fe ? ne : K, qe = () => te(ke, fe, ht);
+    const { name: i = "v", type: o, duration: c, enterFromClass: l = `${i}-enter-from`, enterActiveClass: h = `${i}-enter-active`, enterToClass: d = `${i}-enter-to`, appearFromClass: p = l, appearActiveClass: O = h, appearToClass: T = d, leaveFromClass: w = `${i}-leave-from`, leaveActiveClass: C = `${i}-leave-active`, leaveToClass: L = `${i}-leave-to` } = e, P = _p(c), D = P && P[0], de = P && P[1], { onBeforeEnter: ie, onEnter: K, onEnterCancelled: V, onLeave: G, onLeaveCancelled: ue, onBeforeAppear: Te = ie, onAppear: ne = K, onAppearCancelled: he = V } = t, te = (fe, Be, ht, xt) => {
+      fe._enterCancelled = xt, eo(fe, Be ? T : d), eo(fe, Be ? O : h), ht && ht();
+    }, Ie = (fe, Be) => {
+      fe._isLeaving = false, eo(fe, w), eo(fe, L), eo(fe, C), Be && Be();
+    }, Le = (fe) => (Be, ht) => {
+      const xt = fe ? ne : K, qe = () => te(Be, fe, ht);
       wo(xt, [
-        ke,
+        Be,
         qe
       ]), Uc(() => {
-        eo(ke, fe ? p : l), Ii(ke, fe ? T : d), Pc(xt) || Wc(ke, o, D, qe);
+        eo(Be, fe ? p : l), Ii(Be, fe ? T : d), Pc(xt) || Wc(Be, o, D, qe);
       });
     };
     return ft(t, {
@@ -3320,9 +3320,9 @@ let __tla = (async () => {
       },
       onEnter: Le(false),
       onAppear: Le(true),
-      onLeave(fe, ke) {
+      onLeave(fe, Be) {
         fe._isLeaving = true;
-        const ht = () => Ie(fe, ke);
+        const ht = () => Ie(fe, Be);
         Ii(fe, w), fe._enterCancelled ? (Ii(fe, C), Oa(fe)) : (Oa(fe), Ii(fe, C)), Uc(() => {
           fe._isLeaving && (eo(fe, w), Ii(fe, L), Pc(G) || Wc(fe, o, de, ht));
         }), wo(G, [
@@ -8530,7 +8530,7 @@ ${Mt(e[1])}`
     enableKalmanFilter: true,
     mapZoomLevel: 15,
     imuUpdateFrequency: 10,
-    kalmanGpsUpdateInterval: 1
+    kalmanGpsUpdateInterval: 1e3
   };
   mR = [
     {
@@ -9766,7 +9766,7 @@ ${o}`);
       for (let g = 0; g < n; g++) for (let b = 0; b < a; b++) m = f.get(g, b) - s, I += m, E += m * m;
       return r ? (E - I * I / u) / (u - 1) : (E - I * I / u) / u;
     }
-    function ke(f, r) {
+    function Be(f, r) {
       for (let s = 0; s < f.rows; s++) for (let n = 0; n < f.columns; n++) f.set(s, n, f.get(s, n) - r[s]);
     }
     function ht(f, r) {
@@ -10515,7 +10515,7 @@ ${o}`);
         switch (r) {
           case "row": {
             if (!e.isAnyArray(n)) throw new TypeError("center must be an array");
-            return ke(this, n), this;
+            return Be(this, n), this;
           }
           case "column": {
             if (!e.isAnyArray(n)) throw new TypeError("center must be an array");
@@ -11561,7 +11561,7 @@ ${o}`);
     return Ce.AbstractMatrix = Oe, Ce.CHO = fc, Ce.CholeskyDecomposition = fc, Ce.DistanceMatrix = yi, Ce.EVD = pn, Ce.EigenvalueDecomposition = pn, Ce.LU = z, Ce.LuDecomposition = z, Ce.Matrix = re, Ce.MatrixColumnSelectionView = go, Ce.MatrixColumnView = nr, Ce.MatrixFlipColumnView = dc, Ce.MatrixFlipRowView = A, Ce.MatrixRowSelectionView = F, Ce.MatrixRowView = y, Ce.MatrixSelectionView = q, Ce.MatrixSubView = $, Ce.MatrixTransposeView = X, Ce.NIPALS = pc, Ce.Nipals = pc, Ce.QR = ae, Ce.QrDecomposition = ae, Ce.SVD = me, Ce.SingularValueDecomposition = me, Ce.SymmetricMatrix = _t, Ce.WrapperMatrix1D = se, Ce.WrapperMatrix2D = Z, Ce.correlation = Oo, Ce.covariance = Qt, Ce.default = re, Ce.determinant = _e, Ce.inverse = we, Ce.linearDependencies = Nt, Ce.pseudoInverse = Zt, Ce.solve = Me, Ce.wrap = oe, Ce;
   }
   var bs = jg();
-  const kl = Pg(bs), Ye = bs.Matrix;
+  const kl = Pg(bs), ke = bs.Matrix;
   kl.Matrix ? kl.Matrix : bs.Matrix;
   const Bl = bs.inverse;
   const _Gn = class _Gn {
@@ -11606,7 +11606,7 @@ ${o}`);
       __publicField(this, "vectorInput");
       __publicField(this, "vectorOutput");
       __publicField(this, "gravityENU");
-      this.boundHandleMotionEvent = this.handleMotionEvent.bind(this), this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this), this.matrixRz = Ye.zeros(3, 3), this.matrixRy = Ye.zeros(3, 3), this.matrixRx = Ye.zeros(3, 3), this.matrixR = Ye.zeros(3, 3), this.matrixRTemp = Ye.zeros(3, 3), this.vectorInput = Ye.zeros(3, 1), this.vectorOutput = Ye.zeros(3, 1), this.gravityENU = new Ye([
+      this.boundHandleMotionEvent = this.handleMotionEvent.bind(this), this.boundHandleOrientationEvent = this.handleOrientationEvent.bind(this), this.matrixRz = ke.zeros(3, 3), this.matrixRy = ke.zeros(3, 3), this.matrixRx = ke.zeros(3, 3), this.matrixR = ke.zeros(3, 3), this.matrixRTemp = ke.zeros(3, 3), this.vectorInput = ke.zeros(3, 1), this.vectorOutput = ke.zeros(3, 1), this.gravityENU = new ke([
         [
           0
         ],
@@ -13066,8 +13066,9 @@ ${o}`);
         initialAccelerationUncertainty: 2,
         initialPositionUncertainty: 20,
         initialVelocityUncertainty: 10,
-        gpsSpeedUncertainty: 4,
-        imuAccelerationUncertainty: 0.1,
+        gpsSpeedUncertainty: 0.05,
+        imuAccelerationUncertainty: 0.05,
+        velocityProcessNoise: 2,
         ...t
       }, this.coordinateTransformer = new pd(), this.state = this.createInitialState();
     }
@@ -13085,7 +13086,7 @@ ${o}`);
           x: 0,
           y: 0
         },
-        covariance: new Ye([
+        covariance: new ke([
           [
             Math.pow(this.config.initialPositionUncertainty, 2),
             0,
@@ -13161,7 +13162,7 @@ ${o}`);
         };
       }
       const c = this.gpsAccuracyToSigma(t.accuracy), l = o ? this.config.gpsSpeedUncertainty : this.config.initialVelocityUncertainty, h = this.config.initialAccelerationUncertainty;
-      this.state.covariance = new Ye([
+      this.state.covariance = new ke([
         [
           c * c,
           0,
@@ -13265,7 +13266,7 @@ ${o}`);
         this.debugEnabled && console.warn("[KalmanFilter] predictInternal called with non-positive dt:", t);
         return;
       }
-      const i = new Ye([
+      const i = new ke([
         [
           1,
           0,
@@ -13314,7 +13315,7 @@ ${o}`);
           0,
           1
         ]
-      ]), o = this.config.initialAccelerationUncertainty, c = new Ye([
+      ]), o = this.config.initialAccelerationUncertainty, c = new ke([
         [
           Math.pow(t, 4) / 4,
           0,
@@ -13363,7 +13364,56 @@ ${o}`);
           0,
           1
         ]
-      ]).mul(o * o), l = new Ye([
+      ]).mul(o * o), l = this.config.velocityProcessNoise ?? 1, h = new ke([
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          t * l * l,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          t * l * l,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]), d = c.add(h), p = new ke([
         [
           this.state.position.x
         ],
@@ -13382,40 +13432,40 @@ ${o}`);
         [
           this.state.acceleration.y
         ]
-      ]), h = i.mmul(l), d = i.mmul(this.state.covariance).mmul(i.transpose()).add(c);
+      ]), O = i.mmul(p), T = i.mmul(this.state.covariance).mmul(i.transpose()).add(d);
       if (this.debugEnabled) {
-        const p = d.trace(), O = Math.sqrt(d.get(0, 0) + d.get(1, 1)), T = Math.sqrt(d.get(2, 2) + d.get(3, 3)), w = Math.sqrt(d.get(4, 4) + d.get(5, 5));
+        const w = T.trace(), C = Math.sqrt(T.get(0, 0) + T.get(1, 1)), L = Math.sqrt(T.get(2, 2) + T.get(3, 3)), P = Math.sqrt(T.get(4, 4) + T.get(5, 5));
         console.log("[KalmanFilter] Prediction:", {
           dt: t,
           sigmaA: o,
-          covarianceTrace: p,
-          positionUncertainty: O,
-          velocityUncertainty: T,
-          accelerationUncertainty: w,
+          covarianceTrace: w,
+          positionUncertainty: C,
+          velocityUncertainty: L,
+          accelerationUncertainty: P,
           position: {
-            x: h.get(0, 0),
-            y: h.get(1, 0)
+            x: O.get(0, 0),
+            y: O.get(1, 0)
           },
           velocity: {
-            x: h.get(2, 0),
-            y: h.get(3, 0)
+            x: O.get(2, 0),
+            y: O.get(3, 0)
           },
           acceleration: {
-            x: h.get(4, 0),
-            y: h.get(5, 0)
+            x: O.get(4, 0),
+            y: O.get(5, 0)
           }
         });
       }
       this.state.position = {
-        x: h.get(0, 0),
-        y: h.get(1, 0)
+        x: O.get(0, 0),
+        y: O.get(1, 0)
       }, this.state.velocity = {
-        x: h.get(2, 0),
-        y: h.get(3, 0)
+        x: O.get(2, 0),
+        y: O.get(3, 0)
       }, this.state.acceleration = {
-        x: h.get(4, 0),
-        y: h.get(5, 0)
-      }, this.state.covariance = d;
+        x: O.get(4, 0),
+        y: O.get(5, 0)
+      }, this.state.covariance = T;
     }
     async updateGPSInternal(t) {
       const i = await this.coordinateTransformer.geographicToLocal({
@@ -13423,7 +13473,7 @@ ${o}`);
         latitude: t.latitude
       }), o = t.speed !== void 0 && t.speed !== null && t.heading !== void 0 && t.heading !== null;
       let c;
-      o ? c = new Ye([
+      o ? c = new ke([
         [
           1,
           0,
@@ -13456,7 +13506,7 @@ ${o}`);
           0,
           0
         ]
-      ]) : c = new Ye([
+      ]) : c = new ke([
         [
           1,
           0,
@@ -13477,7 +13527,7 @@ ${o}`);
       let l;
       if (o) {
         const V = this.gpsVelocityToLocal(t.speed, t.heading);
-        l = new Ye([
+        l = new ke([
           [
             i.x
           ],
@@ -13491,7 +13541,7 @@ ${o}`);
             V.y
           ]
         ]);
-      } else l = new Ye([
+      } else l = new ke([
         [
           i.x
         ],
@@ -13503,7 +13553,7 @@ ${o}`);
       let d;
       if (o) {
         const V = this.config.gpsSpeedUncertainty;
-        d = new Ye([
+        d = new ke([
           [
             h * h,
             0,
@@ -13529,7 +13579,7 @@ ${o}`);
             V * V
           ]
         ]);
-      } else d = new Ye([
+      } else d = new ke([
         [
           h * h,
           0
@@ -13539,7 +13589,7 @@ ${o}`);
           h * h
         ]
       ]);
-      const p = 1e-6, T = c.mmul(this.state.covariance).mmul(c.transpose()).add(d), w = T.add(Ye.identity(T.rows, T.columns).mul(p)), C = this.state.covariance.mmul(c.transpose()).mmul(Bl(w));
+      const p = 1e-6, T = c.mmul(this.state.covariance).mmul(c.transpose()).add(d), w = T.add(ke.identity(T.rows, T.columns).mul(p)), C = this.state.covariance.mmul(c.transpose()).mmul(Bl(w));
       this.lastKalmanGain = C, this.debugEnabled && console.log("[KalmanFilter] GPS update:", {
         hasVelocity: o,
         position: {
@@ -13551,7 +13601,7 @@ ${o}`);
         kalmanGain: C.to2DArray(),
         gainNorm: Math.sqrt(C.to1DArray().reduce((V, G) => V + G * G, 0))
       });
-      const L = new Ye([
+      const L = new ke([
         [
           this.state.position.x
         ],
@@ -13570,7 +13620,7 @@ ${o}`);
         [
           this.state.acceleration.y
         ]
-      ]), P = l.subtract(c.mmul(L)), D = L.add(C.mmul(P)), K = Ye.identity(6, 6).subtract(C.mmul(c)).mmul(this.state.covariance).add(Ye.identity(6, 6).mul(p));
+      ]), P = l.subtract(c.mmul(L)), D = L.add(C.mmul(P)), K = ke.identity(6, 6).subtract(C.mmul(c)).mmul(this.state.covariance).add(ke.identity(6, 6).mul(p));
       this.state.position = {
         x: D.get(0, 0),
         y: D.get(1, 0)
@@ -13593,7 +13643,7 @@ ${o}`);
       };
     }
     updateIMUInternal(t) {
-      const i = new Ye([
+      const i = new ke([
         [
           0,
           0,
@@ -13610,14 +13660,14 @@ ${o}`);
           0,
           1
         ]
-      ]), o = new Ye([
+      ]), o = new ke([
         [
           t.x
         ],
         [
           t.y
         ]
-      ]), c = Math.max(this.config.imuAccelerationUncertainty, 0.5), l = 1e-6, h = new Ye([
+      ]), c = Math.max(this.config.imuAccelerationUncertainty, 0.5), l = 1e-6, h = new ke([
         [
           c * c,
           0
@@ -13628,7 +13678,7 @@ ${o}`);
         ]
       ]), p = i.mmul(this.state.covariance).mmul(i.transpose()).add(h);
       (p.get(0, 0) < l || p.get(1, 1) < l || Math.abs(p.get(0, 1)) > 0.9 * Math.sqrt(p.get(0, 0) * p.get(1, 1))) && this.debugEnabled && console.warn("[KalmanFilter] Near-singular IMU measurement covariance, adding regularization");
-      const O = p.add(Ye.identity(p.rows, p.columns).mul(l)), T = this.state.covariance.mmul(i.transpose()).mmul(Bl(O));
+      const O = p.add(ke.identity(p.rows, p.columns).mul(l)), T = this.state.covariance.mmul(i.transpose()).mmul(Bl(O));
       if (this.lastKalmanGain = T, this.debugEnabled) {
         const ie = Math.sqrt(T.to1DArray().reduce((K, V) => K + V * V, 0));
         console.log("[KalmanFilter] IMU update:", {
@@ -13645,7 +13695,7 @@ ${o}`);
           }
         });
       }
-      const w = new Ye([
+      const w = new ke([
         [
           this.state.position.x
         ],
@@ -13664,7 +13714,7 @@ ${o}`);
         [
           this.state.acceleration.y
         ]
-      ]), C = o.subtract(i.mmul(w)), L = w.add(T.mmul(C)), de = Ye.identity(6, 6).subtract(T.mmul(i)).mmul(this.state.covariance).add(Ye.identity(6, 6).mul(l));
+      ]), C = o.subtract(i.mmul(w)), L = w.add(T.mmul(C)), de = ke.identity(6, 6).subtract(T.mmul(i)).mmul(this.state.covariance).add(ke.identity(6, 6).mul(l));
       this.state.position = {
         x: L.get(0, 0),
         y: L.get(1, 0)
@@ -14256,12 +14306,12 @@ ${o}`);
       if (iu in he) return he[sa] = te, he;
       const Ie = function() {
         Hs(o);
-        const Le = Array.from(arguments), fe = /* @__PURE__ */ new Set(), ke = /* @__PURE__ */ new Set();
+        const Le = Array.from(arguments), fe = /* @__PURE__ */ new Set(), Be = /* @__PURE__ */ new Set();
         function ht(He) {
           fe.add(He);
         }
         function xt(He) {
-          ke.add(He);
+          Be.add(He);
         }
         jo(C, {
           args: Le,
@@ -14274,9 +14324,9 @@ ${o}`);
         try {
           qe = he.apply(this && this.$id === e ? this : ue, Le);
         } catch (He) {
-          throw jo(ke, He), He;
+          throw jo(Be, He), He;
         }
-        return qe instanceof Promise ? qe.then((He) => (jo(fe, He), He)).catch((He) => (jo(ke, He), Promise.reject(He))) : (jo(fe, qe), qe);
+        return qe instanceof Promise ? qe.then((He) => (jo(fe, He), He)).catch((He) => (jo(Be, He), Promise.reject(He))) : (jo(fe, qe), qe);
       };
       return Ie[iu] = true, Ie[sa] = te, Ie;
     }, G = {
@@ -18789,18 +18839,18 @@ SOFTWARE.
       moduleInit: async () => {
         var _a3;
         const e = vh((await $s(async () => {
-          const { default: i } = await import("./App-pCgip8V6.js");
+          const { default: i } = await import("./App-CJ8Y970M.js");
           return {
             default: i
           };
         }, __vite__mapDeps([0,1,2,3,4]), import.meta.url)).default);
         e.use(Ed()), e.use((await $s(async () => {
-          const { default: i } = await import("./index-Wr8_Y8Cc.js");
+          const { default: i } = await import("./index-DUao4xt6.js");
           return {
             default: i
           };
         }, __vite__mapDeps([5,2,1,6]), import.meta.url)).default), e.use((await $s(async () => {
-          const { i18n: i } = await import("./index-DOHjoVFI.js");
+          const { i18n: i } = await import("./index-Bzj-TB9N.js");
           return {
             i18n: i
           };
@@ -19072,53 +19122,53 @@ SOFTWARE.
           console.log("=== Failed to initialize all modules ==="), console.error(ne);
         });
       }), (Te, ne) => (oi(), vi("div", MO, [
-        Be("div", FO, [
-          ne[8] || (ne[8] = Be("div", {
+        Ye("div", FO, [
+          ne[8] || (ne[8] = Ye("div", {
             class: "logo-section"
           }, [
-            Be("div", {
+            Ye("div", {
               class: "app-logo"
             }, [
-              Be("img", {
+              Ye("img", {
                 src: fT,
                 alt: "TrackMaker Logo",
                 height: "80",
                 width: "80"
               })
             ]),
-            Be("h1", {
+            Ye("h1", {
               class: "app-title"
             }, " TrackMaker ")
           ], -1)),
           !h.value && !d.value ? (oi(), vi("div", PO, [
-            Be("div", UO, [
-              Be("div", WO, [
-                Be("div", {
+            Ye("div", UO, [
+              Ye("div", WO, [
+                Ye("div", {
                   class: "progress-fill",
                   style: ls({
                     width: `${D.value}%`
                   })
                 }, null, 4)
               ]),
-              Be("div", _O, Hi(D.value) + "% ", 1)
+              Ye("div", _O, Hi(D.value) + "% ", 1)
             ]),
-            Be("div", GO, [
-              Be("p", kO, " Loading: " + Hi(o.value), 1)
+            Ye("div", GO, [
+              Ye("p", kO, " Loading: " + Hi(o.value), 1)
             ]),
-            ne[0] || (ne[0] = Be("div", {
+            ne[0] || (ne[0] = Ye("div", {
               class: "loading-animation"
             }, [
-              Be("div", {
+              Ye("div", {
                 class: "spinner"
               })
             ], -1))
           ])) : pr("", true),
           h.value ? (oi(), vi("div", BO, [
-            ne[1] || (ne[1] = Be("div", {
+            ne[1] || (ne[1] = Ye("div", {
               class: "error-icon"
             }, " \u26A0\uFE0F ", -1)),
-            ne[2] || (ne[2] = Be("h2", null, "Loading Error", -1)),
-            Be("div", YO, [
+            ne[2] || (ne[2] = Ye("h2", null, "Loading Error", -1)),
+            Ye("div", YO, [
               (oi(true), vi(Rt, null, $f((p.value ?? "").split(`
 `), (he) => (oi(), vi("div", {
                 key: he,
@@ -19131,35 +19181,35 @@ SOFTWARE.
                 he.toLocaleLowerCase().includes("trackback") ? (oi(), vi("strong", xO, Hi(he), 1)) : (oi(), vi("span", jO, Hi(he), 1))
               ]))), 128))
             ]),
-            Be("button", {
+            Ye("button", {
               class: "retry-button",
               onClick: K
             }, " Retry ")
           ])) : pr("", true),
           d.value ? (oi(), vi("div", VO, [
-            ne[3] || (ne[3] = Be("div", {
+            ne[3] || (ne[3] = Ye("div", {
               class: "timeout-icon"
             }, " \u23F0 ", -1)),
-            ne[4] || (ne[4] = Be("h2", null, "Connection Timeout", -1)),
-            ne[5] || (ne[5] = Be("p", null, "Unable to load required modules within the timeout period.", -1)),
-            ne[6] || (ne[6] = Be("p", null, "Please check your internet connection and try again.", -1)),
-            Be("button", {
+            ne[4] || (ne[4] = Ye("h2", null, "Connection Timeout", -1)),
+            ne[5] || (ne[5] = Ye("p", null, "Unable to load required modules within the timeout period.", -1)),
+            ne[6] || (ne[6] = Ye("p", null, "Please check your internet connection and try again.", -1)),
+            Ye("button", {
               class: "retry-button",
               onClick: K
             }, " Retry ")
           ])) : pr("", true),
           O.value ? (oi(), vi("div", zO, [
-            ne[7] || (ne[7] = Be("div", {
+            ne[7] || (ne[7] = Ye("div", {
               class: "permission-icon"
             }, " \u{1F4CD} ", -1)),
-            Be("h2", null, Hi(Ko(Ar)("permission.title")), 1),
-            Be("p", $O, Hi(T.value), 1),
-            Be("div", KO, [
-              Be("button", {
+            Ye("h2", null, Hi(Ko(Ar)("permission.title")), 1),
+            Ye("p", $O, Hi(T.value), 1),
+            Ye("div", KO, [
+              Ye("button", {
                 class: "permission-button deny",
                 onClick: ue
               }, Hi(Ko(Ar)("permission.deny")), 1),
-              Be("button", {
+              Ye("button", {
                 class: "permission-button allow",
                 onClick: G
               }, Hi(Ko(Ar)("permission.allow")), 1)
@@ -19215,7 +19265,7 @@ export {
   hf as Z,
   XO as _,
   __tla,
-  Be as a,
+  Ye as a,
   dn as a$,
   No as a0,
   Tr as a1,
