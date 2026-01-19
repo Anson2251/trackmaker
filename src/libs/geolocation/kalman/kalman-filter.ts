@@ -33,7 +33,7 @@ export class PureKalmanFilter {
             initialPositionUncertainty: 20,
             initialVelocityUncertainty: 10,
             gpsSpeedUncertainty: 4.0,
-            imuAccelerationUncertainty: 0.5,
+            imuAccelerationUncertainty: 0.1,
             ...config
         };
 
@@ -78,6 +78,7 @@ export class PureKalmanFilter {
         });
 
         this.state.position = { x: cartesian.x, y: cartesian.y };
+        // Use GPS timestamp for initial state to ensure proper delta time calculations
         this.state.timestamp = gpsReading.timestamp;
 
         // Set initial velocity from GPS if available
@@ -106,7 +107,9 @@ export class PureKalmanFilter {
                 velocity: this.state.velocity,
                 hasVelocity,
                 positionUncertainty: sigmaGPS,
-                velocityUncertainty
+                velocityUncertainty,
+                initialTimestamp: this.state.timestamp,
+                gpsTimestamp: gpsReading.timestamp
             });
         }
 
@@ -142,9 +145,28 @@ export class PureKalmanFilter {
         if (!this.isInitialized) return;
 
         const dt = (imuReading.timestamp - this.state.timestamp) / 1000;
+
+        // Handle all cases of dt: positive, negative, or zero
         if (dt > 0) {
+            // Normal case: IMU reading is after current state
             this.predictInternal(dt);
             this.state.timestamp = imuReading.timestamp;
+        } else if (dt < 0) {
+            // Edge case: IMU reading is before current state (can happen if IMU starts before GPS)
+            // Reset timestamp to IMU reading without predicting to avoid negative time prediction
+            if (this.debugEnabled) {
+                console.log('[KalmanFilter] IMU reading before state, resetting timestamp:', {
+                    stateTimestamp: this.state.timestamp,
+                    imuTimestamp: imuReading.timestamp,
+                    dt
+                });
+            }
+            this.state.timestamp = imuReading.timestamp;
+        } else {
+            // dt === 0: Same timestamp, just update state
+            if (this.debugEnabled) {
+                console.log('[KalmanFilter] IMU reading at same timestamp');
+            }
         }
 
         if (imuReading.acceleration) {
@@ -177,6 +199,13 @@ export class PureKalmanFilter {
     }
 
     private predictInternal(dt: number): void {
+        if (dt <= 0) {
+            if (this.debugEnabled) {
+                console.warn('[KalmanFilter] predictInternal called with non-positive dt:', dt);
+            }
+            return;
+        }
+
         const F = new Matrix([
             [1, 0, dt, 0, 0.5 * dt * dt, 0],
             [0, 1, 0, dt, 0, 0.5 * dt * dt],
@@ -208,7 +237,7 @@ export class PureKalmanFilter {
         const xPred = F.mmul(x);
         const PPred = F.mmul(this.state.covariance).mmul(F.transpose()).add(Q);
 
-        if (this.debugEnabled && dt > 0.1) {
+        if (this.debugEnabled) {
             const covTrace = PPred.trace();
             const posVar = Math.sqrt(PPred.get(0, 0) + PPred.get(1, 1));
             const velVar = Math.sqrt(PPred.get(2, 2) + PPred.get(3, 3));
@@ -219,7 +248,10 @@ export class PureKalmanFilter {
                 covarianceTrace: covTrace,
                 positionUncertainty: posVar,
                 velocityUncertainty: velVar,
-                accelerationUncertainty: accVar
+                accelerationUncertainty: accVar,
+                position: { x: xPred.get(0, 0), y: xPred.get(1, 0) },
+                velocity: { x: xPred.get(2, 0), y: xPred.get(3, 0) },
+                acceleration: { x: xPred.get(4, 0), y: xPred.get(5, 0) }
             });
         }
 
@@ -368,7 +400,8 @@ export class PureKalmanFilter {
         ]);
 
         // Measurement noise for IMU acceleration
-        const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty!, 0.1);
+        // Use a reasonable uncertainty for smartphone accelerometers (typically 0.1-0.5 m/s²)
+        const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty!, 0.5);
         const epsilon = 1e-6;
         const R = new Matrix([
             [sigmaAcc * sigmaAcc, 0],
@@ -377,6 +410,14 @@ export class PureKalmanFilter {
 
         const HPred = H.mmul(this.state.covariance).mmul(H.transpose());
         const S = HPred.add(R);
+
+        // Check for singular or near-singular matrix
+        if (S.get(0, 0) < epsilon || S.get(1, 1) < epsilon || Math.abs(S.get(0, 1)) > 0.9 * Math.sqrt(S.get(0, 0) * S.get(1, 1))) {
+            if (this.debugEnabled) {
+                console.warn('[KalmanFilter] Near-singular IMU measurement covariance, adding regularization');
+            }
+        }
+
         // Add small epsilon to diagonal to ensure invertibility
         const Sreg = S.add(Matrix.identity(S.rows, S.columns).mul(epsilon));
         const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
@@ -384,10 +425,13 @@ export class PureKalmanFilter {
         this.lastKalmanGain = K;
 
         if (this.debugEnabled) {
+            const gainNorm = Math.sqrt(K.to1DArray().reduce((sum, val) => sum + val * val, 0));
             console.log('[KalmanFilter] IMU update:', {
                 acceleration: { x: acceleration.x, y: acceleration.y },
                 kalmanGain: K.to2DArray(),
-                gainNorm: Math.sqrt(K.to1DArray().reduce((sum, val) => sum + val * val, 0))
+                gainNorm,
+                sigmaAcc,
+                stateAcceleration: { x: this.state.acceleration.x, y: this.state.acceleration.y }
             });
         }
 

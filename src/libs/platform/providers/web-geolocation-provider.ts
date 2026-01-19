@@ -234,7 +234,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                             }
                             this.lastCompatibilityUpdateTime = now;
                         }
-                    }, highFrequency ? 2000 : gpsInterval);
+                    }, highFrequency ? 1000 : gpsInterval);
                 }
 
                 this.compatibilityModeWatches.set(watchId, this.compatibilityIntervalId);

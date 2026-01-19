@@ -13,6 +13,7 @@ export class LocationProcessor {
     private isInitialized = false;
     private lastOutputTime = 0;
     private lastOutputAccuracy = 0;
+    private debugEnabled = false;
 
     constructor(
         callback: LocationCallback,
@@ -132,10 +133,19 @@ export class LocationProcessor {
 
     processIMUReading(imuReading: IMUReading): void {
         if (!this.isInitialized || !this.kalmanFilter.isFilterInitialized()) {
+            if (this.isInitialized && !this.kalmanFilter.isFilterInitialized()) {
+                console.log('[LocationProcessor] Kalman filter not yet initialized, buffering IMU reading');
+            }
             return;
         }
 
         try {
+            if (this.debugEnabled) {
+                console.log('[LocationProcessor] Processing IMU reading:', {
+                    timestamp: imuReading.timestamp,
+                    acceleration: imuReading.acceleration
+                });
+            }
             this.kalmanFilter.updateIMU(imuReading);
             void this.outputPredictedPosition();
         } catch (error) {

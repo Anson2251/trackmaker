@@ -220,7 +220,7 @@ export class KalmanBackend implements BackendStrategy {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
                 accuracy: position.coords.accuracy,
-                timestamp: position.timestamp || performance.now(),
+                timestamp: performance.now(), // Always use performance.now() for consistent delta time calculations
                 speed: position.coords.speed ?? undefined,
                 heading: position.coords.heading ?? undefined
             };

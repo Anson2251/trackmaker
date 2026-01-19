@@ -83,7 +83,7 @@ function formatDistance(meters: number) {
 // Format Kalman state for display
 const formattedCoordinates = computed(() => {
   if (!props.currentLocation) return null;
-  return `${props.currentLocation.latitude.toFixed(5)}, ${props.currentLocation.longitude.toFixed(5)}`;
+  return `(${props.currentLocation.latitude.toFixed(6)}, ${props.currentLocation.longitude.toFixed(6)})`;
 });
 
 const formattedVelocity = computed(() => {
@@ -174,19 +174,6 @@ const formattedVelocityAccuracy = computed(() => {
 
         </div>
 
-        <!-- Kalman Gain (if available and recording) -->
-        <div
-          v-if="isRecording && kalmanGain && currentLocation"
-          class="status-item"
-        >
-          <n-text class="status-label">
-            {{ t('trackerView.statusBar.kalmanGain') }}:
-          </n-text>
-          <n-text class="status-value kalman-gain">
-            {{ kalmanGain }}
-          </n-text>
-        </div>
-
         <!-- GPS Status Indicator -->
         <div class="status-item">
           <n-text class="status-label">
@@ -209,7 +196,7 @@ const formattedVelocityAccuracy = computed(() => {
           class="status-item"
         >
           <n-text class="status-label">
-            Pos:
+            P:
           </n-text>
           <n-text class="status-value">
             {{ formattedCoordinates }}
@@ -221,7 +208,7 @@ const formattedVelocityAccuracy = computed(() => {
           class="status-item"
         >
           <n-text class="status-label">
-            Vel:
+            V:
           </n-text>
           <n-text class="status-value">
             {{ formattedVelocity }}
@@ -232,7 +219,7 @@ const formattedVelocityAccuracy = computed(() => {
           class="status-item"
         >
           <n-text class="status-label">
-            PosAcc:
+            ΔX:
           </n-text>
           <n-text class="status-value">
             {{ formattedPositionAccuracy }}
@@ -243,7 +230,7 @@ const formattedVelocityAccuracy = computed(() => {
           class="status-item"
         >
           <n-text class="status-label">
-            VelAcc:
+            ΔV:
           </n-text>
           <n-text class="status-value">
             {{ formattedVelocityAccuracy }}
@@ -254,12 +241,23 @@ const formattedVelocityAccuracy = computed(() => {
           class="status-item"
         >
           <n-text class="status-label">
-            Acc:
+            A:
           </n-text>
           <n-text class="status-value">
             {{ formattedAcceleration }}
           </n-text>
         </div>
+        <!-- <div
+          v-if="formattedAcceleration"
+          class="status-item"
+        >
+          <n-text class="status-label">
+            Kalman
+          </n-text>
+          <n-text class="status-value">
+            {{ kalmanState?.covariance.toJSON() }}
+          </n-text>
+        </div> -->
       </n-space>
     </n-config-provider>
   </div>

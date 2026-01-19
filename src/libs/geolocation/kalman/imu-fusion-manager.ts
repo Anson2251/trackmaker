@@ -66,17 +66,7 @@ export class IMUFusionManager {
         }
 
         try {
-            // Start IMU sensors with ENU normalization for consistent coordinate system
-            // const accelResult = await this.imuProvider.startAcceleration({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
-            // if (accelResult.isErr()) {
-            //     console.warn('[IMUFusionManager] Failed to start acceleration sensor:', accelResult.error);
-            // }
-
-            // const gyroResult = await this.imuProvider.startGyroscope({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
-            // if (gyroResult.isErr()) {
-            //     console.warn('[IMUFusionManager] Failed to start gyroscope sensor:', gyroResult.error);
-            // }
-
+            // IMPORTANT: We assume that the IMU update has been started and is available.
             // Register callback
             this.imuCallbacks.push(callback);
             this.isListening = true;
