@@ -93,11 +93,14 @@ importers:
         specifier: ^3.5.26
         version: 3.5.26(typescript@5.9.3)
       vue-i18n:
-        specifier: ^9.14.5
-        version: 9.14.5(vue@3.5.26(typescript@5.9.3))
+        specifier: ^11.2.8
+        version: 11.2.8(vue@3.5.26(typescript@5.9.3))
       vue-router:
         specifier: ^4.6.4
         version: 4.6.4(vue@3.5.26(typescript@5.9.3))
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@tauri-apps/cli':
         specifier: ^2.9.6
@@ -117,9 +120,6 @@ importers:
       '@types/ua-parser-js':
         specifier: ^0.7.39
         version: 0.7.39
-      '@types/unist':
-        specifier: ^3.0.3
-        version: 3.0.3
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -146,10 +146,10 @@ importers:
         version: 2.43.2(vue@3.5.26(typescript@5.9.3))
       oxlint:
         specifier: ^1.39.0
-        version: 1.39.0(oxlint-tsgolint@0.9.2)
+        version: 1.39.0(oxlint-tsgolint@0.10.1)
       oxlint-tsgolint:
-        specifier: ^0.9.2
-        version: 0.9.2
+        specifier: ^0.10.0
+        version: 0.10.1
       typedoc:
         specifier: ^0.28.16
         version: 0.28.16(typescript@5.9.3)
@@ -428,16 +428,16 @@ packages:
       maplibre-gl: ^5.0.0
       vue: ^3.4.18
 
-  '@intlify/core-base@9.14.5':
-    resolution: {integrity: sha512-5ah5FqZG4pOoHjkvs8mjtv+gPKYU0zCISaYNjBNNqYiaITxW8ZtVih3GS/oTOqN8d9/mDLyrjD46GBApNxmlsA==}
+  '@intlify/core-base@11.2.8':
+    resolution: {integrity: sha512-nBq6Y1tVkjIUsLsdOjDSJj4AsjvD0UG3zsg9Fyc+OivwlA/oMHSKooUy9tpKj0HqZ+NWFifweHavdljlBLTwdA==}
     engines: {node: '>= 16'}
 
-  '@intlify/message-compiler@9.14.5':
-    resolution: {integrity: sha512-IHzgEu61/YIpQV5Pc3aRWScDcnFKWvQA9kigcINcCBXN8mbW+vk9SK+lDxA6STzKQsVJxUPg9ACC52pKKo3SVQ==}
+  '@intlify/message-compiler@11.2.8':
+    resolution: {integrity: sha512-A5n33doOjmHsBtCN421386cG1tWp5rpOjOYPNsnpjIJbQ4POF0QY2ezhZR9kr0boKwaHjbOifvyQvHj2UTrDFQ==}
     engines: {node: '>= 16'}
 
-  '@intlify/shared@9.14.5':
-    resolution: {integrity: sha512-9gB+E53BYuAEMhbCAxVgG38EZrk59sxBtv3jSizNL2hEWlgjBjAw1AwpLHtNaeda12pe6W20OGEa0TwuMSRbyQ==}
+  '@intlify/shared@11.2.8':
+    resolution: {integrity: sha512-l6e4NZyUgv8VyXXH4DbuucFOBmxLF56C/mqh2tvApbzl2Hrhi1aTDcuv5TKdxzfHYmpO3UB0Cz04fgDT9vszfw==}
     engines: {node: '>= 16'}
 
   '@jridgewell/gen-mapping@0.3.13':
@@ -502,33 +502,33 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@oxlint-tsgolint/darwin-arm64@0.9.2':
-    resolution: {integrity: sha512-AujIYejzo2KgSWEn65FxkTwJ7Xkq106wUjyKYpljpEsrldO3QkW1yjj6osisoIjM/NdV0VO21YWjIGFIKd0/Ug==}
+  '@oxlint-tsgolint/darwin-arm64@0.10.1':
+    resolution: {integrity: sha512-KGC4++BeEqrIcmDHiJt/e6/860PWJmUJjjp0mE+smpBmRXMjmOFFjrPmN+ZyCyVgf1WdmhPkQXsRSPeTR+2omw==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint-tsgolint/darwin-x64@0.9.2':
-    resolution: {integrity: sha512-rNLCdo5DjSBcMjRwND4eOaboPD30Ssp0sfqS3KpHvo/0acQmQVCJwOaDUO7s2a77YPDJ6jSaGDWYo8HLnEXALg==}
+  '@oxlint-tsgolint/darwin-x64@0.10.1':
+    resolution: {integrity: sha512-tvmrDgj3Q0tdc+zMWfCVLVq8EQDEUqasm1zaWgSMYIszpID6qdgqbT+OpWWXV9fLZgtvrkoXGwxkHAUJzdVZXQ==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint-tsgolint/linux-arm64@0.9.2':
-    resolution: {integrity: sha512-xVL66moJftyrvmFSwstWDQ1bqVjn9HCSz+QJLLInf3/b51xZl5QbbGEPX4bf4SKut+7v5ZEM527DbVGg1yRmKQ==}
+  '@oxlint-tsgolint/linux-arm64@0.10.1':
+    resolution: {integrity: sha512-7kD28z6/ykGx8WetKTPRZt30pd+ziassxg/8cM24lhjUI+hNXyRHVtHes73dh9D6glJKno+1ut+3amUdZBZcpQ==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint-tsgolint/linux-x64@0.9.2':
-    resolution: {integrity: sha512-sVH2DADkdUmFZhggaMM/r8NOdn2Ud1Az/nJoGbAiV82Lipw3Kp6y6yV2w+NWfmETHZZ+0gwlWTZod7NSmQuR5w==}
+  '@oxlint-tsgolint/linux-x64@0.10.1':
+    resolution: {integrity: sha512-NmJmiqdzYUTHIxteSTyX6IFFgnIsOAjRWXfrS6Jbo5xlB3g39WHniSF3asB/khLJNtwSg4InUS34NprYM7zrEw==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint-tsgolint/win32-arm64@0.9.2':
-    resolution: {integrity: sha512-0nvXzcY+W84Vo4pq5qh+0k3BsSb7ImzB9VaX5jIbjTNvx3EYS/KZzo0smhZ+drs43V4oNqJjgt2jnkeWF9Yj/g==}
+  '@oxlint-tsgolint/win32-arm64@0.10.1':
+    resolution: {integrity: sha512-3KrT80vl3nXUkjuJI/z8dF6xWsKx0t9Tz4ZQHgQw3fYw+CoihBRWGklrdlmCz+EGfMyVaQLqBV9PZckhSqLe2A==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint-tsgolint/win32-x64@0.9.2':
-    resolution: {integrity: sha512-OGx2CIyWjpOhFOL7tvVjLrKlkjJSOVZBe5S/jmBnxY+vRjFrXQr0zNUXy+S+ggIv6rsMlz3B+ixSriyUIKwDeQ==}
+  '@oxlint-tsgolint/win32-x64@0.10.1':
+    resolution: {integrity: sha512-hW1fSJZVxG51sLdGq1sQjOzb1tsQ23z/BquJfUwL7CqBobxr7TJvGmoINL+9KryOJt0jCoaiMfWe4yoYw5XfIA==}
     cpu: [x64]
     os: [win32]
 
@@ -2046,8 +2046,8 @@ packages:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
 
-  oxlint-tsgolint@0.9.2:
-    resolution: {integrity: sha512-UKLudgnuEPyAzpLk5FeZyCdjRaHQE6cSqmlTBwmEp2lGJ1wN59qGc4gfjAXVSCrKrd30jXDGf5/zQ3CTa6BNNQ==}
+  oxlint-tsgolint@0.10.1:
+    resolution: {integrity: sha512-EEHNdo5cW2w1xwYdBQ7d3IXDqWAtMkfVFrh+9gQ4kYbYJwygY4QXSh1eH80/xVipZdVKujAwBgg/nNNHk56kxQ==}
     hasBin: true
 
   oxlint@1.39.0:
@@ -2515,10 +2515,9 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
-  vue-i18n@9.14.5:
-    resolution: {integrity: sha512-0jQ9Em3ymWngyiIkj0+c/k7WgaPO+TNzjKSNq9BvBQaKJECqn9cd9fL4tkDhB5G1QBskGl9YxxbDAhgbFtpe2g==}
+  vue-i18n@11.2.8:
+    resolution: {integrity: sha512-vJ123v/PXCZntd6Qj5Jumy7UBmIuE92VrtdX+AXr+1WzdBHojiBxnAxdfctUFL+/JIN+VQH4BhsfTtiGsvVObg==}
     engines: {node: '>= 16'}
-    deprecated: v9 and v10 no longer supported. please migrate to v11. about maintenance status, see https://vue-i18n.intlify.dev/guide/maintenance.html
     peerDependencies:
       vue: ^3.0.0
 
@@ -2604,6 +2603,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zod@4.3.5:
+    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
 
 snapshots:
 
@@ -2778,17 +2780,17 @@ snapshots:
       maplibre-gl: 5.11.0
       vue: 3.5.26(typescript@5.9.3)
 
-  '@intlify/core-base@9.14.5':
+  '@intlify/core-base@11.2.8':
     dependencies:
-      '@intlify/message-compiler': 9.14.5
-      '@intlify/shared': 9.14.5
+      '@intlify/message-compiler': 11.2.8
+      '@intlify/shared': 11.2.8
 
-  '@intlify/message-compiler@9.14.5':
+  '@intlify/message-compiler@11.2.8':
     dependencies:
-      '@intlify/shared': 9.14.5
+      '@intlify/shared': 11.2.8
       source-map-js: 1.2.1
 
-  '@intlify/shared@9.14.5': {}
+  '@intlify/shared@11.2.8': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -2868,22 +2870,22 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@oxlint-tsgolint/darwin-arm64@0.9.2':
+  '@oxlint-tsgolint/darwin-arm64@0.10.1':
     optional: true
 
-  '@oxlint-tsgolint/darwin-x64@0.9.2':
+  '@oxlint-tsgolint/darwin-x64@0.10.1':
     optional: true
 
-  '@oxlint-tsgolint/linux-arm64@0.9.2':
+  '@oxlint-tsgolint/linux-arm64@0.10.1':
     optional: true
 
-  '@oxlint-tsgolint/linux-x64@0.9.2':
+  '@oxlint-tsgolint/linux-x64@0.10.1':
     optional: true
 
-  '@oxlint-tsgolint/win32-arm64@0.9.2':
+  '@oxlint-tsgolint/win32-arm64@0.10.1':
     optional: true
 
-  '@oxlint-tsgolint/win32-x64@0.9.2':
+  '@oxlint-tsgolint/win32-x64@0.10.1':
     optional: true
 
   '@oxlint/darwin-arm64@1.39.0':
@@ -4415,16 +4417,16 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.5
 
-  oxlint-tsgolint@0.9.2:
+  oxlint-tsgolint@0.10.1:
     optionalDependencies:
-      '@oxlint-tsgolint/darwin-arm64': 0.9.2
-      '@oxlint-tsgolint/darwin-x64': 0.9.2
-      '@oxlint-tsgolint/linux-arm64': 0.9.2
-      '@oxlint-tsgolint/linux-x64': 0.9.2
-      '@oxlint-tsgolint/win32-arm64': 0.9.2
-      '@oxlint-tsgolint/win32-x64': 0.9.2
+      '@oxlint-tsgolint/darwin-arm64': 0.10.1
+      '@oxlint-tsgolint/darwin-x64': 0.10.1
+      '@oxlint-tsgolint/linux-arm64': 0.10.1
+      '@oxlint-tsgolint/linux-x64': 0.10.1
+      '@oxlint-tsgolint/win32-arm64': 0.10.1
+      '@oxlint-tsgolint/win32-x64': 0.10.1
 
-  oxlint@1.39.0(oxlint-tsgolint@0.9.2):
+  oxlint@1.39.0(oxlint-tsgolint@0.10.1):
     optionalDependencies:
       '@oxlint/darwin-arm64': 1.39.0
       '@oxlint/darwin-x64': 1.39.0
@@ -4434,7 +4436,7 @@ snapshots:
       '@oxlint/linux-x64-musl': 1.39.0
       '@oxlint/win32-arm64': 1.39.0
       '@oxlint/win32-x64': 1.39.0
-      oxlint-tsgolint: 0.9.2
+      oxlint-tsgolint: 0.10.1
 
   p-limit@3.1.0:
     dependencies:
@@ -4881,10 +4883,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-i18n@9.14.5(vue@3.5.26(typescript@5.9.3)):
+  vue-i18n@11.2.8(vue@3.5.26(typescript@5.9.3)):
     dependencies:
-      '@intlify/core-base': 9.14.5
-      '@intlify/shared': 9.14.5
+      '@intlify/core-base': 11.2.8
+      '@intlify/shared': 11.2.8
       '@vue/devtools-api': 6.6.4
       vue: 3.5.26(typescript@5.9.3)
 
@@ -4963,3 +4965,5 @@ snapshots:
   yaml@2.8.2: {}
 
   yocto-queue@0.1.0: {}
+
+  zod@4.3.5: {}

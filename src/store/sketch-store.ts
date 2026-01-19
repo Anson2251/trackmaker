@@ -9,6 +9,7 @@ import type { GeographicPoint } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicDraftItemProperties, GeographicShape, GeographicGeneralMetaType } from '../libs/cartosketch/definitions';
 import { GeographicGeneralMetaDefaultValue } from '../libs/cartosketch/definitions';
 import { calculatePathDistance } from '../utils/proj4-distance';
+import { WriteAheadLogManagerInstance, CombinedRouteReaderInstance, CrashRecoveryManagerInstance } from '../libs/route-wal';
 
 export const useSketchStore = defineStore('sketches', () => {
     const sketches = ref<CartoSketch[]>([]);
@@ -58,7 +59,6 @@ export const useSketchStore = defineStore('sketches', () => {
         const storedData = await storageGet<ReturnType<CartoSketch['toStorage']>>('sketches');
 
         if (storedData) {
-            // Use the migration service to handle data migration
             const migrationResult = MigrationService.migrateToCurrent(storedData, {
                 validateBefore: true,
                 validateAfter: true,
@@ -67,7 +67,6 @@ export const useSketchStore = defineStore('sketches', () => {
 
             if (migrationResult.isErr()) {
                 console.error("[SketchStore] Data migration failed:", migrationResult.error);
-                // Fallback to creating default sketch
                 await createDefaultSketch();
                 return;
             }
@@ -78,14 +77,11 @@ export const useSketchStore = defineStore('sketches', () => {
                 console.info(`[SketchStore] Successfully migrated data from version ${result.fromVersion} to ${result.toVersion}`);
             }
 
-            // Handle the migrated data
             if (Array.isArray(result.data)) {
-                // New format - array of sketches
                 sketches.value = (result.data as GeographicSketchType[]).map((sketchData: GeographicSketchType) =>
                     CartoSketch.fromStorage(sketchData)
                 );
 
-                // Calculate distances for all routes (async but we don't await here to avoid blocking)
                 const promises: Promise<void>[] = [];
                 sketches.value.forEach(sketch => {
                     sketch.routes.routes.forEach((route) => {
@@ -95,7 +91,6 @@ export const useSketchStore = defineStore('sketches', () => {
                                     route.meta.distance = await calculatePathDistance(route.points);
                                 } catch (error) {
                                     console.warn('Failed to calculate route distance:', error);
-                                    // Fallback to 0 if calculation fails
                                     route.meta.distance = 0;
                                 }
                             })());
@@ -104,18 +99,71 @@ export const useSketchStore = defineStore('sketches', () => {
                 });
                 await Promise.all(promises);
 
-                // Set current sketch to first one if none is selected
                 if (!currentSketchId.value && sketches.value.length > 0) {
                     currentSketchId.value = sketches.value[0].id;
                 }
             } else {
-                // Invalid format after migration, create default sketch
                 await createDefaultSketch();
             }
         } else {
-            // No data found, create default sketch
             await createDefaultSketch();
         }
+
+        await initializeWAL();
+    }
+
+    async function initializeWAL(): Promise<void> {
+        try {
+            const walInitialized = await storageGet<boolean>('wal:initialized');
+
+            if (!walInitialized) {
+                console.info('[SketchStore] Initializing WAL system...');
+                await migrateToWAL();
+                await storageSet('wal:initialized', true);
+                await storageSet('wal:version', 1);
+                console.info('[SketchStore] WAL system initialized');
+            }
+
+            console.info('[SketchStore] Running crash recovery...');
+            const recoveryResult = await CrashRecoveryManagerInstance.recover();
+            if (recoveryResult.failedRoutes > 0) {
+                console.warn('[SketchStore] Crash recovery completed with failures:', recoveryResult.details);
+            } else {
+                console.info('[SketchStore] Crash recovery completed successfully');
+            }
+        } catch (error) {
+            console.error('[SketchStore] Failed to initialize WAL:', error);
+        }
+    }
+
+    async function migrateToWAL(): Promise<void> {
+        const backup = await storageGet('sketches');
+        if (backup) {
+            await storageSet('sketches:backup:pre-wal', backup);
+        }
+
+        const sketchesData = await storageGet<ReturnType<CartoSketch['toStorage']>[]>('sketches');
+        if (!sketchesData) return;
+
+        const sketches = sketchesData.map(s => CartoSketch.fromStorage(s));
+        const activeRoutes: string[] = [];
+
+        for (const sketch of sketches) {
+            for (const route of sketch.routes.routes) {
+                const metadata = {
+                    routeId: route.id,
+                    lastMergeTime: Date.now(),
+                    unmergedCount: 0,
+                    lastSequence: 0,
+                    totalPoints: route.points.length
+                };
+
+                await storageSet(`route:${route.id}:metadata`, metadata);
+                activeRoutes.push(route.id);
+            }
+        }
+
+        await storageSet('wal:activeRoutes', activeRoutes);
     }
 
 
@@ -153,8 +201,8 @@ export const useSketchStore = defineStore('sketches', () => {
         }
         if (updates.tags !== undefined) {
             // Remove all existing tags and add new ones
-            sketch.meta.tags.forEach(tag => {sketch.removeTag(tag)});
-            updates.tags.forEach(tag => {sketch.addTag(tag)});
+            sketch.meta.tags.forEach(tag => { sketch.removeTag(tag) });
+            updates.tags.forEach(tag => { sketch.addTag(tag) });
         }
 
         await storageSet('sketches', sketches.value.map(s => s.toStorage()));
@@ -226,7 +274,6 @@ export const useSketchStore = defineStore('sketches', () => {
         route.points.push(point);
         route.meta.modification_timestamp = Date.now();
 
-        // Calculate route distance
         if (route.points.length > 1) {
             try {
                 if (route.meta.distance === undefined) {
@@ -239,15 +286,30 @@ export const useSketchStore = defineStore('sketches', () => {
                 }
             } catch (error) {
                 console.warn('Failed to calculate route distance:', error);
-                // Fallback: use simple haversine for incremental calculation
                 if (route.meta.distance === undefined) {
                     route.meta.distance = 0;
                 }
             }
         }
 
-        await storageSet('sketches', sketches.value.map(s => s.toStorage()));
-        await storageSave();
+        const sketchesBackup = sketches.value.map(s => s.toStorage());
+
+        try {
+            await WriteAheadLogManagerInstance.appendPoint(id, point);
+            CombinedRouteReaderInstance.invalidateCache(id);
+        } catch (walError) {
+            console.error('[SketchStore] WAL append failed, rolling back in-memory state:', walError);
+            const restoredSketches = sketchesBackup.map(s => CartoSketch.fromStorage(s));
+            const sketch = restoredSketches.find(s => s.id === currentSketch.value?.id);
+            if (sketch) {
+                const routeIndex = sketch.routes.routes.findIndex(r => r.id === id);
+                if (routeIndex !== -1) {
+                    sketches.value = restoredSketches;
+                    currentSketchId.value = sketch.id;
+                }
+            }
+            throw walError;
+        }
     }
 
     async function updateRoute(id: string, updates: { properties?: Partial<GeographicRouteItemType["properties"]>, meta?: Partial<GeographicRouteItemType["meta"]> }) {
@@ -282,9 +344,8 @@ export const useSketchStore = defineStore('sketches', () => {
         await storageSave();
     }
 
-    function getRouteById(id: string) {
-        if (!currentSketch.value) return null;
-        return currentSketch.value.routes.routes.find(r => r.id === id) || null;
+    async function getRouteById(id: string): Promise<GeographicRouteItemType | null> {
+        return CombinedRouteReaderInstance.getRoute(id);
     }
 
     function setCurrentRouteId(id: string | null) {

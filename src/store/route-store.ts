@@ -5,6 +5,8 @@ import type { GeographicRouteItemProperties, GeographicRouteItemType } from '../
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
 
+const RECORDING_TIMESPAN_INTERVAL_MS = 200;
+
 export const useRouteStore = defineStore('routes', () => {
     const sketchStore = useSketchStore();
     const routeCollection = computed(() => sketchStore.routeCollection);
@@ -14,11 +16,12 @@ export const useRouteStore = defineStore('routes', () => {
     });
 
     const currentRouteRecordTimespan = ref(0);
-    watch(currentRouteId, (id) => {
+    watch(currentRouteId, async (id) => {
         if (id !== null) {
-            currentRouteRecordTimespan.value = sketchStore.getRouteById(id)?.meta?.record_timespan ?? 0;
+            const route = await sketchStore.getRouteById(id);
+            currentRouteRecordTimespan.value = route?.meta?.record_timespan ?? 0;
         }
-    })
+    });
 
     // Recording state
     const isRecording = ref(false);
@@ -59,7 +62,7 @@ export const useRouteStore = defineStore('routes', () => {
         await sketchStore.clearRoutePoints(id);
     }
 
-    function getRouteById(id: string) {
+    async function getRouteById(id: string): Promise<GeographicRouteItemType | null> {
         return sketchStore.getRouteById(id);
     }
 
@@ -83,15 +86,18 @@ export const useRouteStore = defineStore('routes', () => {
             }
         });
 
-        void sketchStore.updateRoute(currentRouteId.value!, { meta: { modification_timestamp: Date.now() } });
+        if (currentRouteId.value) {
+            void sketchStore.updateRoute(currentRouteId.value, { meta: { modification_timestamp: Date.now() } });
+        }
 
         recordingTimespanTrackingHandler = setInterval(async () => {
-            const currentRoute = sketchStore.getRouteById(currentRouteId.value!)!;
-            if (currentRoute.meta.record_timespan !== undefined && currentRoute.meta.modification_timestamp) {
+            if (!currentRouteId.value) return;
+            const currentRoute = await sketchStore.getRouteById(currentRouteId.value);
+            if (currentRoute && currentRoute.meta.record_timespan !== undefined && currentRoute.meta.modification_timestamp) {
                 currentRouteRecordTimespan.value = currentRoute.meta.record_timespan + (Date.now() - currentRoute.meta.modification_timestamp);
-                await sketchStore.updateRoute(currentRouteId.value!, { meta: { record_timespan: currentRouteRecordTimespan.value } });
+                await sketchStore.updateRoute(currentRouteId.value, { meta: { record_timespan: currentRouteRecordTimespan.value } });
             }
-        }, 100) as unknown as number;
+        }, RECORDING_TIMESPAN_INTERVAL_MS) as unknown as number;
     }
 
     function stopRecording() {
@@ -103,7 +109,7 @@ export const useRouteStore = defineStore('routes', () => {
         }
 
         if (recordingTimespanTrackingHandler) {
-            clearTimeout(recordingTimespanTrackingHandler);
+            clearInterval(recordingTimespanTrackingHandler);
             recordingTimespanTrackingHandler = undefined;
         }
 
@@ -117,16 +123,15 @@ export const useRouteStore = defineStore('routes', () => {
             }
 
             if (!isRecording.value) {
-                // Start recording
                 if (!currentRouteId.value) {
                     const newRoute = await addRoute(t("trackerView.nameNewRoute"));
                     setCurrentRouteId(newRoute.id);
-                    startRecording(locator.value.getLastKnownLocation());
+                    const lastLocation = locator.value.getLastKnownLocation();
+                    startRecording(lastLocation ?? undefined);
                 } else {
                     startRecording();
                 }
             } else {
-                // Stop recording
                 stopRecording();
             }
         } catch (err) {
