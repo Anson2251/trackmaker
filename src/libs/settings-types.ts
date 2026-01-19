@@ -23,6 +23,7 @@ export type Settings = {
     enableKalmanFilter: boolean;
     mapZoomLevel: number;
     imuUpdateFrequency: number;
+    kalmanGpsUpdateInterval: number;
 };
 
 export type SettingKey = keyof Settings;

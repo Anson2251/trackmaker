@@ -5,7 +5,7 @@
 import { Result, ok, err } from 'neverthrow';
 import type { IGeolocationProvider } from '../types';
 import { GeolocationProviderError, GeolocationProviderErrorCode } from '../errors';
-import { getGpsUpdateInterval, getEarlySetting } from '@/libs/default-settings';
+import { getGpsUpdateInterval, getKalmanGpsUpdateInterval, getEarlySetting } from '@/libs/default-settings';
 
 export class WebGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
@@ -186,6 +186,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
             }
         }
 
+        const kalmanGpsInterval = getKalmanGpsUpdateInterval()
         const gpsInterval = getGpsUpdateInterval();
         const useCompatibilityMode = getEarlySetting('watchCompatibilityMode');
         const highFrequency = options?.highFrequency ?? false;
@@ -234,7 +235,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
                             }
                             this.lastCompatibilityUpdateTime = now;
                         }
-                    }, highFrequency ? 1000 : gpsInterval);
+                    }, highFrequency ? kalmanGpsInterval : gpsInterval);
                 }
 
                 this.compatibilityModeWatches.set(watchId, this.compatibilityIntervalId);

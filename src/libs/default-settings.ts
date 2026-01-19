@@ -25,6 +25,7 @@ export const defaultSettings: Settings = {
     enableKalmanFilter: true,
     mapZoomLevel: 15,
     imuUpdateFrequency: 10,
+    kalmanGpsUpdateInterval: 1
 };
 
 // Advanced settings configuration (for UI display)
@@ -91,6 +92,12 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'GPS Update Interval (ms)',
         type: 'number',
         description: 'Minimum interval between GPS position updates',
+    },
+    {
+        key: 'kalmanGpsUpdateInterval',
+        name: 'Kalman GPS Update Interval (ms)',
+        type: 'number',
+        description: 'Minimum interval between GPS position updates when using Kalman filter',
     },
     {
         key: 'mapTileServer',
@@ -239,6 +246,10 @@ export function getGpsUpdateInterval(): number {
     return getEarlySetting('gpsUpdateInterval');
 }
 
+export function getKalmanGpsUpdateInterval(): number {
+    return getEarlySetting('kalmanGpsUpdateInterval')
+}
+
 /**
  * Check if Kalman filter is enabled
  */
@@ -301,4 +312,3 @@ export function getMapTilerApiKey(): string {
 export function getIMUUpdateFrequency(): number {
     return getEarlySetting('imuUpdateFrequency');
 }
-

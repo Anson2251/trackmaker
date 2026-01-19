@@ -476,9 +476,10 @@ export class WebIMUProvider implements IIMUProvider {
             return;
         }
 
-        this.accelerationAccumulatedX += reading.x * deltaTime;
-        this.accelerationAccumulatedY += reading.y * deltaTime;
-        this.accelerationAccumulatedZ += reading.z * deltaTime;
+        // Trapezium rule
+        this.accelerationAccumulatedX += (this.accelerationPrevReading.x + reading.x) * deltaTime / 2;
+        this.accelerationAccumulatedY += (this.accelerationPrevReading.y + reading.y) * deltaTime / 2;
+        this.accelerationAccumulatedZ += (this.accelerationPrevReading.z + reading.z) * deltaTime / 2;
         this.accelerationAccumulatedTime += deltaTime;
 
         if (reading.timestamp - this.accelerationLastEmitTime >= this.accelerationIntervalMs) {
@@ -562,9 +563,10 @@ export class WebIMUProvider implements IIMUProvider {
             return;
         }
 
-        this.gyroscopeAccumulatedX += reading.x * deltaTime;
-        this.gyroscopeAccumulatedY += reading.y * deltaTime;
-        this.gyroscopeAccumulatedZ += reading.z * deltaTime;
+        // Trapezium rule
+        this.gyroscopeAccumulatedX += (this.gyroscopePrevReading.x + reading.x) * deltaTime / 2;
+        this.gyroscopeAccumulatedY += (this.gyroscopePrevReading.y + reading.y) * deltaTime / 2;
+        this.gyroscopeAccumulatedZ += (this.gyroscopePrevReading.z + reading.z) * deltaTime / 2;
         this.gyroscopeAccumulatedTime += deltaTime;
 
         if (reading.timestamp - this.gyroscopeLastEmitTime >= this.gyroscopeIntervalMs) {
