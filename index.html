@@ -99,6 +99,19 @@
 	</div>
 	<div id="splash"></div>
 
+	<script type="module">
+		import { getWriteAheadLogManager } from '/src/libs/route-wal/write-ahead-log-manager';
+
+		window.addEventListener('beforeunload', async () => {
+			try {
+				const wal = getWriteAheadLogManager();
+				await wal.shutdown();
+			} catch (e) {
+				console.error('WAL shutdown failed:', e);
+			}
+		});
+	</script>
+
 	<script type="module" src="/src/main.ts"></script>
 </body>
 

@@ -78,26 +78,22 @@ export async function transformCoordinate(
     toProjection: string,
     coordinate: [number, number]
 ): Promise<[number, number]> {
+    await initProj4rsModule();
+
+    const from = new Projection(fromProjection);
+    const to = new Projection(toProjection);
+    const point = new Point(coordinate[0], coordinate[1], 0);
+
     try {
-        // Ensure WASM module is initialized
-        await initProj4rsModule();
-
-        const from = new Projection(fromProjection);
-        const to = new Projection(toProjection);
-        const point = new Point(coordinate[0], coordinate[1], 0);
-
         transform(from, to, point);
-
         const result: [number, number] = [point.x, point.y];
-
-        // Clean up WASM resources
-        from.free();
-        to.free();
-        point.free();
-
         return result;
     } catch (error) {
         throw new Error(`Failed to transform coordinate: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+        from.free();
+        to.free();
+        point.free();
     }
 }
 

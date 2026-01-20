@@ -208,6 +208,6 @@ export async function waitUntilModuleLoaded(
                 logger?.error(error.message);
                 reject(error);
             }
-        }, 100);
+        }, 10);
     });
 }

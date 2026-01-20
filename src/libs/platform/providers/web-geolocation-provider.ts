@@ -203,7 +203,7 @@ export class WebGeolocationProvider implements IGeolocationProvider {
 
                 // Start shared interval if not already running
                 if (this.compatibilityIntervalId === null) {
-                    this.compatibilityIntervalId = window.setInterval(async () => {
+                    this.compatibilityIntervalId = setInterval(async () => {
                         const result = await this.getCurrentPosition();
                         if (result.isOk()) {
                             const pos = result.value;

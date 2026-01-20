@@ -10,6 +10,8 @@ import { GeographicPoint } from '../types';
 import gcoord from "gcoord";
 import { getEarlySetting } from '@/libs/default-settings';
 
+const EARTH_RADIUS = 6378137;
+
 /**
  * Coordinate transformation options
  */
@@ -27,14 +29,54 @@ export class CoordinateTransformer {
     private referencePoint: GeoCoordinate | null = null;
     private localProjection: string | null = null;
     private geolocationCorrectionEnabled: boolean;
+    private cachedWGS84Projection: Projection | null = null;
+    private cachedLocalProjection: Projection | null = null;
+    private cachedPoint: Point | null = null;
 
     constructor(options?: TransformOptions) {
-        // Check if geolocation correction is enabled
         this.geolocationCorrectionEnabled = this.getGeolocationCorrectionSetting();
 
         if (options?.referencePoint) {
             this.setReferencePoint(options.referencePoint, options.projection);
         }
+    }
+
+    dispose(): void {
+        if (this.cachedWGS84Projection) {
+            this.cachedWGS84Projection.free();
+            this.cachedWGS84Projection = null;
+        }
+        if (this.cachedLocalProjection) {
+            this.cachedLocalProjection.free();
+            this.cachedLocalProjection = null;
+        }
+        if (this.cachedPoint) {
+            this.cachedPoint.free();
+            this.cachedPoint = null;
+        }
+        this.referencePoint = null;
+        this.localProjection = null;
+    }
+
+    private getWGS84Projection(): Projection {
+        if (!this.cachedWGS84Projection) {
+            this.cachedWGS84Projection = new Projection(PROJECTIONS.WGS84);
+        }
+        return this.cachedWGS84Projection;
+    }
+
+    private getLocalProjectionObj(): Projection {
+        if (!this.cachedLocalProjection || !this.localProjection) {
+            throw new Error('Reference point not set. Call setReferencePoint() first.');
+        }
+        return this.cachedLocalProjection;
+    }
+
+    private getPoint(): Point {
+        if (!this.cachedPoint) {
+            this.cachedPoint = new Point(0, 0, 0);
+        }
+        return this.cachedPoint;
     }
 
     private getGeolocationCorrectionSetting(): boolean {
@@ -48,8 +90,12 @@ export class CoordinateTransformer {
      */
     public setReferencePoint(point: GeoCoordinate, projection?: string): void {
         this.referencePoint = point;
-        // Use local transverse mercator projection centered at reference point
         this.localProjection = projection || `+proj=tmerc +lat_0=${point.latitude} +lon_0=${point.longitude} +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs`;
+
+        if (this.cachedLocalProjection) {
+            this.cachedLocalProjection.free();
+        }
+        this.cachedLocalProjection = new Projection(this.localProjection);
     }
 
     /**
@@ -62,24 +108,23 @@ export class CoordinateTransformer {
             throw new Error('Reference point not set. Call setReferencePoint() first.');
         }
 
+        let effectiveCoord = coord;
+        if (this.geolocationCorrectionEnabled) {
+            const gp = new GeographicPoint(coord.latitude, coord.longitude);
+            effectiveCoord = wgs2gcj(gp);
+        }
+
+        const from = this.getWGS84Projection();
+        const to = this.getLocalProjectionObj();
+        const point = this.getPoint();
+        point.x = effectiveCoord.longitude;
+        point.y = effectiveCoord.latitude;
+        point.z = 0;
+
         try {
-            // Transform from WGS84 to local projection
-            const from = new Projection(PROJECTIONS.WGS84);
-            const to = new Projection(this.localProjection);
-            const point = new Point(coord.longitude, coord.latitude, 0);
-
             transform(from, to, point);
-
-            const result: ProjectedCoordinate = { x: point.x, y: point.y };
-
-            // Clean up WASM resources
-            from.free();
-            to.free();
-            point.free();
-
-            return result;
+            return { x: point.x, y: point.y };
         } catch {
-            // Fallback to simple equirectangular projection
             return this.geographicToLocalFallback(coord);
         }
     }
@@ -94,27 +139,22 @@ export class CoordinateTransformer {
             throw new Error('Reference point not set. Call setReferencePoint() first.');
         }
 
+        const from = this.getLocalProjectionObj();
+        const to = this.getWGS84Projection();
+        const point = this.getPoint();
+        point.x = coord.x;
+        point.y = coord.y;
+        point.z = 0;
+
         try {
-            // Transform from local projection to WGS84
-            const from = new Projection(this.localProjection);
-            const to = new Projection(PROJECTIONS.WGS84);
-            const point = new Point(coord.x, coord.y, 0);
-
             transform(from, to, point);
-
-            const result: GeoCoordinate = {
-                longitude: point.x,
-                latitude: point.y
-            };
-
-            // Clean up WASM resources
-            from.free();
-            to.free();
-            point.free();
-
+            const result = { longitude: point.x, latitude: point.y };
+            if (this.geolocationCorrectionEnabled) {
+                const gp = new GeographicPoint(result.latitude, result.longitude);
+                return gcj2wgs(gp);
+            }
             return result;
         } catch {
-            // Fallback to simple equirectangular projection
             return this.localToGeographicFallback(coord);
         }
     }
@@ -151,12 +191,11 @@ export class CoordinateTransformer {
             throw new Error('Reference point not set');
         }
 
-        const R = 6371000; // Earth's radius in meters
         const lat1 = this.referencePoint.latitude * Math.PI / 180;
         const lng1 = this.referencePoint.longitude * Math.PI / 180;
 
-        const latitude = (coord.y / R + lat1) * 180 / Math.PI;
-        const longitude = (coord.x / (R * Math.cos(lat1)) + lng1) * 180 / Math.PI;
+        const latitude = (coord.y / EARTH_RADIUS + lat1) * 180 / Math.PI;
+        const longitude = (coord.x / (EARTH_RADIUS * Math.cos(lat1)) + lng1) * 180 / Math.PI;
 
         return { latitude, longitude };
     }
@@ -191,6 +230,11 @@ export class CoordinateTransformer {
  */
 export function wgs2gcj(location: GeographicPoint): GeographicPoint {
     const converted = gcoord.transform([location.longitude, location.latitude], gcoord.WGS84, gcoord.GCJ02);
+    return new GeographicPoint(converted[1], converted[0]);
+}
+
+export function gcj2wgs(location: GeographicPoint): GeographicPoint {
+    const converted = gcoord.transform([location.longitude, location.latitude], gcoord.GCJ02, gcoord.WGS84);
     return new GeographicPoint(converted[1], converted[0]);
 }
 

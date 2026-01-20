@@ -137,7 +137,6 @@ const formattedVelocityAccuracy = computed(() => {
 <template>
   <!-- Mobile status bar positioned at bottom -->
   <div
-    v-if="isMobile"
     class="mobile-status-bar"
     :class="{ 'drawer-open': isRouteDrawerOpen }"
   >

@@ -43,6 +43,13 @@ export class PureKalmanFilter {
         this.state = this.createInitialState();
     }
 
+    dispose(): void {
+        this.coordinateTransformer.dispose();
+        this.state.covariance = new Matrix(6, 6);
+        this.lastKalmanGain = null;
+        this.isInitialized = false;
+    }
+
     private createInitialState(): KalmanState {
         return {
             position: { x: 0, y: 0 },
