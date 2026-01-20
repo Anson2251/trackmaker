@@ -17,9 +17,6 @@ export interface I18nInstance {
 
 const I18nInjectionKey = Symbol('i18n');
 
-// Map<locale, Map<key, string>>
-const translationRefs = new Map<string, Map<string, string>>();
-
 function flattenMessages(messages: any, prefix = ''): Map<string, string> {
     const result = new Map<string, string>();
 
@@ -56,6 +53,7 @@ export function createI18n(options: I18nOptions): I18nInstance & Plugin {
     const messages = options.messages;
     const fallbackLocale = options.fallbackLocale;
     const availableLocales = Object.keys(messages);
+    const translationRefs = new Map<string, Map<string, string>>();
 
     // Build translation refs for all locales
     for (const loc of availableLocales) {
@@ -90,13 +88,15 @@ export function createI18n(options: I18nOptions): I18nInstance & Plugin {
         return key;
     }
 
+    const PARAM_REGEX = /\{(\w+)\}/g;
+
     function t(key: string, params?: Ref<Record<string, any>> | Record<string, any>): string {
         let translation = getTranslation(key);
         if (!params) return translation;
 
         const currentParams = unref(params);
 
-        translation = translation.replace(/\{(\w+)\}/g, (match, paramName: string) => {
+        translation = translation.replace(PARAM_REGEX, (match, paramName: string) => {
             return paramName in currentParams ? String(currentParams[paramName]) : match;
         });
 
@@ -105,21 +105,14 @@ export function createI18n(options: I18nOptions): I18nInstance & Plugin {
 
     // Global $t function for template usage (returns string)
     function globalT(key: string, params?: any): string {
-        let translation = getTranslation(key);
-        if (params) {
-            const paramsObj = (isRef(params) ? params.value : params) as Record<string, any>;
-            translation = translation.replace(/\{(\w+)\}/g, (match, paramName: string) => {
-                return paramName in paramsObj ? String(paramsObj[paramName]) : match;
-            });
-        }
-        return translation;
+        return t(key, params);
     }
 
     const instance: I18nInstance = {
         t,
         locale,
         availableLocales,
-        messages: messages.value,
+        messages: messages,
         fallbackLocale,
     };
 
