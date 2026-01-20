@@ -376,14 +376,14 @@ onMounted(async () => {
     mapStore.setZoom(getDefaultMapZoomLevel());
   }
 
-  toCenterTheMapHandler = locator.addLocationListener((point: GeographicPoint) => {
+  toCenterTheMapHandler = locator.addLocationListener(throttle((point: GeographicPoint) => {
     if (mapRef.value) {
       const userOperating = mapRef.value.isEasing() || mapRef.value.isMoving() || mapRef.value.isRotating() || mapRef.value.isZooming() || isUserSettingTheMap.value;
       if (!userOperating) {
         mapStore.setCenter(point);
       }
     }
-  })
+  }, 2000))
 
   throttle((point: GeographicPoint) => {
     if(isWatchingCurrentLocation.value) mapStore.setCenter(point);
