@@ -1,4 +1,4 @@
-import { i as k, b as I, Z as y, j as $, X as w } from "./index-B6-IRX0K.js";
+import { i as k, b as I, Z as y, j as $, X as w } from "./index-CV4AQtZQ.js";
 const R = /* @__PURE__ */ Symbol("i18n"), b = /* @__PURE__ */ new Map();
 function j(e, r = "") {
   const c = /* @__PURE__ */ new Map();
