@@ -1,4 +1,4 @@
-import { ref, computed, inject, type Ref, type App, type ComputedRef, type Plugin, shallowRef, isRef } from 'vue';
+import { ref, inject, type Ref, type App, type Plugin, isRef, unref } from 'vue';
 
 interface I18nOptions {
     locale: string;
@@ -8,7 +8,7 @@ interface I18nOptions {
 }
 
 export interface I18nInstance {
-    t: (key: string, params?: Ref<Record<string, any>> | Record<string, any>) => ComputedRef<string>;
+    t: (key: string, params?: Ref<Record<string, any>> | Record<string, any>) => string;
     locale: Ref<string>;
     availableLocales: string[];
     messages: Record<string, any>;
@@ -17,8 +17,8 @@ export interface I18nInstance {
 
 const I18nInjectionKey = Symbol('i18n');
 
-// Map<locale, Map<key, shallowRef<string>>>
-const translationRefs = new Map<string, Map<string, Ref<string>>>();
+// Map<locale, Map<key, string>>
+const translationRefs = new Map<string, Map<string, string>>();
 
 function flattenMessages(messages: any, prefix = ''): Map<string, string> {
     const result = new Map<string, string>();
@@ -40,12 +40,12 @@ function flattenMessages(messages: any, prefix = ''): Map<string, string> {
     return result;
 }
 
-function buildTranslationRefs(messages: any, _locale: string): Map<string, Ref<string>> {
+function buildTranslationRefs(messages: any, _locale: string): Map<string, string> {
     const flat = flattenMessages(messages);
-    const refs = new Map<string, Ref<string>>();
+    const refs = new Map<string, string>();
 
     for (const [key, value] of flat) {
-        refs.set(key, shallowRef(value));
+        refs.set(key, value);
     }
 
     return refs;
@@ -53,21 +53,21 @@ function buildTranslationRefs(messages: any, _locale: string): Map<string, Ref<s
 
 export function createI18n(options: I18nOptions): I18nInstance & Plugin {
     const locale = ref(options.locale);
-    const messages = shallowRef(options.messages);
+    const messages = options.messages;
     const fallbackLocale = options.fallbackLocale;
-    const availableLocales = Object.keys(messages.value);
+    const availableLocales = Object.keys(messages);
 
     // Build translation refs for all locales
     for (const loc of availableLocales) {
         if (!translationRefs.has(loc)) {
-            translationRefs.set(loc, buildTranslationRefs(messages.value[loc], loc));
+            translationRefs.set(loc, buildTranslationRefs(messages[loc], loc));
         }
     }
 
     function getTranslation(key: string): string {
         // Try current locale
         const currentRefs = translationRefs.get(locale.value);
-        const translation = currentRefs?.get(key)?.value;
+        const translation = currentRefs?.get(key);
 
         if (translation !== undefined) {
             return translation;
@@ -76,7 +76,7 @@ export function createI18n(options: I18nOptions): I18nInstance & Plugin {
         // Fallback to fallback locale
         if (locale.value !== fallbackLocale) {
             const fallbackRefs = translationRefs.get(fallbackLocale);
-            const fallbackTranslation = fallbackRefs?.get(key)?.value;
+            const fallbackTranslation = fallbackRefs?.get(key);
 
             if (fallbackTranslation !== undefined) {
                 return fallbackTranslation;
@@ -90,19 +90,17 @@ export function createI18n(options: I18nOptions): I18nInstance & Plugin {
         return key;
     }
 
-    function t(key: string, params?: Ref<Record<string, any>> | Record<string, any>): ComputedRef<string> {
-        return computed(() => {
-            let translation = getTranslation(key);
-            if (!params) return translation;
+    function t(key: string, params?: Ref<Record<string, any>> | Record<string, any>): string {
+        let translation = getTranslation(key);
+        if (!params) return translation;
 
-            const currentParams = (isRef(params) ? params.value : params) as Record<string, any>;
+        const currentParams = unref(params);
 
-            translation = translation.replace(/\{(\w+)\}/g, (match, paramName: string) => {
-                return paramName in currentParams ? String(currentParams[paramName]) : match;
-            });
-
-            return translation;
+        translation = translation.replace(/\{(\w+)\}/g, (match, paramName: string) => {
+            return paramName in currentParams ? String(currentParams[paramName]) : match;
         });
+
+        return translation;
     }
 
     // Global $t function for template usage (returns string)

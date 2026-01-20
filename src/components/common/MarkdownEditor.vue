@@ -330,7 +330,7 @@ const editorConfig = {
       "
     >
       <n-drawer-content
-        :title="t('markdownEditor.title').value"
+        :title="t('markdownEditor.title')"
         :closable="!isMobile"
         :style="{ height: `${visibleHeight}px`, padding: 0, flex: 1 }"
       >

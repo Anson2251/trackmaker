@@ -120,13 +120,13 @@ async function saveSketch() {
       tags: currentSketch.value.meta.tags,
     });
   } catch (error) {
-    message.error(t("sketchEdit.saveError").value);
+    message.error(t("sketchEdit.saveError"));
     console.error(error);
   }
 }
 
 async function newSketch() {
-  const name = prompt(t("sketchEdit.enterSketchName").value);
+  const name = prompt(t("sketchEdit.enterSketchName"));
   if (name) {
     await sketchStore.createSketch(name);
     activeSelector.value = false;
@@ -157,9 +157,9 @@ async function createComponent() {
 
     showCreateModal.value = false;
     newComponentName.value = "";
-    message.success(t("sketchEdit.componentCreated").value);
+    message.success(t("sketchEdit.componentCreated"));
   } catch (error) {
-    message.error(t("sketchEdit.componentCreateError").value);
+    message.error(t("sketchEdit.componentCreateError"));
     console.error(error);
   }
 }
@@ -177,9 +177,9 @@ async function deleteComponent(id: string, type: "draft" | "route") {
       selectedComponentType.value = null;
     }
 
-    message.success(t("sketchEdit.componentDeleted").value);
+    message.success(t("sketchEdit.componentDeleted"));
   } catch (error) {
-    message.error(t("sketchEdit.componentDeleteError").value);
+    message.error(t("sketchEdit.componentDeleteError"));
     console.error(error);
   }
 }
@@ -197,7 +197,7 @@ const updateComponentProperties = async (
     }
     // infoPropertyUpdated()
   } catch (error) {
-    message.error(t("sketchEdit.propertiesUpdateError").value);
+    message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
   }
 };
@@ -217,7 +217,7 @@ const updateComponentMeta = async (meta: {
     }
     // infoPropertyUpdated()
   } catch (error) {
-    message.error(t("sketchEdit.propertiesUpdateError").value);
+    message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
   }
 };
@@ -261,7 +261,7 @@ async function updateSketchMeta() {
     });
     showMetaModal.value = false;
   } catch (error) {
-    message.error(t("sketchEdit.saveError").value);
+    message.error(t("sketchEdit.saveError"));
     console.error(error);
   }
 }
@@ -309,23 +309,23 @@ const getTimeStr = (stamp: number) => {
   <n-modal
     v-model:show="showCreateModal"
     preset="dialog"
-    :title="t('sketchEdit.createNewComponent').value"
+    :title="t('sketchEdit.createNewComponent')"
   >
     <n-form>
       <div style="display: flex; flex-direction: row; gap: 8px">
-        <n-formItem :label="t('sketchEdit.name').value" style="flex-grow: 1">
+        <n-formItem :label="t('sketchEdit.name')" style="flex-grow: 1">
           <n-input
             v-model:value="newComponentName"
-            :placeholder="t('sketchEdit.enterComponentName').value"
+            :placeholder="t('sketchEdit.enterComponentName')"
           />
         </n-formItem>
-        <n-form-item :label="t('sketchEdit.type').value">
+        <n-form-item :label="t('sketchEdit.type')">
           <n-select
             v-model:value="newComponentType"
             :consistent-menu-width="false"
             :options="[
-              { label: t('sketchEdit.draftShape').value, value: 'draft' },
-              { label: t('sketchEdit.routePath').value, value: 'route' },
+              { label: t('sketchEdit.draftShape'), value: 'draft' },
+              { label: t('sketchEdit.routePath'), value: 'route' },
             ]"
           />
         </n-form-item>
@@ -349,33 +349,33 @@ const getTimeStr = (stamp: number) => {
   <n-modal
     v-model:show="showMetaModal"
     preset="dialog"
-    :title="t('sketchEdit.editMetadata').value"
+    :title="t('sketchEdit.editMetadata')"
     style="max-width: 600px"
     @close="updateSketchMeta"
   >
     <n-form>
-      <n-form-item :label="t('sketchEdit.name').value">
+      <n-form-item :label="t('sketchEdit.name')">
         <n-input
           v-model:value="metaForm.name"
-          :placeholder="t('sketchEdit.sketchNamePlaceholder').value"
+          :placeholder="t('sketchEdit.sketchNamePlaceholder')"
         />
       </n-form-item>
 
-      <n-form-item :label="t('sketchEdit.description').value">
+      <n-form-item :label="t('sketchEdit.description')">
         <MarkdownEditor
           v-model="metaForm.description"
-          :placeholder="t('sketchEdit.sketchDescriptionPlaceholder').value"
+          :placeholder="t('sketchEdit.sketchDescriptionPlaceholder')"
           :min-height="'120px'"
           :max-height="'300px'"
         />
       </n-form-item>
 
-      <n-form-item :label="t('sketchEdit.tags').value">
+      <n-form-item :label="t('sketchEdit.tags')">
         <div style="display: flex; flex-direction: column; width: 100%;">
           <div style="display: flex; gap: 8px; margin-bottom: 8px">
             <n-input
               v-model:value="newTag"
-              :placeholder="t('sketchEdit.addTagPlaceholder').value"
+              :placeholder="t('sketchEdit.addTagPlaceholder')"
               @keydown.enter.prevent="addTag"
             />
             <n-button @click="addTag">
@@ -396,7 +396,7 @@ const getTimeStr = (stamp: number) => {
         </div>
         <n-empty
           v-if="metaForm.tags.length === 0"
-          :description="t('sketchEdit.noTags').value"
+          :description="t('sketchEdit.noTags')"
           size="small"
         />
       </n-form-item>
@@ -447,7 +447,7 @@ const getTimeStr = (stamp: number) => {
             <template #1>
               <n-card
                 style="height: 100%"
-                :title="t('sketchEdit.components').value"
+                :title="t('sketchEdit.components')"
                 content-style="min-height: 0; overflow-y: auto;"
               >
                 <component-list
@@ -490,7 +490,7 @@ const getTimeStr = (stamp: number) => {
 
           <n-empty
             v-if="!hasSelection"
-            :description="t('sketchEdit.noSketchSelected').value"
+            :description="t('sketchEdit.noSketchSelected')"
             size="huge"
             style="height: 100%; justify-content: center"
           >
@@ -571,7 +571,7 @@ const getTimeStr = (stamp: number) => {
         <div v-if="activeMobileTab === 'components'" class="mobile-tab-content">
           <n-card
             v-if="hasSelection"
-            :title="t('sketchEdit.components').value"
+            :title="t('sketchEdit.components')"
             content-style="min-height: 0; overflow-y: auto;"
             style="height: 100%"
           >
@@ -603,7 +603,7 @@ const getTimeStr = (stamp: number) => {
           </n-card>
           <n-empty
             v-else
-            :description="t('sketchEdit.noSketchSelected').value"
+            :description="t('sketchEdit.noSketchSelected')"
             size="huge"
             style="height: 100%; justify-content: center"
           >
@@ -644,7 +644,7 @@ const getTimeStr = (stamp: number) => {
           </n-card>
           <n-empty
             v-else
-            :description="t('sketchEdit.noSketchSelected').value"
+            :description="t('sketchEdit.noSketchSelected')"
             size="huge"
             style="height: 100%; justify-content: center"
           >
@@ -701,7 +701,7 @@ const getTimeStr = (stamp: number) => {
           </n-card>
           <n-empty
             v-else
-            :description="t('sketchEdit.noComponentSelected').value"
+            :description="t('sketchEdit.noComponentSelected')"
             size="huge"
             style="height: 100%; justify-content: center"
           >

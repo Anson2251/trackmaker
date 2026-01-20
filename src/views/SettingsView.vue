@@ -76,12 +76,12 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "light",
-            label: t("settings.appearance.theme.options.light").value,
+            label: t("settings.appearance.theme.options.light"),
           },
-          { value: "dark", label: t("settings.appearance.theme.options.dark").value },
+          { value: "dark", label: t("settings.appearance.theme.options.dark") },
           {
             value: "system",
-            label: t("settings.appearance.theme.options.system").value,
+            label: t("settings.appearance.theme.options.system"),
           },
         ],
       },
@@ -96,19 +96,19 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "auto",
-            label: t("settings.geolocation.geolocationBackend.options.auto").value,
+            label: t("settings.geolocation.geolocationBackend.options.auto"),
           },
           {
             value: "kalman",
-            label: t("settings.geolocation.geolocationBackend.options.kalman").value,
+            label: t("settings.geolocation.geolocationBackend.options.kalman"),
           },
           {
             value: "gps",
-            label: t("settings.geolocation.geolocationBackend.options.gps").value,
+            label: t("settings.geolocation.geolocationBackend.options.gps"),
           },
           {
             value: "ip",
-            label: t("settings.geolocation.geolocationBackend.options.ip").value,
+            label: t("settings.geolocation.geolocationBackend.options.ip"),
           },
         ],
       },
@@ -131,11 +131,11 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "system",
-            label: t("settings.language.interfaceLanguage.options.system").value,
+            label: t("settings.language.interfaceLanguage.options.system"),
           },
           ...availableLocales.map((l) => ({
             value: l,
-            label: t(`settings.language.interfaceLanguage.options.${l}`).value,
+            label: t(`settings.language.interfaceLanguage.options.${l}`),
           })),
         ],
       },
@@ -145,12 +145,12 @@ const configs = computed<Config>(() => [
         items: availableLocales
           .map((l) => ({
             value: l,
-            label: t(`settings.language.mapLanguage.options.${l}`).value,
+            label: t(`settings.language.mapLanguage.options.${l}`),
           }))
           .concat([
             {
               value: "interface",
-              label: t("settings.language.mapLanguage.options.interface").value,
+              label: t("settings.language.mapLanguage.options.interface"),
             },
           ]),
       },
@@ -192,7 +192,7 @@ onMounted(() => {
           v-for="section in configs"
           id="appearance"
           :key="section.title"
-          :title="t(`settings.${section.title}.title`).value"
+          :title="t(`settings.${section.title}.title`)"
         >
           <n-list>
             <n-list-item
@@ -298,7 +298,7 @@ onMounted(() => {
           <n-anchor-link
             v-for="section in configs"
             :key="section.title"
-            :title="t(`settings.${section.title}.title`).value"
+            :title="t(`settings.${section.title}.title`)"
             :href="`#${section.title.toLowerCase()}`"
           />
         </n-anchor>

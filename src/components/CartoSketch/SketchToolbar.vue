@@ -73,7 +73,7 @@ const toolTipBarItems = [
         <div
           v-for="(item, index) in toolTipBarItems"
           :key="index"
-          :title="item.title.value"
+          :title="item.title"
           class="tool-tip-item"
           @click="item.callback"
         >

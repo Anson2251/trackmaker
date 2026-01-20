@@ -43,7 +43,7 @@ const listMenuOptions = [
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute(t("components.trackerViewRouteDrawer.nameNewRoute").value);
+        routeStore.addRoute(t("components.trackerViewRouteDrawer.nameNewRoute"));
       },
     },
   },
@@ -124,10 +124,10 @@ async function handleRename(routeId: string) {
 const selectedRouteIds = ref<string[]>([]);
 function handleRouteBatchDelete() {
   dialog.warning({
-    title: t("components.trackerViewRouteDrawer.deleteConfirmation.title").value,
-    content: t("components.trackerViewRouteDrawer.deleteConfirmation.prompt").value,
-    positiveText: t("components.trackerViewRouteDrawer.deleteConfirmation.yes").value,
-    negativeText: t("components.trackerViewRouteDrawer.deleteConfirmation.no").value,
+    title: t("components.trackerViewRouteDrawer.deleteConfirmation.title"),
+    content: t("components.trackerViewRouteDrawer.deleteConfirmation.prompt"),
+    positiveText: t("components.trackerViewRouteDrawer.deleteConfirmation.yes"),
+    negativeText: t("components.trackerViewRouteDrawer.deleteConfirmation.no"),
     onPositiveClick: () => {
       selectedRouteIds.value.forEach((r) => {
         routeStore.deleteRoute(r);
@@ -220,7 +220,7 @@ function handleRouteBatchDelete() {
     :show="showRouteContextMenu"
     :x="contextMenuX"
     :y="contextMenuY"
-    :options="listMenuOptions.map((o) => ({ ...o, label: o.label.value }))"
+    :options="listMenuOptions.map((o) => ({ ...o, label: o.label }))"
     placement="bottom-start"
     trigger="manual"
     @clickoutside="showRouteContextMenu = false"

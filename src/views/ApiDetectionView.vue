@@ -28,8 +28,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[0].available = typeof fetch !== "undefined";
     apiStatuses.value[0].details = apiStatuses.value[0].available
-      ? t('apiDetection.descriptions.fetch.available').value
-      : t('apiDetection.descriptions.fetch.unavailable').value;
+      ? t('apiDetection.descriptions.fetch.available')
+      : t('apiDetection.descriptions.fetch.unavailable');
   } catch (error) {
     apiStatuses.value[0].available = false;
     apiStatuses.value[0].error = error instanceof Error ? error.message : "Unknown error";
@@ -39,8 +39,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[1].available = "geolocation" in navigator;
     apiStatuses.value[1].details = apiStatuses.value[1].available
-      ? t('apiDetection.descriptions.geolocation.available').value
-      : t('apiDetection.descriptions.geolocation.unavailable').value;
+      ? t('apiDetection.descriptions.geolocation.available')
+      : t('apiDetection.descriptions.geolocation.unavailable');
   } catch (error) {
     apiStatuses.value[1].available = false;
     apiStatuses.value[1].error = error instanceof Error ? error.message : "Unknown error";
@@ -50,8 +50,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[2].available = "performance" in window;
     apiStatuses.value[2].details = apiStatuses.value[2].available
-      ? t('apiDetection.descriptions.performance.available').value
-      : t('apiDetection.descriptions.performance.unavailable').value;
+      ? t('apiDetection.descriptions.performance.available')
+      : t('apiDetection.descriptions.performance.unavailable');
   } catch (error) {
     apiStatuses.value[2].available = false;
     apiStatuses.value[2].error = error instanceof Error ? error.message : "Unknown error";
@@ -61,8 +61,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[3].available = "permissions" in navigator;
     apiStatuses.value[3].details = apiStatuses.value[3].available
-      ? t('apiDetection.descriptions.permission.available').value
-      : t('apiDetection.descriptions.permission.unavailable').value;
+      ? t('apiDetection.descriptions.permission.available')
+      : t('apiDetection.descriptions.permission.unavailable');
   } catch (error) {
     apiStatuses.value[3].available = false;
     apiStatuses.value[3].error = error instanceof Error ? error.message : "Unknown error";
@@ -72,8 +72,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[4].available = "DeviceOrientationEvent" in window;
     apiStatuses.value[4].details = apiStatuses.value[4].available
-      ? t('apiDetection.descriptions.deviceorientation.available').value
-      : t('apiDetection.descriptions.deviceorientation.unavailable').value;
+      ? t('apiDetection.descriptions.deviceorientation.available')
+      : t('apiDetection.descriptions.deviceorientation.unavailable');
   } catch (error) {
     apiStatuses.value[4].available = false;
     apiStatuses.value[4].error = error instanceof Error ? error.message : "Unknown error";
@@ -83,8 +83,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[5].available = "DeviceMotionEvent" in window;
     apiStatuses.value[5].details = apiStatuses.value[5].available
-      ? t('apiDetection.descriptions.devicemotion.available').value
-      : t('apiDetection.descriptions.devicemotion.unavailable').value;
+      ? t('apiDetection.descriptions.devicemotion.available')
+      : t('apiDetection.descriptions.devicemotion.unavailable');
   } catch (error) {
     apiStatuses.value[5].available = false;
     apiStatuses.value[5].error = error instanceof Error ? error.message : "Unknown error";

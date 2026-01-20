@@ -58,7 +58,7 @@ const emit = defineEmits<{
     v-if="components.length === 0"
     class="empty-state"
   >
-    <n-empty :description="t('sketchEdit.noComponentsYet').value">
+    <n-empty :description="t('sketchEdit.noComponentsYet')">
       <template #extra>
         <n-button
           size="small"

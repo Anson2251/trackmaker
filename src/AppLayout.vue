@@ -50,7 +50,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/tracker",
         },
-        { default: () => t("router.tracker").value }
+        { default: () => t("router.tracker") }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -62,7 +62,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/sketch-centre",
         },
-        { default: () => t("router.sketchCentre").value }
+        { default: () => t("router.sketchCentre") }
       ),
     key: "sketch-centre",
     icon: renderIcon(MapPin),
@@ -77,7 +77,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/settings",
         },
-        { default: () => t("router.settings").value }
+        { default: () => t("router.settings") }
       ),
     key: "settings",
     icon: renderIcon(Settings),
@@ -89,7 +89,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => t("router.about").value }
+        { default: () => t("router.about") }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),

@@ -45,11 +45,11 @@ const filteredConfigs = computed(() => {
 const getTypeLabel = (type: string) => {
   switch (type) {
     case "boolean":
-      return t("settings.advanced.config.type.boolean").value;
+      return t("settings.advanced.config.type.boolean");
     case "string":
-      return t("settings.advanced.config.type.string").value;
+      return t("settings.advanced.config.type.string");
     case "number":
-      return t("settings.advanced.config.type.number").value;
+      return t("settings.advanced.config.type.number");
     default:
       return type;
   }
@@ -114,7 +114,7 @@ const goBack = () => {
 
 const configColumns = computed(() => [
   {
-    title: t("settings.advanced.config.columns.name").value,
+    title: t("settings.advanced.config.columns.name"),
     key: "name",
     width: 180,
     render: (row: AdvancedSettingConfig) =>
@@ -129,7 +129,7 @@ const configColumns = computed(() => [
       ]),
   },
   {
-    title: t("settings.advanced.config.columns.value").value,
+    title: t("settings.advanced.config.columns.value"),
     key: "value",
     width: 120,
     render: (row: AdvancedSettingConfig) => {
@@ -167,7 +167,7 @@ const configColumns = computed(() => [
     },
   },
   {
-    title: t("settings.advanced.config.columns.type").value,
+    title: t("settings.advanced.config.columns.type"),
     key: "type",
     width: 100,
     render: (row: AdvancedSettingConfig) =>
@@ -176,7 +176,7 @@ const configColumns = computed(() => [
       ),
   },
   {
-    title: t("settings.advanced.config.columns.description").value,
+    title: t("settings.advanced.config.columns.description"),
     key: "description",
     width: 200,
     ellipsis: {
@@ -286,7 +286,7 @@ const configColumns = computed(() => [
         <div class="config-search">
           <n-input
             v-model:value="searchQuery"
-            :placeholder="t('settings.advanced.config.searchPlaceholder').value"
+            :placeholder="t('settings.advanced.config.searchPlaceholder')"
             clearable
             size="large"
           >

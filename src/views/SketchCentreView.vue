@@ -99,13 +99,13 @@ const deleteSketch = (sketchId: string) => {
   if (!sketch) return;
 
   dialog.warning({
-    title: t("sketchCentreView.deleteConfirmation.title").value,
-    content: t("sketchCentreView.deleteConfirmation.prompt", { name: sketch.meta.name }).value,
-    positiveText: t("sketchCentreView.deleteConfirmation.yes").value,
-    negativeText: t("sketchCentreView.deleteConfirmation.no").value,
+    title: t("sketchCentreView.deleteConfirmation.title"),
+    content: t("sketchCentreView.deleteConfirmation.prompt", { name: sketch.meta.name }),
+    positiveText: t("sketchCentreView.deleteConfirmation.yes"),
+    negativeText: t("sketchCentreView.deleteConfirmation.no"),
     onPositiveClick: async () => {
       await sketchStore.deleteSketch(sketchId);
-      message.success(t("sketchCentreView.sketchDeleted").value);
+      message.success(t("sketchCentreView.sketchDeleted"));
     },
   });
 };
@@ -291,7 +291,7 @@ const theme = useThemeVars();
     <!-- New Sketch Modal -->
     <SketchCreateModal
       v-model:show="showNewSketchModal"
-      @created="() => message.success(t('sketchCentreView.sketchCreated').value)"
+      @created="() => message.success(t('sketchCentreView.sketchCreated'))"
     />
 
     <!-- Edit Sketch Drawer -->
@@ -303,7 +303,7 @@ const theme = useThemeVars();
       :height="'100%'"
     >
       <n-drawer-content
-        :title="t('sketchCentreView.editSketch').value"
+        :title="t('sketchCentreView.editSketch')"
         closable
         :body-content-style="{ padding: 0, height: '100%' }"
       >

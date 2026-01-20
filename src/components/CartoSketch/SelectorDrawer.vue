@@ -91,12 +91,12 @@ const emit = defineEmits(['update:active', 'remove', 'select', 'import']);
     :placement="drawerSelectorPlacement"
     :auto-focus="false"
   >
-    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary').value">
+    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary')">
       <template #footer>
         <n-button-group>
           <n-button
             v-for="item in buttonGroupItems"
-            :key="item.title.value"
+            :key="item.title"
             :secondary="item.secondary"
             :type="(item.type as Type)"
             :title="item.title"

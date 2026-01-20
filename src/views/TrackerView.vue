@@ -164,7 +164,7 @@ const changeRecordState = (() => {
     try {
       if (!routeStore.isRecording)
         isNewRoute = routeStore.currentRouteId === null;
-      await routeStore.toggleRecording((key: string) => t(key).value);
+      await routeStore.toggleRecording((key: string) => t(key));
       if (!routeStore.isRecording && isNewRoute) {
         drawerTooltipOpened.value = true;
         setTimeout(() => {
@@ -307,17 +307,17 @@ const handleSketchSelect = (id: string) => {
   const sketch = sketchStore.sketches.find((s) => s.id === id);
   sketchStore.setCurrentSketchId(id);
   isSketchSelectorOpen.value = false;
-  message.success(t("sketchEdit.switchSuccess", { sketch: sketch?.meta.name }).value);
+  message.success(t("sketchEdit.switchSuccess", { sketch: sketch?.meta.name }));
 };
 
 const handleSketchNew = async () => {
   const newSketch = await sketchStore.createSketch(
-    t("sketchEdit.newSketchName").value
+    t("sketchEdit.newSketchName")
   );
   sketchStore.setCurrentSketchId(newSketch.id);
   isSketchSelectorOpen.value = false;
   message.success(
-    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name }).value
+    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name })
   );
 };
 
@@ -628,7 +628,7 @@ watch(
                     class="btn-control"
                     :class="{ active: isSketchSelectorOpen }"
                     @click="isSketchSelectorOpen = true"
-                    :title="t('sketchEdit.cartoSketchLibrary').value"
+                    :title="t('sketchEdit.cartoSketchLibrary')"
                   >
                     <n-icon :size="24">
                       <folders />

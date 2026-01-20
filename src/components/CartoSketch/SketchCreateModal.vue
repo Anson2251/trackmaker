@@ -54,7 +54,7 @@ const createNewSketch = async () => {
     :mask-closable="true"
     preset="card"
     style="max-width: 500px"
-    :title="t('sketchCentreView.newSketch').value"
+    :title="t('sketchCentreView.newSketch')"
     @close="close"
     @mask-click="close"
   >
@@ -64,20 +64,20 @@ const createNewSketch = async () => {
       require-mark-placement="right-hanging"
     >
       <n-form-item
-        :label="t('sketchCentreView.sketchName').value"
+        :label="t('sketchCentreView.sketchName')"
         required
       >
         <n-input
           v-model:value="newSketchName"
-          :placeholder="t('sketchCentreView.sketchNamePlaceholder').value"
+          :placeholder="t('sketchCentreView.sketchNamePlaceholder')"
           @keyup.enter="createNewSketch"
         />
       </n-form-item>
-      <n-form-item :label="t('sketchCentreView.sketchDescription').value">
+      <n-form-item :label="t('sketchCentreView.sketchDescription')">
         <n-input
           v-model:value="newSketchDescription"
           type="textarea"
-          :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder').value"
+          :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder')"
           :autosize="{ minRows: 3, maxRows: 5 }"
         />
       </n-form-item>

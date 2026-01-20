@@ -90,7 +90,7 @@ useKeyboardShortcut(
         <template #trigger>
           <button
             :class="['btn-tool', { active: activeDrawMethod === mode.name }, { 'btn-delete': mode.name === 'delete' }]"
-            :title="t(`trackerView.terraDrawTools.${mode.label}`).value"
+            :title="t(`trackerView.terraDrawTools.${mode.label}`)"
             @click="handleToolClick(mode)"
           >
             <n-icon :size="20">
@@ -108,7 +108,7 @@ useKeyboardShortcut(
         <button
           :class="['btn-tool', 'btn-history', { disabled: !canUndo }]"
           :disabled="!canUndo"
-          :title="t('trackerView.terraDrawTools.undo').value"
+          :title="t('trackerView.terraDrawTools.undo')"
           @click="handleUndo"
         >
           <n-icon :size="20">
@@ -125,7 +125,7 @@ useKeyboardShortcut(
         <button
           :class="['btn-tool', 'btn-history', { disabled: !canRedo }]"
           :disabled="!canRedo"
-          :title="t('trackerView.terraDrawTools.redo').value"
+          :title="t('trackerView.terraDrawTools.redo')"
           @click="handleRedo"
         >
           <n-icon :size="20">
@@ -141,7 +141,7 @@ useKeyboardShortcut(
       <template #trigger>
         <button
           :class="['btn-tool', 'btn-clear']"
-          :title="t('trackerView.terraDrawTools.clearAll').value"
+          :title="t('trackerView.terraDrawTools.clearAll')"
           @click="handleClearAll"
         >
           <n-icon :size="20">

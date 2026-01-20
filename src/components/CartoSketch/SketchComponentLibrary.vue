@@ -40,7 +40,7 @@ watch(props, () => {
   >
     <n-tab-pane
       name="unclassified"
-      :tab="t('sketchEdit.unclassified').value"
+      :tab="t('sketchEdit.unclassified')"
     >
       <list-selector
         v-model:value="selectedComponentID"
@@ -49,7 +49,7 @@ watch(props, () => {
     </n-tab-pane>
     <n-tab-pane
       name="routes"
-      :tab="t('sketchEdit.routes').value"
+      :tab="t('sketchEdit.routes')"
     >
       <list-selector
         v-model:value="selectedComponentID"
@@ -58,7 +58,7 @@ watch(props, () => {
     </n-tab-pane>
     <n-tab-pane
       name="drafts"
-      :tab="t('sketchEdit.drafts').value"
+      :tab="t('sketchEdit.drafts')"
     >
       <list-selector
         v-model:value="selectedComponentID"

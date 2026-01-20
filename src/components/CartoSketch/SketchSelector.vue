@@ -25,7 +25,7 @@ function select(id: string) {
 }
 
 function remove(id: string) {
-    const confirmed = confirm(t('sketchEdit.deleteSketchConfirmation').value);
+    const confirmed = confirm(t('sketchEdit.deleteSketchConfirmation'));
     if (confirmed) emit('remove', id);
 }
 

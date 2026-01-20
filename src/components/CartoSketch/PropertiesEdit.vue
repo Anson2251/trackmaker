@@ -40,70 +40,70 @@ type OptionInfo = {
 const optionDB: Record<string, OptionInfo> = {
 	strokeColor: {
 		name: "strokeColor",
-		label: t('sketchEdit.strokeColor').value,
+		label: t('sketchEdit.strokeColor'),
 		type: "color",
 		default: "#000000",
 		data: {},
 	},
 	strokeThickness: {
 		name: "strokeThickness",
-		label: t('sketchEdit.strokeThickness').value,
+		label: t('sketchEdit.strokeThickness'),
 		type: "number",
 		default: 1,
 		data: {},
 	},
 	visible: {
 		name: "visible",
-		label: t('sketchEdit.visible').value,
+		label: t('sketchEdit.visible'),
 		type: "switch",
 		default: true,
 		data: {},
 	},
 	color: {
 		name: "color",
-		label: t('sketchEdit.color').value,
+		label: t('sketchEdit.color'),
 		type: "color",
 		default: "#000000",
 		data: {},
 	},
 	draggable: {
 		name: "draggable",
-		label: t('sketchEdit.draggable').value,
+		label: t('sketchEdit.draggable'),
 		type: "switch",
 		default: true,
 		data: {},
 	},
 	icon: {
 		name: "icon",
-		label: t('sketchEdit.icon').value,
+		label: t('sketchEdit.icon'),
 		type: "string",
 		default: "",
 		data: {}
 	},
 	text: {
 		name: "text",
-		label: t('sketchEdit.text').value,
+		label: t('sketchEdit.text'),
 		type: "string",
 		default: "",
 		data: {}
 	},
 	title: {
 		name: "title",
-		label: t('sketchEdit.title').value,
+		label: t('sketchEdit.title'),
 		type: "string",
 		default: "",
 		data: {}
 	},
 	subTitle: {
 		name: "subTitle",
-		label: t('sketchEdit.subTitle').value,
+		label: t('sketchEdit.subTitle'),
 		type: "string",
 		default: "",
 		data: {}
 	},
 	routeOrDraft: {
 		name: "routeOrDraft",
-		label: t('sketchEdit.classification').value,
+		label: t('sketchEdit.classification'),
 		type: "radio",
 		default: "draft",
 		data: {
@@ -215,7 +215,7 @@ watch(propertiesEditview, () => {
             v-if="property.type === 'number'"
             v-model:value="(property.model.value as number)"
             size="small"
-            :placeholder="t('sketchEdit.thickness').value"
+            :placeholder="t('sketchEdit.thickness')"
             :min="0"
             :max="100"
           />
