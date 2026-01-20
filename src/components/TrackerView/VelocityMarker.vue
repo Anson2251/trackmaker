@@ -70,6 +70,7 @@ const velocityDirection = computed(() => {
             border-bottom: 4em solid #3b82f6;
             transform: rotate(180deg);
             transform-origin: 0.5em 3em;
+            transition: transform 0.1s ease-in-out;
           "
           :style="{ transform: `rotate(${90 + velocityDirection}deg)` }"
         ></div>

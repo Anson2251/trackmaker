@@ -365,8 +365,9 @@ onMounted(async () => {
     if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
       mapStore.setCenter(lastLocation);
     } else {
-      mapStore.setCenter(locator.getLastKnownLocation());
-      console.warn(
+      const currentLocation = await locator.getCurrentLocation();
+      if (currentLocation.isOk()) mapStore.setCenter(currentLocation.value);
+      else console.warn(
         "[TrackerView] No valid last known location available, skipping map center update"
       );
     }
@@ -380,14 +381,11 @@ onMounted(async () => {
     if (mapRef.value) {
       const userOperating = mapRef.value.isEasing() || mapRef.value.isMoving() || mapRef.value.isRotating() || mapRef.value.isZooming() || isUserSettingTheMap.value;
       if (!userOperating) {
-        mapStore.setCenter(point);
+        mapRef.value?.easeTo({ center: point.toLngLatLike(), duration: 300 });
+        setTimeout(() => mapStore.setCenter(point), 300);
       }
     }
   }, 2000))
-
-  throttle((point: GeographicPoint) => {
-    if(isWatchingCurrentLocation.value) mapStore.setCenter(point);
-  }, 200)
 
   mapReady.value = true;
 });
@@ -405,7 +403,7 @@ if (devMode) {
   kalmanUpdateInterval = setInterval(() => {
     kalmanGain.value = locator.getLastKalmanGain();
     kalmanState.value = locator.getKalmanState();
-  }, 200);
+  }, 100);
 }
 
 onBeforeUnmount(() => {
