@@ -19,6 +19,15 @@
         },
         "geolocation": {
             "title": "位置",
+            "geolocationBackend": {
+                "title": "定位后端",
+                "options": {
+                    "auto": "自动",
+                    "kalman": "卡尔曼滤波",
+                    "gps": "GPS",
+                    "ip": "IP 定位"
+                }
+            },
             "watchCompatibilityMode": "Geolocation Watch 兼容模式",
             "geolocationCorrection": "地理位置纠偏 (WGS 与 GCJ 转换)"
         },

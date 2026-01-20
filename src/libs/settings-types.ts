@@ -10,6 +10,7 @@ export type Settings = {
     mapLanguage: string;
     watchCompatibilityMode: boolean;
     geolocationCorrection: boolean;
+    geolocationBackend: 'auto' | 'kalman' | 'gps' | 'ip';
     // Advanced settings (Firefox config style)
     debugMode: boolean;
     maxCacheSize: number;

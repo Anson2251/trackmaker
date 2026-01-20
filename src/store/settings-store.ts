@@ -43,6 +43,7 @@ export const useSettingsStore = defineStore('settings', () => {
             mapLanguage: settings.value.mapLanguage,
             watchCompatibilityMode: settings.value.watchCompatibilityMode,
             geolocationCorrection: settings.value.geolocationCorrection,
+            geolocationBackend: settings.value.geolocationBackend,
         };
         settings.value = {
             ...defaultSettings,

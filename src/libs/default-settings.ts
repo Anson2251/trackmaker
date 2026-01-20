@@ -12,6 +12,7 @@ export const defaultSettings: Settings = {
     mapLanguage: 'interface',
     watchCompatibilityMode: true,
     geolocationCorrection: false,
+    geolocationBackend: 'auto',
     // Advanced settings (Firefox config style)
     debugMode: false,
     maxCacheSize: 100,
@@ -72,6 +73,13 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Geolocation Correction (WGS to GCJ)',
         type: 'boolean',
         description: 'Apply WGS to GCJ coordinate conversion for China region',
+        userFacing: true,
+    },
+    {
+        key: 'geolocationBackend',
+        name: 'Geolocation Backend',
+        type: 'string',
+        description: 'Backend strategy for geolocation (auto, kalman, gps, or ip)',
         userFacing: true,
     },
     // Advanced settings

@@ -49,11 +49,17 @@ export class GeolocationManager implements GeolocationManagerInterface {
     private nextCallbackId = 1;
 
     private constructor() {
-        // Initialize backends in priority order, conditionally include Kalman based on settings
+        // Initialize backends based on user setting, conditionally include Kalman based on settings
         const strategies = [];
+        const backendPreference = getEarlySetting('geolocationBackend');
+
+        // Determine which backends to include based on user preference
+        const includeKalman = backendPreference === 'auto' ? isKalmanFilterEnabled() : backendPreference === 'kalman';
+        const includeGPS = backendPreference === 'auto' || backendPreference === 'gps';
+        const includeIP = backendPreference === 'auto' || backendPreference === 'ip';
 
         // Include Kalman backend only if enabled in settings
-        if (isKalmanFilterEnabled()) {
+        if (includeKalman) {
             const frequency = getIMUUpdateFrequency();
             const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
             strategies.push(new KalmanBackend({
@@ -66,11 +72,17 @@ export class GeolocationManager implements GeolocationManagerInterface {
             }));
         }
 
-        // Always include GPS backend
-        strategies.push(new GPSBackend());
+        // Include GPS backend based on preference
+        if (includeGPS) {
+            strategies.push(new GPSBackend());
+        }
 
-        // Always include IP fallback backend
-        strategies.push(new IPFallbackBackend());
+        // Include IP fallback backend based on preference
+        if (includeIP) {
+            strategies.push(new IPFallbackBackend());
+        }
+
+        console.info(`[GeolocationManager] Initializing with backend preference: ${backendPreference}, strategies: ${strategies.map(s => s.name).join(', ')}`);
 
         this.backendManager = new BackendManager(strategies);
         this.stateManager = new LocationStateManager();

@@ -91,6 +91,28 @@ const configs = computed<Config>(() => [
     title: "geolocation",
     items: [
       {
+        title: "geolocationBackend",
+        type: "select",
+        items: [
+          {
+            value: "auto",
+            label: t("settings.geolocation.geolocationBackend.options.auto"),
+          },
+          {
+            value: "kalman",
+            label: t("settings.geolocation.geolocationBackend.options.kalman"),
+          },
+          {
+            value: "gps",
+            label: t("settings.geolocation.geolocationBackend.options.gps"),
+          },
+          {
+            value: "ip",
+            label: t("settings.geolocation.geolocationBackend.options.ip"),
+          },
+        ],
+      },
+      {
         title: "watchCompatibilityMode",
         type: "checkbox",
       },

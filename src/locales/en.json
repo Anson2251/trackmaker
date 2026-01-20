@@ -19,6 +19,15 @@
         },
         "geolocation": {
             "title": "Geolocation",
+            "geolocationBackend": {
+                "title": "Geolocation Backend",
+                "options": {
+                    "auto": "Auto",
+                    "kalman": "Kalman Filter",
+                    "gps": "GPS",
+                    "ip": "IP Fallback"
+                }
+            },
             "watchCompatibilityMode": "Geolocation Watch Compatibility Mode" ,
             "geolocationCorrection": "Geolocation Correction (WGS to GCJ Conversion)"
         },
