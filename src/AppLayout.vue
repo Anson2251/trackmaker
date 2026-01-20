@@ -2,7 +2,7 @@
 import { RouterView, RouterLink } from "vue-router";
 import { h, type Component, computed, watch } from "vue";
 import { Map, InfoCircle, Settings, Menu as MenuIcon, MapPin } from "@vicons/tabler";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
 import { NIcon, NPopover, NButton } from "naive-ui";
@@ -50,7 +50,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/tracker",
         },
-        { default: () => t("router.tracker") }
+        { default: () => t("router.tracker").value }
       ),
     key: "tracker",
     icon: renderIcon(Map),
@@ -62,7 +62,7 @@ const menuOptions: MenuOption[] = [
         {
           to: "/sketch-centre",
         },
-        { default: () => t("router.sketchCentre") }
+        { default: () => t("router.sketchCentre").value }
       ),
     key: "sketch-centre",
     icon: renderIcon(MapPin),
@@ -77,7 +77,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/settings",
         },
-        { default: () => t("router.settings") }
+        { default: () => t("router.settings").value }
       ),
     key: "settings",
     icon: renderIcon(Settings),
@@ -89,7 +89,7 @@ const softwareOption: MenuOption[] = [
         {
           to: "/about",
         },
-        { default: () => t("router.about") }
+        { default: () => t("router.about").value }
       ),
     key: "about",
     icon: renderIcon(InfoCircle),

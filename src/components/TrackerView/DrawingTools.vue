@@ -6,7 +6,7 @@ import {
   ArrowForward,
   Trash,
 } from "@vicons/tabler";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { useKeyboardShortcut } from "@/composables/useKeyboardShortcut";
 import { DRAW_MODES, type DrawModeConfig } from "@/composables/useTerraDraw";
 
@@ -90,7 +90,7 @@ useKeyboardShortcut(
         <template #trigger>
           <button
             :class="['btn-tool', { active: activeDrawMethod === mode.name }, { 'btn-delete': mode.name === 'delete' }]"
-            :title="t(`trackerView.terraDrawTools.${mode.label}`)"
+            :title="t(`trackerView.terraDrawTools.${mode.label}`).value"
             @click="handleToolClick(mode)"
           >
             <n-icon :size="20">
@@ -108,7 +108,7 @@ useKeyboardShortcut(
         <button
           :class="['btn-tool', 'btn-history', { disabled: !canUndo }]"
           :disabled="!canUndo"
-          :title="t('trackerView.terraDrawTools.undo')"
+          :title="t('trackerView.terraDrawTools.undo').value"
           @click="handleUndo"
         >
           <n-icon :size="20">
@@ -125,7 +125,7 @@ useKeyboardShortcut(
         <button
           :class="['btn-tool', 'btn-history', { disabled: !canRedo }]"
           :disabled="!canRedo"
-          :title="t('trackerView.terraDrawTools.redo')"
+          :title="t('trackerView.terraDrawTools.redo').value"
           @click="handleRedo"
         >
           <n-icon :size="20">
@@ -141,7 +141,7 @@ useKeyboardShortcut(
       <template #trigger>
         <button
           :class="['btn-tool', 'btn-clear']"
-          :title="t('trackerView.terraDrawTools.clearAll')"
+          :title="t('trackerView.terraDrawTools.clearAll').value"
           @click="handleClearAll"
         >
           <n-icon :size="20">

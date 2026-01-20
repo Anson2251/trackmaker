@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import {
   NCard,
   NGrid,
@@ -99,13 +99,13 @@ const deleteSketch = (sketchId: string) => {
   if (!sketch) return;
 
   dialog.warning({
-    title: t("sketchCentreView.deleteConfirmation.title"),
-    content: t("sketchCentreView.deleteConfirmation.prompt", { name: sketch.meta.name }),
-    positiveText: t("sketchCentreView.deleteConfirmation.yes"),
-    negativeText: t("sketchCentreView.deleteConfirmation.no"),
+    title: t("sketchCentreView.deleteConfirmation.title").value,
+    content: t("sketchCentreView.deleteConfirmation.prompt", { name: sketch.meta.name }).value,
+    positiveText: t("sketchCentreView.deleteConfirmation.yes").value,
+    negativeText: t("sketchCentreView.deleteConfirmation.no").value,
     onPositiveClick: async () => {
       await sketchStore.deleteSketch(sketchId);
-      message.success(t("sketchCentreView.sketchDeleted"));
+      message.success(t("sketchCentreView.sketchDeleted").value);
     },
   });
 };
@@ -291,7 +291,7 @@ const theme = useThemeVars();
     <!-- New Sketch Modal -->
     <SketchCreateModal
       v-model:show="showNewSketchModal"
-      @created="(sketchId) => message.success(t('sketchCentreView.sketchCreated'))"
+      @created="() => message.success(t('sketchCentreView.sketchCreated').value)"
     />
 
     <!-- Edit Sketch Drawer -->
@@ -303,7 +303,7 @@ const theme = useThemeVars();
       :height="'100%'"
     >
       <n-drawer-content
-        :title="t('sketchCentreView.editSketch')"
+        :title="t('sketchCentreView.editSketch').value"
         closable
         :body-content-style="{ padding: 0, height: '100%' }"
       >

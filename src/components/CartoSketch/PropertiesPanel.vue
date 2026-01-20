@@ -2,7 +2,7 @@
 import { NForm, NFormItem, NSwitch, NColorPicker, NInputNumber, NEmpty, NTabs, NTabPane, NInput, NDynamicTags } from 'naive-ui';
 import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
 import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 
 const { t } = useI18n();
@@ -33,10 +33,10 @@ const emit = defineEmits<{
       <!-- Properties Tab -->
       <n-tab-pane
         name="properties"
-        :tab="t('sketchEdit.properties')"
+        :tab="t('sketchEdit.properties').value"
       >
         <n-form>
-          <n-form-item :label="t('sketchEdit.visible')">
+          <n-form-item :label="t('sketchEdit.visible').value">
             <n-switch
               :value="component.properties.visible !== false"
               @update:value="(val) => emit('updateProperties', { visible: val })"
@@ -45,21 +45,21 @@ const emit = defineEmits<{
 
           <!-- Draft-specific Properties -->
           <template v-if="type === 'draft'">
-            <n-form-item :label="t('sketchEdit.fillColor')">
+            <n-form-item :label="t('sketchEdit.fillColor').value">
               <n-color-picker
                 :value="(component as GeographicDraftItemType).properties.fillColor || '#007bff'"
                 :show-alpha="false"
                 @update:value="(val) => emit('updateProperties', { fillColor: val })"
               />
             </n-form-item>
-            <n-form-item :label="t('sketchEdit.strokeColor')">
+            <n-form-item :label="t('sketchEdit.strokeColor').value">
               <n-color-picker
                 :value="(component as GeographicDraftItemType).properties.strokeColor || '#0056b3'"
                 :show-alpha="false"
                 @update:value="(val) => emit('updateProperties', { strokeColor: val })"
               />
             </n-form-item>
-            <n-form-item :label="t('sketchEdit.strokeThickness')">
+            <n-form-item :label="t('sketchEdit.strokeThickness').value">
               <n-input-number
                 :value="(component as GeographicDraftItemType).properties.strokeThickness || 2"
                 :min="1"
@@ -71,14 +71,14 @@ const emit = defineEmits<{
 
           <!-- Route-specific Properties -->
           <template v-if="type === 'route'">
-            <n-form-item :label="t('sketchEdit.strokeColor')">
+            <n-form-item :label="t('sketchEdit.strokeColor').value">
               <n-color-picker
                 :value="(component as CartoSketchRouteItem).properties.strokeColor || '#28a745'"
                 :show-alpha="false"
                 @update:value="(val) => emit('updateProperties', { strokeColor: val })"
               />
             </n-form-item>
-            <n-form-item :label="t('sketchEdit.strokeThickness')">
+            <n-form-item :label="t('sketchEdit.strokeThickness').value">
               <NInputNumber
                 :value="(component as CartoSketchRouteItem).properties.strokeThickness || 3"
                 :min="1"
@@ -93,10 +93,10 @@ const emit = defineEmits<{
       <!-- Metadata Tab -->
       <n-tab-pane
         name="metadata"
-        :tab="t('sketchEdit.metadata')"
+        :tab="t('sketchEdit.metadata').value"
       >
         <n-form>
-          <n-form-item :label="t('sketchEdit.name')">
+          <n-form-item :label="t('sketchEdit.name').value">
             <NInput
               :value="component.meta.name"
               @update:value="(val) => emit('updateMeta', {
@@ -107,7 +107,7 @@ const emit = defineEmits<{
             />
           </n-form-item>
 
-          <n-form-item :label="t('sketchEdit.description')">
+          <n-form-item :label="t('sketchEdit.description').value">
             <MarkdownEditor
               :model-value="component.meta.description"
               :min-height="'80px'"
@@ -120,7 +120,7 @@ const emit = defineEmits<{
             />
           </n-form-item>
 
-          <n-form-item :label="t('sketchEdit.tags')">
+          <n-form-item :label="t('sketchEdit.tags').value">
             <n-dynamic-tags
               :value="component.meta.tags || []"
               :placeholder="t('sketchEdit.addTagPlaceholder')"
@@ -147,7 +147,7 @@ const emit = defineEmits<{
     v-else
     style="height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;"
   >
-    <n-empty :description="t('sketchEdit.selectComponentToEdit')" />
+    <n-empty :description="t('sketchEdit.selectComponentToEdit').value" />
   </div>
 </template>
 

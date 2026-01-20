@@ -2,7 +2,7 @@
 import { NTabs, NTabPane } from 'naive-ui';
 import ListSelector from '../ListSelector.vue';
 import { watch, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 
 const { t } = useI18n();
 
@@ -40,7 +40,7 @@ watch(props, () => {
   >
     <n-tab-pane
       name="unclassified"
-      :tab="t('sketchEdit.unclassified')"
+      :tab="t('sketchEdit.unclassified').value"
     >
       <list-selector
         v-model:value="selectedComponentID"
@@ -49,7 +49,7 @@ watch(props, () => {
     </n-tab-pane>
     <n-tab-pane
       name="routes"
-      :tab="t('sketchEdit.routes')"
+      :tab="t('sketchEdit.routes').value"
     >
       <list-selector
         v-model:value="selectedComponentID"
@@ -58,7 +58,7 @@ watch(props, () => {
     </n-tab-pane>
     <n-tab-pane
       name="drafts"
-      :tab="t('sketchEdit.drafts')"
+      :tab="t('sketchEdit.drafts').value"
     >
       <list-selector
         v-model:value="selectedComponentID"

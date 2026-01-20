@@ -2,16 +2,13 @@
 import { NConfigProvider, NText, NSpace } from "naive-ui";
 import { lightTheme } from "naive-ui";
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
-import PlatformInfo from "@/utils/platform";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { useRouteStore } from "@/store/route-store";
 import type { GeographicPoint } from "@/libs/geolocation/types";
 import type { KalmanState } from "@/libs/geolocation";
 import type Matrix from "ml-matrix";
 
 const { t } = useI18n();
-const platform = new PlatformInfo();
-const isMobile = platform.isMobile;
 const routeStore = useRouteStore();
 
 interface Props {
@@ -36,23 +33,23 @@ const routeDistance = computed(() => {
   return currentRoute.value.meta.distance;
 });
 
-// Kalman gain computation (use prop if available, otherwise placeholder)
-const kalmanGain = computed(() => {
-  // Use prop if provided
-  if (props.kalmanGain !== undefined) {
-    if (!props.kalmanGain) return null;
-    // Compute norm of Kalman gain matrix for display
-    const values = props.kalmanGain.to1DArray();
-    const norm = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0));
-    return norm.toFixed(3);
-  }
+// // Kalman gain computation (use prop if available, otherwise placeholder)
+// const kalmanGain = computed(() => {
+//   // Use prop if provided
+//   if (props.kalmanGain !== undefined) {
+//     if (!props.kalmanGain) return null;
+//     // Compute norm of Kalman gain matrix for display
+//     const values = props.kalmanGain.to1DArray();
+//     const norm = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0));
+//     return norm.toFixed(3);
+//   }
 
-  // Fallback to placeholder
-  if (!props.isRecording || !props.currentLocation) return null;
-  const accuracy = props.currentLocation.accuracy || 10;
-  const gain = Math.max(0.1, Math.min(0.9, 1 / (1 + accuracy / 10)));
-  return gain.toFixed(2);
-});
+//   // Fallback to placeholder
+//   if (!props.isRecording || !props.currentLocation) return null;
+//   const accuracy = props.currentLocation.accuracy || 10;
+//   const gain = Math.max(0.1, Math.min(0.9, 1 / (1 + accuracy / 10)));
+//   return gain.toFixed(2);
+// });
 
 // Format recording time
 function formatDuration(ms: number) {

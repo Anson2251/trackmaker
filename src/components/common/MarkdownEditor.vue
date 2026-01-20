@@ -3,13 +3,11 @@ import {
   computed,
   nextTick,
   onBeforeUnmount,
-  onMounted,
-  onUnmounted,
   ref,
   shallowRef,
   watch,
 } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import {
   NInput,
   NDrawer,
@@ -127,7 +125,7 @@ watch(
     } else if (isPreviewMode.value) {
       localValue.value = newVal;
     }
-  }
+  },
 );
 
 // Only emit on blur or explicit save, not every keystroke
@@ -235,7 +233,7 @@ watch(
       restorePageScroll();
       cleanupVisualViewportListeners();
     }
-  }
+  },
 );
 
 // Destroy editor on unmount
@@ -332,7 +330,7 @@ const editorConfig = {
       "
     >
       <n-drawer-content
-        :title="t('markdownEditor.title')"
+        :title="t('markdownEditor.title').value"
         :closable="!isMobile"
         :style="{ height: `${visibleHeight}px`, padding: 0, flex: 1 }"
       >

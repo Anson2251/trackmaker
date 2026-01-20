@@ -5,7 +5,7 @@ import {
 	NSwitch
 } from 'naive-ui';
 import {watch, ref, computed, type Ref} from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 
 const { t } = useI18n();
 
@@ -40,70 +40,70 @@ type OptionInfo = {
 const optionDB: Record<string, OptionInfo> = {
 	strokeColor: {
 		name: "strokeColor",
-		label: t('sketchEdit.strokeColor'),
+		label: t('sketchEdit.strokeColor').value,
 		type: "color",
 		default: "#000000",
 		data: {},
 	},
 	strokeThickness: {
 		name: "strokeThickness",
-		label: t('sketchEdit.strokeThickness'),
+		label: t('sketchEdit.strokeThickness').value,
 		type: "number",
 		default: 1,
 		data: {},
 	},
 	visible: {
 		name: "visible",
-		label: t('sketchEdit.visible'),
+		label: t('sketchEdit.visible').value,
 		type: "switch",
 		default: true,
 		data: {},
 	},
 	color: {
 		name: "color",
-		label: t('sketchEdit.color'),
+		label: t('sketchEdit.color').value,
 		type: "color",
 		default: "#000000",
 		data: {},
 	},
 	draggable: {
 		name: "draggable",
-		label: t('sketchEdit.draggable'),
+		label: t('sketchEdit.draggable').value,
 		type: "switch",
 		default: true,
 		data: {},
 	},
 	icon: {
 		name: "icon",
-		label: t('sketchEdit.icon'),
+		label: t('sketchEdit.icon').value,
 		type: "string",
 		default: "",
 		data: {}
 	},
 	text: {
 		name: "text",
-		label: t('sketchEdit.text'),
+		label: t('sketchEdit.text').value,
 		type: "string",
 		default: "",
 		data: {}
 	},
 	title: {
 		name: "title",
-		label: t('sketchEdit.title'),
+		label: t('sketchEdit.title').value,
 		type: "string",
 		default: "",
 		data: {}
 	},
 	subTitle: {
 		name: "subTitle",
-		label: t('sketchEdit.subTitle'),
+		label: t('sketchEdit.subTitle').value,
 		type: "string",
 		default: "",
 		data: {}
 	},
 	routeOrDraft: {
 		name: "routeOrDraft",
-		label: t('sketchEdit.classification'),
+		label: t('sketchEdit.classification').value,
 		type: "radio",
 		default: "draft",
 		data: {
@@ -215,7 +215,7 @@ watch(propertiesEditview, () => {
             v-if="property.type === 'number'"
             v-model:value="(property.model.value as number)"
             size="small"
-            :placeholder="t('sketchEdit.thickness')"
+            :placeholder="t('sketchEdit.thickness').value"
             :min="0"
             :max="100"
           />

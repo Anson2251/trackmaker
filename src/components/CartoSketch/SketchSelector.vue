@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NList, NListItem, NIcon, NButton, NTag, useThemeVars } from 'naive-ui';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 
 import { Shape, Trash } from '@vicons/tabler';
 
@@ -25,7 +25,7 @@ function select(id: string) {
 }
 
 function remove(id: string) {
-    const confirmed = confirm(t('sketchEdit.deleteSketchConfirmation'));
+    const confirmed = confirm(t('sketchEdit.deleteSketchConfirmation').value);
     if (confirmed) emit('remove', id);
 }
 

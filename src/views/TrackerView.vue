@@ -5,7 +5,7 @@
 // ! TODO: loading the route from a file is currently removed
 
 import { ref, onMounted, computed, inject, shallowRef, watch, onBeforeUnmount } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
 import { type Map as MglMap} from "maplibre-gl";
 import {
@@ -164,7 +164,7 @@ const changeRecordState = (() => {
     try {
       if (!routeStore.isRecording)
         isNewRoute = routeStore.currentRouteId === null;
-      await routeStore.toggleRecording(t);
+      await routeStore.toggleRecording((key: string) => t(key).value);
       if (!routeStore.isRecording && isNewRoute) {
         drawerTooltipOpened.value = true;
         setTimeout(() => {
@@ -307,17 +307,17 @@ const handleSketchSelect = (id: string) => {
   const sketch = sketchStore.sketches.find((s) => s.id === id);
   sketchStore.setCurrentSketchId(id);
   isSketchSelectorOpen.value = false;
-  message.success(t("sketchEdit.switchSuccess", { sketch: sketch?.meta.name }));
+  message.success(t("sketchEdit.switchSuccess", { sketch: sketch?.meta.name }).value);
 };
 
 const handleSketchNew = async () => {
   const newSketch = await sketchStore.createSketch(
-    t("sketchEdit.newSketchName")
+    t("sketchEdit.newSketchName").value
   );
   sketchStore.setCurrentSketchId(newSketch.id);
   isSketchSelectorOpen.value = false;
   message.success(
-    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name })
+    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name }).value
   );
 };
 
@@ -397,15 +397,19 @@ const devMode = !__RELEASE_MODE__;
 const showCompass = computed(() => shouldShowCompass() || isMobile || devMode);
 
 // Computed property to get Kalman gain for dev mode
-let kalmanGain = ref<Matrix | null>(null);
-let kalmanState = ref<KalmanState | null>(null);
-const kalmanUpdateInterval = setInterval(() => {
-  kalmanGain.value = locator.getLastKalmanGain();
-  kalmanState.value = locator.getKalmanState();
-});
+let kalmanGain = shallowRef<Matrix | null>(null);
+let kalmanState = shallowRef<KalmanState | null>(null);
+let kalmanUpdateInterval: number | undefined;
+
+if (devMode) {
+  kalmanUpdateInterval = setInterval(() => {
+    kalmanGain.value = locator.getLastKalmanGain();
+    kalmanState.value = locator.getKalmanState();
+  }, 200);
+}
 
 onBeforeUnmount(() => {
-  clearInterval(kalmanUpdateInterval);
+  if (kalmanUpdateInterval) clearInterval(kalmanUpdateInterval);
   locator.removeLocationListener(toCenterTheMapHandler);
 });
 
@@ -626,7 +630,7 @@ watch(
                     class="btn-control"
                     :class="{ active: isSketchSelectorOpen }"
                     @click="isSketchSelectorOpen = true"
-                    :title="t('sketchEdit.cartoSketchLibrary')"
+                    :title="t('sketchEdit.cartoSketchLibrary').value"
                   >
                     <n-icon :size="24">
                       <folders />

@@ -1,4 +1,4 @@
-import { createI18n } from 'vue-i18n';
+import { createI18n } from './lightweight-i18n';
 import en from './en.json';
 import zhCN from './zh-CN.json';
 
@@ -30,10 +30,10 @@ const savedLocale = localStorage.getItem('trackmaker_settings')
     : null;
 
 export const i18n = createI18n({
-    legacy: false,
     locale: getInitialLocale(savedLocale || 'system'),
     fallbackLocale: 'en',
-    messages
+    messages,
+    missingWarn: false,
 });
 
 // Export system locale detection for use in other parts of the app

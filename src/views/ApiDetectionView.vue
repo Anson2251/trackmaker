@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { NCard, NList, NListItem, NTag, NSpace, NAlert, NDivider, NPerformantEllipsis, NButton } from "naive-ui";
 import { ref, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { useRouter } from "vue-router";
 
 const { t } = useI18n();
@@ -28,8 +28,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[0].available = typeof fetch !== "undefined";
     apiStatuses.value[0].details = apiStatuses.value[0].available
-      ? t('apiDetection.descriptions.fetch.available')
-      : t('apiDetection.descriptions.fetch.unavailable');
+      ? t('apiDetection.descriptions.fetch.available').value
+      : t('apiDetection.descriptions.fetch.unavailable').value;
   } catch (error) {
     apiStatuses.value[0].available = false;
     apiStatuses.value[0].error = error instanceof Error ? error.message : "Unknown error";
@@ -39,8 +39,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[1].available = "geolocation" in navigator;
     apiStatuses.value[1].details = apiStatuses.value[1].available
-      ? t('apiDetection.descriptions.geolocation.available')
-      : t('apiDetection.descriptions.geolocation.unavailable');
+      ? t('apiDetection.descriptions.geolocation.available').value
+      : t('apiDetection.descriptions.geolocation.unavailable').value;
   } catch (error) {
     apiStatuses.value[1].available = false;
     apiStatuses.value[1].error = error instanceof Error ? error.message : "Unknown error";
@@ -50,8 +50,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[2].available = "performance" in window;
     apiStatuses.value[2].details = apiStatuses.value[2].available
-      ? t('apiDetection.descriptions.performance.available')
-      : t('apiDetection.descriptions.performance.unavailable');
+      ? t('apiDetection.descriptions.performance.available').value
+      : t('apiDetection.descriptions.performance.unavailable').value;
   } catch (error) {
     apiStatuses.value[2].available = false;
     apiStatuses.value[2].error = error instanceof Error ? error.message : "Unknown error";
@@ -61,8 +61,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[3].available = "permissions" in navigator;
     apiStatuses.value[3].details = apiStatuses.value[3].available
-      ? t('apiDetection.descriptions.permission.available')
-      : t('apiDetection.descriptions.permission.unavailable');
+      ? t('apiDetection.descriptions.permission.available').value
+      : t('apiDetection.descriptions.permission.unavailable').value;
   } catch (error) {
     apiStatuses.value[3].available = false;
     apiStatuses.value[3].error = error instanceof Error ? error.message : "Unknown error";
@@ -72,8 +72,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[4].available = "DeviceOrientationEvent" in window;
     apiStatuses.value[4].details = apiStatuses.value[4].available
-      ? t('apiDetection.descriptions.deviceorientation.available')
-      : t('apiDetection.descriptions.deviceorientation.unavailable');
+      ? t('apiDetection.descriptions.deviceorientation.available').value
+      : t('apiDetection.descriptions.deviceorientation.unavailable').value;
   } catch (error) {
     apiStatuses.value[4].available = false;
     apiStatuses.value[4].error = error instanceof Error ? error.message : "Unknown error";
@@ -83,8 +83,8 @@ const checkApiAvailability = () => {
   try {
     apiStatuses.value[5].available = "DeviceMotionEvent" in window;
     apiStatuses.value[5].details = apiStatuses.value[5].available
-      ? t('apiDetection.descriptions.devicemotion.available')
-      : t('apiDetection.descriptions.devicemotion.unavailable');
+      ? t('apiDetection.descriptions.devicemotion.available').value
+      : t('apiDetection.descriptions.devicemotion.unavailable').value;
   } catch (error) {
     apiStatuses.value[5].available = false;
     apiStatuses.value[5].error = error instanceof Error ? error.message : "Unknown error";
@@ -111,7 +111,7 @@ const goBack = () => {
           </svg>
         </template>
       </n-button>
-      <h1>{{ $t("apiDetection.title") }}</h1>
+      <h1>{{ t("apiDetection.title") }}</h1>
     </div>
 
     <div class="api-detection-content">
@@ -127,13 +127,13 @@ const goBack = () => {
             >
               <div class="api-status-item">
                 <div class="api-name">
-                  {{ $t(`apiDetection.apis.${api.name}`) }}
+                  {{ t(`apiDetection.apis.${api.name}`) }}
                 </div>
                 <n-tag
                   :type="api.available ? 'success' : 'error'"
                   :bordered="false"
                 >
-                  {{ api.available ? $t('apiDetection.available') : $t('apiDetection.unavailable') }}
+                  {{ api.available ? t('apiDetection.available') : t('apiDetection.unavailable') }}
                 </n-tag>
               </div>
 
@@ -149,7 +149,7 @@ const goBack = () => {
                 v-if="api.error"
                 class="api-error"
               >
-                {{ $t('apiDetection.error') }}: {{ api.error }}
+                {{ t('apiDetection.error') }}: {{ api.error }}
               </div>
             </n-list-item>
           </n-list>

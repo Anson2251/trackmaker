@@ -135,7 +135,7 @@ export const useRouteStore = defineStore('routes', () => {
 
             if (!isRecording.value) {
                 if (!currentRouteId.value) {
-                    const newRoute = await addRoute(t("trackerView.nameNewRoute"));
+                    const newRoute = await addRoute(String(t("trackerView.nameNewRoute")));
                     setCurrentRouteId(newRoute.id);
                     const lastLocation = locator.value.getLastKnownLocation();
                     startRecording(lastLocation ?? undefined);

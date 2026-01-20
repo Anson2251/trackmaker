@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useDialog, useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
 import { NDropdown, NModal, NInput, NButton, NIcon } from "naive-ui";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
 import { Trash } from "@vicons/tabler";
@@ -38,14 +38,12 @@ const renameRouteId = ref<string | null>(null);
 
 const listMenuOptions = [
   {
-    label: computed(() =>
-      t("components.trackerViewRouteDrawer.contextMenu.new")
-    ),
+    label: t("components.trackerViewRouteDrawer.contextMenu.new"),
     key: "new",
     props: {
       onClick: () => {
         showRouteContextMenu.value = false;
-        routeStore.addRoute(t("components.trackerViewRouteDrawer.nameNewRoute"));
+        routeStore.addRoute(t("components.trackerViewRouteDrawer.nameNewRoute").value);
       },
     },
   },
@@ -53,9 +51,7 @@ const listMenuOptions = [
 
 const itemMenuOptions = [
   {
-    label: computed(() =>
-      t("components.trackerViewRouteDrawer.contextMenu.rename")
-    ),
+    label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
     key: "rename",
     props: {
       onClick: () => {
@@ -67,9 +63,7 @@ const itemMenuOptions = [
     },
   },
   {
-    label: computed(() =>
-      t("components.trackerViewRouteDrawer.contextMenu.delete")
-    ),
+    label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
     key: "delete",
     props: {
       onClick: () => {
@@ -88,9 +82,7 @@ const itemMenuOptions = [
 
 const swipeActions = [
   {
-    label: computed(() =>
-      t("components.trackerViewRouteDrawer.contextMenu.rename")
-    ),
+    label: t("components.trackerViewRouteDrawer.contextMenu.rename"),
     name: "rename",
     action: (id: string) => {
       const route = routeStore.routes.find((r) => r.id === id);
@@ -100,9 +92,7 @@ const swipeActions = [
     },
   },
   {
-    label: computed(() =>
-      t("components.trackerViewRouteDrawer.contextMenu.delete")
-    ),
+    label: t("components.trackerViewRouteDrawer.contextMenu.delete"),
     name: "delete",
     action: (id: string) => routeStore.deleteRoute(id),
     color: theme.value.errorColorSuppl,
@@ -134,10 +124,10 @@ async function handleRename(routeId: string) {
 const selectedRouteIds = ref<string[]>([]);
 function handleRouteBatchDelete() {
   dialog.warning({
-    title: t("components.trackerViewRouteDrawer.deleteConfirmation.title"),
-    content: t("components.trackerViewRouteDrawer.deleteConfirmation.prompt"),
-    positiveText: t("components.trackerViewRouteDrawer.deleteConfirmation.yes"),
-    negativeText: t("components.trackerViewRouteDrawer.deleteConfirmation.no"),
+    title: t("components.trackerViewRouteDrawer.deleteConfirmation.title").value,
+    content: t("components.trackerViewRouteDrawer.deleteConfirmation.prompt").value,
+    positiveText: t("components.trackerViewRouteDrawer.deleteConfirmation.yes").value,
+    negativeText: t("components.trackerViewRouteDrawer.deleteConfirmation.no").value,
     onPositiveClick: () => {
       selectedRouteIds.value.forEach((r) => {
         routeStore.deleteRoute(r);

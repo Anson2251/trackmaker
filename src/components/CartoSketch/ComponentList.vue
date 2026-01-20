@@ -2,7 +2,7 @@
 import { NList, NListItem, NIcon, NButton, NEmpty, NPopconfirm } from 'naive-ui';
 import { Shape, Route, Trash } from '@vicons/tabler';
 import type { SelectOption } from 'naive-ui';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 
 const { t } = useI18n();
 
@@ -58,7 +58,7 @@ const emit = defineEmits<{
     v-if="components.length === 0"
     class="empty-state"
   >
-    <n-empty :description="t('sketchEdit.noComponentsYet')">
+    <n-empty :description="t('sketchEdit.noComponentsYet').value">
       <template #extra>
         <n-button
           size="small"

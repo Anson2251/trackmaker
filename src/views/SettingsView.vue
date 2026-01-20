@@ -14,7 +14,7 @@ import {
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
 import { computed, inject, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "@/utils/platform";
 import { useRouter } from "vue-router";
@@ -76,12 +76,12 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "light",
-            label: t("settings.appearance.theme.options.light"),
+            label: t("settings.appearance.theme.options.light").value,
           },
-          { value: "dark", label: t("settings.appearance.theme.options.dark") },
+          { value: "dark", label: t("settings.appearance.theme.options.dark").value },
           {
             value: "system",
-            label: t("settings.appearance.theme.options.system"),
+            label: t("settings.appearance.theme.options.system").value,
           },
         ],
       },
@@ -96,19 +96,19 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "auto",
-            label: t("settings.geolocation.geolocationBackend.options.auto"),
+            label: t("settings.geolocation.geolocationBackend.options.auto").value,
           },
           {
             value: "kalman",
-            label: t("settings.geolocation.geolocationBackend.options.kalman"),
+            label: t("settings.geolocation.geolocationBackend.options.kalman").value,
           },
           {
             value: "gps",
-            label: t("settings.geolocation.geolocationBackend.options.gps"),
+            label: t("settings.geolocation.geolocationBackend.options.gps").value,
           },
           {
             value: "ip",
-            label: t("settings.geolocation.geolocationBackend.options.ip"),
+            label: t("settings.geolocation.geolocationBackend.options.ip").value,
           },
         ],
       },
@@ -131,11 +131,11 @@ const configs = computed<Config>(() => [
         items: [
           {
             value: "system",
-            label: t("settings.language.interfaceLanguage.options.system"),
+            label: t("settings.language.interfaceLanguage.options.system").value,
           },
           ...availableLocales.map((l) => ({
             value: l,
-            label: t(`settings.language.interfaceLanguage.options.${l}`),
+            label: t(`settings.language.interfaceLanguage.options.${l}`).value,
           })),
         ],
       },
@@ -145,12 +145,12 @@ const configs = computed<Config>(() => [
         items: availableLocales
           .map((l) => ({
             value: l,
-            label: t(`settings.language.mapLanguage.options.${l}`),
+            label: t(`settings.language.mapLanguage.options.${l}`).value,
           }))
           .concat([
             {
               value: "interface",
-              label: t("settings.language.mapLanguage.options.interface"),
+              label: t("settings.language.mapLanguage.options.interface").value,
             },
           ]),
       },
@@ -192,7 +192,7 @@ onMounted(() => {
           v-for="section in configs"
           id="appearance"
           :key="section.title"
-          :title="$t(`settings.${section.title}.title`)"
+          :title="t(`settings.${section.title}.title`).value"
         >
           <n-list>
             <n-list-item
@@ -216,14 +216,14 @@ onMounted(() => {
                 >
                   {{
                     (item as any).items || (item as any).type === "button"
-                      ? $t(`settings.${section.title}.${item.title}.title`)
-                      : $t(`settings.${section.title}.${item.title}`)
+                      ? t(`settings.${section.title}.${item.title}.title`)
+                      : t(`settings.${section.title}.${item.title}`)
                   }}
                   <template #tooltip>
                     {{
                       (item as any).items || (item as any).type === "button"
-                        ? $t(`settings.${section.title}.${item.title}.title`)
-                        : $t(`settings.${section.title}.${item.title}`)
+                        ? t(`settings.${section.title}.${item.title}.title`)
+                        : t(`settings.${section.title}.${item.title}`)
                     }}
                   </template>
                 </n-performant-ellipsis>
@@ -266,7 +266,7 @@ onMounted(() => {
                     type="primary"
                     @click="item.title === 'apiDetection' ? navigateToApiDetection() : navigateToSensorTest()"
                   >
-                    {{ $t(`settings.${section.title}.${item.title}.button`) }}
+                    {{ t(`settings.${section.title}.${item.title}.button`) }}
                   </n-button>
                 </div>
               </div>
@@ -278,11 +278,11 @@ onMounted(() => {
         <n-card id="advanced-options">
           <div class="advanced-options-card">
             <div class="advanced-options-info">
-              <h3>{{ $t('settings.advancedOptions.title') }}</h3>
-              <p>{{ $t('settings.advancedOptions.description') }}</p>
+              <h3>{{ t('settings.advancedOptions.title') }}</h3>
+              <p>{{ t('settings.advancedOptions.description') }}</p>
             </div>
             <n-button type="primary" size="large" @click="navigateToAdvancedSettings">
-              {{ $t('settings.advancedOptions.button') }}
+              {{ t('settings.advancedOptions.button') }}
             </n-button>
           </div>
         </n-card>
@@ -298,7 +298,7 @@ onMounted(() => {
           <n-anchor-link
             v-for="section in configs"
             :key="section.title"
-            :title="$t(`settings.${section.title}.title`)"
+            :title="t(`settings.${section.title}.title`).value"
             :href="`#${section.title.toLowerCase()}`"
           />
         </n-anchor>

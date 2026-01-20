@@ -9,7 +9,7 @@ import SketchCreateModal from './SketchCreateModal.vue';
 
 import { watch, ref, computed } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 import { useWindowSize } from "@vueuse/core";
 
 const { t } = useI18n();
@@ -91,12 +91,12 @@ const emit = defineEmits(['update:active', 'remove', 'select', 'import']);
     :placement="drawerSelectorPlacement"
     :auto-focus="false"
   >
-    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary')">
+    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary').value">
       <template #footer>
         <n-button-group>
           <n-button
             v-for="item in buttonGroupItems"
-            :key="item.title"
+            :key="item.title.value"
             :secondary="item.secondary"
             :type="(item.type as Type)"
             :title="item.title"

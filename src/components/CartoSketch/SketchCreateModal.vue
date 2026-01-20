@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import {
   NModal,
   NInput,
@@ -54,7 +54,7 @@ const createNewSketch = async () => {
     :mask-closable="true"
     preset="card"
     style="max-width: 500px"
-    :title="t('sketchCentreView.newSketch')"
+    :title="t('sketchCentreView.newSketch').value"
     @close="close"
     @mask-click="close"
   >
@@ -64,20 +64,20 @@ const createNewSketch = async () => {
       require-mark-placement="right-hanging"
     >
       <n-form-item
-        :label="t('sketchCentreView.sketchName')"
+        :label="t('sketchCentreView.sketchName').value"
         required
       >
         <n-input
           v-model:value="newSketchName"
-          :placeholder="t('sketchCentreView.sketchNamePlaceholder')"
+          :placeholder="t('sketchCentreView.sketchNamePlaceholder').value"
           @keyup.enter="createNewSketch"
         />
       </n-form-item>
-      <n-form-item :label="t('sketchCentreView.sketchDescription')">
+      <n-form-item :label="t('sketchCentreView.sketchDescription').value">
         <n-input
           v-model:value="newSketchDescription"
           type="textarea"
-          :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder')"
+          :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder').value"
           :autosize="{ minRows: 3, maxRows: 5 }"
         />
       </n-form-item>

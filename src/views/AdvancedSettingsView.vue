@@ -14,7 +14,7 @@ import {
   NText,
 } from "naive-ui";
 import { computed, h, inject, ref, nextTick } from 'vue';
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/locales/lightweight-i18n";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "@/store/settings-store";
 import {
@@ -45,11 +45,11 @@ const filteredConfigs = computed(() => {
 const getTypeLabel = (type: string) => {
   switch (type) {
     case "boolean":
-      return t("settings.advanced.config.type.boolean");
+      return t("settings.advanced.config.type.boolean").value;
     case "string":
-      return t("settings.advanced.config.type.string");
+      return t("settings.advanced.config.type.string").value;
     case "number":
-      return t("settings.advanced.config.type.number");
+      return t("settings.advanced.config.type.number").value;
     default:
       return type;
   }
@@ -114,7 +114,7 @@ const goBack = () => {
 
 const configColumns = computed(() => [
   {
-    title: t("settings.advanced.config.columns.name"),
+    title: t("settings.advanced.config.columns.name").value,
     key: "name",
     width: 180,
     render: (row: AdvancedSettingConfig) =>
@@ -129,7 +129,7 @@ const configColumns = computed(() => [
       ]),
   },
   {
-    title: t("settings.advanced.config.columns.value"),
+    title: t("settings.advanced.config.columns.value").value,
     key: "value",
     width: 120,
     render: (row: AdvancedSettingConfig) => {
@@ -167,7 +167,7 @@ const configColumns = computed(() => [
     },
   },
   {
-    title: t("settings.advanced.config.columns.type"),
+    title: t("settings.advanced.config.columns.type").value,
     key: "type",
     width: 100,
     render: (row: AdvancedSettingConfig) =>
@@ -176,7 +176,7 @@ const configColumns = computed(() => [
       ),
   },
   {
-    title: t("settings.advanced.config.columns.description"),
+    title: t("settings.advanced.config.columns.description").value,
     key: "description",
     width: 200,
     ellipsis: {
@@ -278,7 +278,7 @@ const configColumns = computed(() => [
           </svg>
         </template>
       </n-button>
-      <h1>{{ $t("settings.advanced.title") }}</h1>
+      <h1>{{ t("settings.advanced.title") }}</h1>
     </div>
 
     <div class="advanced-settings-content">
@@ -286,7 +286,7 @@ const configColumns = computed(() => [
         <div class="config-search">
           <n-input
             v-model:value="searchQuery"
-            :placeholder="$t('settings.advanced.config.searchPlaceholder')"
+            :placeholder="t('settings.advanced.config.searchPlaceholder').value"
             clearable
             size="large"
           >
@@ -310,15 +310,15 @@ const configColumns = computed(() => [
         <div class="config-toolbar">
           <span class="config-count">
             {{ filteredConfigs.length }}
-            {{ $t("settings.advanced.config.items") }}
+            {{ t("settings.advanced.config.items") }}
           </span>
           <n-popconfirm @positive-click="resetAllToDefault">
             <template #trigger>
               <n-button size="small" secondary type="error">
-                {{ $t("settings.advanced.config.resetAll") }}
+                {{ t("settings.advanced.config.resetAll") }}
               </n-button>
             </template>
-            {{ $t("settings.advanced.config.resetAllConfirmation") }}
+            {{ t("settings.advanced.config.resetAllConfirmation") }}
           </n-popconfirm>
         </div>
 
@@ -334,7 +334,7 @@ const configColumns = computed(() => [
         >
           <template #empty>
             <div class="config-empty">
-              {{ $t("settings.advanced.config.noResults") }}
+              {{ t("settings.advanced.config.noResults") }}
             </div>
           </template>
         </n-data-table>

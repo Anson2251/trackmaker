@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '@/locales/lightweight-i18n';
 import { useRouter } from 'vue-router';
 import { NCard, NStatistic, NAlert, NButton, useThemeVars } from 'naive-ui';
 import { GeolocationManager } from '@/libs/geolocation';
@@ -253,13 +253,13 @@ const formatNumberString = (value: string) => {
           </svg>
         </template>
       </n-button>
-      <h1>{{ $t("sensorTest.title") }}</h1>
+      <h1>{{ t("sensorTest.title") }}</h1>
     </div>
 
     <div class="demo-container">
       <!-- Device Orientation Section -->
       <NCard
-        :title="t('sensorTest.deviceOrientation.title')"
+        :title="t('sensorTest.deviceOrientation.title').value"
         class="sensor-card"
       >
         <NAlert
@@ -272,7 +272,7 @@ const formatNumberString = (value: string) => {
         <NAlert
           v-if="orientationSupported === false"
           type="warning"
-          :title="t('sensorTest.deviceOrientation.notSupported')"
+          :title="t('sensorTest.deviceOrientation.notSupported').value"
           style="margin-top: 16px;"
         />
 
@@ -283,35 +283,35 @@ const formatNumberString = (value: string) => {
           <div class="orientation-stats">
             <div class="orientation-row">
               <NStatistic
-                :label="t('sensorTest.deviceOrientation.compassHeading')"
+                :label="t('sensorTest.deviceOrientation.compassHeading').value"
                 :value="compassHeading.toFixed(1)"
                 suffix="°"
               />
               <NStatistic
-                :label="t('sensorTest.deviceOrientation.alpha')"
+                :label="t('sensorTest.deviceOrientation.alpha').value"
                 :value="orientationData.alpha.toFixed(1)"
                 suffix="°"
               />
               <NStatistic
-                :label="t('sensorTest.deviceOrientation.beta')"
+                :label="t('sensorTest.deviceOrientation.beta').value"
                 :value="orientationData.beta.toFixed(1)"
                 suffix="°"
               />
             </div>
             <div class="orientation-row">
               <NStatistic
-                :label="t('sensorTest.deviceOrientation.gamma')"
+                :label="t('sensorTest.deviceOrientation.gamma').value"
                 :value="orientationData.gamma.toFixed(1)"
                 suffix="°"
               />
               <NStatistic
-                :label="t('sensorTest.deviceOrientation.tiltAngle')"
+                :label="t('sensorTest.deviceOrientation.tiltAngle').value"
                 :value="tiltAngle.toFixed(1)"
                 suffix="°"
               />
               <NStatistic
                 v-if="orientationData.webkitCompassHeading"
-                :label="t('sensorTest.deviceOrientation.iosHeading')"
+                :label="t('sensorTest.deviceOrientation.iosHeading').value"
                 :value="orientationData.webkitCompassHeading.toFixed(1)"
                 suffix="°"
               />
@@ -321,14 +321,14 @@ const formatNumberString = (value: string) => {
         <NAlert
           v-else-if="!orientationError && (orientationSupported === true || orientationSupported === null)"
           type="warning"
-          :title="t('sensorTest.deviceOrientation.noData')"
+          :title="t('sensorTest.deviceOrientation.noData').value"
           style="margin-top: 16px;"
         />
       </NCard>
 
       <!-- Device Motion Section -->
       <NCard
-        :title="t('sensorTest.deviceMotion.title')"
+        :title="t('sensorTest.deviceMotion.title').value"
         class="sensor-card"
       >
         <NAlert
@@ -341,7 +341,7 @@ const formatNumberString = (value: string) => {
         <NAlert
           v-if="motionSupported === false"
           type="warning"
-          :title="t('sensorTest.deviceMotion.notSupported')"
+          :title="t('sensorTest.deviceMotion.notSupported').value"
           style="margin-top: 16px;"
         />
 
@@ -357,25 +357,25 @@ const formatNumberString = (value: string) => {
             <h4>{{ t('sensorTest.deviceMotion.acceleration.title') }}</h4>
             <div class="xyz-row">
               <NStatistic
-                :label="t('sensorTest.deviceMotion.acceleration.x')"
+                :label="t('sensorTest.deviceMotion.acceleration.x').value"
                 :value="formatNumberString(accelerationData.x.toFixed(3))"
                 suffix="m/s²"
 
               />
               <NStatistic
-                :label="t('sensorTest.deviceMotion.acceleration.y')"
+                :label="t('sensorTest.deviceMotion.acceleration.y').value"
                 :value="formatNumberString(accelerationData.y.toFixed(3))"
                 suffix="m/s²"
               />
               <NStatistic
-                :label="t('sensorTest.deviceMotion.acceleration.z')"
+                :label="t('sensorTest.deviceMotion.acceleration.z').value"
                 :value="formatNumberString(accelerationData.z.toFixed(3))"
                 suffix="m/s²"
               />
             </div>
             <div class="other-stats-row">
               <NStatistic
-                :label="t('sensorTest.deviceMotion.acceleration.magnitude')"
+                :label="t('sensorTest.deviceMotion.acceleration.magnitude').value"
                 :value="accelerationMagnitude.toFixed(3)"
                 suffix="m/s²"
               />
@@ -390,24 +390,24 @@ const formatNumberString = (value: string) => {
             <h4>{{ t('sensorTest.deviceMotion.gyroscope.title') }}</h4>
             <div class="xyz-row">
               <NStatistic
-                :label="t('sensorTest.deviceMotion.gyroscope.x')"
+                :label="t('sensorTest.deviceMotion.gyroscope.x').value"
                 :value="formatNumberString(gyroscopeData.x.toFixed(3))"
                 suffix="rad/s"
               />
               <NStatistic
-                :label="t('sensorTest.deviceMotion.gyroscope.y')"
+                :label="t('sensorTest.deviceMotion.gyroscope.y').value"
                 :value="formatNumberString(gyroscopeData.y.toFixed(3))"
                 suffix="rad/s"
               />
               <NStatistic
-                :label="t('sensorTest.deviceMotion.gyroscope.z')"
+                :label="t('sensorTest.deviceMotion.gyroscope.z').value"
                 :value="formatNumberString(gyroscopeData.z.toFixed(3))"
                 suffix="rad/s"
               />
             </div>
             <div class="other-stats-row">
               <NStatistic
-                :label="t('sensorTest.deviceMotion.gyroscope.rotationSpeed')"
+                :label="t('sensorTest.deviceMotion.gyroscope.rotationSpeed').value"
                 :value="rotationSpeed.toFixed(3)"
                 suffix="rad/s"
               />
@@ -417,14 +417,14 @@ const formatNumberString = (value: string) => {
         <NAlert
           v-else-if="!motionError && (motionSupported === true || motionSupported === null)"
           type="warning"
-          :title="t('sensorTest.deviceMotion.noData')"
+          :title="t('sensorTest.deviceMotion.noData').value"
           style="margin-top: 16px;"
         />
       </NCard>
 
       <!-- GPS Location Section -->
       <NCard
-        :title="t('sensorTest.gps.title')"
+        :title="t('sensorTest.gps.title').value"
         class="sensor-card"
       >
         <NAlert
@@ -441,29 +441,29 @@ const formatNumberString = (value: string) => {
           <div class="gps-stats">
             <div class="gps-row">
               <NStatistic
-                :label="t('sensorTest.gps.latitude')"
+                :label="t('sensorTest.gps.latitude').value"
                 :value="gpsData.latitude.toFixed(6)"
                 suffix="°"
               />
               <NStatistic
-                :label="t('sensorTest.gps.longitude')"
+                :label="t('sensorTest.gps.longitude').value"
                 :value="gpsData.longitude.toFixed(6)"
                 suffix="°"
               />
               <NStatistic
-                :label="t('sensorTest.gps.accuracy')"
+                :label="t('sensorTest.gps.accuracy').value"
                 :value="gpsData.accuracy.toFixed(1)"
                 suffix="m"
               />
             </div>
             <div class="gps-row">
               <NStatistic
-                :label="t('sensorTest.gps.backend')"
-                :value="gpsBackend === 'gps' || gpsBackend === 'kalman' ? t('sensorTest.gps.backendGPS') : t('sensorTest.gps.backendIP')"
+                :label="t('sensorTest.gps.backend').value"
+                :value="gpsBackend === 'gps' || gpsBackend === 'kalman' ? t('sensorTest.gps.backendGPS').value : t('sensorTest.gps.backendIP').value"
               />
               <NStatistic
                 v-if="gpsTimestamp"
-                :label="t('sensorTest.gps.timestamp')"
+                :label="t('sensorTest.gps.timestamp').value"
                 :value="gpsTimestamp.toLocaleTimeString()"
               />
             </div>
@@ -473,7 +473,7 @@ const formatNumberString = (value: string) => {
         <NAlert
           v-else-if="!gpsError"
           type="info"
-          :title="t('sensorTest.gps.noData')"
+          :title="t('sensorTest.gps.noData').value"
           style="margin-top: 16px;"
         />
       </NCard>
