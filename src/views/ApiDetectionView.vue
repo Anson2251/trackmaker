@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { NCard, NList, NListItem, NTag, NSpace, NAlert, NDivider, NPerformantEllipsis, NButton } from "naive-ui";
 import { ref, onMounted } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { useRouter } from "vue-router";
 
 const { t } = useI18n();

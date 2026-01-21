@@ -14,7 +14,7 @@ import {
   NText,
 } from "naive-ui";
 import { computed, h, inject, ref, nextTick } from 'vue';
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { useRouter } from "vue-router";
 import { useSettingsStore } from "@/store/settings-store";
 import {

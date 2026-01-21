@@ -1,4 +1,4 @@
-import { createI18n } from './lightweight-i18n';
+import { createI18n } from 'nano-vue-i18n';
 import en from './en.json';
 import zhCN from './zh-CN.json';
 

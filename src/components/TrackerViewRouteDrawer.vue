@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useDialog, useThemeVars } from "naive-ui";
 import { useRouteStore } from "@/store/route-store";
 import { NDropdown, NModal, NInput, NButton, NIcon } from "naive-ui";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import MglDrawer from "./MglDrawer.vue";
 import SelectableSwipeableMenuList from "./SelectableSwipeableMenuList.vue";
 import { Trash } from "@vicons/tabler";

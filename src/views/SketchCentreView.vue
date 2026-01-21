@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import {
   NCard,
   NGrid,

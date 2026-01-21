@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NList, NListItem, NIcon, NButton, NTag, useThemeVars } from 'naive-ui';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 
 import { Shape, Trash } from '@vicons/tabler';
 

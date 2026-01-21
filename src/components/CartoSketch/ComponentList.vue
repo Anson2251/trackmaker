@@ -2,7 +2,7 @@
 import { NList, NListItem, NIcon, NButton, NEmpty, NPopconfirm } from 'naive-ui';
 import { Shape, Route, Trash } from '@vicons/tabler';
 import type { SelectOption } from 'naive-ui';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 import { useRouter } from 'vue-router';
 import { NCard, NStatistic, NAlert, NButton, useThemeVars } from 'naive-ui';
 import { GeolocationManager } from '@/libs/geolocation';

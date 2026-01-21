@@ -2,7 +2,7 @@
 import { RouterView, RouterLink } from "vue-router";
 import { h, type Component, computed, watch } from "vue";
 import { Map, InfoCircle, Settings, Menu as MenuIcon, MapPin } from "@vicons/tabler";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 
 import { NMenu, type MenuOption } from "naive-ui";
 import { NIcon, NPopover, NButton } from "naive-ui";

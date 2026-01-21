@@ -9,7 +9,7 @@ import SketchCreateModal from './SketchCreateModal.vue';
 
 import { watch, ref, computed } from "vue";
 import type { Type } from 'naive-ui/es/button/src/interface';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 import { useWindowSize } from "@vueuse/core";
 
 const { t } = useI18n();

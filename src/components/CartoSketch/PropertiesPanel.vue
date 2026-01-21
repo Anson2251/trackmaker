@@ -2,7 +2,7 @@
 import { NForm, NFormItem, NSwitch, NColorPicker, NInputNumber, NEmpty, NTabs, NTabPane, NInput, NDynamicTags } from 'naive-ui';
 import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
 import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 
 const { t } = useI18n();

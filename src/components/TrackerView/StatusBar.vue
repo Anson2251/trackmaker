@@ -2,7 +2,7 @@
 import { NConfigProvider, NText, NSpace } from "naive-ui";
 import { lightTheme } from "naive-ui";
 import { computed } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { useRouteStore } from "@/store/route-store";
 import type { GeographicPoint } from "@/libs/geolocation/types";
 import type { KalmanState } from "@/libs/geolocation";

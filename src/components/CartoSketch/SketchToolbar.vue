@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NIcon, NFlex, NPerformantEllipsis, NText, NTag, NSpace } from 'naive-ui';
 import { DeviceFloppy, Folder, Plus, Settings } from '@vicons/tabler';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
 

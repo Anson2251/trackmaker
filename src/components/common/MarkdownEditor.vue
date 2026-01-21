@@ -7,7 +7,7 @@ import {
   shallowRef,
   watch,
 } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import {
   NInput,
   NDrawer,

@@ -2,7 +2,7 @@
 import { NConfigProvider, NButton, NIcon } from "naive-ui";
 import { lightTheme } from "naive-ui";
 import { PlayerRecord, Square } from "@vicons/tabler";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import PlatformInfo from "@/utils/platform";
 
 const { t } = useI18n();

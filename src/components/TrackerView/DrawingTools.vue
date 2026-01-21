@@ -6,7 +6,7 @@ import {
   ArrowForward,
   Trash,
 } from "@vicons/tabler";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { useKeyboardShortcut } from "@/composables/useKeyboardShortcut";
 import { DRAW_MODES, type DrawModeConfig } from "@/composables/useTerraDraw";
 

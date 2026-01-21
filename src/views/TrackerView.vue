@@ -13,7 +13,7 @@ import {
   watch,
   onBeforeUnmount,
 } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
 import { type Map as MglMap } from "maplibre-gl";
 import {

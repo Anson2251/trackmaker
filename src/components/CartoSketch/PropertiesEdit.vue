@@ -5,7 +5,7 @@ import {
 	NSwitch
 } from 'naive-ui';
 import {watch, ref, computed, type Ref} from 'vue';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
 

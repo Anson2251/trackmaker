@@ -2,7 +2,7 @@
 import { NTabs, NTabPane } from 'naive-ui';
 import ListSelector from '../ListSelector.vue';
 import { watch, ref } from 'vue';
-import { useI18n } from '@/locales/lightweight-i18n';
+import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
 

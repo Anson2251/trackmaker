@@ -18,7 +18,7 @@ import {
   NCode,
 } from "naive-ui";
 import { ref, onMounted, onUnmounted } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { BrandGithub, Link, FileText } from "@vicons/tabler";
 import { credits, dataProviders } from "@/configs";
 import aboutPageLicense from "@/assets/about-page-license.txt?raw";
@@ -182,7 +182,7 @@ const sideIconSize = ref(20);
 
         <template #footer>
           <MarkdownViewer
-            :source="t('aboutView.mapInaccuracyDeclaration').value"
+            :source="t('aboutView.mapInaccuracyDeclaration')"
             class="markdown-resource"
           />
         </template>

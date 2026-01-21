@@ -14,7 +14,7 @@ import {
 } from "naive-ui";
 import { useSettingsStore } from "@/store/settings-store";
 import { computed, inject, onMounted } from "vue";
-import { useI18n } from "@/locales/lightweight-i18n";
+import { useI18n } from "nano-vue-i18n";
 import { useWindowSize } from "@vueuse/core";
 import PlatformInfo from "@/utils/platform";
 import { useRouter } from "vue-router";
