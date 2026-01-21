@@ -4,10 +4,18 @@
 // ! TODO: the delete route points is currently removed
 // ! TODO: loading the route from a file is currently removed
 
-import { ref, onMounted, computed, inject, shallowRef, watch, onBeforeUnmount } from "vue";
+import {
+  ref,
+  onMounted,
+  computed,
+  inject,
+  shallowRef,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import { useI18n } from "@/locales/lightweight-i18n";
 import { MglCustomControl } from "@indoorequal/vue-maplibre-gl";
-import { type Map as MglMap} from "maplibre-gl";
+import { type Map as MglMap } from "maplibre-gl";
 import {
   lightTheme,
   NConfigProvider,
@@ -51,7 +59,15 @@ import type Matrix from "ml-matrix";
 import type { GeoJSONStoreFeatures } from "terra-draw";
 import { isArray, throttle } from "lodash-es";
 import type { Position } from "gcoord";
-import { shouldShowCompass, shouldKeepScreenOn, getMapTileServer, getMapTilerApiKey, getCustomMapTileUrl, getAutoRecenterTimeout, getDefaultMapZoomLevel } from "@/libs/default-settings";
+import {
+  shouldShowCompass,
+  shouldKeepScreenOn,
+  getMapTileServer,
+  getMapTilerApiKey,
+  getCustomMapTileUrl,
+  getAutoRecenterTimeout,
+  getDefaultMapZoomLevel,
+} from "@/libs/default-settings";
 import { onBeforeRouteLeave } from "vue-router";
 import type { KalmanState } from "@/libs/geolocation";
 import type { GeographicPoint } from "@/libs/geolocation/types";
@@ -69,43 +85,46 @@ const buildTimeMapTilerKey = __MAPTILER_KEY__;
 
 // Get API key from settings or use build-time key
 const effectiveMapTilerKey = computed(() => {
-    const userKey = getMapTilerApiKey();
-    return userKey || buildTimeMapTilerKey;
+  const userKey = getMapTilerApiKey();
+  return userKey || buildTimeMapTilerKey;
 });
 
 // Map tile server configuration
 interface TileServerConfig {
-    type: 'maptiler' | 'openfreemap' | 'custom';
-    getUrl: () => string;
+  type: "maptiler" | "openfreemap" | "custom";
+  getUrl: () => string;
 }
 
 const mapTileServers: Record<string, TileServerConfig> = {
-    'maptiler': {
-        type: 'maptiler',
-        getUrl: () => `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
-    },
-    'openfreemap': {
-        type: 'openfreemap',
-        getUrl: () => 'https://tiles.openfreemap.org/styles/liberty/style.json',
-    },
-    'custom': {
-        type: 'custom',
-        getUrl: () => getCustomMapTileUrl() || `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
-    },
+  maptiler: {
+    type: "maptiler",
+    getUrl: () =>
+      `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
+  },
+  openfreemap: {
+    type: "openfreemap",
+    getUrl: () => "https://tiles.openfreemap.org/styles/liberty/style.json",
+  },
+  custom: {
+    type: "custom",
+    getUrl: () =>
+      getCustomMapTileUrl() ||
+      `https://api.maptiler.com/maps/basic-v2/style.json?key=${effectiveMapTilerKey.value}`,
+  },
 };
 
 // Computed style URL based on mapTileServer setting
 const styleUrl = computed(() => {
-    const server = getMapTileServer();
-    const serverConfig = mapTileServers[server];
-    if (serverConfig) {
-        return serverConfig.getUrl();
-    }
-    return mapTileServers['maptiler'].getUrl();
+  const server = getMapTileServer();
+  const serverConfig = mapTileServers[server];
+  if (serverConfig) {
+    return serverConfig.getUrl();
+  }
+  return mapTileServers["maptiler"].getUrl();
 });
 
 const mapContainerRef = shallowRef<InstanceType<typeof MapContainer> | null>(
-  null
+  null,
 );
 const routeStore = useRouteStore();
 routeStore.setLocator(locator);
@@ -115,7 +134,7 @@ const noSleep = inject("noSleep") as NoSleep;
 const path = computed(() => {
   if (!routeStore.currentRouteId) return [];
   const route = routeStore.routes.find(
-    (r) => r.id === routeStore.currentRouteId
+    (r) => r.id === routeStore.currentRouteId,
   );
   return route?.points || [];
 });
@@ -225,7 +244,7 @@ watch(
     } else {
       isFeatureEditPopoverOpen.value = false;
     }
-  }
+  },
 );
 
 // Helper to get the center of a feature
@@ -249,8 +268,7 @@ function getFeatureCenter(feature: GeoJSONStoreFeatures): {
         }
       }
       return { lng: sumX / count, lat: sumY / count };
-    }
-    else {
+    } else {
       const midIndex = Math.floor(coords.length / 2);
       return {
         lng: (coords as Position[])[midIndex][0],
@@ -266,7 +284,7 @@ function getFeatureCenter(feature: GeoJSONStoreFeatures): {
 }
 
 const loadTextFileDialogCallback = ref<(contents: string[]) => Promise<void>>(
-  async () => {}
+  async () => {},
 );
 
 function followRoute() {
@@ -312,12 +330,12 @@ const handleSketchSelect = (id: string) => {
 
 const handleSketchNew = async () => {
   const newSketch = await sketchStore.createSketch(
-    t("sketchEdit.newSketchName")
+    t("sketchEdit.newSketchName"),
   );
   sketchStore.setCurrentSketchId(newSketch.id);
   isSketchSelectorOpen.value = false;
   message.success(
-    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name })
+    t("sketchEdit.createSuccess", { sketch: newSketch.meta.name }),
   );
 };
 
@@ -347,7 +365,7 @@ let toCenterTheMapHandler = -1;
 
 onBeforeRouteLeave(() => {
   isFeatureEditPopoverOpen.value = false;
-})
+});
 
 onMounted(async () => {
   await routeStore.init();
@@ -367,9 +385,10 @@ onMounted(async () => {
     } else {
       const currentLocation = await locator.getCurrentLocation();
       if (currentLocation.isOk()) mapStore.setCenter(currentLocation.value);
-      else console.warn(
-        "[TrackerView] No valid last known location available, skipping map center update"
-      );
+      else
+        console.warn(
+          "[TrackerView] No valid last known location available, skipping map center update",
+        );
     }
   } else {
     mapStore.setCenter(locator.getLastKnownLocation());
@@ -377,15 +396,22 @@ onMounted(async () => {
     mapStore.setZoom(getDefaultMapZoomLevel());
   }
 
-  toCenterTheMapHandler = locator.addLocationListener(throttle((point: GeographicPoint) => {
-    if (mapRef.value) {
-      const userOperating = mapRef.value.isEasing() || mapRef.value.isMoving() || mapRef.value.isRotating() || mapRef.value.isZooming() || isUserSettingTheMap.value;
-      if (!userOperating) {
-        mapRef.value?.easeTo({ center: point.toLngLatLike(), duration: 300 });
-        setTimeout(() => mapStore.setCenter(point), 300);
+  toCenterTheMapHandler = locator.addLocationListener(
+    throttle((point: GeographicPoint) => {
+      if (mapRef.value) {
+        const userOperating =
+          mapRef.value.isEasing() ||
+          mapRef.value.isMoving() ||
+          mapRef.value.isRotating() ||
+          mapRef.value.isZooming() ||
+          isUserSettingTheMap.value;
+        if (!userOperating && isWatchingCurrentLocation.value) {
+          mapRef.value?.easeTo({ center: point.toLngLatLike(), duration: 300 });
+          setTimeout(() => mapStore.setCenter(point), 300);
+        }
       }
-    }
-  }, 2000))
+    }, 2000),
+  );
 
   mapReady.value = true;
 });
@@ -443,7 +469,6 @@ const toggleOrientationTracking = () => {
     if (map) map.setBearing(0);
   }
 };
-
 
 const mapRef = shallowRef<MglMap | null>(null);
 // Map event handlers
@@ -519,7 +544,7 @@ const handleClearAll = async () => {
   }
 };
 
-const handleToggleCurrentLocation = () => {
+const handleToggleCurrentLocation = async () => {
   isWatchingCurrentLocation.value = !isWatchingCurrentLocation.value;
   if (isWatchingCurrentLocation.value) {
     const map = mapContainerRef.value?.map;
@@ -529,10 +554,14 @@ const handleToggleCurrentLocation = () => {
       if (lastLocation.latitude !== 0 || lastLocation.longitude !== 0) {
         map.flyTo({ center: lastLocation.toLngLatLike(), zoom: 18 });
       } else {
-        console.warn(
-          "[TrackerView] No valid current location available for navigation"
-        );
-        // Could optionally show a user message here
+        const location = await locator.getCurrentLocation();
+        if (location.isOk()) {
+          map.flyTo({ center: location.value.toLngLatLike(), zoom: 18 });
+        } else {
+          console.warn(
+            "[TrackerView] No valid current location available for navigation",
+          );
+        }
       }
     }
   }
@@ -559,7 +588,7 @@ watch(
       await terraDraw.value.clearAll();
       terraDraw.value.loadDrafts(sketchStore.currentDrafts);
     }
-  }
+  },
 );
 </script>
 
@@ -613,7 +642,7 @@ watch(
               :y="featurePopoverY"
               :name="terraDraw?.selectedFeatureName.value ?? ''"
               :description="terraDraw?.selectedFeatureDescription.value ?? ''"
-              @update:show="(show) => isFeatureEditPopoverOpen = show"
+              @update:show="(show) => (isFeatureEditPopoverOpen = show)"
               @update:name="handleUpdateFeatureName"
               @update:description="handleUpdateFeatureDescription"
               @save="handleSaveFeatureEdit"
@@ -653,7 +682,6 @@ watch(
 
             <!-- Location Marker -->
             <LocationMarker
-              :is-watching-current-location="isWatchingCurrentLocation"
               :device-bearing="
                 mapStore.isTrackingOrientation
                   ? 0
@@ -745,7 +773,8 @@ watch(
     />
 
     <!-- Mobile status bar positioned at bottom -->
-    <StatusBar v-if="devMode && kalmanState"
+    <StatusBar
+      v-if="devMode && kalmanState"
       :is-recording="routeStore.isRecording"
       :record-timespan="routeStore.currentRouteRecordTimespan"
       :is-route-drawer-open="isRouteDrawerOpen"
@@ -771,7 +800,8 @@ watch(
 
 <style scoped>
 .drawer-floating-button {
-  box-shadow: 0 0 16px -2px v-bind("lightTheme.Button.common?.successColorSuppl"),
+  box-shadow:
+    0 0 16px -2px v-bind("lightTheme.Button.common?.successColorSuppl"),
     0 1px 3px -1px #000;
 }
 
@@ -813,7 +843,9 @@ watch(
   display: flex !important;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.2s ease, border-radius 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-radius 0.2s ease;
 }
 
 .btn-control.active {

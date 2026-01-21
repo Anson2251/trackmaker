@@ -1,4 +1,4 @@
-import { ref, inject, type Ref, type App, type Plugin, isRef, unref } from 'vue';
+import { ref, inject, type Ref, type App, type Plugin, unref } from 'vue';
 
 interface I18nOptions {
     locale: string;

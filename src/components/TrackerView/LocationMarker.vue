@@ -6,7 +6,6 @@ import type { GeographicPoint } from "@/libs/geolocation/types";
 import LocatingIcon from "@/assets/locating-icon.svg?url";
 
 interface Props {
-  isWatchingCurrentLocation: boolean;
   deviceBearing: number;
 }
 
@@ -43,7 +42,7 @@ const pointLngLatLike = computed<[number, number]>(() => currentLocation.value ?
 
 <template>
   <mgl-marker
-    v-if="locator && locator.isServiceRunning() && isWatchingCurrentLocation && currentLocation"
+    v-if="locator && locator.isServiceRunning() && currentLocation"
     :coordinates="pointLngLatLike"
   >
     <template #marker>
