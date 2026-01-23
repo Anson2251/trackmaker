@@ -1,5 +1,5 @@
 import { storageGet, storageSet } from '../storage';
-import { WriteAheadLogManagerInstance } from './write-ahead-log-manager';
+import { getWriteAheadLogManager } from './write-ahead-log-manager';
 import type { MergeBatch, RouteLogEntry, RouteLogMetadata } from './types';
 import { WAL_CONSTANTS } from './types';
 import { CartoSketch } from '../cartosketch';
@@ -11,6 +11,10 @@ interface MergeJob {
     scheduledTime: number;
     attempts: number;
 }
+
+// Batching configuration
+const MERGE_BATCH_SIZE = 1000; // Process up to 1000 entries per batch
+const MAX_MERGE_QUEUE_SIZE = 10000; // Max jobs in queue to prevent memory exhaustion
 
 export class MergeProcessor {
     private static instance: MergeProcessor;
@@ -28,7 +32,17 @@ export class MergeProcessor {
         return MergeProcessor.instance;
     }
 
+    static resetInstance(): void {
+        MergeProcessor.instance = undefined as any;
+    }
+
     scheduleMerge(routeId: string, priority: 'low' | 'normal' | 'high' = 'normal'): void {
+        // Prevent unbounded queue growth
+        if (this.mergeQueue.length >= MAX_MERGE_QUEUE_SIZE) {
+            console.error(`[MergeProcessor] Merge queue size (${this.mergeQueue.length}) exceeds maximum (${MAX_MERGE_QUEUE_SIZE}). Rejecting merge for route ${routeId}`);
+            return;
+        }
+
         const existingJob = this.mergeQueue.find(job => job.routeId === routeId);
 
         if (existingJob) {
@@ -89,23 +103,10 @@ export class MergeProcessor {
 
     async mergeRoute(routeId: string): Promise<void> {
         const startTime = performance.now();
-        const batchId = crypto.randomUUID();
-
-        const batch: MergeBatch = {
-            id: batchId,
-            routeId,
-            startSequence: 0,
-            endSequence: 0,
-            pointCount: 0,
-            distanceAdded: 0,
-            mergeTime: Date.now(),
-            status: 'pending'
-        };
-
         const [mainSketches, logEntries, metadata] = await Promise.all([
             storageGet<ReturnType<CartoSketch['toStorage']>[]>('sketches'),
-            WriteAheadLogManagerInstance.getUnmergedEntries(routeId),
-            WriteAheadLogManagerInstance.getMetadata(routeId)
+            getWriteAheadLogManager().getUnmergedEntries(routeId),
+            getWriteAheadLogManager().getMetadata(routeId)
         ]);
 
         if (!mainSketches || !metadata) {
@@ -113,10 +114,66 @@ export class MergeProcessor {
         }
 
         if (logEntries.length === 0) {
-            batch.status = 'completed';
-            await storageSet(`route:${routeId}:batches:${batchId}`, batch);
+            // No unmerged entries, nothing to do
             return;
         }
+
+        // Process entries in batches to prevent UI blocking and memory issues
+        let processedCount = 0;
+        let batchStartIndex = 0;
+
+        while (batchStartIndex < logEntries.length) {
+            const batchEndIndex = Math.min(batchStartIndex + MERGE_BATCH_SIZE, logEntries.length);
+            const batchEntries = logEntries.slice(batchStartIndex, batchEndIndex);
+            
+            await this.mergeRouteBatch(
+                routeId,
+                mainSketches,
+                batchEntries,
+                metadata,
+                batchStartIndex === 0, // isFirstBatch
+                batchEndIndex === logEntries.length // isLastBatch
+            );
+
+            processedCount += batchEntries.length;
+            batchStartIndex = batchEndIndex;
+
+            // Allow event loop to process other tasks between batches
+            if (batchStartIndex < logEntries.length) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+
+        this.mergeCount++;
+        this.lastMergeTime = Date.now();
+        const duration = performance.now() - startTime;
+        console.info(`[MergeProcessor] Merged ${processedCount} points into route ${routeId} in ${duration.toFixed(2)}ms`);
+    }
+
+    /**
+     * Merge a batch of entries for a single route.
+     */
+    private async mergeRouteBatch(
+        routeId: string,
+        mainSketches: ReturnType<CartoSketch['toStorage']>[],
+        batchEntries: RouteLogEntry[],
+        metadata: RouteLogMetadata,
+        isFirstBatch: boolean,
+        isLastBatch: boolean
+    ): Promise<void> {
+        if (batchEntries.length === 0) return;
+
+        const batchId = crypto.randomUUID();
+        const batch: MergeBatch = {
+            id: batchId,
+            routeId,
+            startSequence: batchEntries[0].sequence,
+            endSequence: batchEntries[batchEntries.length - 1].sequence,
+            pointCount: batchEntries.length,
+            distanceAdded: 0,
+            mergeTime: Date.now(),
+            status: 'pending'
+        };
 
         const sketches = mainSketches.map(s => CartoSketch.fromStorage(s));
         const sketchIndex = sketches.findIndex(sketch =>
@@ -137,9 +194,9 @@ export class MergeProcessor {
         let totalDistanceAdded = 0;
         const pointsToAdd: typeof route.points = [];
 
-        for (let i = 0; i < logEntries.length; i++) {
-            const entry = logEntries[i];
-            const prevPoint = i === 0 && lastMainPoint ? lastMainPoint : logEntries[i - 1].point;
+        for (let i = 0; i < batchEntries.length; i++) {
+            const entry = batchEntries[i];
+            const prevPoint = i === 0 && lastMainPoint ? lastMainPoint : batchEntries[i - 1].point;
 
             const distance = calculateHaversineDistance(
                 { longitude: prevPoint.longitude, latitude: prevPoint.latitude },
@@ -155,21 +212,16 @@ export class MergeProcessor {
         route.meta.distance = (route.meta.distance || 0) + totalDistanceAdded;
         route.meta.modification_timestamp = Date.now();
 
-        logEntries.forEach(entry => entry.merged = true);
+        batchEntries.forEach(entry => entry.merged = true);
 
-        batch.startSequence = logEntries[0].sequence;
-        batch.endSequence = logEntries[logEntries.length - 1].sequence;
-        batch.pointCount = logEntries.length;
         batch.distanceAdded = totalDistanceAdded;
 
-        await this.saveMergeTransaction(sketches, routeId, logEntries, metadata, batch);
+        await this.saveMergeTransaction(sketches, routeId, batchEntries, metadata, batch);
 
-        await WriteAheadLogManagerInstance.cleanupMergedEntries(routeId);
-
-        this.mergeCount++;
-        this.lastMergeTime = Date.now();
-        const duration = performance.now() - startTime;
-        console.info(`[MergeProcessor] Merged ${logEntries.length} points into route ${routeId} in ${duration.toFixed(2)}ms`);
+        // Only cleanup on last batch
+        if (isLastBatch) {
+            await getWriteAheadLogManager().cleanupMergedEntries(routeId);
+        }
     }
 
     private async saveMergeTransaction(
@@ -215,12 +267,29 @@ export class MergeProcessor {
         }
     }
 
+    /**
+     * Record merge failure details for debugging and monitoring.
+     * Persists error information to storage for later analysis.
+     */
     private async recordMergeFailure(routeId: string, error: unknown): Promise<void> {
-        console.error(`[MergeProcessor] Recording merge failure for route ${routeId}:`, error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        const errorKey = `route:${routeId}:merge:lastFailure`;
+        
+        try {
+            await storageSet(errorKey, {
+                timestamp: Date.now(),
+                error: errorMsg,
+                attempts: 3 // MAX_RETRIES value
+            });
+            console.error(`[MergeProcessor] Merge failed for route ${routeId} after max retries:`, error);
+        } catch (storageError) {
+            console.error(`[MergeProcessor] Failed to record merge failure for route ${routeId}:`, error);
+            console.error(`[MergeProcessor] Also failed to save failure record:`, storageError);
+        }
     }
 
     async forceMerge(routeId: string): Promise<void> {
-        const logEntries = await WriteAheadLogManagerInstance.getUnmergedEntries(routeId);
+        const logEntries = await getWriteAheadLogManager().getUnmergedEntries(routeId);
         if (logEntries.length > 0) {
             await this.mergeRoute(routeId);
         }

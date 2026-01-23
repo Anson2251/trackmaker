@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "export RELEASE_MODE=false; vite dev",
+    "test": "pnpm vitest run",
     "tauri": "TAURI_ENVIRONMENT=true tauri",
     "serve": "export RELEASE_MODE=false; vite dev --host",
     "build": "export RELEASE_MODE=true; vite build",
@@ -69,6 +70,7 @@
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0",
+    "vitest": "^4.0.18",
     "vue-tsc": "^2.2.12"
   }
 }

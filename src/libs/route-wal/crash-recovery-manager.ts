@@ -84,17 +84,32 @@ export class CrashRecoveryManager {
         return pendingBatches;
     }
 
+    /**
+     * Find all batches for a route.
+     * Instead of assuming a sequential numbering scheme, scan for all batch keys.
+     */
     private async findBatchesForRoute(routeId: string): Promise<string[]> {
         const keys: string[] = [];
         const prefix = `route:${routeId}:batches:`;
 
-        for (let i = 0; i < 100; i++) {
+        // Try up to 1000 batch IDs (well beyond typical usage)
+        // In production, a better approach would be to maintain an index
+        const maxBatchScan = 1000;
+        let consecutiveNulls = 0;
+        const maxConsecutiveNulls = 10; // Stop if we find 10 consecutive empty slots
+
+        for (let i = 0; i < maxBatchScan && consecutiveNulls < maxConsecutiveNulls; i++) {
             const batch = await storageGet<MergeBatch>(`${prefix}${i}`);
             if (batch) {
                 keys.push(`${i}`);
+                consecutiveNulls = 0; // Reset counter on successful find
             } else {
-                break;
+                consecutiveNulls++;
             }
+        }
+
+        if (keys.length > 0) {
+            console.debug(`[CrashRecovery] Found ${keys.length} batch(es) for route ${routeId}`);
         }
 
         return keys;
@@ -110,7 +125,10 @@ export class CrashRecoveryManager {
 
         const metadata = await WriteAheadLogManagerInstance.getMetadata(routeId);
         if (!metadata) {
-            throw new Error(`No metadata found for route ${routeId}`);
+            batch.status = 'failed';
+            batch.error = `No metadata found for route ${routeId}`;
+            await storageSet(`route:${routeId}:batches:${batch.id}`, batch);
+            throw new Error(batch.error);
         }
 
         const log = await storageGet<RouteLogEntry[]>(`route:${routeId}:log`) || [];
@@ -122,8 +140,20 @@ export class CrashRecoveryManager {
             return;
         }
 
-        console.info(`[CrashRecovery] Re-executing merge for ${unmergedEntries.length} entries`);
-        await MergeProcessorInstance.mergeRoute(routeId);
+        try {
+            console.info(`[CrashRecovery] Re-executing merge for ${unmergedEntries.length} entries`);
+            await MergeProcessorInstance.mergeRoute(routeId);
+            
+            // After successful merge, mark batch as completed
+            batch.status = 'completed';
+            await storageSet(`route:${routeId}:batches:${batch.id}`, batch);
+        } catch (error) {
+            // Mark batch as failed with error details
+            batch.status = 'failed';
+            batch.error = error instanceof Error ? error.message : 'Unknown error during merge recovery';
+            await storageSet(`route:${routeId}:batches:${batch.id}`, batch);
+            throw error;
+        }
     }
 
     private async validateRouteLog(routeId: string): Promise<void> {
@@ -132,7 +162,7 @@ export class CrashRecoveryManager {
             WriteAheadLogManagerInstance.getMetadata(routeId)
         ]);
 
-        if (!logEntries || !metadata) {
+        if (!logEntries || !metadata || !Array.isArray(logEntries)) {
             console.warn(`[CrashRecovery] Corrupted or missing data for route ${routeId}, attempting rebuild`);
             await this.rebuildRouteLog(routeId);
             return;
@@ -150,40 +180,65 @@ export class CrashRecoveryManager {
         this.validateSequenceContinuity(allEntries);
     }
 
+    /**
+     * Validate and fix sequence continuity in a single pass (O(n) complexity).
+     * Uses set tracking to detect duplicates efficiently.
+     */
     private validateSequenceContinuity(entries: RouteLogEntry[]): void {
-        for (let i = 1; i < entries.length; i++) {
-            if (entries[i].sequence !== entries[i - 1].sequence + 1) {
-                console.warn(`[CrashRecovery] Sequence gap detected at index ${i}: ${entries[i - 1].sequence} -> ${entries[i].sequence}`);
-                this.fixSequenceGap(entries, i);
-                i = 0;
+        if (entries.length === 0) return;
+
+        // Build a sequence map for O(1) lookups
+        const sequenceMap = new Map<number, RouteLogEntry[]>();
+        for (const entry of entries) {
+            if (!sequenceMap.has(entry.sequence)) {
+                sequenceMap.set(entry.sequence, []);
             }
+            sequenceMap.get(entry.sequence)!.push(entry);
+        }
+
+        // Check for gaps and duplicates in a single pass
+        const problemIndices: number[] = [];
+        for (let i = 1; i < entries.length; i++) {
+            const currentSeq = entries[i].sequence;
+            const prevSeq = entries[i - 1].sequence;
+
+            if (currentSeq !== prevSeq + 1) {
+                console.warn(`[CrashRecovery] Sequence issue at index ${i}: ${prevSeq} -> ${currentSeq}`);
+                problemIndices.push(i);
+            }
+        }
+
+        // Fix problems in reverse order to avoid index shifting issues
+        for (let i = problemIndices.length - 1; i >= 0; i--) {
+            const gapIndex = problemIndices[i];
+            this.fixSequenceGap(entries, gapIndex, sequenceMap);
         }
     }
 
-    private fixSequenceGap(entries: RouteLogEntry[], gapIndex: number): void {
+    /**
+     * Fix a single sequence gap efficiently.
+     */
+    private fixSequenceGap(
+        entries: RouteLogEntry[],
+        gapIndex: number,
+        sequenceMap: Map<number, RouteLogEntry[]>
+    ): void {
         const expectedSequence = entries[gapIndex - 1].sequence + 1;
-        const duplicateEntry = entries.find(e => e.sequence === expectedSequence);
+        const duplicates = sequenceMap.get(expectedSequence);
 
-        if (duplicateEntry) {
-            console.info(`[CrashRecovery] Found duplicate entry at sequence ${expectedSequence}, removing duplicate`);
-            const entriesToRemove: RouteLogEntry[] = [];
-            let foundOriginal = false;
-
-            for (let j = gapIndex; j < entries.length; j++) {
-                if (entries[j].sequence === expectedSequence) {
-                    if (!foundOriginal) {
-                        foundOriginal = true;
-                    } else {
-                        entriesToRemove.push(entries[j]);
-                    }
+        if (duplicates && duplicates.length > 1) {
+            console.info(`[CrashRecovery] Found ${duplicates.length} entries with sequence ${expectedSequence}, keeping first`);
+            // Keep first occurrence, remove others
+            const toKeep = duplicates[0];
+            const toRemove = duplicates.slice(1);
+            
+            for (const entry of toRemove) {
+                const idx = entries.indexOf(entry);
+                if (idx !== -1) {
+                    entries.splice(idx, 1);
                 }
             }
-
-            for (const entry of entriesToRemove) {
-                const idx = entries.indexOf(entry);
-                if (idx !== -1) entries.splice(idx, 1);
-            }
-        } else {
+        } else if (!duplicates || duplicates.length === 0) {
             console.info(`[CrashRecovery] Inserting placeholder entry for missing sequence ${expectedSequence}`);
             const placeholder: RouteLogEntry = {
                 id: crypto.randomUUID(),
@@ -194,6 +249,8 @@ export class CrashRecoveryManager {
                 merged: false
             };
             entries.splice(gapIndex, 0, placeholder);
+            // Update sequence map for next iteration if needed
+            sequenceMap.set(expectedSequence, [placeholder]);
         }
     }
 

@@ -57,7 +57,7 @@ async function generateConfig(): Promise<UserConfig> {
             __RELEASE_MODE__: releaseMode ? "true" : "false",
             __TAURI_ENVIRONMENT__: tauriEnv ? "true" : "false",
             __MOST_RECENT_COMMIT__: JSON.stringify(await getMostRecentCommitId()),
-            __PROJECT_CREDITS__: JSON.stringify(generateCredits()),
+            __PROJECT_CREDITS__: JSON.stringify(generateCredits(releaseMode)),
         },
         base: './',
         plugins: plugins,

@@ -12,37 +12,96 @@ import { MergeProcessor } from './merge-processor';
 /**
  * Simple async mutex for per-route locking.
  * Safe for single-threaded JavaScript environments.
+ * Includes timeout-based cleanup to prevent memory leaks from unreleased locks.
  */
-class AsyncMutex {
-    private locks = new Map<string, Promise<void>>();
+export class AsyncMutex {
+    private locks = new Map<string, {
+        queue: Array<(release: () => void) => void>;
+        createdAt: number;
+        timeoutHandle?: ReturnType<typeof setTimeout>;
+    }>();
+
+    private readonly lockTimeout = 30000; // 30 seconds timeout
+    private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+    constructor() {
+        // Periodically clean up stale locks
+        if (typeof setInterval !== 'undefined') {
+            this.cleanupInterval = setInterval(
+                () => this.cleanupStaleLocks(),
+                60000 // Check every 60 seconds
+            );
+        }
+    }
 
     acquire(key: string): Promise<() => void> {
         return new Promise((resolveAcquire) => {
-            const checkLock = () => {
-                if (!this.locks.has(key)) {
-                    let release!: () => void;
-                    const lockPromise = new Promise<void>((resolve) => {
-                        release = () => {
-                            this.locks.delete(key);
-                            resolve();
-                        };
-                    });
-
-                    this.locks.set(key, lockPromise);
-                    resolveAcquire(release);
+            const release = () => {
+                const lock = this.locks.get(key);
+                if (lock) {
+                    if (lock.timeoutHandle) {
+                        clearTimeout(lock.timeoutHandle);
+                    }
+                    if (lock.queue.length > 0) {
+                        const next = lock.queue.shift()!;
+                        // Restart timeout for next acquirer
+                        lock.createdAt = Date.now();
+                        lock.timeoutHandle = this.setupLockTimeout(key);
+                        next(release);
+                    } else {
+                        this.locks.delete(key);
+                    }
                 }
             };
 
-            checkLock();
-            if (this.locks.has(key)) {
-                const interval = setInterval(() => {
-                    if (!this.locks.has(key)) {
-                        clearInterval(interval);
-                        checkLock();
-                    }
-                }, 0);
+            const lock = this.locks.get(key);
+            if (lock) {
+                lock.queue.push(resolveAcquire);
+            } else {
+                const newLock = {
+                    queue: [] as Array<(release: () => void) => void>,
+                    createdAt: Date.now(),
+                    timeoutHandle: this.setupLockTimeout(key)
+                };
+                this.locks.set(key, newLock);
+                resolveAcquire(release);
             }
         });
+    }
+
+    /**
+     * Set up a timeout that forces release of a lock if not released within timeout period.
+     */
+    private setupLockTimeout(key: string): ReturnType<typeof setTimeout> {
+        return setTimeout(() => {
+            const lock = this.locks.get(key);
+            if (lock) {
+                console.warn(`[AsyncMutex] Lock for key "${key}" exceeded timeout (${this.lockTimeout}ms), forcing cleanup`);
+                // Force cleanup - clear queue and remove lock
+                lock.queue = [];
+                this.locks.delete(key);
+            }
+        }, this.lockTimeout);
+    }
+
+    /**
+     * Clean up stale locks that have exceeded timeout.
+     */
+    private cleanupStaleLocks(): void {
+        const now = Date.now();
+        const keysToRemove: string[] = [];
+
+        for (const [key, lock] of this.locks.entries()) {
+            if (now - lock.createdAt > this.lockTimeout) {
+                console.warn(`[AsyncMutex] Removing stale lock for key "${key}"`);
+                if (lock.timeoutHandle) {
+                    clearTimeout(lock.timeoutHandle);
+                }
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach(key => this.locks.delete(key));
     }
 
     /**
@@ -53,12 +112,27 @@ class AsyncMutex {
     isLocked(key: string): boolean {
         return this.locks.has(key);
     }
+
+    /**
+     * Destroy the mutex and clean up all resources.
+     */
+    destroy(): void {
+        for (const lock of this.locks.values()) {
+            if (lock.timeoutHandle) {
+                clearTimeout(lock.timeoutHandle);
+            }
+        }
+        this.locks.clear();
+        if (typeof clearInterval !== 'undefined' && this.cleanupInterval) {
+            clearInterval(this.cleanupInterval);
+        }
+    }
 }
 
 /**
  * Ring buffer for fixed-size latency tracking
  */
-class RingBuffer<T> {
+export class RingBuffer<T> {
     private buffer: T[];
     private index = 0;
     private isFull = false;
@@ -112,8 +186,6 @@ export class WriteAheadLogManager {
     private pendingOperations = new Set<Promise<unknown>>();
     private pendingVisibilityFlush: Promise<void> | null = null;
 
-    private mergeProcessor: MergeProcessor | null = null;
-
     private appendLatencyBuffer = new RingBuffer<number>(WAL_CONSTANTS.MAX_LATENCY_SAMPLES);
     private mergeDurationBuffer = new RingBuffer<number>(WAL_CONSTANTS.MAX_LATENCY_SAMPLES);
 
@@ -131,10 +203,17 @@ export class WriteAheadLogManager {
 
     private periodicFlushInterval: ReturnType<typeof setInterval> | null = null;
     private isShuttingDown = false;
+    private _mergeProcessor: MergeProcessor | null = null;
 
     constructor() {
         this.setupLifecycleHandlers();
-        this.mergeProcessor = MergeProcessor.getInstance();
+    }
+
+    private get mergeProcessor(): MergeProcessor {
+        if (!this._mergeProcessor) {
+            this._mergeProcessor = MergeProcessor.getInstance();
+        }
+        return this._mergeProcessor;
     }
 
     private setupLifecycleHandlers(): void {
@@ -241,11 +320,12 @@ export class WriteAheadLogManager {
     /**
      * Get next sequence number with proper initialization deduplication.
      * Cleans up promise cache on both success and failure to allow retries.
+     * Prevents race conditions by ensuring cache is populated before returning sequence.
      */
     private async getNextSequence(routeId: string): Promise<number> {
         if (this.sequenceCache.has(routeId)) {
-            const seq = this.sequenceCache.get(routeId)! + 1;
-            this.sequenceCache.set(routeId, seq);
+            const seq = this.sequenceCache.get(routeId)!;
+            this.sequenceCache.set(routeId, seq + 1);
             return seq;
         }
 
@@ -259,14 +339,25 @@ export class WriteAheadLogManager {
 
         await this.sequenceInitPromises.get(routeId)!;
 
-        const seq = this.sequenceCache.get(routeId)! + 1;
-        this.sequenceCache.set(routeId, seq);
+        // Double-check that cache was populated after initialization
+        const cachedSeq = this.sequenceCache.get(routeId);
+        if (cachedSeq === undefined) {
+            // This should not happen, but guard against it
+            throw new Error(`Sequence initialization failed for route ${routeId}: cache not populated`);
+        }
+
+        const seq = cachedSeq;
+        this.sequenceCache.set(routeId, seq + 1);
         return seq;
     }
 
     private async initializeSequence(routeId: string): Promise<void> {
         const metadata = await this.getOrCreateMetadata(routeId);
-        this.sequenceCache.set(routeId, metadata.lastSequence);
+        // If there are existing points, lastSequence is the highest assigned sequence.
+        // Next sequence should be lastSequence + 1.
+        // If there are no points (totalPoints === 0), treat lastSequence as the next sequence to assign.
+        const nextSequence = metadata.totalPoints > 0 ? metadata.lastSequence + 1 : metadata.lastSequence;
+        this.sequenceCache.set(routeId, nextSequence);
     }
 
     private addToBuffer(routeId: string, entry: RouteLogEntry): void {
@@ -366,7 +457,8 @@ export class WriteAheadLogManager {
         for (const entry of data) {
             try {
                 validEntries.push(validateRouteLogEntry(entry));
-            } catch {
+            } catch (error) {
+                console.warn(`[WAL] Invalid log entry for route ${routeId}:`, error);
                 this.metrics.recoveryEvents++;
             }
         }
@@ -454,6 +546,7 @@ export class WriteAheadLogManager {
     /**
      * Synchronous flush for beforeunload using localStorage.
      * Data is recovered on next startup via recoverEmergencyFlush().
+     * NOTE: If storage quota is exceeded, throws an error rather than silently truncating.
      */
     private flushAllBuffersSync(): void {
         if (typeof localStorage === 'undefined') {
@@ -470,12 +563,31 @@ export class WriteAheadLogManager {
                 const combined = [...existing, ...buffer];
 
                 const data = JSON.stringify(combined);
-                if (data.length < 1024 * 1024) {
-                    localStorage.setItem(key, data);
+                const maxSize = 1024 * 1024; // 1MB limit
+
+                if (data.length > maxSize) {
+                    // Instead of silently truncating, log error and throw
+                    // This ensures data loss is detected rather than hidden
+                    const errorMsg = `[WAL] Emergency flush data exceeds storage limit (${data.length} bytes > ${maxSize} bytes) for route ${routeId}. ` +
+                        `Attempting to store ${buffer.length} new entries and ${existing.length} existing entries. ` +
+                        `Data loss is imminent. Consider increasing storage quota or implementing compression.`;
+                    console.error(errorMsg);
+                    // Still try to store at least recent entries
+                    try {
+                        const recentOnly = combined.slice(-50);
+                        const recentData = JSON.stringify(recentOnly);
+                        if (recentData.length <= maxSize) {
+                            localStorage.setItem(key, recentData);
+                            console.warn(`[WAL] Stored only last 50 entries for route ${routeId} due to size constraints`);
+                        } else {
+                            // If even 50 entries won't fit, we have a critical issue
+                            console.error(`[WAL] CRITICAL: Cannot store even 50 recent entries for route ${routeId}`);
+                        }
+                    } catch (fallbackError) {
+                        console.error(`[WAL] Fallback storage also failed for route ${routeId}:`, fallbackError);
+                    }
                 } else {
-                    const truncated = combined.slice(-100);
-                    localStorage.setItem(key, JSON.stringify(truncated));
-                    console.warn(`[WAL] Emergency flush truncated for route ${routeId}`);
+                    localStorage.setItem(key, data);
                 }
             } catch (e) {
                 console.error('[WAL] Emergency flush failed for route', routeId, e);
@@ -531,7 +643,7 @@ export class WriteAheadLogManager {
                             mergedLog.sort((a, b) => a.sequence - b.sequence);
                             await storageSet(`route:${routeId}:log`, mergedLog);
 
-                            console.log(`[WAL] Recovered ${newEntries.length} entries for route ${routeId}`);
+                            console.debug(`[WAL] Recovered ${newEntries.length} entries for route ${routeId}`);
                             this.metrics.recoveryEvents++;
                         }
                     } finally {
@@ -609,15 +721,22 @@ export class WriteAheadLogManager {
     /**
      * Clean up all state for a route.
      * Call when a route is permanently deleted.
+     * Idempotent - safe to call multiple times.
      */
     async cleanupRoute(routeId: string): Promise<void> {
         const release = await this.storageMutex.acquire(`route:${routeId}`);
 
         try {
+            // Clean up in-memory state
+            const hadBuffer = this.writeBuffer.has(routeId);
+            const hadSequence = this.sequenceCache.has(routeId);
+            const hadMetrics = routeId in this.metrics.logSizePerRoute;
+
             this.sequenceCache.delete(routeId);
             this.writeBuffer.delete(routeId);
             delete this.metrics.logSizePerRoute[routeId];
 
+            // Clean up active routes list
             const activeRelease = await this.storageMutex.acquire('wal:activeRoutes');
             try {
                 const activeRoutes = await storageGet<string[]>('wal:activeRoutes') ?? [];
@@ -628,6 +747,11 @@ export class WriteAheadLogManager {
             } finally {
                 activeRelease();
             }
+
+            // Log only if we actually cleaned up something
+            if (hadBuffer || hadSequence || hadMetrics) {
+                console.debug(`[WAL] Cleaned up route ${routeId}`);
+            }
         } finally {
             release();
         }
@@ -635,15 +759,6 @@ export class WriteAheadLogManager {
 
     private updateLogSize(routeId: string, size: number): void {
         this.metrics.logSizePerRoute[routeId] = size;
-        this.updateMemoryUsage();
-    }
-
-    private updateMemoryUsage(): void {
-        let totalBufferSize = 0;
-        for (const buffer of this.writeBuffer.values()) {
-            totalBufferSize += buffer.length;
-        }
-        this.metrics.memoryUsage = totalBufferSize * 200;
     }
 
     recordMergeDuration(duration: number): void {
@@ -677,10 +792,10 @@ export class WriteAheadLogManager {
     }
 
     async getMetadata(routeId: string): Promise<RouteLogMetadata | null> {
-        const metadata = await storageGet<RouteLogMetadata>(`route:${routeId}:metadata`);
-        if (!metadata) return null;
-
         try {
+            const metadata = await storageGet<RouteLogMetadata>(`route:${routeId}:metadata`);
+            if (!metadata) return null;
+
             return validateRouteLogMetadata(metadata);
         } catch {
             return null;
@@ -718,10 +833,12 @@ export class WriteAheadLogManager {
         // Wait for pending operations before flushing
         if (this.pendingOperations.size > 0) {
             await Promise.allSettled(this.pendingOperations);
+            this.pendingOperations.clear();
         }
 
         if (this.pendingVisibilityFlush) {
             await this.pendingVisibilityFlush;
+            this.pendingVisibilityFlush = null;
         }
 
         await this.flushAllBuffers();
@@ -729,9 +846,13 @@ export class WriteAheadLogManager {
         this.sequenceCache.clear();
         this.sequenceInitPromises.clear();
         this.writeBuffer.clear();
-        this.mergeProcessor = null;
+        this._mergeProcessor = null;
         this.appendLatencyBuffer.clear();
         this.mergeDurationBuffer.clear();
+
+        // Clean up mutex resources
+        this.flushMutex.destroy();
+        this.storageMutex.destroy();
     }
 
     /**
@@ -756,6 +877,7 @@ export class WriteAheadLogManager {
                     console.warn(`[WAL] Log for route ${routeId} is not an array, resetting`);
                     await storageSet(`route:${routeId}:log`, []);
                     corruptedInRoute = 1;
+                    entriesRemoved += corruptedInRoute;
                 } else {
                     for (const entry of rawLog) {
                         try {

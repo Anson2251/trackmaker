@@ -108,3 +108,44 @@ export function validateRouteLogMetadata(metadata: unknown): RouteLogMetadata {
 export function validateMergeBatch(batch: unknown): MergeBatch {
     return MergeBatchSchema.parse(batch);
 }
+
+/**
+ * Validate that log entries have contiguous, non-duplicated sequences.
+ * Returns an array of problems found.
+ */
+export function validateSequenceIntegrity(entries: RouteLogEntry[]): string[] {
+    const problems: string[] = [];
+    
+    if (entries.length === 0) {
+        return problems;
+    }
+
+    // Sort entries by sequence for validation
+    const sorted = [...entries].sort((a, b) => a.sequence - b.sequence);
+    const seenSequences = new Set<number>();
+
+    for (let i = 0; i < sorted.length; i++) {
+        const entry = sorted[i];
+        
+        // Check for duplicates
+        if (seenSequences.has(entry.sequence)) {
+            problems.push(`Duplicate sequence number ${entry.sequence} found (entry ID: ${entry.id})`);
+        }
+        seenSequences.add(entry.sequence);
+
+        // Check for gaps (if we have previous entry)
+        if (i > 0) {
+            const prevSequence = sorted[i - 1].sequence;
+            if (entry.sequence !== prevSequence + 1) {
+                problems.push(`Sequence gap detected: ${prevSequence} -> ${entry.sequence} (expected ${prevSequence + 1})`);
+            }
+        }
+
+        // Check for negative sequences
+        if (entry.sequence < 0) {
+            problems.push(`Negative sequence number ${entry.sequence} found (entry ID: ${entry.id})`);
+        }
+    }
+
+    return problems;
+}

@@ -108,16 +108,16 @@ function getPackageInfo(pkgPath: string, pkgName: string): PackageInfo {
     return info;
 }
 
-export function generateCredits(): CreditEntry[] {
-    console.log("Generating credits info...");
+export function generateCredits(verbose: boolean): CreditEntry[] {
+    if (verbose) console.log("Generating credits info...");
     const dependencies = parsePnpmList();
-    console.log(`Found ${Object.keys(dependencies).length} dependencies`);
+    if (verbose) console.log(`Found ${Object.keys(dependencies).length} dependencies`);
     const nodeModulesPath = join(__dirname, '../node_modules');
     const credits: CreditEntry[] = [];
     for (const [pkgName, info] of Object.entries(dependencies)) {
         const pkgPath = join(nodeModulesPath, pkgName);
         if (!existsSync(pkgPath)) {
-            console.warn(`Warning: ${pkgName} not found in node_modules`);
+            if (verbose) console.warn(`Warning: ${pkgName} not found in node_modules`);
             continue;
         }
         const pkgInfo = getPackageInfo(pkgPath, pkgName);
@@ -134,9 +134,8 @@ export function generateCredits(): CreditEntry[] {
                 isDev: info.isDev
             });
             const devTag = info.isDev ? ' [dev]' : '';
-            console.log(`Added: ${pkgName}${devTag} (license: ${pkgInfo.license || 'none'})`);
+            if (verbose) console.log(`Added: ${pkgName}${devTag} (license: ${pkgInfo.license || 'none'})`);
         }
     }
     return credits;
 }
-

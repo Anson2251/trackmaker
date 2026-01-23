@@ -10,6 +10,7 @@ interface CachedRoute {
     route: GeographicRouteItemType;
     timestamp: number;
     accessCount: number;
+    isEvictionCandidate?: boolean;
 }
 
 export class CombinedRouteReader {
@@ -17,6 +18,7 @@ export class CombinedRouteReader {
     private routeCache = new Map<string, CachedRoute>();
     private cacheTimeout = 5000;
     private maxCacheSize = WAL_CONSTANTS.MAX_CACHE_SIZE;
+    private evictionInProgress = false;
 
     private constructor() { }
 
@@ -31,6 +33,7 @@ export class CombinedRouteReader {
         const cached = this.routeCache.get(routeId);
         if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
             cached.accessCount++;
+            cached.isEvictionCandidate = false; // Mark as recently used
             return cached.route;
         }
 
@@ -51,31 +54,49 @@ export class CombinedRouteReader {
 
     private addToCache(routeId: string, route: GeographicRouteItemType): void {
         if (this.routeCache.size >= this.maxCacheSize) {
-            this.evictOldestEntry();
+            // Prevent cache stampede: only one eviction at a time
+            if (!this.evictionInProgress) {
+                this.evictOldestEntry();
+            }
         }
         this.routeCache.set(routeId, {
             route,
             timestamp: Date.now(),
-            accessCount: 1
+            accessCount: 1,
+            isEvictionCandidate: false
         });
     }
 
     private evictOldestEntry(): void {
-        let oldestKey: string | null = null;
-        let oldestAccessCount = Infinity;
-        let oldestTimestamp = Infinity;
-
-        for (const [key, entry] of this.routeCache.entries()) {
-            if (entry.accessCount < oldestAccessCount ||
-                (entry.accessCount === oldestAccessCount && entry.timestamp < oldestTimestamp)) {
-                oldestKey = key;
-                oldestAccessCount = entry.accessCount;
-                oldestTimestamp = entry.timestamp;
-            }
+        if (this.evictionInProgress) {
+            return; // Prevent concurrent evictions
         }
 
-        if (oldestKey) {
-            this.routeCache.delete(oldestKey);
+        this.evictionInProgress = true;
+        try {
+            let oldestKey: string | null = null;
+            let oldestAccessCount = Infinity;
+            let oldestTimestamp = Infinity;
+
+            for (const [key, entry] of this.routeCache.entries()) {
+                // Skip entries marked as recently used
+                if (entry.isEvictionCandidate === false) {
+                    continue;
+                }
+
+                if (entry.accessCount < oldestAccessCount ||
+                    (entry.accessCount === oldestAccessCount && entry.timestamp < oldestTimestamp)) {
+                    oldestKey = key;
+                    oldestAccessCount = entry.accessCount;
+                    oldestTimestamp = entry.timestamp;
+                }
+            }
+
+            if (oldestKey) {
+                this.routeCache.delete(oldestKey);
+            }
+        } finally {
+            this.evictionInProgress = false;
         }
     }
 
