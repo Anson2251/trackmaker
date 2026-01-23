@@ -1,47 +1,83 @@
 import { Result, ok, err } from 'neverthrow';
 import { GeographicPoint } from '../types';
 import type { GPSReading, IMUReading, LocationCallback } from '../types';
-import { PureKalmanFilter, type KalmanConfig } from './kalman-filter';
+import type { KalmanConfig, KalmanState } from './kalman-types';
 import { IMUFusionManager } from './imu-fusion-manager';
 import { GeolocationError } from '../../error-handling/geolocation';
 import { Matrix } from 'ml-matrix';
+import { KalmanWorkerClient } from './worker-client';
+import { CoordinateTransformer } from '../utils/coordinate-transformer';
+import type { CartesianGPSReading } from './worker-types';
 
 export class LocationProcessor {
-    private kalmanFilter: PureKalmanFilter;
+    private workerClient: KalmanWorkerClient;
+    private coordinateTransformer: CoordinateTransformer;
     private imuManager: IMUFusionManager;
     private callback: LocationCallback | null = null;
     private isInitialized = false;
     private lastOutputTime = 0;
     private lastOutputAccuracy = 0;
     private debugEnabled = false;
+    private config: KalmanConfig;
+    private cachedState: KalmanState | null = null;
+    private cachedGain: Matrix | null = null;
 
     constructor(
         callback: LocationCallback,
         kalmanConfig: KalmanConfig,
         imuUpdateInterval: number = 100
     ) {
-        this.kalmanFilter = new PureKalmanFilter(kalmanConfig);
+        this.workerClient = new KalmanWorkerClient();
+        this.coordinateTransformer = new CoordinateTransformer();
         this.imuManager = new IMUFusionManager(imuUpdateInterval);
         this.callback = callback;
+        this.config = kalmanConfig;
+        this.debugEnabled = kalmanConfig.debugEnabled || false;
     }
 
     async initialize(initialGPSReading: GPSReading): Promise<Result<void, GeolocationError>> {
         try {
+            // Initialize coordinate transformer with first GPS reading
+            this.coordinateTransformer.setReferencePoint({
+                longitude: initialGPSReading.longitude,
+                latitude: initialGPSReading.latitude
+            });
+
+            // Transform initial GPS reading to Cartesian coordinates
+            const cartesian = await this.coordinateTransformer.geographicToLocal({
+                longitude: initialGPSReading.longitude,
+                latitude: initialGPSReading.latitude
+            });
+
+            // Convert velocity if available
+            let velocity;
+            if (initialGPSReading.speed !== undefined && initialGPSReading.heading !== undefined) {
+                velocity = this.gpsVelocityToLocal(initialGPSReading.speed, initialGPSReading.heading);
+            }
+
+            const cartesianReading: CartesianGPSReading = {
+                x: cartesian.x,
+                y: cartesian.y,
+                accuracy: initialGPSReading.accuracy,
+                timestamp: initialGPSReading.timestamp,
+                velocity
+            };
+
+            // Initialize IMU manager
             const imuInitResult = await this.imuManager.initialize();
             if (imuInitResult.isErr()) {
                 console.warn('[LocationProcessor] IMU not available, using GPS-only mode');
             }
 
-            try {
-                await this.kalmanFilter.initialize(initialGPSReading);
-                this.isInitialized = true;
-            } catch (error) {
-                return err(new GeolocationError(
-                    'Failed to initialize Kalman filter',
-                    'UPDATE_SERVICE_ERROR' as any,
-                    error as Error
-                ));
-            }
+            // Initialize worker with configuration
+            const workerConfig = {
+                ...this.config,
+                debugEnabled: this.debugEnabled
+            };
+
+            await this.workerClient.initialize(workerConfig, cartesianReading);
+            this.isInitialized = true;
+            await this.updateCachedState();
 
             return ok(undefined);
         } catch (error) {
@@ -59,7 +95,7 @@ export class LocationProcessor {
 
             if (imuAvailable) {
                 const startResult = await this.imuManager.startListening(
-                    (reading: IMUReading) => this.processIMUReading(reading)
+                    (reading: IMUReading) => { void this.processIMUReading(reading); }
                 );
                 if (startResult.isErr()) {
                     console.warn('[LocationProcessor] Failed to start IMU, using GPS-only');
@@ -85,7 +121,10 @@ export class LocationProcessor {
                 console.warn('[LocationProcessor] Failed to stop IMU:', stopResult.error);
             }
 
+            this.workerClient.dispose();
             this.isInitialized = false;
+            this.cachedState = null;
+            this.cachedGain = null;
             console.info('[LocationProcessor] Stopped location processing');
             return ok(undefined);
         } catch (error) {
@@ -104,36 +143,40 @@ export class LocationProcessor {
         }
 
         try {
-            if (!this.kalmanFilter.isFilterInitialized()) {
-                await this.kalmanFilter.initialize(gpsReading);
-                this.lastOutputAccuracy = gpsReading.accuracy;
-                const filteredPos = await this.kalmanFilter.getFilteredPosition();
-                const point = new GeographicPoint(
-                    filteredPos.latitude,
-                    filteredPos.longitude,
-                    gpsReading.accuracy
-                );
-                this.notifyCallback(point);
-                return;
+            // Transform GPS reading to Cartesian coordinates
+            const cartesian = await this.coordinateTransformer.geographicToLocal({
+                longitude: gpsReading.longitude,
+                latitude: gpsReading.latitude
+            });
+
+            // Convert velocity if available
+            let velocity;
+            if (gpsReading.speed !== undefined && gpsReading.heading !== undefined) {
+                velocity = this.gpsVelocityToLocal(gpsReading.speed, gpsReading.heading);
             }
 
-            await this.kalmanFilter.updateGPS(gpsReading);
+            const cartesianReading: CartesianGPSReading = {
+                x: cartesian.x,
+                y: cartesian.y,
+                accuracy: gpsReading.accuracy,
+                timestamp: gpsReading.timestamp,
+                velocity
+            };
+
+            // Send to worker
+            await this.workerClient.processGPS(cartesianReading);
             this.lastOutputAccuracy = gpsReading.accuracy;
-            const filteredPos = await this.kalmanFilter.getFilteredPosition();
-            const point = new GeographicPoint(
-                filteredPos.latitude,
-                filteredPos.longitude,
-                gpsReading.accuracy
-            );
-            this.notifyCallback(point);
+
+            // Get filtered position and notify callback
+            await this.outputFilteredPosition();
         } catch (error) {
             console.error('[LocationProcessor] Error processing GPS location:', error);
         }
     }
 
-    processIMUReading(imuReading: IMUReading): void {
-        if (!this.isInitialized || !this.kalmanFilter.isFilterInitialized()) {
-            if (this.isInitialized && !this.kalmanFilter.isFilterInitialized()) {
+    async processIMUReading(imuReading: IMUReading): Promise<void> {
+        if (!this.isInitialized || !this.workerClient.isReady()) {
+            if (this.isInitialized && !this.workerClient.isReady()) {
                 console.log('[LocationProcessor] Kalman filter not yet initialized, buffering IMU reading');
             }
             return;
@@ -146,10 +189,30 @@ export class LocationProcessor {
                     acceleration: imuReading.acceleration
                 });
             }
-            this.kalmanFilter.updateIMU(imuReading);
-            void this.outputPredictedPosition();
+
+            await this.workerClient.processIMU(imuReading);
+            await this.outputPredictedPosition();
         } catch (error) {
             console.error('[LocationProcessor] Error processing IMU reading:', error);
+        }
+    }
+
+    private async outputFilteredPosition(): Promise<void> {
+        try {
+            const filteredPos = await this.workerClient.getFilteredPosition();
+
+            // Convert back to geographic coordinates
+            const geographic = await this.coordinateTransformer.localToGeographic(filteredPos);
+            const point = new GeographicPoint(
+                geographic.latitude,
+                geographic.longitude,
+                this.lastOutputAccuracy || 10
+            );
+
+            await this.updateCachedState();
+            this.notifyCallback(point);
+        } catch (error) {
+            console.error('[LocationProcessor] Error outputting filtered position:', error);
         }
     }
 
@@ -161,12 +224,17 @@ export class LocationProcessor {
         this.lastOutputTime = now;
 
         try {
-            const filteredPos = await this.kalmanFilter.getFilteredPosition();
+            const filteredPos = await this.workerClient.getFilteredPosition();
+
+            // Convert back to geographic coordinates
+            const geographic = await this.coordinateTransformer.localToGeographic(filteredPos);
             const point = new GeographicPoint(
-                filteredPos.latitude,
-                filteredPos.longitude,
+                geographic.latitude,
+                geographic.longitude,
                 this.lastOutputAccuracy || 10
             );
+
+            await this.updateCachedState();
             this.notifyCallback(point);
         } catch (error) {
             console.error('[LocationProcessor] Error outputting predicted position:', error);
@@ -174,7 +242,7 @@ export class LocationProcessor {
     }
 
     async getCurrentFilteredPosition(): Promise<Result<GeographicPoint, GeolocationError>> {
-        if (!this.kalmanFilter.isFilterInitialized()) {
+        if (!this.workerClient.isReady()) {
             return err(new GeolocationError(
                 'Kalman filter not initialized',
                 'UPDATE_SERVICE_ERROR' as any
@@ -182,11 +250,12 @@ export class LocationProcessor {
         }
 
         try {
-            const filteredPos = await this.kalmanFilter.getFilteredPosition();
+            const filteredPos = await this.workerClient.getFilteredPosition();
+            const geographic = await this.coordinateTransformer.localToGeographic(filteredPos);
             const point = new GeographicPoint(
-                filteredPos.latitude,
-                filteredPos.longitude,
-                this.lastOutputAccuracy || 10 // Use last known GPS accuracy or reasonable default
+                geographic.latitude,
+                geographic.longitude,
+                this.lastOutputAccuracy || 10
             );
             return ok(point);
         } catch (error) {
@@ -199,15 +268,43 @@ export class LocationProcessor {
     }
 
     getLastKalmanGain(): Matrix | null {
-        return this.kalmanFilter.getLastKalmanGain();
+        return this.cachedGain;
     }
 
-    getKalmanState() {
-        return this.kalmanFilter.getState();
+    getKalmanState(): KalmanState | null {
+        return this.cachedState;
     }
 
     isProcessorInitialized(): boolean {
         return this.isInitialized;
+    }
+
+    private async updateCachedState(): Promise<void> {
+        try {
+            const workerState = await this.workerClient.getState();
+            // Convert covariance from number[][] to Matrix
+            const covariance = new Matrix(workerState.covariance);
+            this.cachedState = {
+                position: workerState.position,
+                velocity: workerState.velocity,
+                acceleration: workerState.acceleration,
+                covariance,
+                timestamp: workerState.timestamp
+            };
+            // Update Kalman gain cache
+            const gain = await this.workerClient.getLastKalmanGain();
+            this.cachedGain = gain ? new Matrix(gain) : null;
+        } catch (error) {
+            console.error('[LocationProcessor] Failed to update cached Kalman state:', error);
+        }
+    }
+
+    private gpsVelocityToLocal(speed: number, heading: number): { x: number; y: number } {
+        // Convert heading (degrees clockwise from true north) to radians
+        const headingRad = heading * Math.PI / 180;
+        const vEast = speed * Math.sin(headingRad);
+        const vNorth = speed * Math.cos(headingRad);
+        return { x: vEast, y: vNorth };
     }
 
     private notifyCallback(location: GeographicPoint): void {

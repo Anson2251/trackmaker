@@ -43,10 +43,9 @@ export { IPFallbackBackend } from './backends/ip-fallback-backend';
 export { KalmanBackend } from './backends/kalman-backend';
 
 export {
-  PureKalmanFilter,
   type KalmanState,
   type KalmanConfig
-} from './kalman/kalman-filter';
+} from './kalman/kalman-types';
 
 export { IMUFusionManager } from './kalman/imu-fusion-manager';
 export { LocationProcessor } from './kalman/location-processor';

@@ -14,7 +14,7 @@ import { KalmanBackend } from "../backends/kalman-backend";
 import { cloneDeep } from "lodash-es";
 import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
-import type { KalmanState } from "../kalman/kalman-filter";
+import type { KalmanState } from "../kalman/kalman-types";
 
 export interface LocationUpdateHandler {
     (location: GeographicPoint, ...args: unknown[]): void | Promise<void>;

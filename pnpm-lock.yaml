@@ -57,8 +57,8 @@ importers:
         specifier: ^6.12.1
         version: 6.12.1
       nano-vue-i18n:
-        specifier: ^1.1.1
-        version: 1.1.1(vue@3.5.26(typescript@5.9.3))
+        specifier: ^1.2.3
+        version: 1.2.3(vue@3.5.26(typescript@5.9.3))
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
@@ -1910,6 +1910,9 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
+  lodash@4.17.23:
+    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
+
   lunr@2.3.9:
     resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}
 
@@ -1995,8 +1998,8 @@ packages:
   namespace-emitter@2.0.1:
     resolution: {integrity: sha512-N/sMKHniSDJBjfrkbS/tpkPj4RAbvW3mr8UAzvlMHyun93XEm83IAvhWtJVHo+RHn/oO8Job5YN4b+wRjSVp5g==}
 
-  nano-vue-i18n@1.1.1:
-    resolution: {integrity: sha512-m5hMr4BxHm7YbSMuE5cDS449gHTPS8dFZA7upL8v7DSITgj8noMRt2su5dpUbKvgTmSGCCxCVAaK68uHLtKEkg==}
+  nano-vue-i18n@1.2.3:
+    resolution: {integrity: sha512-3UV1Nc4xUt72vkZrWe5R41CoPNeWQwD7WbsHX/A4A8oCHdG1PIsZPCqSfbn9lku4/h+F7N9DVG98M4JCiUFSpg==}
     peerDependencies:
       vue: ^3.0.0
 
@@ -4221,6 +4224,8 @@ snapshots:
 
   lodash@4.17.21: {}
 
+  lodash@4.17.23: {}
+
   lunr@2.3.9: {}
 
   magic-string@0.30.21:
@@ -4352,7 +4357,7 @@ snapshots:
 
   namespace-emitter@2.0.1: {}
 
-  nano-vue-i18n@1.1.1(vue@3.5.26(typescript@5.9.3)):
+  nano-vue-i18n@1.2.3(vue@3.5.26(typescript@5.9.3)):
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
 
@@ -4857,7 +4862,7 @@ snapshots:
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
       esquery: 1.7.0
-      lodash: 4.17.21
+      lodash: 4.17.23
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
