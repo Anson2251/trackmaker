@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-Bz0uAxxC.js","./sketch-store-CFxDq53P.js","./index-f9QyuP-7.js","./index-DpHmg4sr.js","./App-C5xEvwb7.css","./index-wPXfjPPc.js","./index-DY6DJxZR.css"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-BMkaGTB9.js","./sketch-store-C9RhJG1R.js","./index-7RcxkRKJ.js","./index-CHEXe3i-.js","./App-C5xEvwb7.css","./index-BM8pefMg.js","./index-DY6DJxZR.css"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -22976,18 +22976,18 @@ Repository: git+https://github.com/websockets/ws.git
       moduleInit: async () => {
         var _a3;
         const e = Np((await ms(async () => {
-          const { default: o } = await import("./App-Bz0uAxxC.js");
+          const { default: o } = await import("./App-BMkaGTB9.js");
           return {
             default: o
           };
         }, __vite__mapDeps([0,1,2,3,4]), import.meta.url)).default);
         e.use(Up()), e.use((await ms(async () => {
-          const { default: o } = await import("./index-wPXfjPPc.js");
+          const { default: o } = await import("./index-BM8pefMg.js");
           return {
             default: o
           };
         }, __vite__mapDeps([5,2,1,6]), import.meta.url)).default), e.use((await ms(async () => {
-          const { i18n: o } = await import("./index-DpHmg4sr.js");
+          const { i18n: o } = await import("./index-CHEXe3i-.js");
           return {
             i18n: o
           };
