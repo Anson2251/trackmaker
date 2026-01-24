@@ -25,6 +25,16 @@ export type Settings = {
     mapZoomLevel: number;
     imuUpdateFrequency: number;
     kalmanGpsUpdateInterval: number;
+    // Kalman filter parameters
+    kalmanInitialAccelerationUncertainty: number;
+    kalmanInitialPositionUncertainty: number;
+    kalmanInitialVelocityUncertainty: number;
+    kalmanGpsSpeedUncertainty: number;
+    kalmanImuAccelerationUncertainty: number;
+    kalmanVelocityProcessNoise: number;
+    // Merge processor parameters
+    mergeBatchSize: number;
+    maxMergeQueueSize: number;
 };
 
 export type SettingKey = keyof Settings;

@@ -8,6 +8,15 @@ import { Matrix } from 'ml-matrix';
 import { KalmanWorkerClient } from './worker-client';
 import { CoordinateTransformer } from '../utils/coordinate-transformer';
 import type { CartesianGPSReading } from './worker-types';
+import {
+    getKalmanInitialAccelerationUncertainty,
+    getKalmanInitialPositionUncertainty,
+    getKalmanInitialVelocityUncertainty,
+    getKalmanGpsSpeedUncertainty,
+    getKalmanImuAccelerationUncertainty,
+    getKalmanVelocityProcessNoise,
+    isDebugModeEnabled
+} from '../../default-settings';
 
 export class LocationProcessor {
     private workerClient: KalmanWorkerClient;
@@ -24,15 +33,22 @@ export class LocationProcessor {
 
     constructor(
         callback: LocationCallback,
-        kalmanConfig: KalmanConfig,
         imuUpdateInterval: number = 100
     ) {
         this.workerClient = new KalmanWorkerClient();
         this.coordinateTransformer = new CoordinateTransformer();
         this.imuManager = new IMUFusionManager(imuUpdateInterval);
         this.callback = callback;
-        this.config = kalmanConfig;
-        this.debugEnabled = kalmanConfig.debugEnabled || false;
+        this.debugEnabled = isDebugModeEnabled();
+        this.config = {
+            initialAccelerationUncertainty: getKalmanInitialAccelerationUncertainty(),
+            initialPositionUncertainty: getKalmanInitialPositionUncertainty(),
+            initialVelocityUncertainty: getKalmanInitialVelocityUncertainty(),
+            gpsSpeedUncertainty: getKalmanGpsSpeedUncertainty(),
+            imuAccelerationUncertainty: getKalmanImuAccelerationUncertainty(),
+            velocityProcessNoise: getKalmanVelocityProcessNoise(),
+            debugEnabled: this.debugEnabled,
+        };
     }
 
     async initialize(initialGPSReading: GPSReading): Promise<Result<void, GeolocationError>> {

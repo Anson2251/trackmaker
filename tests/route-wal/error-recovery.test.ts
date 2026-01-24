@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // oxlint-disable typescript/no-unsafe-member-access
 // oxlint-disable typescript/no-unsafe-call
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';

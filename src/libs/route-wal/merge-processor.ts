@@ -4,6 +4,7 @@ import type { MergeBatch, RouteLogEntry, RouteLogMetadata } from './types';
 import { WAL_CONSTANTS } from './types';
 import { CartoSketch } from '../cartosketch';
 import { calculateHaversineDistance } from '../../utils/proj4-distance';
+import { getMergeBatchSize, getMaxMergeQueueSize } from '../default-settings';
 
 interface MergeJob {
     routeId: string;
@@ -12,9 +13,9 @@ interface MergeJob {
     attempts: number;
 }
 
-// Batching configuration
-const MERGE_BATCH_SIZE = 1000; // Process up to 1000 entries per batch
-const MAX_MERGE_QUEUE_SIZE = 10000; // Max jobs in queue to prevent memory exhaustion
+// Batching configuration - read from early access settings
+const MERGE_BATCH_SIZE = getMergeBatchSize(); // Process entries per batch
+const MAX_MERGE_QUEUE_SIZE = getMaxMergeQueueSize(); // Max jobs in queue to prevent memory exhaustion
 
 export class MergeProcessor {
     private static instance: MergeProcessor;

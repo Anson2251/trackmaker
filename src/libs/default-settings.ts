@@ -27,6 +27,16 @@ export const defaultSettings: Settings = {
     mapZoomLevel: 15,
     imuUpdateFrequency: 10,
     kalmanGpsUpdateInterval: 1000,
+    // Kalman filter parameters
+    kalmanInitialAccelerationUncertainty: 0.1,
+    kalmanInitialPositionUncertainty: 1,
+    kalmanInitialVelocityUncertainty: 0.1,
+    kalmanGpsSpeedUncertainty: 1,
+    kalmanImuAccelerationUncertainty: 0.1,
+    kalmanVelocityProcessNoise: 0.01,
+    // Merge processor parameters
+    mergeBatchSize: 1000,
+    maxMergeQueueSize: 10000,
 };
 
 // Advanced settings configuration (for UI display)
@@ -160,6 +170,56 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'IMU Update Frequency (Hz)',
         type: 'number',
         description: 'Update frequency for IMU sensors (0 = immediate, 10-20Hz recommended)',
+    },
+    // Kalman filter parameters
+    {
+        key: 'kalmanInitialAccelerationUncertainty',
+        name: 'Initial Acceleration Uncertainty',
+        type: 'number',
+        description: 'Initial uncertainty for acceleration in Kalman filter (m/s²)',
+    },
+    {
+        key: 'kalmanInitialPositionUncertainty',
+        name: 'Initial Position Uncertainty',
+        type: 'number',
+        description: 'Initial uncertainty for position in Kalman filter (meters)',
+    },
+    {
+        key: 'kalmanInitialVelocityUncertainty',
+        name: 'Initial Velocity Uncertainty',
+        type: 'number',
+        description: 'Initial uncertainty for velocity in Kalman filter (m/s)',
+    },
+    {
+        key: 'kalmanGpsSpeedUncertainty',
+        name: 'GPS Speed Uncertainty',
+        type: 'number',
+        description: 'GPS speed uncertainty (m/s)',
+    },
+    {
+        key: 'kalmanImuAccelerationUncertainty',
+        name: 'IMU Acceleration Uncertainty',
+        type: 'number',
+        description: 'IMU acceleration uncertainty (m/s²)',
+    },
+    {
+        key: 'kalmanVelocityProcessNoise',
+        name: 'Velocity Process Noise',
+        type: 'number',
+        description: 'Process noise coefficient for velocity in Kalman filter',
+    },
+    // Merge processor parameters
+    {
+        key: 'mergeBatchSize',
+        name: 'Merge Batch Size',
+        type: 'number',
+        description: 'Number of route entries to process per merge batch (higher = faster but uses more memory)',
+    },
+    {
+        key: 'maxMergeQueueSize',
+        name: 'Max Merge Queue Size',
+        type: 'number',
+        description: 'Maximum number of merge jobs in queue to prevent memory exhaustion',
     },
 ];
 
@@ -319,4 +379,60 @@ export function getMapTilerApiKey(): string {
  */
 export function getIMUUpdateFrequency(): number {
     return getEarlySetting('imuUpdateFrequency');
+}
+
+/**
+ * Get Kalman filter initial acceleration uncertainty
+ */
+export function getKalmanInitialAccelerationUncertainty(): number {
+    return getEarlySetting('kalmanInitialAccelerationUncertainty');
+}
+
+/**
+ * Get Kalman filter initial position uncertainty
+ */
+export function getKalmanInitialPositionUncertainty(): number {
+    return getEarlySetting('kalmanInitialPositionUncertainty');
+}
+
+/**
+ * Get Kalman filter initial velocity uncertainty
+ */
+export function getKalmanInitialVelocityUncertainty(): number {
+    return getEarlySetting('kalmanInitialVelocityUncertainty');
+}
+
+/**
+ * Get Kalman filter GPS speed uncertainty
+ */
+export function getKalmanGpsSpeedUncertainty(): number {
+    return getEarlySetting('kalmanGpsSpeedUncertainty');
+}
+
+/**
+ * Get Kalman filter IMU acceleration uncertainty
+ */
+export function getKalmanImuAccelerationUncertainty(): number {
+    return getEarlySetting('kalmanImuAccelerationUncertainty');
+}
+
+/**
+ * Get Kalman filter velocity process noise
+ */
+export function getKalmanVelocityProcessNoise(): number {
+    return getEarlySetting('kalmanVelocityProcessNoise');
+}
+
+/**
+ * Get merge batch size
+ */
+export function getMergeBatchSize(): number {
+    return getEarlySetting('mergeBatchSize');
+}
+
+/**
+ * Get maximum merge queue size
+ */
+export function getMaxMergeQueueSize(): number {
+    return getEarlySetting('maxMergeQueueSize');
 }

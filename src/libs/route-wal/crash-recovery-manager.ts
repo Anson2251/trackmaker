@@ -143,7 +143,7 @@ export class CrashRecoveryManager {
         try {
             console.info(`[CrashRecovery] Re-executing merge for ${unmergedEntries.length} entries`);
             await MergeProcessorInstance.mergeRoute(routeId);
-            
+
             // After successful merge, mark batch as completed
             batch.status = 'completed';
             await storageSet(`route:${routeId}:batches:${batch.id}`, batch);
@@ -229,9 +229,8 @@ export class CrashRecoveryManager {
         if (duplicates && duplicates.length > 1) {
             console.info(`[CrashRecovery] Found ${duplicates.length} entries with sequence ${expectedSequence}, keeping first`);
             // Keep first occurrence, remove others
-            const toKeep = duplicates[0];
             const toRemove = duplicates.slice(1);
-            
+
             for (const entry of toRemove) {
                 const idx = entries.indexOf(entry);
                 if (idx !== -1) {
