@@ -32,11 +32,11 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 
 ### Urgent
 
-- [ ] **Write-Ahead Log (WAL) Architecture**: Refactor tracking feature to use WAL + Merge architecture for improved performance during GPS recording. See [`docs/write-ahead-log-architecture.md`](./docs/write-ahead-log-architecture.md) for full design specification.
+- [x] **Write-Ahead Log (WAL) Architecture**: Refactor tracking feature to use WAL + Merge architecture for improved performance during GPS recording. See [`docs/write-ahead-log-architecture.md`](./docs/write-ahead-log-architecture.md) for full design specification.
 
 ### High Priority
 
-- [ ] **Accuracy-Weighted Route Optimization**: Store GPS accuracy (W3C spec) in route points and implement post-recording path optimization using accuracy as weights. Higher accuracy = higher weight = more influence on final path. Algorithm should minimize weighted distance to original points while penalizing excessive path length.
+- [ ] **Accuracy-Weighted Route Optimization**: Store GPS accuracy (W3C spec) in route points and implement post-recording path optimization using accuracy as weights. Higher accuracy = higher weight = more influence on final path. Algorithm should minimize weighted distance to original points while penalizing excessive path length. (Next version)
 - [x] Route distance calculation
 - [x] Route management module refactoring
 - [x] Bug fixes for the latest major version
