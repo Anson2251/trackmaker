@@ -57,6 +57,7 @@ const emit = defineEmits<{
 
 const platformInfo = new PlatformInfo();
 const isMobile = computed(() => platformInfo.isMobile);
+const isIos = computed(() => platformInfo.os === 'iOS');
 const TOOLBAR_HEIGHT = 40;
 
 const themeVars = useThemeVars();
@@ -332,7 +333,7 @@ const editorConfig = {
       <n-drawer-content
         :title="t('markdownEditor.title')"
         :closable="!isMobile"
-        :style="{ height: `${visibleHeight}px`, padding: 0, flex: 1 }"
+        :style="{ padding: 0, flex: 1, ...(isIos ? {height: `${visibleHeight}px`} : {}) }"
       >
         <!-- Mobile: Top buttons in header -->
         <template v-if="isMobile" #header>

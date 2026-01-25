@@ -96,11 +96,14 @@ function getPackageInfo(pkgPath: string, pkgName: string): PackageInfo {
             info.description = (pkgJson.description as string) || '';
             const repo = pkgJson.repository;
             if (typeof repo === 'string') {
-                info.repoUrl = repo;
+                info.repoUrl = repo.replace('git+', '').replace('.git', '') || '';
             } else if (repo && typeof repo === 'object') {
-                info.repoUrl = ((repo as Record<string, unknown>).url as string) || '';
+                info.repoUrl = ((repo as Record<string, unknown>).url as string).replace('git+', '').replace('.git', '') || '';
             }
-            info.homepage = (pkgJson.homepage as string) || '';
+            if (info.repoUrl && !info.repoUrl.startsWith('http')) {
+                info.repoUrl = `https://github.com/${info.repoUrl}`;
+            }
+            info.homepage = (pkgJson.homepage as string) || info.repoUrl || '';
         } catch (e) {
             console.error(`Error reading package.json for ${pkgName}:`, (e as Error).message);
         }
@@ -134,7 +137,7 @@ export function generateCredits(verbose: boolean): CreditEntry[] {
                 isDev: info.isDev
             });
             const devTag = info.isDev ? ' [dev]' : '';
-            if (verbose) console.log(`Added: ${pkgName}${devTag} (license: ${pkgInfo.license || 'none'})`);
+            if (verbose) console.log(`Added: ${pkgName}${devTag} (license: ${pkgInfo.license || 'none'}, URL: ${pkgInfo.repoUrl ?? 'none'}, Homepage: ${pkgInfo.homepage ?? 'none'}))`);
         }
     }
     return credits;
