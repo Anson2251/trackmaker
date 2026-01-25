@@ -1,4 +1,4 @@
-import { i as d, b as x, v as M } from "./index-D9yc0adx.js";
+import { i as d, b as x, v as M } from "./index-6A7hqGO0.js";
 var y = /* @__PURE__ */ Symbol("i18n"), p = "";
 function I(e, t = "") {
   let l = /* @__PURE__ */ new Map(), a = /\s*\|\s*/g;
