@@ -430,6 +430,10 @@ const editorConfig = {
 div .n-drawer-body-content-wrapper {
   padding: 0 !important;
 }
+
+div .wang-editor-textarea .w-e-text-container {
+  padding-left: 16px !important;
+}
 </style>
 
 <style>
