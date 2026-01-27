@@ -4,6 +4,8 @@ import {
   NAnchorLink,
   NCard,
   NList,
+  NH3,
+  NFlex,
   NListItem,
   NRadioGroup,
   NRadioButton,
@@ -22,7 +24,7 @@ import { useRouter } from "vue-router";
 const platform = new PlatformInfo();
 const router = useRouter();
 
-const isMobile = computed(() => platform.isMobile)
+const isMobile = computed(() => platform.isMobile);
 
 const { width } = useWindowSize();
 const isNarrowScreen = computed(() => width.value < 800);
@@ -112,14 +114,6 @@ const configs = computed<Config>(() => [
           },
         ],
       },
-      {
-        title: "watchCompatibilityMode",
-        type: "checkbox",
-      },
-      {
-        title: "geolocationCorrection",
-        type: "checkbox",
-      }
     ],
   },
   {
@@ -166,7 +160,7 @@ const configs = computed<Config>(() => [
       {
         title: "imuOrientationTesting",
         type: "button",
-      }
+      },
     ],
   },
 ]);
@@ -188,113 +182,120 @@ onMounted(() => {
   <div class="settings-view">
     <div class="settings-layout">
       <div class="settings-content">
-        <n-card
-          v-for="section in configs"
-          id="appearance"
-          :key="section.title"
-          :title="t(`settings.${section.title}.title`)"
-        >
-          <n-list>
-            <n-list-item
-              v-for="item of section.items"
-              :key="item.title"
+        <n-flex vertical :size="40">
+          <div v-for="section in configs">
+            <n-h3 prefix="bar"
+              >{{ t(`settings.${section.title}.title`) }}
+            </n-h3>
+            <n-card
+              content-style="padding: 0;"
+              id="appearance"
+              :key="section.title"
             >
-              <div
-                style="
-                  display: flex;
-                  flex-direction: row;
-                  justify-content: space-between;
-                  align-items: center;
-                  min-width: 0;
-                "
-              >
-                <n-performant-ellipsis
-                  style="white-space: nowrap"
-                  :tooltip="{
-                    trigger: isMobile ? 'click' : 'hover',
-                  }"
-                >
-                  {{
-                    (item as any).items || (item as any).type === "button"
-                      ? t(`settings.${section.title}.${item.title}.title`)
-                      : t(`settings.${section.title}.${item.title}`)
-                  }}
-                  <template #tooltip>
+              <n-list hoverable>
+                <n-list-item v-for="item of section.items" :key="item.title">
+                  <n-performant-ellipsis
+                    style="white-space: nowrap"
+                    :tooltip="{
+                      trigger: isMobile ? 'click' : 'hover',
+                    }"
+                  >
                     {{
                       (item as any).items || (item as any).type === "button"
                         ? t(`settings.${section.title}.${item.title}.title`)
                         : t(`settings.${section.title}.${item.title}`)
                     }}
+                    <template #tooltip>
+                      {{
+                        (item as any).items || (item as any).type === "button"
+                          ? t(`settings.${section.title}.${item.title}.title`)
+                          : t(`settings.${section.title}.${item.title}`)
+                      }}
+                    </template>
+                  </n-performant-ellipsis>
+                  <template #suffix>
+                    <div v-if="item.type === 'radio'">
+                      <n-radio-group
+                        v-if="!isNarrowScreen"
+                        v-model:value="settingsStore.settings[item.title]"
+                      >
+                        <n-radio-button
+                          v-for="option of item.items"
+                          :key="option.value"
+                          :value="option.value"
+                          :label="option.label"
+                          :checked="
+                            settingsStore.settings[item.title] === option.value
+                          "
+                        />
+                      </n-radio-group>
+                      <n-select
+                        v-else
+                        v-model:value="
+                          settingsStore.settings[item.title] as any
+                        "
+                        :options="item.items"
+                        :consistent-menu-width="false"
+                      />
+                    </div>
+                    <div v-else-if="item.type === 'select'">
+                      <n-select
+                        v-model:value="
+                          settingsStore.settings[item.title] as any
+                        "
+                        :options="item.items"
+                        :consistent-menu-width="false"
+                      />
+                    </div>
+                    <div v-else-if="item.type === 'checkbox'">
+                      <n-switch
+                        v-model:value="settingsStore.settings[item.title]"
+                      />
+                    </div>
+                    <div v-else-if="item.type === 'button'">
+                      <n-button
+                        type="primary"
+                        @click="
+                          item.title === 'apiDetection'
+                            ? navigateToApiDetection()
+                            : navigateToSensorTest()
+                        "
+                      >
+                        {{
+                          t(`settings.${section.title}.${item.title}.button`)
+                        }}
+                      </n-button>
+                    </div>
                   </template>
-                </n-performant-ellipsis>
-                <div v-if="item.type === 'radio'">
-                  <n-radio-group
-                    v-if="!isNarrowScreen"
-                    v-model:value="settingsStore.settings[item.title]"
-                  >
-                    <n-radio-button
-                      v-for="option of item.items"
-                      :key="option.value"
-                      :value="option.value"
-                      :label="option.label"
-                      :checked="
-                        settingsStore.settings[item.title] === option.value
-                      "
-                    />
-                  </n-radio-group>
-                  <n-select
-                    v-else
-                    v-model:value="(settingsStore.settings[item.title] as any)"
-                    :options="item.items"
-                    :consistent-menu-width="false"
-                  />
-                </div>
-                <div v-else-if="item.type === 'select'">
-                  <n-select
-                    v-model:value="(settingsStore.settings[item.title] as any)"
-                    :options="item.items"
-                    :consistent-menu-width="false"
-                  />
-                </div>
-                <div v-else-if="item.type === 'checkbox'">
-                  <n-switch
-                    v-model:value="settingsStore.settings[item.title]"
-                  />
-                </div>
-                <div v-else-if="item.type === 'button'">
-                  <n-button
-                    type="primary"
-                    @click="item.title === 'apiDetection' ? navigateToApiDetection() : navigateToSensorTest()"
-                  >
-                    {{ t(`settings.${section.title}.${item.title}.button`) }}
-                  </n-button>
-                </div>
-              </div>
-            </n-list-item>
-          </n-list>
-        </n-card>
-
-        <!-- Advanced Options Button -->
-        <n-card id="advanced-options">
-          <div class="advanced-options-card">
-            <div class="advanced-options-info">
-              <h3>{{ t('settings.advancedOptions.title') }}</h3>
-              <p>{{ t('settings.advancedOptions.description') }}</p>
-            </div>
-            <n-button type="primary" size="large" @click="navigateToAdvancedSettings">
-              {{ t('settings.advancedOptions.button') }}
-            </n-button>
+                </n-list-item>
+              </n-list>
+            </n-card>
           </div>
-        </n-card>
+
+          <!-- Advanced Options Button -->
+          <div>
+            <n-h3 prefix="bar">{{ t("settings.advancedOptions.title") }}</n-h3>
+            <n-card id="advanced-options" content-style="padding: 0;" hoverable>
+              <n-list hoverable>
+                <n-list-item>
+                  {{ t("settings.advancedOptions.description") }}
+                  <template #suffix>
+                    <n-button
+                      type="primary"
+                      size="large"
+                      @click="navigateToAdvancedSettings"
+                    >
+                      {{ t("settings.advancedOptions.button") }}
+                    </n-button>
+                  </template>
+                </n-list-item>
+              </n-list>
+            </n-card>
+          </div>
+        </n-flex>
       </div>
-      <div
-        v-if="!isExtremeNarrowScreen"
-        class="settings-nav"
-      >
-        <n-anchor
-          :show-rail="true"
-          style="width: 128px"
-        >
+      <div v-if="!isExtremeNarrowScreen" class="settings-nav">
+        <n-anchor :show-rail="true" style="width: 128px">
           <n-anchor-link
             v-for="section in configs"
             :key="section.title"
@@ -342,25 +343,6 @@ onMounted(() => {
   gap: 8px;
   flex: 1;
   min-width: 0;
-}
-
-.advanced-options-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.advanced-options-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.advanced-options-info p {
-  margin: 0;
-  color: var(--n-text-color-secondary);
-  font-size: 14px;
 }
 
 @media (max-width: 600px) {

@@ -4,10 +4,12 @@ import {
   NP,
   NDivider,
   NImage,
+  NButton,
   NCard,
   NCollapse,
   NCollapseItem,
   NIcon,
+  NH3,
   NList,
   NListItem,
   NTag,
@@ -141,12 +143,9 @@ const sideIconSize = ref(20);
       id="data-sources"
       class="section data-sources"
     >
-      <n-card>
-        <template #header>
-          {{ t("aboutView.sections.dataSource") }}
-        </template>
-
-        <n-list>
+      <n-h3 prefix="bar">{{ t("aboutView.sections.dataSource") }}</n-h3>
+      <n-card content-style="padding: 0;">
+        <n-list hoverable>
           <n-list-item
             v-for="provider in dataProviders"
             :key="provider.id"
@@ -194,22 +193,20 @@ const sideIconSize = ref(20);
       id="credits"
       class="section credits-section"
     >
-      <n-card hoverable>
-        <template #header>
-          {{ t("aboutView.sections.credits") }}
-        </template>
-
-        <n-p>{{ t("aboutView.creditIntro") }}</n-p>
-
+    <n-h3 prefix="bar">{{ t("aboutView.sections.credits") }}</n-h3>
+      <n-card hoverable content-style="padding: 16px 0;">
+        <n-p style="padding: 0 16px;">{{ t("aboutView.creditIntro") }}</n-p>
         <n-collapse
           accordion
           class="credits-list"
           :trigger-areas="['arrow', 'main']"
+          hoverable
         >
           <n-collapse-item
             v-for="credit in credits.sort((a, b) =>
               a.name.localeCompare(b.name)
             )"
+            style="padding: 0 16px 0 12px;"
             :key="credit.id"
             :title="credit.name"
             :name="credit.id"
@@ -251,10 +248,12 @@ const sideIconSize = ref(20);
             </div>
 
             <template #header-extra>
-              <div class="credit-links">
-                <a
-                  v-if="credit.homepage"
+              <n-space>
+                <n-button
+                  v-if="credit.homepage && credit.url !== credit.homepage"
                   :href="credit.homepage"
+                  circle
+                  quaternary
                 >
                   <n-icon
                     :size="sideIconSize"
@@ -262,10 +261,12 @@ const sideIconSize = ref(20);
                   >
                     <Link />
                   </n-icon>
-                </a>
-                <a
+                </n-button>
+                <n-button
                   v-if="credit.url"
                   :href="credit.url"
+                  circle
+                  quaternary
                 >
                   <n-icon
                     :size="sideIconSize"
@@ -274,8 +275,8 @@ const sideIconSize = ref(20);
                     <brand-github v-if="credit.url.includes('github')" />
                     <file-text v-else />
                   </n-icon>
-                </a>
-              </div>
+                </n-button>
+              </n-space>
             </template>
           </n-collapse-item>
         </n-collapse>
@@ -305,6 +306,7 @@ const sideIconSize = ref(20);
 .section {
   width: 100%;
   margin: 0px;
+  padding-top: 24px;
 }
 
 .project-header {
@@ -349,18 +351,6 @@ const sideIconSize = ref(20);
 
 .license-text:deep(pre) {
   white-space: pre-wrap;
-}
-
-.credit-links {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.credit-links:deep(a) {
-  display: block;
-  width: v-bind('`${sideIconSize}px`');
-  height: v-bind('`${sideIconSize}px`');
 }
 
 .external-link {
