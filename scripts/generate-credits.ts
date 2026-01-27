@@ -86,6 +86,8 @@ function findLicenseFile(pkgPath: string): string | null {
     return null;
 }
 
+const cleanUpURL = (url: string) => url.replace('git+', '').replace('.git', '').replace('git:', 'https://');
+
 function getPackageInfo(pkgPath: string, pkgName: string): PackageInfo {
     const pkgJsonPath = join(pkgPath, 'package.json');
     const info: PackageInfo = { license: '', description: '', repoUrl: '', homepage: '' };
@@ -96,9 +98,9 @@ function getPackageInfo(pkgPath: string, pkgName: string): PackageInfo {
             info.description = (pkgJson.description as string) || '';
             const repo = pkgJson.repository;
             if (typeof repo === 'string') {
-                info.repoUrl = repo.replace('git+', '').replace('.git', '') || '';
+                info.repoUrl = cleanUpURL(repo) || '';
             } else if (repo && typeof repo === 'object') {
-                info.repoUrl = ((repo as Record<string, unknown>).url as string).replace('git+', '').replace('.git', '') || '';
+                info.repoUrl = cleanUpURL((repo as Record<string, unknown>).url as string) || '';
             }
             if (info.repoUrl && !info.repoUrl.startsWith('http')) {
                 info.repoUrl = `https://github.com/${info.repoUrl}`;
