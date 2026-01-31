@@ -356,7 +356,7 @@ onMounted(() => {
 }
 
 .loading-section {
-  width: 100%;
+  width: min(60vw, 16em);
 }
 
 .progress-container {

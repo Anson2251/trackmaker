@@ -7,7 +7,7 @@ import { getPlatformServices } from '@/libs/platform';
 import type { IGeolocationProvider } from '@/libs/platform/types';
 
 interface KalmanBackendConfig {
-    sigmaAcceleration: number;
+    initialAccelerationUncertainty: number;
     initialPositionUncertainty: number;
     initialVelocityUncertainty: number;
     imuUpdateInterval: number;
@@ -25,7 +25,7 @@ export class KalmanBackend implements BackendStrategy {
 
     constructor(
         private config: KalmanBackendConfig = {
-            sigmaAcceleration: 1.0,
+            initialAccelerationUncertainty: 1.0,
             initialPositionUncertainty: 20,
             initialVelocityUncertainty: 4,
             imuUpdateInterval: 100,
@@ -68,14 +68,14 @@ export class KalmanBackend implements BackendStrategy {
 
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
+                this.config.imuUpdateInterval,
                 {
-                    initialAccelerationUncertainty: this.config.sigmaAcceleration,
+                    initialAccelerationUncertainty: this.config.initialAccelerationUncertainty,
                     initialPositionUncertainty: this.config.initialPositionUncertainty,
                     initialVelocityUncertainty: this.config.initialVelocityUncertainty,
                     gpsSpeedUncertainty: this.config.gpsSpeedUncertainty,
                     debugEnabled: this.config.debugEnabled
-                },
-                this.config.imuUpdateInterval
+                }
             );
 
             const processorInitResult = await this.processor.initialize({

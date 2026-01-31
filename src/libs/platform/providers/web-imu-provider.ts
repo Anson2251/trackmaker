@@ -219,7 +219,10 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         this.normalizeAccelerationToENU = options.normalizeToENU ?? false;
-        this.accelerationIntervalMs = options.frequency && options.frequency > 0 ? Math.floor(1000 / options.frequency) : 0;
+        // frequency < 0 means emit directly without averaging
+        // frequency === 0 means emit every reading (no interval-based averaging)
+        // frequency > 0 means average over the specified interval
+        this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
         this.accelerationPrevReading = null;
         this.accelerationAccumulatedX = 0;
         this.accelerationAccumulatedY = 0;
@@ -260,7 +263,10 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         this.normalizeGyroscopeToENU = options.normalizeToENU ?? false;
-        this.gyroscopeIntervalMs = options.frequency && options.frequency > 0 ? Math.floor(1000 / options.frequency) : 0;
+        // frequency < 0 means emit directly without averaging
+        // frequency === 0 means emit every reading (no interval-based averaging)
+        // frequency > 0 means average over the specified interval
+        this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
         this.gyroscopePrevReading = null;
         this.gyroscopeAccumulatedX = 0;
         this.gyroscopeAccumulatedY = 0;
@@ -451,7 +457,9 @@ export class WebIMUProvider implements IIMUProvider {
     }
 
     private addAccelerationReading(reading: IMUReading): void {
-        if (this.accelerationIntervalMs === 0) {
+        // accelerationIntervalMs < 0: emit directly without any processing
+        // accelerationIntervalMs === 0: emit every reading (no interval-based averaging)
+        if (this.accelerationIntervalMs <= 0) {
             this.lastAccelerationReading = reading;
             this.notifyListeners(this.accelerationListeners, reading, 'acceleration');
             return;
@@ -538,7 +546,9 @@ export class WebIMUProvider implements IIMUProvider {
     }
 
     private addGyroscopeReading(reading: IMUReading): void {
-        if (this.gyroscopeIntervalMs === 0) {
+        // gyroscopeIntervalMs < 0: emit directly without any processing
+        // gyroscopeIntervalMs === 0: emit every reading (no interval-based averaging)
+        if (this.gyroscopeIntervalMs <= 0) {
             this.lastGyroscopeReading = reading;
             this.notifyListeners(this.gyroscopeListeners, reading, 'gyroscope');
             return;

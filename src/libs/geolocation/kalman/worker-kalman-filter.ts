@@ -97,7 +97,9 @@ export class WorkerKalmanFilter {
         // Initial covariance matrix P₀ = diag(σ_x², σ_y², σ_vx², σ_vy², σ_ax², σ_ay²)
         // All off-diagonal elements zero (uncorrelated initial uncertainties)
         const sigmaGPS = this.gpsAccuracyToSigma(reading.accuracy);
-        const velocityUncertainty = reading.velocity ? this.config.gpsSpeedUncertainty! : this.config.initialVelocityUncertainty;
+        const velocityUncertainty = reading.velocity
+            ? (this.config.gpsSpeedUncertainty ?? 0.5)
+            : this.config.initialVelocityUncertainty;
         const accelerationUncertainty = this.config.initialAccelerationUncertainty;
 
         this.state.covariance = new Matrix([
@@ -196,6 +198,36 @@ export class WorkerKalmanFilter {
         return this.isInitialized;
     }
 
+    private computeProcessNoise(dt: number): Matrix {
+        const dt2 = dt * dt;
+        const dt3 = dt2 * dt;
+        const dt4 = dt3 * dt;
+        const dt5 = dt4 * dt;
+        const sigmaA = this.config.initialAccelerationUncertainty;
+        const sigmaA2 = sigmaA * sigmaA;
+
+        const Q_ca = new Matrix([
+            [dt5 / 20 * sigmaA2, 0, dt4 / 8 * sigmaA2, 0, dt3 / 6 * sigmaA2, 0],
+            [0, dt5 / 20 * sigmaA2, 0, dt4 / 8 * sigmaA2, 0, dt3 / 6 * sigmaA2],
+            [dt4 / 8 * sigmaA2, 0, dt3 / 3 * sigmaA2, 0, dt2 / 2 * sigmaA2, 0],
+            [0, dt4 / 8 * sigmaA2, 0, dt3 / 3 * sigmaA2, 0, dt2 / 2 * sigmaA2],
+            [dt3 / 6 * sigmaA2, 0, dt2 / 2 * sigmaA2, 0, dt * sigmaA2, 0],
+            [0, dt3 / 6 * sigmaA2, 0, dt2 / 2 * sigmaA2, 0, dt * sigmaA2]
+        ]);
+
+        const sigmaVJ = this.config.velocityProcessNoise ?? 1.0;
+        const Q_velocity = new Matrix([
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, dt * sigmaVJ * sigmaVJ, 0, 0, 0],
+            [0, 0, 0, dt * sigmaVJ * sigmaVJ, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0]
+        ]);
+
+        return Q_ca.add(Q_velocity);
+    }
+
     private predictInternal(dt: number): void {
         if (dt <= 0) {
             if (this.debugEnabled) {
@@ -222,39 +254,8 @@ export class WorkerKalmanFilter {
         ]);
 
         // Process noise covariance Q = Q_ca + Q_velocity
-        // Q_ca: Discrete white noise acceleration model (σ_A² = acceleration uncertainty)
-        // From continuous-time Q = ∫₀ᵈᵗ F(τ)·G·Q_c·Gᵀ·F(τ)ᵀ dτ where Q_c = diag(σ_A², σ_A²)
-        // For constant acceleration model with state [x, y, vx, vy, ax, ay]:
-        // Q_ca = σ_A² · [dt⁴/4  0     dt³/2  0     dt²/2  0
-        //               0     dt⁴/4   0     dt³/2  0     dt²/2
-        //               dt³/2  0     dt²    0     dt     0
-        //               0     dt³/2   0     dt²    0     dt
-        //               dt²/2  0     dt     0     1      0
-        //               0     dt²/2   0     dt     0     1]
         const sigmaA = this.config.initialAccelerationUncertainty;
-        const Q_ca = new Matrix([
-            [Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2, 0],
-            [0, Math.pow(dt, 4) / 4, 0, Math.pow(dt, 3) / 2, 0, Math.pow(dt, 2) / 2],
-            [Math.pow(dt, 3) / 2, 0, dt * dt, 0, dt, 0],
-            [0, Math.pow(dt, 3) / 2, 0, dt * dt, 0, dt],
-            [Math.pow(dt, 2) / 2, 0, dt, 0, 1, 0],
-            [0, Math.pow(dt, 2) / 2, 0, dt, 0, 1]
-        ]).mul(sigmaA * sigmaA);
-
-        // Q_velocity: Additional velocity process noise to allow direction changes
-        // Models uncertainty in velocity derivative (jerk) σ_vj²
-        // Adds noise only to velocity components: Q_velocity = diag(0,0, σ_vj²·dt, σ_vj²·dt, 0,0)
-        const sigmaVelocityJerk = this.config.velocityProcessNoise ?? 1.0;
-        const Q_velocity = new Matrix([
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, dt * sigmaVelocityJerk * sigmaVelocityJerk, 0, 0, 0],
-            [0, 0, 0, dt * sigmaVelocityJerk * sigmaVelocityJerk, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0]
-        ]);
-
-        const Q = Q_ca.add(Q_velocity);
+        const Q = this.computeProcessNoise(dt);
 
         // Current state vector x = [x, y, vx, vy, ax, ay]ᵀ
         const x = new Matrix([
@@ -345,7 +346,7 @@ export class WorkerKalmanFilter {
         let R: Matrix;
         if (hasVelocity) {
             // GPS velocity uncertainty (σ_speed from config)
-            const sigmaSpeed = this.config.gpsSpeedUncertainty!;
+            const sigmaSpeed = this.config.gpsSpeedUncertainty ?? 0.5;
             R = new Matrix([
                 [sigmaGPS * sigmaGPS, 0, 0, 0],
                 [0, sigmaGPS * sigmaGPS, 0, 0],
@@ -394,9 +395,14 @@ export class WorkerKalmanFilter {
         const y = z.subtract(H.mmul(x));
         const xUpdated = x.add(K.mmul(y));
         const I = Matrix.identity(6, 6);
-        const PUpdated = I.subtract(K.mmul(H)).mmul(this.state.covariance);
+        const I_KH = I.subtract(K.mmul(H));
 
-        // Add small regularization to maintain positive definiteness
+        // Joseph formula for numerically stable covariance update
+        const PUpdated = I_KH
+            .mmul(this.state.covariance)
+            .mmul(I_KH.transpose())
+            .add(K.mmul(R).mmul(K.transpose()));
+
         const PStabilized = PUpdated.add(Matrix.identity(6, 6).mul(epsilon));
 
         this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
@@ -419,87 +425,46 @@ export class WorkerKalmanFilter {
         //   exp(-accuracy²/(2σ²)) = 0.05
         //   -accuracy²/(2σ²) = ln(0.05) = -ln(20)
         //   σ² = accuracy²/(2·ln(20))
-        //   σ = accuracy / √(2·ln(20)) ≈ accuracy / 2.448
+        //   σ = accuracy / √(2·ln(20))
         //
         // Minimum accuracy enforced to avoid singular covariance matrices
         const minAccuracy = 1.0; // meters
         const effectiveAccuracy = Math.max(accuracy, minAccuracy);
-        return effectiveAccuracy / Math.sqrt(2 * Math.log(20));
+        return effectiveAccuracy / Math.sqrt(2 * (Math.LN2 + Math.LN10));
     }
 
     private updateIMUInternal(acceleration: { x: number; y: number; z: number }): void {
-        // IMU measures acceleration directly (we only use x,y components, ignore z)
-        // Measurement model: z = [a_x_imu, a_y_imu]ᵀ = H·x + v
-        // H = [0 0 0 0 1 0]  -> maps to x acceleration component
-        //     [0 0 0 0 0 1]  -> maps to y acceleration component
-        const H = new Matrix([
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1]
-        ]);
-
-        const z = new Matrix([
-            [acceleration.x],
-            [acceleration.y]
-        ]);
-
-        // Measurement noise for IMU acceleration (smartphone accelerometer typically 0.1-0.5 m/s²)
-        // σ_acc from config, with minimum of 0.5 m/s² for stability
-        const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty!, 0.5);
+        // IMU measures acceleration directly - apply immediately without Kalman blending
+        // This ensures responsive acceleration tracking for motion prediction
         const epsilon = 1e-6;
-        const R = new Matrix([
-            [sigmaAcc * sigmaAcc, 0],
-            [0, sigmaAcc * sigmaAcc]
-        ]);
+        const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty ?? 0.1, 0.05);
 
-        // Innovation covariance S = H·P·Hᵀ + R
-        const HPred = H.mmul(this.state.covariance).mmul(H.transpose());
-        const S = HPred.add(R);
+        // Directly update acceleration state
+        this.state.acceleration = { x: acceleration.x, y: acceleration.y };
 
-        // Check for near-singular covariance (poor conditioning)
-        // Happens when S diagonal elements are very small or off-diagonal correlation near ±1
-        if (S.get(0, 0) < epsilon || S.get(1, 1) < epsilon ||
-            Math.abs(S.get(0, 1)) > 0.9 * Math.sqrt(S.get(0, 0) * S.get(1, 1))) {
-            if (this.debugEnabled) {
-                console.warn('[WorkerKalmanFilter] Near-singular IMU measurement covariance');
-            }
+        // Update acceleration covariance (rows 4-5, cols 4-5) to reflect IMU uncertainty
+        const P = this.state.covariance;
+        P.set(4, 4, sigmaAcc * sigmaAcc);
+        P.set(4, 5, 0);
+        P.set(5, 4, 0);
+        P.set(5, 5, sigmaAcc * sigmaAcc);
+
+        // Clear cross-correlations between acceleration and other states
+        // This prevents the filter from "dragging" acceleration back to predicted values
+        for (let i = 0; i < 4; i++) {
+            P.set(4, i, epsilon);
+            P.set(5, i, epsilon);
+            P.set(i, 4, epsilon);
+            P.set(i, 5, epsilon);
         }
 
-        // Regularize and compute Kalman gain K = P·Hᵀ·S⁻¹
-        const Sreg = S.add(Matrix.identity(S.rows, S.columns).mul(epsilon));
-        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
-
-        this.lastKalmanGain = K;
+        this.state.covariance = P;
 
         if (this.debugEnabled) {
-            console.log('[WorkerKalmanFilter] IMU update:', {
-                acceleration: { x: acceleration.x, y: acceleration.y }
+            console.log('[WorkerKalmanFilter] IMU direct update:', {
+                acceleration: { x: acceleration.x, y: acceleration.y },
+                sigmaAcc
             });
         }
-
-        // State update (same as GPS update):
-        // y = z - H·x                    (acceleration residual)
-        // x_updated = x + K·y
-        // P_updated = (I - K·H)·P
-        const x = new Matrix([
-            [this.state.position.x],
-            [this.state.position.y],
-            [this.state.velocity.x],
-            [this.state.velocity.y],
-            [this.state.acceleration.x],
-            [this.state.acceleration.y]
-        ]);
-
-        const y = z.subtract(H.mmul(x));
-        const xUpdated = x.add(K.mmul(y));
-        const I = Matrix.identity(6, 6);
-        const PUpdated = I.subtract(K.mmul(H)).mmul(this.state.covariance);
-
-        // Regularize updated covariance
-        const PStabilized = PUpdated.add(Matrix.identity(6, 6).mul(epsilon));
-
-        this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
-        this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
-        this.state.acceleration = { x: xUpdated.get(4, 0), y: xUpdated.get(5, 0) };
-        this.state.covariance = PStabilized;
     }
 }

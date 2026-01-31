@@ -33,20 +33,21 @@ export class LocationProcessor {
 
     constructor(
         callback: LocationCallback,
-        imuUpdateInterval: number = 100
+        imuUpdateInterval: number = 100,
+        config?: Partial<KalmanConfig>
     ) {
         this.workerClient = new KalmanWorkerClient();
         this.coordinateTransformer = new CoordinateTransformer();
         this.imuManager = new IMUFusionManager(imuUpdateInterval);
         this.callback = callback;
-        this.debugEnabled = isDebugModeEnabled();
+        this.debugEnabled = config?.debugEnabled ?? isDebugModeEnabled();
         this.config = {
-            initialAccelerationUncertainty: getKalmanInitialAccelerationUncertainty(),
-            initialPositionUncertainty: getKalmanInitialPositionUncertainty(),
-            initialVelocityUncertainty: getKalmanInitialVelocityUncertainty(),
-            gpsSpeedUncertainty: getKalmanGpsSpeedUncertainty(),
-            imuAccelerationUncertainty: getKalmanImuAccelerationUncertainty(),
-            velocityProcessNoise: getKalmanVelocityProcessNoise(),
+            initialAccelerationUncertainty: config?.initialAccelerationUncertainty ?? getKalmanInitialAccelerationUncertainty(),
+            initialPositionUncertainty: config?.initialPositionUncertainty ?? getKalmanInitialPositionUncertainty(),
+            initialVelocityUncertainty: config?.initialVelocityUncertainty ?? getKalmanInitialVelocityUncertainty(),
+            gpsSpeedUncertainty: config?.gpsSpeedUncertainty ?? getKalmanGpsSpeedUncertainty(),
+            imuAccelerationUncertainty: config?.imuAccelerationUncertainty ?? getKalmanImuAccelerationUncertainty(),
+            velocityProcessNoise: config?.velocityProcessNoise ?? getKalmanVelocityProcessNoise(),
             debugEnabled: this.debugEnabled,
         };
     }

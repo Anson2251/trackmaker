@@ -12,7 +12,7 @@ import { GPSBackend } from "../backends/gps-backend";
 import { IPFallbackBackend } from "../backends/ip-fallback-backend";
 import { KalmanBackend } from "../backends/kalman-backend";
 import { cloneDeep } from "lodash-es";
-import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting } from "@/libs/default-settings";
+import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting, getKalmanInitialAccelerationUncertainty, getKalmanInitialPositionUncertainty, getKalmanInitialVelocityUncertainty, getKalmanGpsSpeedUncertainty } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
 import type { KalmanState } from "../kalman/kalman-types";
 
@@ -64,10 +64,10 @@ export class GeolocationManager implements GeolocationManagerInterface {
             const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
             strategies.push(new KalmanBackend({
                 imuUpdateInterval,
-                sigmaAcceleration: 1.0,
-                initialPositionUncertainty: 20,
-                initialVelocityUncertainty: 4,
-                gpsSpeedUncertainty: 2.0,
+                initialAccelerationUncertainty: getKalmanInitialAccelerationUncertainty(),
+                initialPositionUncertainty: getKalmanInitialPositionUncertainty(),
+                initialVelocityUncertainty: getKalmanInitialVelocityUncertainty(),
+                gpsSpeedUncertainty: getKalmanGpsSpeedUncertainty(),
                 debugEnabled: false
             }));
         }
