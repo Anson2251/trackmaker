@@ -95,7 +95,7 @@ export interface GeolocationProviderLikeConstructor {
 
 // New Architecture Types
 
-export type LocationSource = 'kalman' | 'gps' | 'ip';
+export type LocationSource = 'kalman' | 'kalman-no-imu' | 'gps' | 'ip';
 
 export interface LocationCallback {
     (location: GeographicPoint, source: LocationSource): void;

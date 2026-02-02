@@ -10,7 +10,7 @@ export type Settings = {
     mapLanguage: string;
     watchCompatibilityMode: boolean;
     geolocationCorrection: boolean;
-    geolocationBackend: 'auto' | 'kalman' | 'gps' | 'ip';
+    geolocationBackend: 'auto' | 'kalman' | 'kalman-no-imu' | 'gps' | 'ip';
     // Advanced settings (Firefox config style)
     debugMode: boolean;
     maxCacheSize: number;
@@ -32,6 +32,11 @@ export type Settings = {
     kalmanGpsSpeedUncertainty: number;
     kalmanImuAccelerationUncertainty: number;
     kalmanVelocityProcessNoise: number;
+    // ZUPT (Zero-Velocity Update) parameters
+    zuptEnabled: boolean;
+    zuptThreshold: number;
+    zuptConsecutiveSamples: number;
+    zuptVelocityNoise: number;
     // Merge processor parameters
     mergeBatchSize: number;
     maxMergeQueueSize: number;

@@ -34,6 +34,11 @@ export const defaultSettings: Settings = {
     kalmanGpsSpeedUncertainty: 1,
     kalmanImuAccelerationUncertainty: 0.1,
     kalmanVelocityProcessNoise: 0.01,
+    // ZUPT (Zero-Velocity Update) parameters
+    zuptEnabled: true,
+    zuptThreshold: 0.3,
+    zuptConsecutiveSamples: 3,
+    zuptVelocityNoise: 0.1,
     // Merge processor parameters
     mergeBatchSize: 1000,
     maxMergeQueueSize: 10000,
@@ -89,7 +94,7 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         key: 'geolocationBackend',
         name: 'Geolocation Backend',
         type: 'string',
-        description: 'Backend strategy for geolocation (auto, kalman, gps, or ip)',
+        description: 'Backend strategy for geolocation (auto, kalman, kalman-no-imu, gps, or ip)',
         userFacing: true,
     },
     // Advanced settings
@@ -158,6 +163,7 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Enable Kalman Filter',
         type: 'boolean',
         description: 'Use Kalman filter for GPS position smoothing',
+        userFacing: true,
     },
     {
         key: 'mapZoomLevel',
@@ -207,6 +213,31 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Velocity Process Noise',
         type: 'number',
         description: 'Process noise coefficient for velocity in Kalman filter',
+    },
+    // ZUPT (Zero-Velocity Update) parameters
+    {
+        key: 'zuptEnabled',
+        name: 'ZUPT Enabled',
+        type: 'boolean',
+        description: 'Enable Zero-Velocity Update to improve position accuracy when stationary',
+    },
+    {
+        key: 'zuptThreshold',
+        name: 'ZUPT Threshold',
+        type: 'number',
+        description: 'Acceleration magnitude threshold for stationary detection (m/s²)',
+    },
+    {
+        key: 'zuptConsecutiveSamples',
+        name: 'ZUPT Consecutive Samples',
+        type: 'number',
+        description: 'Number of consecutive samples below threshold to trigger ZUPT',
+    },
+    {
+        key: 'zuptVelocityNoise',
+        name: 'ZUPT Velocity Noise',
+        type: 'number',
+        description: 'Measurement noise for zero-velocity assumption (m/s)',
     },
     // Merge processor parameters
     {
@@ -421,6 +452,34 @@ export function getKalmanImuAccelerationUncertainty(): number {
  */
 export function getKalmanVelocityProcessNoise(): number {
     return getEarlySetting('kalmanVelocityProcessNoise');
+}
+
+/**
+ * Get ZUPT enabled status
+ */
+export function isZUPTEnabled(): boolean {
+    return getEarlySetting('zuptEnabled');
+}
+
+/**
+ * Get ZUPT acceleration threshold
+ */
+export function getZUPTThreshold(): number {
+    return getEarlySetting('zuptThreshold');
+}
+
+/**
+ * Get ZUPT consecutive samples requirement
+ */
+export function getZUPTConsecutiveSamples(): number {
+    return getEarlySetting('zuptConsecutiveSamples');
+}
+
+/**
+ * Get ZUPT velocity measurement noise
+ */
+export function getZUPTVelocityNoise(): number {
+    return getEarlySetting('zuptVelocityNoise');
 }
 
 /**

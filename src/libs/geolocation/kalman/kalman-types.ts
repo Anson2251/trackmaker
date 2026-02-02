@@ -16,4 +16,9 @@ export interface KalmanConfig {
     imuAccelerationUncertainty?: number; // meters per second squared
     debugEnabled?: boolean;
     velocityProcessNoise?: number;
+    // ZUPT (Zero-Velocity Update) parameters
+    zuptEnabled?: boolean;
+    zuptThreshold?: number; // m/s² threshold for stationary detection
+    zuptConsecutiveSamples?: number; // consecutive samples required to trigger ZUPT
+    zuptVelocityNoise?: number; // m/s uncertainty for zero-velocity measurement
 }

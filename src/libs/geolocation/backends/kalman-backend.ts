@@ -6,15 +6,6 @@ import { GeolocationError } from '../../error-handling/geolocation';
 import { getPlatformServices } from '@/libs/platform';
 import type { IGeolocationProvider } from '@/libs/platform/types';
 
-interface KalmanBackendConfig {
-    initialAccelerationUncertainty: number;
-    initialPositionUncertainty: number;
-    initialVelocityUncertainty: number;
-    imuUpdateInterval: number;
-    gpsSpeedUncertainty?: number;
-    debugEnabled?: boolean;
-}
-
 export class KalmanBackend implements BackendStrategy {
     readonly name = 'kalman';
     private provider: IGeolocationProvider | null = null;
@@ -22,17 +13,11 @@ export class KalmanBackend implements BackendStrategy {
     private watchId: number | null = null;
     private isInitialized = false;
     private userCallback: LocationCallback | null = null;
+    private imuUpdateInterval: number;
 
-    constructor(
-        private config: KalmanBackendConfig = {
-            initialAccelerationUncertainty: 1.0,
-            initialPositionUncertainty: 20,
-            initialVelocityUncertainty: 4,
-            imuUpdateInterval: 100,
-            gpsSpeedUncertainty: 2.0,
-            debugEnabled: false
-        }
-    ) {}
+    constructor(imuUpdateInterval: number = 100) {
+        this.imuUpdateInterval = imuUpdateInterval;
+    }
 
     async initialize(): Promise<Result<void, GeolocationError>> {
         if (this.isInitialized) {
@@ -68,14 +53,8 @@ export class KalmanBackend implements BackendStrategy {
 
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
-                this.config.imuUpdateInterval,
-                {
-                    initialAccelerationUncertainty: this.config.initialAccelerationUncertainty,
-                    initialPositionUncertainty: this.config.initialPositionUncertainty,
-                    initialVelocityUncertainty: this.config.initialVelocityUncertainty,
-                    gpsSpeedUncertainty: this.config.gpsSpeedUncertainty,
-                    debugEnabled: this.config.debugEnabled
-                }
+                this.imuUpdateInterval
+                // Config is read from settings in LocationProcessor
             );
 
             const processorInitResult = await this.processor.initialize({

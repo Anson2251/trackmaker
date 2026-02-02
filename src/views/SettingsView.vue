@@ -105,6 +105,10 @@ const configs = computed<Config>(() => [
             label: t("settings.geolocation.geolocationBackend.options.kalman"),
           },
           {
+            value: "kalman-no-imu",
+            label: t("settings.geolocation.geolocationBackend.options.kalman-no-imu"),
+          },
+          {
             value: "gps",
             label: t("settings.geolocation.geolocationBackend.options.gps"),
           },

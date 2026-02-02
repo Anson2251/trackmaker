@@ -32,6 +32,10 @@ export class WorkerKalmanFilter {
     private isInitialized = false;
     private debugEnabled = false;
 
+    // ZUPT (Zero-Velocity Update) state
+    private stationaryCount = 0;
+    private isStationary = false;
+
     constructor(config: Partial<KalmanConfig>) {
         // Configuration parameters (all in SI units: meters, seconds):
         // - initialAccelerationUncertainty: σ_A (m/s²) - uncertainty in acceleration
@@ -40,6 +44,10 @@ export class WorkerKalmanFilter {
         // - gpsSpeedUncertainty: σ_speed (m/s) - GPS velocity measurement noise
         // - imuAccelerationUncertainty: σ_acc (m/s²) - IMU acceleration measurement noise
         // - velocityProcessNoise: σ_vj (m/s per second) - velocity jerk process noise
+        // - zuptEnabled: Enable Zero-Velocity Update
+        // - zuptThreshold: m/s² threshold for stationary detection
+        // - zuptConsecutiveSamples: consecutive samples required to trigger ZUPT
+        // - zuptVelocityNoise: m/s uncertainty for zero-velocity measurement
         // - debugEnabled: Enable detailed logging
         this.config = {
             initialAccelerationUncertainty: 2,
@@ -48,6 +56,10 @@ export class WorkerKalmanFilter {
             gpsSpeedUncertainty: 0.5,
             imuAccelerationUncertainty: 0.1,
             velocityProcessNoise: 1.1,
+            zuptEnabled: true,
+            zuptThreshold: 0.3,
+            zuptConsecutiveSamples: 3,
+            zuptVelocityNoise: 0.1,
             ...config
         };
 
@@ -434,36 +446,170 @@ export class WorkerKalmanFilter {
     }
 
     private updateIMUInternal(acceleration: { x: number; y: number; z: number }): void {
-        // IMU measures acceleration directly - apply immediately without Kalman blending
-        // This ensures responsive acceleration tracking for motion prediction
+        // Use proper Kalman update for acceleration measurement
+        // This ensures acceleration changes properly propagate to velocity corrections
         const epsilon = 1e-6;
         const sigmaAcc = Math.max(this.config.imuAccelerationUncertainty ?? 0.1, 0.05);
 
-        // Directly update acceleration state
-        this.state.acceleration = { x: acceleration.x, y: acceleration.y };
+        // Observation matrix H (2×6) - we observe acceleration states only (indices 4, 5)
+        const H = new Matrix([
+            [0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 1]
+        ]);
 
-        // Update acceleration covariance (rows 4-5, cols 4-5) to reflect IMU uncertainty
-        const P = this.state.covariance;
-        P.set(4, 4, sigmaAcc * sigmaAcc);
-        P.set(4, 5, 0);
-        P.set(5, 4, 0);
-        P.set(5, 5, sigmaAcc * sigmaAcc);
+        // Measurement vector z = [ax_imu, ay_imu]
+        const z = new Matrix([
+            [acceleration.x],
+            [acceleration.y]
+        ]);
 
-        // Clear cross-correlations between acceleration and other states
-        // This prevents the filter from "dragging" acceleration back to predicted values
-        for (let i = 0; i < 4; i++) {
-            P.set(4, i, epsilon);
-            P.set(5, i, epsilon);
-            P.set(i, 4, epsilon);
-            P.set(i, 5, epsilon);
+        // Measurement noise covariance R
+        const R = new Matrix([
+            [sigmaAcc * sigmaAcc, 0],
+            [0, sigmaAcc * sigmaAcc]
+        ]);
+
+        // Current state vector
+        let x = new Matrix([
+            [this.state.position.x],
+            [this.state.position.y],
+            [this.state.velocity.x],
+            [this.state.velocity.y],
+            [this.state.acceleration.x],
+            [this.state.acceleration.y]
+        ]);
+
+        // Kalman update equations for acceleration
+        const S = H.mmul(this.state.covariance).mmul(H.transpose()).add(R);
+        const Sreg = S.add(Matrix.identity(2, 2).mul(epsilon));
+        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
+
+        // Innovation
+        const y = z.subtract(H.mmul(x));
+        const xUpdated = x.add(K.mmul(y));
+
+        // Joseph formula for covariance update (numerically stable)
+        const I = Matrix.identity(6, 6);
+        const I_KH = I.subtract(K.mmul(H));
+        let PUpdated = I_KH
+            .mmul(this.state.covariance)
+            .mmul(I_KH.transpose())
+            .add(K.mmul(R).mmul(K.transpose()));
+
+        // Update state after acceleration measurement
+        this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
+        this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
+        this.state.acceleration = { x: xUpdated.get(4, 0), y: xUpdated.get(5, 0) };
+        this.state.covariance = PUpdated;
+
+        // ZUPT: Detect stationary condition and apply zero-velocity update
+        const accMagnitude = Math.sqrt(acceleration.x * acceleration.x + acceleration.y * acceleration.y);
+
+        const zuptEnabled = this.config.zuptEnabled ?? true;
+        const zuptThreshold = this.config.zuptThreshold ?? 0.3;
+        const zuptConsecutiveSamples = this.config.zuptConsecutiveSamples ?? 3;
+
+        if (zuptEnabled && accMagnitude < zuptThreshold) {
+            this.stationaryCount++;
+            if (this.stationaryCount >= zuptConsecutiveSamples) {
+                this.isStationary = true;
+            }
+        } else {
+            this.stationaryCount = 0;
+            this.isStationary = false;
         }
 
-        this.state.covariance = P;
+        // Apply ZUPT when stationary condition is detected
+        if (zuptEnabled && this.isStationary) {
+            this.applyZUPT();
+        }
+
+        // Add regularization to prevent numerical issues
+        this.state.covariance = this.state.covariance.add(Matrix.identity(6, 6).mul(epsilon));
 
         if (this.debugEnabled) {
-            console.log('[WorkerKalmanFilter] IMU direct update:', {
+            console.log('[WorkerKalmanFilter] IMU Kalman update:', {
                 acceleration: { x: acceleration.x, y: acceleration.y },
-                sigmaAcc
+                accMagnitude,
+                stationaryCount: this.stationaryCount,
+                isStationary: this.isStationary,
+                velocity: this.state.velocity
+            });
+        }
+    }
+
+    /**
+     * Zero-Velocity Update (ZUPT)
+     * When the device is stationary, perform a Kalman update with virtual measurement:
+     * z = [0, 0]ᵀ (zero velocity in x and y)
+     * This properly constrains velocity to zero using the Kalman framework
+     */
+    private applyZUPT(): void {
+        const epsilon = 1e-6;
+        const sigmaVel = this.config.zuptVelocityNoise ?? 0.1;
+
+        // Observation matrix H (2×6) - we observe velocity states (indices 2, 3)
+        // z = [vx, vy]ᵀ = [0, 0]ᵀ
+        const H = new Matrix([
+            [0, 0, 1, 0, 0, 0],  // Observe vx
+            [0, 0, 0, 1, 0, 0]   // Observe vy
+        ]);
+
+        // Virtual measurement: zero velocity
+        const z = new Matrix([[0], [0]]);
+
+        // Measurement noise covariance R
+        // σ_vel is the uncertainty in the zero-velocity assumption
+        const R = new Matrix([
+            [sigmaVel * sigmaVel, 0],
+            [0, sigmaVel * sigmaVel]
+        ]);
+
+        // Current state vector
+        const x = new Matrix([
+            [this.state.position.x],
+            [this.state.position.y],
+            [this.state.velocity.x],
+            [this.state.velocity.y],
+            [this.state.acceleration.x],
+            [this.state.acceleration.y]
+        ]);
+
+        // Kalman gain computation
+        const S = H.mmul(this.state.covariance).mmul(H.transpose()).add(R);
+        const Sreg = S.add(Matrix.identity(2, 2).mul(epsilon));
+        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(Sreg));
+
+        this.lastKalmanGain = K;
+
+        // Innovation (residual)
+        const y = z.subtract(H.mmul(x));
+
+        // State update
+        const xUpdated = x.add(K.mmul(y));
+
+        // Joseph formula for covariance update
+        const I = Matrix.identity(6, 6);
+        const I_KH = I.subtract(K.mmul(H));
+        const PUpdated = I_KH
+            .mmul(this.state.covariance)
+            .mmul(I_KH.transpose())
+            .add(K.mmul(R).mmul(K.transpose()));
+
+        // Update state after ZUPT
+        this.state.position = { x: xUpdated.get(0, 0), y: xUpdated.get(1, 0) };
+        this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
+        this.state.acceleration = { x: xUpdated.get(4, 0), y: xUpdated.get(5, 0) };
+        this.state.covariance = PUpdated;
+
+        if (this.debugEnabled) {
+            console.log('[WorkerKalmanFilter] ZUPT applied:', {
+                innovation: { vx: y.get(0, 0), vy: y.get(1, 0) },
+                updatedVelocity: this.state.velocity,
+                velocityCovariance: [
+                    PUpdated.get(2, 2),
+                    PUpdated.get(3, 3)
+                ]
             });
         }
     }

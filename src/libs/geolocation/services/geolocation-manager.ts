@@ -12,7 +12,7 @@ import { GPSBackend } from "../backends/gps-backend";
 import { IPFallbackBackend } from "../backends/ip-fallback-backend";
 import { KalmanBackend } from "../backends/kalman-backend";
 import { cloneDeep } from "lodash-es";
-import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting, getKalmanInitialAccelerationUncertainty, getKalmanInitialPositionUncertainty, getKalmanInitialVelocityUncertainty, getKalmanGpsSpeedUncertainty } from "@/libs/default-settings";
+import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
 import type { KalmanState } from "../kalman/kalman-types";
 
@@ -34,7 +34,7 @@ export interface GeolocationManagerInterface {
     getLastKnownLocation(): GeographicPoint;
     addLocationListener(callback: LocationUpdateHandler): number;
     removeLocationListener(id: number): void;
-    getCurrentBackend(): "kalman" | "gps" | "ip" | null;
+    getCurrentBackend(): "kalman" | "kalman-no-imu" | "gps" | "ip" | null;
     getLastKalmanGain(): Matrix | null;
     getKalmanState(): KalmanState | null;
 }
@@ -54,7 +54,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         const backendPreference = getEarlySetting('geolocationBackend');
 
         // Determine which backends to include based on user preference
-        const includeKalman = backendPreference === 'auto' ? isKalmanFilterEnabled() : backendPreference === 'kalman';
+        const includeKalman = backendPreference === 'auto' ? isKalmanFilterEnabled() : (backendPreference === 'kalman' || backendPreference === 'kalman-no-imu');
         const includeGPS = backendPreference === 'auto' || backendPreference === 'gps';
         const includeIP = backendPreference === 'auto' || backendPreference === 'ip';
 
@@ -62,14 +62,7 @@ export class GeolocationManager implements GeolocationManagerInterface {
         if (includeKalman) {
             const frequency = getIMUUpdateFrequency();
             const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
-            strategies.push(new KalmanBackend({
-                imuUpdateInterval,
-                initialAccelerationUncertainty: getKalmanInitialAccelerationUncertainty(),
-                initialPositionUncertainty: getKalmanInitialPositionUncertainty(),
-                initialVelocityUncertainty: getKalmanInitialVelocityUncertainty(),
-                gpsSpeedUncertainty: getKalmanGpsSpeedUncertainty(),
-                debugEnabled: false
-            }));
+            strategies.push(new KalmanBackend(imuUpdateInterval));
         }
 
         // Include GPS backend based on preference
@@ -321,10 +314,10 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
     isUsingGPS(): boolean {
         const backend = this.backendManager.getActiveBackend();
-        return backend === "gps" || backend === "kalman";
+        return backend === "gps" || backend === "kalman" || backend === "kalman-no-imu";
     }
 
-    getCurrentBackend(): "kalman" | "gps" | "ip" | null {
+    getCurrentBackend(): "kalman" | "kalman-no-imu" | "gps" | "ip" | null {
         return this.backendManager.getActiveBackend();
     }
 

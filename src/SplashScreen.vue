@@ -449,6 +449,11 @@ onMounted(() => {
   text-align: left;
 }
 
+.error-message * {
+  user-select: text !important;
+  cursor: auto !important;
+}
+
 .retry-button {
   background: var(--button-bg);
   border: 1px solid var(--button-border);

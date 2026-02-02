@@ -24,6 +24,7 @@
                 "options": {
                     "auto": "Auto",
                     "kalman": "Kalman Filter",
+                    "kalman-no-imu": "Kalman Filter (No IMU)",
                     "gps": "GPS",
                     "ip": "IP Fallback"
                 }

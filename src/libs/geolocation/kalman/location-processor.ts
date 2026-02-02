@@ -15,7 +15,12 @@ import {
     getKalmanGpsSpeedUncertainty,
     getKalmanImuAccelerationUncertainty,
     getKalmanVelocityProcessNoise,
-    isDebugModeEnabled
+    isZUPTEnabled,
+    getZUPTThreshold,
+    getZUPTConsecutiveSamples,
+    getZUPTVelocityNoise,
+    isDebugModeEnabled,
+    getEarlySetting
 } from '../../default-settings';
 
 export class LocationProcessor {
@@ -27,6 +32,7 @@ export class LocationProcessor {
     private lastOutputTime = 0;
     private lastOutputAccuracy = 0;
     private debugEnabled = false;
+    private withoutIMU: boolean = false;
     private config: KalmanConfig;
     private cachedState: KalmanState | null = null;
     private cachedGain: Matrix | null = null;
@@ -41,6 +47,8 @@ export class LocationProcessor {
         this.imuManager = new IMUFusionManager(imuUpdateInterval);
         this.callback = callback;
         this.debugEnabled = config?.debugEnabled ?? isDebugModeEnabled();
+        const backend = getEarlySetting('geolocationBackend');
+        this.withoutIMU = backend === 'kalman-no-imu';
         this.config = {
             initialAccelerationUncertainty: config?.initialAccelerationUncertainty ?? getKalmanInitialAccelerationUncertainty(),
             initialPositionUncertainty: config?.initialPositionUncertainty ?? getKalmanInitialPositionUncertainty(),
@@ -48,6 +56,10 @@ export class LocationProcessor {
             gpsSpeedUncertainty: config?.gpsSpeedUncertainty ?? getKalmanGpsSpeedUncertainty(),
             imuAccelerationUncertainty: config?.imuAccelerationUncertainty ?? getKalmanImuAccelerationUncertainty(),
             velocityProcessNoise: config?.velocityProcessNoise ?? getKalmanVelocityProcessNoise(),
+            zuptEnabled: config?.zuptEnabled ?? isZUPTEnabled(),
+            zuptThreshold: config?.zuptThreshold ?? getZUPTThreshold(),
+            zuptConsecutiveSamples: config?.zuptConsecutiveSamples ?? getZUPTConsecutiveSamples(),
+            zuptVelocityNoise: config?.zuptVelocityNoise ?? getZUPTVelocityNoise(),
             debugEnabled: this.debugEnabled,
         };
     }
@@ -80,10 +92,14 @@ export class LocationProcessor {
                 velocity
             };
 
-            // Initialize IMU manager
-            const imuInitResult = await this.imuManager.initialize();
-            if (imuInitResult.isErr()) {
-                console.warn('[LocationProcessor] IMU not available, using GPS-only mode');
+            // Initialize IMU manager (only if not in no-IMU mode)
+            if (!this.withoutIMU) {
+                const imuInitResult = await this.imuManager.initialize();
+                if (imuInitResult.isErr()) {
+                    console.warn('[LocationProcessor] IMU not available, using GPS-only mode');
+                }
+            } else {
+                console.info('[LocationProcessor] Running in no-IMU mode, skipping IMU initialization');
             }
 
             // Initialize worker with configuration
@@ -108,6 +124,13 @@ export class LocationProcessor {
 
     async startGPS(): Promise<Result<void, GeolocationError>> {
         try {
+            // Skip IMU listening if in no-IMU mode
+            if (this.withoutIMU) {
+                this.isInitialized = true;
+                console.info('[LocationProcessor] Started location processing (no-IMU mode)');
+                return ok(undefined);
+            }
+
             const imuAvailable = await this.imuManager.isAvailable();
 
             if (imuAvailable) {

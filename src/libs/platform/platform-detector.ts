@@ -179,7 +179,7 @@ export class PlatformDetector {
                 timeout: 30000,
                 maximumAge: 10000,
                 enableHighAccuracy: true,
-                enableKalmanFilter: true, // Disabled by default
+                enableKalmanFilter: true,
                 kalmanConfig: {
                     enableIMUFusion: true,
                     imuUpdateInterval: 100,

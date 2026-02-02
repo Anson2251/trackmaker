@@ -24,6 +24,7 @@
                 "options": {
                     "auto": "自动",
                     "kalman": "卡尔曼滤波",
+                    "kalman-no-imu": "卡尔曼滤波（无 IMU）",
                     "gps": "GPS",
                     "ip": "IP 定位"
                 }
