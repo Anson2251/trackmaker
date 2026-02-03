@@ -1,4 +1,4 @@
-import { i as x, b as d, x as M } from "./index-I9jdBYUT.js";
+import { i as d, b as x, B as M } from "./index-GeDp9CIi.js";
 var I = /* @__PURE__ */ Symbol("i18n"), p = "";
 function v(e, t = "") {
   let l = /* @__PURE__ */ new Map(), a = /\s*\|\s*/g;
@@ -35,7 +35,7 @@ var y = { zh: () => 0, "zh-CN": () => 0, "zh-TW": () => 0, en: (e) => e === 1 ? 
   return t >= 2 && t <= 4 && (l < 10 || l >= 20) ? 1 : 2;
 }, ar: (e) => e === 0 ? 0 : e === 1 ? 1 : e === 2 ? 2 : e % 100 >= 3 && e % 100 <= 10 ? 3 : e % 100 >= 11 && e % 100 <= 99 ? 4 : 5 };
 function E(e) {
-  let t = d(e.locale), l = e.messages, a = e.fallbackLocale, f = Object.keys(l), c = v(l), i = z(e.customPluralRules), g = k(c);
+  let t = x(e.locale), l = e.messages, a = e.fallbackLocale, f = Object.keys(l), c = v(l), i = z(e.customPluralRules), g = k(c);
   function $(r, o) {
     let n = g.get(`${t.value}.${r}`) ?? g.get(`${a}.${r}`);
     if (!n || n.length === 0) return s(r);
@@ -65,7 +65,7 @@ function E(e) {
   } });
 }
 function N() {
-  let e = x(I);
+  let e = d(I);
   if (!e) throw new Error("I18n (nano) instance not found. Did you forget to install the i18n plugin?");
   return e;
 }
