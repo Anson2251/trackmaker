@@ -26,6 +26,7 @@ import {
   Route,
   FileText,
 } from "@vicons/tabler";
+import MarkdownViewer from "@/components/common/MarkdownViewer.vue";
 import { useSketchStore } from "@/store/sketch-store";
 import { CartoSketch } from "@/libs/cartosketch";
 import SketchEdit from "@/components/CartoSketch/SketchEdit.vue";
@@ -215,12 +216,10 @@ const theme = useThemeVars();
           </template>
 
           <div class="card-content">
-            <n-text
-              depth="3"
+            <MarkdownViewer
               class="description"
-            >
-              {{ sketch.meta.description || t("sketchCentreView.noDescription") }}
-            </n-text>
+              :source="sketch.meta.description || t('sketchCentreView.noDescription')"
+            />
 
             <div class="meta-info">
               <div class="meta-item">

@@ -141,8 +141,15 @@ const path = computed(() => {
 
 const uploadModelOpened = ref(false);
 
+// Get current route for color and other properties
+const currentRoute = computed(() => {
+  if (!routeStore.currentRouteId) return null;
+  return routeStore.routes.find((r) => r.id === routeStore.currentRouteId);
+});
+
 const geojsonSource = computed<any>(() => {
   if (path.value.length > 1 || path.value.length === 0) {
+    const route = currentRoute.value;
     return {
       type: "FeatureCollection",
       features: [
@@ -150,6 +157,8 @@ const geojsonSource = computed<any>(() => {
           type: "Feature",
           properties: {
             description: routeStore.currentRouteId,
+            strokeColor: route?.properties?.strokeColor || '#28a745',
+            strokeWidth: route?.properties?.strokeThickness || 3,
           },
           geometry: {
             type: "LineString",

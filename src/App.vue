@@ -8,6 +8,7 @@ import {
   NModalProvider,
   NConfigProvider,
   NGlobalStyle,
+  NLoadingBarProvider,
   NMessageProvider,
   useOsTheme,
 } from "naive-ui";
@@ -55,10 +56,12 @@ onMounted(() => settings.init());
   >
     <n-dialog-provider>
       <n-modal-provider>
-        <n-message-provider :placement="'bottom-right'">
-          <app-layout />
-          <n-global-style />
-        </n-message-provider>
+        <n-loading-bar-provider>
+          <n-message-provider :placement="'bottom-right'">
+            <app-layout />
+            <n-global-style />
+          </n-message-provider>
+        </n-loading-bar-provider>
       </n-modal-provider>
     </n-dialog-provider>
   </n-config-provider>

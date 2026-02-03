@@ -206,6 +206,7 @@
         "componentDeleteError": "组件删除失败",
         "propertiesUpdated": "属性更新成功",
         "propertiesUpdateError": "属性更新失败",
+        "metadataUpdated": "元数据更新成功",
         "createNewComponent": "创建新组件",
         "name": "名称",
         "enterComponentName": "输入组件名称",
@@ -264,7 +265,10 @@
         "switchSuccess": "已切换到 {sketch}",
         "createSuccess": "已创建 {sketch}",
         "newSketchName": "新草图",
-        "sketchDescriptionPlaceholder": "输入草图描述"
+        "sketchDescriptionPlaceholder": "输入草图描述",
+        "noSketchesAvailable": "暂无草图",
+        "createSketchToStart": "创建新草图以开始",
+        "deleteSketch": "删除草图"
     },
     "apiDetection": {
         "title": "Web API 检测",

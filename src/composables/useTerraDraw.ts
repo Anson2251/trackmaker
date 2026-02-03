@@ -638,6 +638,40 @@ export function createTerraDrawComposable(map: MglMap) {
         draftIdToFeatureId.value.clear();
     };
 
+    // Remove specific drafts from the map (without deleting from storage)
+    const removeDraftsFromMap = (draftIds: string[]) => {
+        if (!draw.value) return;
+
+        const featureIds: FeatureId[] = [];
+        for (const draftId of draftIds) {
+            const featureId = draftIdToFeatureId.value.get(draftId);
+            if (featureId) {
+                featureIds.push(featureId as FeatureId);
+            } else {
+                // Try using draft ID directly as feature ID
+                featureIds.push(draftId as FeatureId);
+            }
+        }
+
+        if (featureIds.length > 0) {
+            isProgrammaticChange.value = true;
+            try {
+                draw.value.removeFeatures(featureIds);
+            } finally {
+                isProgrammaticChange.value = false;
+            }
+
+            // Update mappings
+            for (const draftId of draftIds) {
+                const featureId = draftIdToFeatureId.value.get(draftId);
+                if (featureId) {
+                    featureToDraftId.value.delete(featureId);
+                    draftIdToFeatureId.value.delete(draftId);
+                }
+            }
+        }
+    };
+
     // Stop and cleanup
     const stop = () => {
         if (draw.value) {
@@ -667,6 +701,7 @@ export function createTerraDrawComposable(map: MglMap) {
         clearHistory,
         clearAll,
         loadDrafts,
+        removeDraftsFromMap,
         stop,
     };
 }

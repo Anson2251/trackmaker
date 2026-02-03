@@ -50,15 +50,7 @@ const buttonGroupItems = computed(() => [
 		secondary: true,
 		iconSize: 20,
 		type: "default"
-	},
-	{
-		title: t('sketchEdit.close'),
-		icon: Minus,
-		callback: () => { activeSelectorFlag.value = false; },
-		secondary: true,
-		iconSize: 20,
-		type: "error"
-	},
+	}
 ]);
 
 const activeSelectorFlag = ref(false);
@@ -90,8 +82,9 @@ const emit = defineEmits(['update:active', 'remove', 'select', 'import']);
     :width="drawerWidth"
     :placement="drawerSelectorPlacement"
     :auto-focus="false"
+    mask-closable
   >
-    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary')">
+    <n-drawer-content :title="t('sketchEdit.cartoSketchLibrary')" closable>
       <template #footer>
         <n-button-group>
           <n-button

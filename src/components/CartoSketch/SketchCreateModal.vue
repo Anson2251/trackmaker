@@ -3,12 +3,12 @@ import { ref } from "vue";
 import { useI18n } from "nano-vue-i18n";
 import {
   NModal,
-  NInput,
   NForm,
   NFormItem,
   NSpace,
   NButton,
 } from "naive-ui";
+import MarkdownEditor from "@/components/common/MarkdownEditor.vue";
 import { useSketchStore } from "@/store/sketch-store";
 
 const { t } = useI18n();
@@ -74,11 +74,11 @@ const createNewSketch = async () => {
         />
       </n-form-item>
       <n-form-item :label="t('sketchCentreView.sketchDescription')">
-        <n-input
-          v-model:value="newSketchDescription"
-          type="textarea"
+        <MarkdownEditor
+          v-model="newSketchDescription"
           :placeholder="t('sketchCentreView.sketchDescriptionPlaceholder')"
-          :autosize="{ minRows: 3, maxRows: 5 }"
+          :min-height="'80px'"
+          :max-height="'200px'"
         />
       </n-form-item>
     </n-form>

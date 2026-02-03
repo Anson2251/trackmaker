@@ -39,7 +39,8 @@ export const useSketchStore = defineStore('sketches', () => {
             id: route.id,
             name: route.name,
             points: route.getPoints(),
-            meta: route.meta
+            meta: route.meta,
+            properties: route.properties
         }));
     });
 
@@ -253,6 +254,9 @@ export const useSketchStore = defineStore('sketches', () => {
             currentRouteId.value = null;
         }
 
+        // Invalidate the route cache
+        CombinedRouteReaderInstance.invalidateCache(id);
+
         await storageSet('sketches', sketches.value.map(s => s.toStorage()));
         await storageSave();
     }
@@ -318,6 +322,9 @@ export const useSketchStore = defineStore('sketches', () => {
         }
 
         route.meta.modification_timestamp = Date.now();
+
+        // Invalidate the route cache so updates are immediately visible
+        CombinedRouteReaderInstance.invalidateCache(id);
 
         await storageSet('sketches', sketches.value.map(s => s.toStorage()));
         await storageSave();

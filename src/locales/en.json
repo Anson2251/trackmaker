@@ -206,6 +206,7 @@
         "componentDeleteError": "Failed to delete component",
         "propertiesUpdated": "Properties updated successfully",
         "propertiesUpdateError": "Failed to update properties",
+        "metadataUpdated": "Metadata updated successfully",
         "createNewComponent": "Create New Component",
         "name": "Name",
         "enterComponentName": "Enter component name",
@@ -264,7 +265,10 @@
         "switchSuccess": "Switched to {sketch}",
         "createSuccess": "Created {sketch}",
         "newSketchName": "New Sketch",
-        "sketchDescriptionPlaceholder": "Enter sketch description"
+        "sketchDescriptionPlaceholder": "Enter sketch description",
+        "noSketchesAvailable": "No sketches available",
+        "createSketchToStart": "Create a new sketch to get started",
+        "deleteSketch": "Delete sketch"
     },
     "apiDetection": {
         "title": "Web API Detection",

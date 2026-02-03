@@ -199,8 +199,8 @@ defineExpose({
           'line-cap': 'round',
         }"
         :paint="{
-          'line-width': 5,
-          'line-gradient': [
+          'line-width': ['coalesce', ['get', 'strokeWidth'], 5],
+          'line-color': ['coalesce', ['get', 'strokeColor'], [
             'interpolate',
             ['linear'],
             ['line-progress'],
@@ -208,7 +208,7 @@ defineExpose({
             0.7, '#00DD00',
             0.9, '#00BB00',
             1, '#008800'
-          ],
+          ]],
           'line-opacity': 0.8,
         }"
       />

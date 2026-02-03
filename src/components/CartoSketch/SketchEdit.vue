@@ -1,15 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, inject } from "vue";
+import {
+  ref,
+  onMounted,
+  computed,
+  watch,
+  inject,
+  shallowRef,
+  nextTick,
+} from "vue";
 import { useI18n } from "nano-vue-i18n";
 import {
   MglMap,
   MglNavigationControl,
   MglScaleControl,
-  MglFullscreenControl,
+  MglGeoJsonSource,
+  MglLineLayer,
+  MglFillLayer,
 } from "@indoorequal/vue-maplibre-gl";
+import type { Map as MglMapType } from "maplibre-gl";
 import {
   NText,
-  NTag,
   NIcon,
   NInput,
   NCard,
@@ -23,9 +33,11 @@ import {
   NSelect,
   NLayoutContent,
   NLayoutFooter,
+  NSkeleton,
+  NDynamicTags,
 } from "naive-ui";
 import { Map, Plus, List, Settings, InfoCircle } from "@vicons/tabler";
-import { computedAsync, useWindowSize } from "@vueuse/core";
+import { useWindowSize, useMagicKeys, whenever } from "@vueuse/core";
 
 import SelectorDrawer from "./SelectorDrawer.vue";
 import SketchToolbar from "./SketchToolbar.vue";
@@ -39,11 +51,14 @@ import {
   getDefaultDraftShape,
   getDefaultDraftProperties,
   getDefaultRouteProperties,
+  getComponentBounds,
 } from "@/utils/sketchHelpers";
 import type {
   GeographicDraftItemProperties,
   GeographicRouteItemProperties,
+  GeographicDraftItemType,
 } from "@/libs/cartosketch/definitions";
+import type { CartoSketchRouteItem } from "@/libs/cartosketch/route";
 import { debounce } from "lodash-es";
 import type { GeolocationManager } from "@/libs/geolocation";
 
@@ -61,14 +76,22 @@ const mapCenter = ref(locator.getLastKnownLocation().toLngLatLike());
 const { t } = useI18n();
 const message = useMessage();
 const sketchStore = useSketchStore();
-const { zoom, styleUrl, initMap } = useSketchMap();
+const { zoom, styleUrl, initMap, fitBounds } = useSketchMap();
 
-// Mobile detection
-const { width, height } = useWindowSize();
+// Mobile detection with better breakpoints
+const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 768);
+const isTablet = computed(() => width.value >= 768 && width.value < 1024);
 
-// Mobile tab navigation
+// Mobile tab navigation with animation
 const activeMobileTab = ref<"components" | "map" | "properties">("components");
+
+// Keyboard shortcuts using useMagicKeys
+const { escape } = useMagicKeys();
+
+// Loading states
+const isLoading = ref(false);
+const isCreating = ref(false);
 
 // State management
 const activeSelector = ref(false);
@@ -85,57 +108,109 @@ const metaForm = ref({
   created_by: "",
   modified_by: "",
 });
-const newTag = ref("");
-
-// Computed properties
+// Computed properties with better memoization
 const currentSketch = computed(() => sketchStore.currentSketch);
 const currentDrafts = computed(() => sketchStore.currentDrafts);
 const currentRoutes = computed(() => currentSketch.value?.routes.routes || []);
 const hasSelection = computed(() => !!currentSketch.value);
 
-const selectedComponent = computedAsync(async () => {
+// Optimized component selection with shallow comparison
+const selectedComponent = computed(() => {
   if (!selectedComponentId.value || !selectedComponentType.value) return null;
 
   if (selectedComponentType.value === "draft") {
-    return await sketchStore.getDraftById(selectedComponentId.value);
+    return currentDrafts.value.find((d) => d.id === selectedComponentId.value) || null;
   } else {
-    return await sketchStore.getRouteById(selectedComponentId.value);
+    return currentRoutes.value.find((r) => r.id === selectedComponentId.value) || null;
   }
 });
 
-// const infoPropertyUpdated = debounce(() => message.success(t("sketchEdit.propertiesUpdated")), 1000)
+// Map reference - use shallowRef for better performance
+const mapRef = shallowRef<MglMapType | null>(null);
+
+// Memoized empty GeoJSON to prevent unnecessary re-renders
+const emptyGeoJSON = { type: "FeatureCollection" as const, features: [] };
+
+// Optimized GeoJSON computation with caching
+const selectedRouteGeoJSON = computed(() => {
+  if (!selectedComponentId.value || selectedComponentType.value !== "route") {
+    return emptyGeoJSON;
+  }
+
+  const route = currentRoutes.value.find((r) => r.id === selectedComponentId.value);
+  if (!route || route.points.length < 2) {
+    return emptyGeoJSON;
+  }
+
+  return {
+    type: "FeatureCollection" as const,
+    features: [
+      {
+        type: "Feature" as const,
+        properties: {
+          id: route.id,
+          name: route.meta.name,
+          strokeColor: route.properties.strokeColor || "#28a745",
+          strokeWidth: route.properties.strokeThickness || 3,
+        },
+        geometry: {
+          type: "LineString" as const,
+          coordinates: route.points.map((p) => [p.longitude, p.latitude]),
+        },
+      },
+    ],
+  };
+});
+
+const selectedDraftGeoJSON = computed(() => {
+  if (!selectedComponentId.value || selectedComponentType.value !== "draft") {
+    return emptyGeoJSON;
+  }
+
+  const draft = currentDrafts.value.find((d) => d.id === selectedComponentId.value);
+  if (!draft) {
+    return emptyGeoJSON;
+  }
+
+  return {
+    type: "FeatureCollection" as const,
+    features: [
+      {
+        type: "Feature" as const,
+        properties: {
+          id: draft.id,
+          name: draft.meta.name,
+          fillColor: draft.properties.fillColor || "#007bff",
+          strokeColor: draft.properties.strokeColor || "#0056b3",
+          strokeWidth: draft.properties.strokeThickness || 2,
+        },
+        geometry: draft.shape as any,
+      },
+    ],
+  };
+});
+
+// Debounced success message for property updates
+const showPropertyUpdateSuccess = debounce(() => {
+  message.success(t("sketchEdit.propertiesUpdated"));
+}, 1000, { leading: false, trailing: true });
 
 const componentOptions = computed(() => {
   return createComponentOptions(currentDrafts.value, currentRoutes.value);
 });
 
-// Sketch management
-async function saveSketch() {
-  if (!currentSketch.value) return;
+// Keyboard shortcuts
+whenever(escape, () => {
+  if (showCreateModal.value) showCreateModal.value = false;
+  if (showMetaModal.value) showMetaModal.value = false;
+  if (activeSelector.value) activeSelector.value = false;
+});
 
-  try {
-    await sketchStore.updateSketch(currentSketch.value.id, {
-      name: currentSketch.value.meta.name,
-      description: currentSketch.value.meta.description,
-      tags: currentSketch.value.meta.tags,
-    });
-  } catch (error) {
-    message.error(t("sketchEdit.saveError"));
-    console.error(error);
-  }
-}
-
-async function newSketch() {
-  const name = prompt(t("sketchEdit.enterSketchName"));
-  if (name) {
-    await sketchStore.createSketch(name);
-    activeSelector.value = false;
-  }
-}
-
-// Component management
+// Component management with loading states
 async function createComponent() {
-  if (!newComponentName.value.trim() || !currentSketch.value) return;
+  if (!newComponentName.value.trim() || !currentSketch.value || isCreating.value) return;
+
+  isCreating.value = true;
 
   try {
     if (newComponentType.value === "draft") {
@@ -158,9 +233,16 @@ async function createComponent() {
     showCreateModal.value = false;
     newComponentName.value = "";
     message.success(t("sketchEdit.componentCreated"));
+
+    // On mobile, switch to properties tab after creation
+    if (isMobile.value) {
+      activeMobileTab.value = "properties";
+    }
   } catch (error) {
     message.error(t("sketchEdit.componentCreateError"));
     console.error(error);
+  } finally {
+    isCreating.value = false;
   }
 }
 
@@ -195,7 +277,7 @@ const updateComponentProperties = async (
     } else {
       await sketchStore.updateRoute(selectedComponentId.value!, { properties });
     }
-    // infoPropertyUpdated()
+    showPropertyUpdateSuccess();
   } catch (error) {
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
@@ -215,7 +297,7 @@ const updateComponentMeta = async (meta: {
     } else {
       await sketchStore.updateRoute(selectedComponentId.value!, { meta });
     }
-    // infoPropertyUpdated()
+    message.success(t("sketchEdit.metadataUpdated"));
   } catch (error) {
     message.error(t("sketchEdit.propertiesUpdateError"));
     console.error(error);
@@ -236,20 +318,6 @@ function openMetaModal() {
   showMetaModal.value = true;
 }
 
-function addTag() {
-  if (
-    newTag.value.trim() &&
-    !metaForm.value.tags.includes(newTag.value.trim())
-  ) {
-    metaForm.value.tags.push(newTag.value.trim());
-    newTag.value = "";
-  }
-}
-
-function removeTag(tag: string) {
-  metaForm.value.tags = metaForm.value.tags.filter((t) => t !== tag);
-}
-
 async function updateSketchMeta() {
   if (!currentSketch.value) return;
 
@@ -260,9 +328,23 @@ async function updateSketchMeta() {
       tags: metaForm.value.tags,
     });
     showMetaModal.value = false;
+    message.success(t("sketchEdit.metadataUpdated"));
   } catch (error) {
     message.error(t("sketchEdit.saveError"));
     console.error(error);
+  }
+}
+
+// Component selection handler
+function handleComponentSelect(id: string, type: "draft" | "route") {
+  selectedComponentId.value = id;
+  selectedComponentType.value = type;
+
+  // On mobile, auto-switch to properties tab when selecting a component
+  if (isMobile.value) {
+    nextTick(() => {
+      activeMobileTab.value = "properties";
+    });
   }
 }
 
@@ -284,9 +366,43 @@ watch(
   }
 );
 
+// Map initialization handler
+function handleMapInit(event: { map: MglMapType }) {
+  const map = event.map;
+  mapRef.value = map;
+  initMap(event);
+}
+
+// Watch for component selection changes to fit bounds with debounce
+const fitBoundsDebounced = debounce((component: GeographicDraftItemType | CartoSketchRouteItem) => {
+  const bounds = getComponentBounds(component as any);
+  if (bounds) {
+    fitBounds(bounds, { padding: 50, duration: 500 });
+  }
+}, 300);
+
+watch(
+  selectedComponent,
+  (newComponent) => {
+    if (newComponent) {
+      fitBoundsDebounced(newComponent as any);
+    }
+  },
+  { immediate: false }
+);
+
+// Utility functions
 const getTimeStr = (stamp: number) => {
   return new Date(stamp).toLocaleString();
 };
+
+// Reset create modal state when closing
+watch(showCreateModal, (newValue) => {
+  if (!newValue) {
+    newComponentName.value = "";
+    newComponentType.value = "draft";
+  }
+});
 </script>
 
 <template>
@@ -310,16 +426,22 @@ const getTimeStr = (stamp: number) => {
     v-model:show="showCreateModal"
     preset="dialog"
     :title="t('sketchEdit.createNewComponent')"
+    :closable="true"
+    :mask-closable="true"
+    :auto-focus="true"
+    @after-leave="newComponentName = ''; newComponentType = 'draft'"
   >
-    <n-form>
-      <div style="display: flex; flex-direction: row; gap: 8px">
-        <n-formItem :label="t('sketchEdit.name')" style="flex-grow: 1">
+    <n-form @submit.prevent="createComponent">
+      <div class="modal-form-row">
+        <n-formItem :label="t('sketchEdit.name')" class="form-item-grow">
           <n-input
             v-model:value="newComponentName"
             :placeholder="t('sketchEdit.enterComponentName')"
+            :autofocus="true"
+            @keydown.enter.prevent="createComponent"
           />
         </n-formItem>
-        <n-form-item :label="t('sketchEdit.type')">
+        <n-form-item :label="t('sketchEdit.type')" class="form-item-shrink">
           <n-select
             v-model:value="newComponentType"
             :consistent-menu-width="false"
@@ -335,13 +457,14 @@ const getTimeStr = (stamp: number) => {
       <n-button @click="showCreateModal = false">
         {{ t("sketchEdit.cancel") }}
       </n-button>
-      <NButton
+      <n-button
         type="primary"
-        :disabled="!newComponentName.trim()"
+        :disabled="!newComponentName.trim() || isCreating"
+        :loading="isCreating"
         @click="createComponent"
       >
         {{ t("sketchEdit.create") }}
-      </NButton>
+      </n-button>
     </template>
   </n-modal>
 
@@ -350,8 +473,9 @@ const getTimeStr = (stamp: number) => {
     v-model:show="showMetaModal"
     preset="dialog"
     :title="t('sketchEdit.editMetadata')"
-    style="max-width: 600px"
-    @close="updateSketchMeta"
+    class="metadata-modal"
+    :auto-focus="true"
+    @after-leave="updateSketchMeta"
   >
     <n-form>
       <n-form-item :label="t('sketchEdit.name')">
@@ -371,33 +495,9 @@ const getTimeStr = (stamp: number) => {
       </n-form-item>
 
       <n-form-item :label="t('sketchEdit.tags')">
-        <div style="display: flex; flex-direction: column; width: 100%;">
-          <div style="display: flex; gap: 8px; margin-bottom: 8px">
-            <n-input
-              v-model:value="newTag"
-              :placeholder="t('sketchEdit.addTagPlaceholder')"
-              @keydown.enter.prevent="addTag"
-            />
-            <n-button @click="addTag">
-              {{ t("sketchEdit.add") }}
-            </n-button>
-          </div>
-          <div style="display: flex">
-            <n-tag
-              v-for="tag in metaForm.tags"
-              :key="tag"
-              closable
-              style="margin-right: 8px; margin-bottom: 8px"
-              @close="removeTag(tag)"
-            >
-              {{ tag }}
-            </n-tag>
-          </div>
-        </div>
-        <n-empty
-          v-if="metaForm.tags.length === 0"
-          :description="t('sketchEdit.noTags')"
-          size="small"
+        <n-dynamic-tags
+          v-model:value="metaForm.tags"
+          :placeholder="t('sketchEdit.addTagPlaceholder')"
         />
       </n-form-item>
     </n-form>
@@ -425,7 +525,6 @@ const getTimeStr = (stamp: number) => {
             :sketch-name="currentSketch?.meta.name"
             :draft-count="currentDrafts.length"
             :route-count="currentRoutes.length"
-            @save="saveSketch"
             @open="activeSelector = true"
             @create="showCreateModal = true"
             @edit-meta="openMetaModal"
@@ -433,37 +532,44 @@ const getTimeStr = (stamp: number) => {
         </n-card>
       </div>
 
-      <!-- Bottom Row Split -->
+      <!-- Loading State -->
+      <div v-if="isLoading" class="loading-overlay">
+        <n-skeleton text :repeat="3" />
+        <n-skeleton text style="width: 60%" />
+      </div>
+
+      <!-- Main Content -->
       <n-split
+        v-else
         direction="horizontal"
         :max="0.8"
         :min="0.2"
-        :default-size="0.5"
+        :default-size="isTablet ? 0.4 : 0.5"
         class="bottom-row-split"
       >
-        <!-- Map Section (Bottom Left) -->
+        <!-- Left Panel: Component List & Map -->
         <template #1>
-          <n-split style="height: 100%" direction="vertical">
+          <n-split style="height: 100%" direction="vertical" :default-size="0.4">
+            <!-- Component List -->
             <template #1>
               <n-card
-                style="height: 100%"
+                class="component-list-card"
                 :title="t('sketchEdit.components')"
-                content-style="min-height: 0; overflow-y: auto;"
               >
                 <component-list
                   :components="componentOptions"
                   :selected-id="selectedComponentId"
-                  @select="
-                    (id, type) => {
-                      selectedComponentId = id;
-                      selectedComponentType = type;
-                    }
-                  "
+                  @select="handleComponentSelect"
                   @delete="deleteComponent"
                   @create="showCreateModal = true"
                 />
                 <template #header-extra>
-                  <n-button quaternary circle @click="showCreateModal = true">
+                  <n-button
+                    quaternary
+                    circle
+                    @click="showCreateModal = true"
+                    :aria-label="t('sketchEdit.createNewComponent')"
+                  >
                     <template #icon>
                       <plus />
                     </template>
@@ -471,28 +577,68 @@ const getTimeStr = (stamp: number) => {
                 </template>
               </n-card>
             </template>
+
+            <!-- Map -->
             <template #2>
-              <n-card class="map-container" content-style="padding: 0;">
+              <n-card class="map-container" :bordered="false">
                 <mgl-map
                   :map-style="styleUrl"
                   :center="mapCenter"
                   :zoom="zoom"
                   height="100%"
-                  @map:load="initMap"
+                  @map:load="handleMapInit"
                 >
                   <mgl-navigation-control position="top-left" />
                   <mgl-scale-control position="bottom-left" />
-                  <mgl-fullscreen-control position="top-left" />
+
+                  <!-- Selected Route Layer -->
+                  <mgl-geo-json-source
+                    source-id="selected-route"
+                    :data="selectedRouteGeoJSON"
+                  >
+                    <mgl-line-layer
+                      layer-id="selected-route-layer"
+                      :paint="{
+                        'line-color': ['get', 'strokeColor'],
+                        'line-width': ['get', 'strokeWidth'],
+                        'line-opacity': 1,
+                      }"
+                    />
+                  </mgl-geo-json-source>
+
+                  <!-- Selected Draft Layer -->
+                  <mgl-geo-json-source
+                    source-id="selected-draft"
+                    :data="selectedDraftGeoJSON"
+                  >
+                    <mgl-fill-layer
+                      layer-id="selected-draft-fill"
+                      :filter="['==', ['get', 'type'], 'Polygon']"
+                      :paint="{
+                        'fill-color': ['get', 'fillColor'],
+                        'fill-opacity': 0.3,
+                      }"
+                    />
+                    <mgl-line-layer
+                      layer-id="selected-draft-line"
+                      :paint="{
+                        'line-color': ['get', 'strokeColor'],
+                        'line-width': ['get', 'strokeWidth'],
+                        'line-opacity': 1,
+                      }"
+                    />
+                  </mgl-geo-json-source>
                 </mgl-map>
               </n-card>
             </template>
           </n-split>
 
+          <!-- Empty State -->
           <n-empty
             v-if="!hasSelection"
             :description="t('sketchEdit.noSketchSelected')"
             size="huge"
-            style="height: 100%; justify-content: center"
+            class="full-empty-state"
           >
             <template #icon>
               <n-icon>
@@ -500,46 +646,35 @@ const getTimeStr = (stamp: number) => {
               </n-icon>
             </template>
             <template #extra>
-              <n-button size="small" @click="activeSelector = true">
+              <n-button type="primary" @click="activeSelector = true">
                 {{ t("sketchEdit.selectSketch") }}
               </n-button>
             </template>
           </n-empty>
         </template>
 
-        <!-- Component List and Info Section (Bottom Right) -->
+        <!-- Right Panel: Properties -->
         <template #2>
-          <n-card
-            class="component-info-container"
-            content-style="min-height: 0; overflow: auto;"
-          >
+          <n-card class="component-info-container">
             <PropertiesPanel
               :component="(selectedComponent as any)"
               :type="selectedComponentType"
               @update-properties="updateComponentProperties"
               @update-meta="updateComponentMeta"
             />
-            <template #footer>
-              <n-text v-if="selectedComponent" depth="3" class="metadata">
+            <template #footer v-if="selectedComponent">
+              <n-text depth="3" class="metadata">
                 <div class="metadata-item">
-                  {{
-                    t("sketchEdit.createdTimeBy", {
-                      user: selectedComponent.meta.created_by,
-                      time: getTimeStr(
-                        selectedComponent.meta.creation_timestamp
-                      ),
-                    })
-                  }}
+                  {{ t("sketchEdit.createdTimeBy", {
+                    user: selectedComponent.meta.created_by,
+                    time: getTimeStr(selectedComponent.meta.creation_timestamp)
+                  }) }}
                 </div>
                 <div class="metadata-item">
-                  {{
-                    t("sketchEdit.modifiedTimeBy", {
-                      user: selectedComponent.meta.modified_by,
-                      time: getTimeStr(
-                        selectedComponent.meta.modification_timestamp
-                      ),
-                    })
-                  }}
+                  {{ t("sketchEdit.modifiedTimeBy", {
+                    user: selectedComponent.meta.modified_by,
+                    time: getTimeStr(selectedComponent.meta.modification_timestamp)
+                  }) }}
                 </div>
               </n-text>
             </template>
@@ -557,7 +692,6 @@ const getTimeStr = (stamp: number) => {
         :sketch-name="currentSketch?.meta.name"
         :draft-count="currentDrafts.length"
         :route-count="currentRoutes.length"
-        @save="saveSketch"
         @open="activeSelector = true"
         @create="showCreateModal = true"
         @edit-meta="openMetaModal"
@@ -568,165 +702,189 @@ const getTimeStr = (stamp: number) => {
     <div class="mobile-content">
       <n-layout-content>
         <!-- Components Tab -->
-        <div v-if="activeMobileTab === 'components'" class="mobile-tab-content">
-          <n-card
-            v-if="hasSelection"
-            :title="t('sketchEdit.components')"
-            content-style="min-height: 0; overflow-y: auto;"
-            style="height: 100%"
-          >
-            <component-list
-              :components="componentOptions"
-              :selected-id="selectedComponentId"
-              @select="
-                (id, type) => {
-                  selectedComponentId = id;
-                  selectedComponentType = type;
-                  activeMobileTab = 'properties';
-                }
-              "
-              @delete="deleteComponent"
-              @create="showCreateModal = true"
-            />
-            <template #header-extra>
-              <n-button
-                quaternary
-                circle
-                size="small"
-                @click="showCreateModal = true"
-              >
-                <template #icon>
-                  <plus />
-                </template>
-              </n-button>
-            </template>
-          </n-card>
-          <n-empty
-            v-else
-            :description="t('sketchEdit.noSketchSelected')"
-            size="huge"
-            style="height: 100%; justify-content: center"
-          >
-            <template #icon>
-              <n-icon>
-                <Map />
-              </n-icon>
-            </template>
-            <template #extra>
-              <n-button size="small" @click="activeSelector = true">
-                {{ t("sketchEdit.selectSketch") }}
-              </n-button>
-            </template>
-          </n-empty>
-        </div>
-
-        <!-- Map Tab -->
-        <div
-          v-if="activeMobileTab === 'map'"
-          class="mobile-tab-content mobile-map-content"
-        >
-          <n-card
-            v-if="hasSelection"
-            class="map-container"
-            content-style="padding: 0;"
-          >
-            <mgl-map
-              :map-style="styleUrl"
-              :center="mapCenter"
-              :zoom="zoom"
-              height="100%"
-              @map:load="initMap"
+        <transition name="fade" mode="out-in">
+          <div v-if="activeMobileTab === 'components'" key="components" class="mobile-tab-content">
+            <n-card
+              v-if="hasSelection"
+              :title="t('sketchEdit.components')"
+              class="mobile-card"
             >
-              <mgl-navigation-control position="top-left" />
-              <mgl-scale-control position="bottom-left" />
-              <mgl-fullscreen-control position="top-left" />
-            </mgl-map>
-          </n-card>
-          <n-empty
-            v-else
-            :description="t('sketchEdit.noSketchSelected')"
-            size="huge"
-            style="height: 100%; justify-content: center"
-          >
-            <template #icon>
-              <n-icon>
-                <Map />
-              </n-icon>
-            </template>
-            <template #extra>
-              <n-button size="small" @click="activeSelector = true">
-                {{ t("sketchEdit.selectSketch") }}
-              </n-button>
-            </template>
-          </n-empty>
-        </div>
+              <component-list
+                :components="componentOptions"
+                :selected-id="selectedComponentId"
+                @select="handleComponentSelect"
+                @delete="deleteComponent"
+                @create="showCreateModal = true"
+              />
+              <template #header-extra>
+                <n-button
+                  quaternary
+                  circle
+                  size="small"
+                  @click="showCreateModal = true"
+                  :aria-label="t('sketchEdit.createNewComponent')"
+                >
+                  <template #icon>
+                    <plus />
+                  </template>
+                </n-button>
+              </template>
+            </n-card>
+            <n-empty
+              v-else
+              :description="t('sketchEdit.noSketchSelected')"
+              size="huge"
+              class="full-empty-state"
+            >
+              <template #icon>
+                <n-icon>
+                  <Map />
+                </n-icon>
+              </template>
+              <template #extra>
+                <n-button type="primary" @click="activeSelector = true">
+                  {{ t("sketchEdit.selectSketch") }}
+                </n-button>
+              </template>
+            </n-empty>
+          </div>
 
-        <!-- Properties Tab -->
-        <div v-if="activeMobileTab === 'properties'" class="mobile-tab-content">
-          <n-card
-            v-if="selectedComponent"
-            class="component-info-container"
-            content-style="min-height: 0; overflow: auto;"
-          >
-            <PropertiesPanel
-              :component="(selectedComponent as any)"
-              :type="selectedComponentType"
-              @update-properties="updateComponentProperties"
-              @update-meta="updateComponentMeta"
-            />
-            <template #footer>
-              <n-text depth="3" class="metadata">
-                <div class="metadata-item">
-                  {{
-                    t("sketchEdit.createdTimeBy", {
+          <!-- Map Tab -->
+          <div v-else-if="activeMobileTab === 'map'" key="map" class="mobile-tab-content mobile-map-content">
+            <n-card
+              v-if="hasSelection"
+              class="map-container mobile-map"
+              :bordered="false"
+            >
+              <mgl-map
+                :map-style="styleUrl"
+                :center="mapCenter"
+                :zoom="zoom"
+                height="100%"
+                @map:load="handleMapInit"
+              >
+                <mgl-navigation-control position="top-left" />
+                <mgl-scale-control position="bottom-left" />
+                <mgl-fullscreen-control position="top-left" />
+
+                <mgl-geo-json-source
+                  source-id="selected-route"
+                  :data="selectedRouteGeoJSON"
+                >
+                  <mgl-line-layer
+                    layer-id="selected-route-layer"
+                    :paint="{
+                      'line-color': ['get', 'strokeColor'],
+                      'line-width': ['get', 'strokeWidth'],
+                      'line-opacity': 1,
+                    }"
+                  />
+                </mgl-geo-json-source>
+
+                <mgl-geo-json-source
+                  source-id="selected-draft"
+                  :data="selectedDraftGeoJSON"
+                >
+                  <mgl-fill-layer
+                    layer-id="selected-draft-fill"
+                    :filter="['==', ['get', 'type'], 'Polygon']"
+                    :paint="{
+                      'fill-color': ['get', 'fillColor'],
+                      'fill-opacity': 0.3,
+                    }"
+                  />
+                  <mgl-line-layer
+                    layer-id="selected-draft-line"
+                    :paint="{
+                      'line-color': ['get', 'strokeColor'],
+                      'line-width': ['get', 'strokeWidth'],
+                      'line-opacity': 1,
+                    }"
+                  />
+                </mgl-geo-json-source>
+              </mgl-map>
+            </n-card>
+            <n-empty
+              v-else
+              :description="t('sketchEdit.noSketchSelected')"
+              size="huge"
+              class="full-empty-state"
+            >
+              <template #icon>
+                <n-icon>
+                  <Map />
+                </n-icon>
+              </template>
+              <template #extra>
+                <n-button type="primary" @click="activeSelector = true">
+                  {{ t("sketchEdit.selectSketch") }}
+                </n-button>
+              </template>
+            </n-empty>
+          </div>
+
+          <!-- Properties Tab -->
+          <div v-else-if="activeMobileTab === 'properties'" key="properties" class="mobile-tab-content">
+            <n-card
+              v-if="selectedComponent"
+              class="component-info-container mobile-card"
+            >
+              <PropertiesPanel
+                :component="(selectedComponent as any)"
+                :type="selectedComponentType"
+                @update-properties="updateComponentProperties"
+                @update-meta="updateComponentMeta"
+              />
+              <template #footer>
+                <n-text depth="3" class="metadata">
+                  <div class="metadata-item">
+                    {{ t("sketchEdit.createdTimeBy", {
                       user: selectedComponent.meta.created_by,
-                      time: getTimeStr(
-                        selectedComponent.meta.creation_timestamp
-                      ),
-                    })
-                  }}
-                </div>
-                <div class="metadata-item">
-                  {{
-                    t("sketchEdit.modifiedTimeBy", {
+                      time: getTimeStr(selectedComponent.meta.creation_timestamp)
+                    }) }}
+                  </div>
+                  <div class="metadata-item">
+                    {{ t("sketchEdit.modifiedTimeBy", {
                       user: selectedComponent.meta.modified_by,
-                      time: getTimeStr(
-                        selectedComponent.meta.modification_timestamp
-                      ),
-                    })
-                  }}
-                </div>
-              </n-text>
-            </template>
-          </n-card>
-          <n-empty
-            v-else
-            :description="t('sketchEdit.noComponentSelected')"
-            size="huge"
-            style="height: 100%; justify-content: center"
-          >
-            <template #icon>
-              <n-icon>
-                <InfoCircle />
-              </n-icon>
-            </template>
-            <template #extra>
-              <n-button size="small" @click="activeMobileTab = 'components'">
-                {{ t("sketchEdit.selectComponent") }}
-              </n-button>
-            </template>
-          </n-empty>
-        </div>
+                      time: getTimeStr(selectedComponent.meta.modification_timestamp)
+                    }) }}
+                  </div>
+                </n-text>
+              </template>
+            </n-card>
+            <n-empty
+              v-else
+              :description="t('sketchEdit.noComponentSelected')"
+              size="huge"
+              class="full-empty-state"
+            >
+              <template #icon>
+                <n-icon>
+                  <InfoCircle />
+                </n-icon>
+              </template>
+              <template #extra>
+                <n-button @click="activeMobileTab = 'components'">
+                  {{ t("sketchEdit.selectComponent") }}
+                </n-button>
+              </template>
+            </n-empty>
+          </div>
+        </transition>
       </n-layout-content>
     </div>
 
     <!-- Mobile Bottom Navigation -->
     <n-layout-footer v-if="hasSelection" class="mobile-footer">
-      <div class="mobile-tab-bar">
+      <div class="mobile-tab-bar" role="tablist" aria-label="Mobile navigation">
         <n-button
           :type="activeMobileTab === 'components' ? 'primary' : 'default'"
-          quaternary
+          :quaternary="activeMobileTab !== 'components'"
           size="large"
+          class="tab-button"
+          role="tab"
+          :aria-selected="activeMobileTab === 'components'"
+          :aria-label="t('sketchEdit.components')"
           @click="activeMobileTab = 'components'"
         >
           <template #icon>
@@ -738,8 +896,12 @@ const getTimeStr = (stamp: number) => {
         </n-button>
         <n-button
           :type="activeMobileTab === 'map' ? 'primary' : 'default'"
-          quaternary
+          :quaternary="activeMobileTab !== 'map'"
           size="large"
+          class="tab-button"
+          role="tab"
+          :aria-selected="activeMobileTab === 'map'"
+          :aria-label="t('sketchEdit.map')"
           @click="activeMobileTab = 'map'"
         >
           <template #icon>
@@ -751,8 +913,12 @@ const getTimeStr = (stamp: number) => {
         </n-button>
         <n-button
           :type="activeMobileTab === 'properties' ? 'primary' : 'default'"
-          quaternary
+          :quaternary="activeMobileTab !== 'properties'"
           size="large"
+          class="tab-button"
+          role="tab"
+          :aria-selected="activeMobileTab === 'properties'"
+          :aria-label="t('sketchEdit.properties')"
           @click="activeMobileTab = 'properties'"
         >
           <template #icon>
@@ -787,8 +953,8 @@ const getTimeStr = (stamp: number) => {
   grid-template-rows: auto 1fr;
   height: 100%;
   width: 100%;
-  gap: 8px;
-  padding: 8px;
+  gap: 12px;
+  padding: 12px;
   box-sizing: border-box;
 }
 
@@ -800,6 +966,17 @@ const getTimeStr = (stamp: number) => {
   min-height: 0;
 }
 
+/* Loading overlay */
+.loading-overlay {
+  grid-column: 1 / 3;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+  gap: 12px;
+}
+
 /* Bottom Row Split */
 .bottom-row-split {
   grid-column: 1 / 3;
@@ -807,6 +984,20 @@ const getTimeStr = (stamp: number) => {
   height: 100%;
   width: 100%;
   min-height: 0;
+}
+
+/* Component List Card */
+.component-list-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.component-list-card :deep(.n-card__content) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
 }
 
 /* Map Container */
@@ -817,9 +1008,63 @@ const getTimeStr = (stamp: number) => {
   overflow: hidden;
 }
 
+.map-container :deep(.n-card__content) {
+  padding: 0;
+  height: 100%;
+}
+
+/* Component Info Container */
 .component-info-container {
   overflow-y: auto;
   height: 100%;
+}
+
+.component-info-container :deep(.n-card__content) {
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Full empty state */
+.full-empty-state {
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal styles */
+.metadata-modal {
+  max-width: 600px;
+}
+
+.modal-form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.form-item-grow {
+  flex-grow: 1;
+}
+
+.form-item-shrink {
+  flex-shrink: 0;
+}
+
+/* Metadata */
+.metadata {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.metadata-item {
+  margin-bottom: 8px;
+}
+
+.metadata-item:last-child {
+  margin-bottom: 0;
 }
 
 /* Mobile Layout */
@@ -833,6 +1078,8 @@ const getTimeStr = (stamp: number) => {
 .mobile-header {
   flex-shrink: 0;
   padding: 12px 16px;
+  border-bottom: 1px solid var(--n-border-color);
+  background: var(--n-card-color);
 }
 
 .mobile-content {
@@ -846,18 +1093,37 @@ const getTimeStr = (stamp: number) => {
   height: 100%;
   width: 100%;
   overflow: auto;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
 .mobile-map-content {
-  height: 100%;
-  width: 100%;
   overflow: hidden;
+  padding: 0;
+}
+
+.mobile-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-card :deep(.n-card__content) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mobile-map {
+  height: 100%;
+  border-radius: 0;
 }
 
 .mobile-footer {
   flex-shrink: 0;
   padding: 8px;
   border-top: 1px solid var(--n-border-color);
+  background: var(--n-card-color);
 }
 
 .mobile-tab-bar {
@@ -867,7 +1133,7 @@ const getTimeStr = (stamp: number) => {
   gap: 8px;
 }
 
-.mobile-tab-bar .n-button {
+.tab-button {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -875,16 +1141,82 @@ const getTimeStr = (stamp: number) => {
   gap: 4px;
   height: auto;
   padding: 8px 4px;
+  transition: all 0.2s ease;
+}
+
+/* Animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .mobile-tab-bar .n-button {
+  .tab-button {
     font-size: 12px;
   }
 
-  .mobile-tab-bar .n-icon {
+  .tab-button .n-icon {
     font-size: 20px;
+  }
+
+  .mobile-tab-content {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-header {
+    padding: 8px 12px;
+  }
+
+  .modal-form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .grid-layout {
+    padding: 8px;
+    gap: 8px;
+  }
+}
+
+/* High DPI adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .metadata {
+    font-size: 11px;
+  }
+}
+
+/* Focus visible styles for accessibility */
+button:focus-visible,
+.n-button:focus-visible {
+  outline: 2px solid var(--n-primary-color);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
+
+  .tab-button {
+    transition: none;
   }
 }
 </style>

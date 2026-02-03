@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon, NFlex, NPerformantEllipsis, NText, NTag, NSpace } from 'naive-ui';
-import { DeviceFloppy, Folder, Plus, Settings } from '@vicons/tabler';
+import { Folder, Plus, Settings } from '@vicons/tabler';
 import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
@@ -14,7 +14,6 @@ interface Props {
 defineProps<Props>();
 
 const emit = defineEmits<{
-  save: [];
   open: [];
   create: [];
   'edit-meta': [];
@@ -22,12 +21,6 @@ const emit = defineEmits<{
 
 const toolBarIconSize = 20;
 const toolTipBarItems = [
-  {
-    title: t('sketchEdit.save'),
-    icon: DeviceFloppy,
-    iconSize: toolBarIconSize,
-    callback: () => emit('save'),
-  },
   {
     title: t('sketchEdit.open'),
     icon: Folder,

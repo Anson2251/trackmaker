@@ -1,5 +1,5 @@
 import { ref, shallowRef } from "vue";
-import type { Map as Mgl } from "maplibre-gl";
+import type { Map as Mgl, LngLatBoundsLike, FitBoundsOptions } from "maplibre-gl";
 
 const mapTilerKey = __MAPTILER_KEY__;
 const styleUrl = `https://api.maptiler.com/maps/basic-v2/style.json?key=${mapTilerKey}`;
@@ -27,6 +27,12 @@ export function useSketchMap() {
         }
     }
 
+    function fitBounds(bounds: LngLatBoundsLike, options?: FitBoundsOptions) {
+        if (map.value) {
+            map.value.fitBounds(bounds, options);
+        }
+    }
+
     return {
         zoom,
         map,
@@ -35,5 +41,6 @@ export function useSketchMap() {
         initMap,
         setCenter,
         setZoom,
+        fitBounds,
     };
 }
