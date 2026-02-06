@@ -52,6 +52,12 @@ const velocityDirection = computed(() => {
   const { x, y } = kalmanState.value.velocity;
   return (-Math.atan2(y, x) * (180 / Math.PI) - props.mapBearing) % 360; // Convert to degrees
 });
+
+const velocityMagnitude = computed(() => {
+  if (!kalmanState.value) return 0;
+  const { x, y } = kalmanState.value.velocity;
+  return Math.sqrt(x * x + y * y);
+});
 </script>
 
 <template>
@@ -67,12 +73,12 @@ const velocityDirection = computed(() => {
             height: 0;
             border-left: 0.5em solid transparent;
             border-right: 0.5em solid transparent;
-            border-bottom: 4em solid #3b82f6;
+            border-bottom: 4em solid rgba(59, 130, 246, 0.5);
             transform: rotate(180deg);
             transform-origin: 0.5em 3em;
             transition: transform 0.1s ease-in-out;
           "
-          :style="{ transform: `rotate(${90 + velocityDirection}deg)` }"
+          :style="{ transform: `rotate(${90 + velocityDirection}deg) scaleY(${8 * Math.atanh(velocityMagnitude/10)})` }"
         ></div>
       </div>
     </template>

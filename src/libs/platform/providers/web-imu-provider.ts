@@ -710,37 +710,39 @@ export class WebIMUProvider implements IIMUProvider {
 
     /**
      * Update preallocated rotation matrix
-     * R = Rz(alpha) * Ry(gamma) * Rx(beta)
+     * DeviceOrientationEvent: alpha=Z(yaw), beta=X(pitch), gamma=Y(roll)
+     * R = Rx(beta) * Ry(gamma) * Rz(alpha) for Device->ENU transform
      */
     private updateRotationMatrices(orientation: { alpha: number; beta: number; gamma: number }): void {
-        const alpha = orientation.alpha * WebIMUProvider.DEG_TO_RAD;
-        const beta = orientation.beta * WebIMUProvider.DEG_TO_RAD;
-        const gamma = orientation.gamma * WebIMUProvider.DEG_TO_RAD;
+        // Negate angles to get Device->ENU transformation (inverse of DeviceOrientationEvent angles)
+        const alpha = -orientation.alpha * WebIMUProvider.DEG_TO_RAD;
+        const beta = -orientation.beta * WebIMUProvider.DEG_TO_RAD;
+        const gamma = -orientation.gamma * WebIMUProvider.DEG_TO_RAD;
 
         const ca = Math.cos(alpha), sa = Math.sin(alpha);
         const cb = Math.cos(beta), sb = Math.sin(beta);
         const cg = Math.cos(gamma), sg = Math.sin(gamma);
 
-        // Rz (yaw - 绕 Z 轴)
+        // Rz (alpha - yaw around Z axis)
         this.matrixRz.set(0, 0, ca); this.matrixRz.set(0, 1, -sa); this.matrixRz.set(0, 2, 0);
         this.matrixRz.set(1, 0, sa); this.matrixRz.set(1, 1, ca); this.matrixRz.set(1, 2, 0);
         this.matrixRz.set(2, 0, 0); this.matrixRz.set(2, 1, 0); this.matrixRz.set(2, 2, 1);
 
-        // Ry (beta - rotation around Y axis)
-        this.matrixRy.set(0, 0, cb); this.matrixRy.set(0, 1, 0); this.matrixRy.set(0, 2, sb);
+        // Ry (gamma - roll around Y axis)
+        this.matrixRy.set(0, 0, cg); this.matrixRy.set(0, 1, 0); this.matrixRy.set(0, 2, sg);
         this.matrixRy.set(1, 0, 0); this.matrixRy.set(1, 1, 1); this.matrixRy.set(1, 2, 0);
-        this.matrixRy.set(2, 0, -sb); this.matrixRy.set(2, 1, 0); this.matrixRy.set(2, 2, cb);
+        this.matrixRy.set(2, 0, -sg); this.matrixRy.set(2, 1, 0); this.matrixRy.set(2, 2, cg);
 
-        // Rx (gamma - rotation around X axis)
+        // Rx (beta - pitch around X axis)
         this.matrixRx.set(0, 0, 1); this.matrixRx.set(0, 1, 0); this.matrixRx.set(0, 2, 0);
-        this.matrixRx.set(1, 0, 0); this.matrixRx.set(1, 1, cg); this.matrixRx.set(1, 2, -sg);
-        this.matrixRx.set(2, 0, 0); this.matrixRx.set(2, 1, sg); this.matrixRx.set(2, 2, cg);
+        this.matrixRx.set(1, 0, 0); this.matrixRx.set(1, 1, cb); this.matrixRx.set(1, 2, -sb);
+        this.matrixRx.set(2, 0, 0); this.matrixRx.set(2, 1, sb); this.matrixRx.set(2, 2, cb);
 
-        // R = Rz * Ry * Rx
-        // calc Rz * Ry -> matrixRTemp
-        this.multiplyMatricesInPlace(this.matrixRz, this.matrixRy, this.matrixRTemp);
-        // calc matrixRTemp * Rx -> matrixR
-        this.multiplyMatricesInPlace(this.matrixRTemp, this.matrixRx, this.matrixR);
+        // R = Rx * Ry * Rz for Device->ENU transformation
+        // calc Rx * Ry -> matrixRTemp
+        this.multiplyMatricesInPlace(this.matrixRx, this.matrixRy, this.matrixRTemp);
+        // calc matrixRTemp * Rz -> matrixR
+        this.multiplyMatricesInPlace(this.matrixRTemp, this.matrixRz, this.matrixR);
     }
 
     /**

@@ -52,6 +52,12 @@ const accelerationDirection = computed(() => {
   const { x, y } = kalmanState.value.acceleration;
   return (-Math.atan2(y, x) * (180 / Math.PI) - props.mapBearing) % 360; // Convert to degrees
 });
+
+const accelerationMagnitude = computed(() => {
+  if (!kalmanState.value) return 0;
+  const { x, y } = kalmanState.value.acceleration;
+  return Math.sqrt(x * x + y * y);
+});
 </script>
 
 <template>
@@ -67,12 +73,12 @@ const accelerationDirection = computed(() => {
             height: 0;
             border-left: 0.5em solid transparent;
             border-right: 0.5em solid transparent;
-            border-bottom: 4em solid #ef4444;
+            border-bottom: 4em solid rgba(239, 68, 68, 0.5);
             transform: rotate(180deg);
-            transform-origin: 0.5em 3em;
+            transform-origin: 0.3em 4em;
             transition: transform 0.1s ease-in-out;
           "
-          :style="{ transform: `rotate(${90 + accelerationDirection}deg)` }"
+          :style="{ transform: `rotate(${90 + accelerationDirection}deg) scaleY(${8 * Math.atan(accelerationMagnitude)})` }"
         ></div>
       </div>
     </template>
