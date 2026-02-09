@@ -1091,7 +1091,6 @@ watch(showCreateModal, (newValue) => {
   height: 100%;
   width: 100%;
   overflow: auto;
-  padding: 12px;
   box-sizing: border-box;
 }
 
@@ -1166,10 +1165,6 @@ watch(showCreateModal, (newValue) => {
 
   .tab-button .n-icon {
     font-size: 20px;
-  }
-
-  .mobile-tab-content {
-    padding: 8px;
   }
 }
 

@@ -67,6 +67,7 @@ import {
   getCustomMapTileUrl,
   getAutoRecenterTimeout,
   getDefaultMapZoomLevel,
+  getNightModeMapStyleUrl,
 } from "@/libs/default-settings";
 import { useSettingsStore } from "@/store/settings-store";
 import { onBeforeRouteLeave } from "vue-router";
@@ -122,6 +123,10 @@ const isNightMode = computed(() => settingsStore.settings.nightMode);
 const styleUrl = computed(() => {
   // Use toner style for night mode
   if (isNightMode.value) {
+    const customStyleUrl = getNightModeMapStyleUrl();
+    if (customStyleUrl) {
+      return customStyleUrl;
+    }
     return `https://api.maptiler.com/maps/toner-v2/style.json?key=${effectiveMapTilerKey.value}`;
   }
 

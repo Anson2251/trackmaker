@@ -26,6 +26,7 @@ export type Settings = {
     mapZoomLevel: number;
     imuUpdateFrequency: number;
     kalmanGpsUpdateInterval: number;
+    nightModeMapStyleUrl: string;
     // Kalman filter parameters
     kalmanInitialAccelerationUncertainty: number;
     kalmanInitialPositionUncertainty: number;

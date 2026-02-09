@@ -28,6 +28,7 @@ export const defaultSettings: Settings = {
     mapZoomLevel: 15,
     imuUpdateFrequency: 20,
     kalmanGpsUpdateInterval: 1000,
+    nightModeMapStyleUrl: '',
     // Kalman filter parameters
     kalmanInitialAccelerationUncertainty: 0.1,
     kalmanInitialPositionUncertainty: 1,
@@ -153,6 +154,12 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'MapTiler API Key',
         type: 'string',
         description: 'API key for MapTiler services',
+    },
+    {
+        key: 'nightModeMapStyleUrl',
+        name: 'Night Mode Map Style URL',
+        type: 'string',
+        description: 'Custom map style URL for night mode (leave empty to use default toner-v2 style)',
     },
     {
         key: 'autoRecenterTimeout',
@@ -457,9 +464,10 @@ export function getMapTilerApiKey(): string {
     return getEarlySetting('mapTilerApiKey');
 }
 
-/**
- * Get IMU update frequency in Hz
- */
+export function getNightModeMapStyleUrl(): string {
+    return getEarlySetting('nightModeMapStyleUrl');
+}
+
 export function getIMUUpdateFrequency(): number {
     return getEarlySetting('imuUpdateFrequency');
 }
