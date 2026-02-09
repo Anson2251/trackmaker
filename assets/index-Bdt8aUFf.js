@@ -1,4 +1,4 @@
-import { i as d, b as x, B as M } from "./index-Cd-IjdDN.js";
+import { i as d, b as x, B as M } from "./index-DFWefHdl.js";
 var I = /* @__PURE__ */ Symbol("i18n"), p = "";
 function v(e, t = "") {
   let l = /* @__PURE__ */ new Map(), a = /\s*\|\s*/g;
