@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon, NFlex, NPerformantEllipsis, NText, NTag, NSpace } from 'naive-ui';
-import { Folder, Plus, Settings } from '@vicons/tabler';
+import { Folder, Pencil } from '@vicons/tabler';
 import { useI18n } from 'nano-vue-i18n';
 
 const { t } = useI18n();
@@ -28,14 +28,8 @@ const toolTipBarItems = [
     callback: () => emit('open'),
   },
   {
-    title: t('sketchEdit.newComponent'),
-    icon: Plus,
-    iconSize: toolBarIconSize,
-    callback: () => emit('create'),
-  },
-  {
     title: t('sketchEdit.editMetadata'),
-    icon: Settings,
+    icon: Pencil,
     iconSize: toolBarIconSize,
     callback: () => emit('edit-meta'),
   },

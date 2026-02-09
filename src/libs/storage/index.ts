@@ -143,6 +143,38 @@ class PlatformStorage implements Storage {
             throw result.error;
         }
     }
+
+    async scanKeys(prefix: string): Promise<string[]> {
+        if (!this.initialized) {
+            await this.init();
+        }
+
+        if (!this.storageProvider) {
+            throw new Error('Storage provider not initialized');
+        }
+
+        const result = await this.storageProvider.scanKeys(prefix);
+        if (result.isErr()) {
+            throw result.error;
+        }
+
+        return result.value;
+    }
+
+    async batchSet(entries: { key: string; value: unknown }[]): Promise<void> {
+        if (!this.initialized) {
+            await this.init();
+        }
+
+        if (!this.storageProvider) {
+            throw new Error('Storage provider not initialized');
+        }
+
+        const result = await this.storageProvider.batchSet(entries);
+        if (result.isErr()) {
+            throw result.error;
+        }
+    }
 }
 
 // Create singleton instance
@@ -156,6 +188,8 @@ export const storageInit = storageInstance.init.bind(storageInstance);
 export const storageExportToJson = storageInstance.exportToJson.bind(storageInstance);
 export const storageClear = storageInstance.clear.bind(storageInstance);
 export const storageRemove = storageInstance.remove.bind(storageInstance);
+export const storageScanKeys = storageInstance.scanKeys.bind(storageInstance);
+export const storageBatchSet = storageInstance.batchSet.bind(storageInstance);
 
 // Export the storage instance and interface
 export { storageInstance as storage };

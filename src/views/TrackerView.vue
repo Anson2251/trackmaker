@@ -761,7 +761,7 @@ watch(
       <template #bottom-floating>
         <n-config-provider :theme="lightTheme">
           <n-button
-            v-if="path.length > 1"
+            v-if="path.length > 1 && !routeStore.isRecording"
             :size="'large'"
             type="success"
             class="drawer-floating-button"

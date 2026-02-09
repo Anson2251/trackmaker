@@ -28,7 +28,6 @@ import {
 } from "@vicons/tabler";
 import MarkdownViewer from "@/components/common/MarkdownViewer.vue";
 import { useSketchStore } from "@/store/sketch-store";
-import { CartoSketch } from "@/libs/cartosketch";
 import SketchEdit from "@/components/CartoSketch/SketchEdit.vue";
 import SketchCreateModal from "@/components/CartoSketch/SketchCreateModal.vue";
 import { useWindowSize } from "@vueuse/core";
@@ -73,13 +72,13 @@ const formatDate = (timestamp: number) => {
 };
 
 // Get the number of routes in a sketch
-const routeCount = (sketch: CartoSketch) => {
-  return sketch.routes.routes.length;
+const routeCount = (sketch: { routes: unknown[] }) => {
+  return sketch.routes.length;
 };
 
 // Get the number of drafts in a sketch
-const draftCount = (sketch: CartoSketch) => {
-  return sketch.drafts.drafts.length;
+const draftCount = (sketch: { drafts: unknown[] }) => {
+  return sketch.drafts.length;
 };
 
 // Select a sketch
@@ -119,6 +118,8 @@ onMounted(() => {
 });
 
 const theme = useThemeVars();
+
+const mouseHovering = ref(false);
 </script>
 
 <template>
@@ -156,6 +157,8 @@ const theme = useThemeVars();
           bordered
           clickable
           @click="selectSketch(sketch.id)"
+          @mouseenter="mouseHovering = true"
+          @mouseleave="mouseHovering = false"
         >
           <template #header>
             <div class="card-header">
@@ -191,28 +194,30 @@ const theme = useThemeVars();
           </template>
 
           <template #header-extra>
-            <n-space>
-              <n-button
-                quaternary
-                circle
-                size="small"
-                @click.stop="editSketch(sketch.id)"
-              >
-                <template #icon>
-                  <n-icon><edit /></n-icon>
-                </template>
-              </n-button>
-              <n-button
-                quaternary
-                circle
-                size="small"
-                @click.stop="deleteSketch(sketch.id)"
-              >
-                <template #icon>
-                  <n-icon><trash /></n-icon>
-                </template>
-              </n-button>
-            </n-space>
+            <Transition>
+              <n-space v-show="mouseHovering || selectedSketchId === sketch.id">
+                <n-button
+                  quaternary
+                  circle
+                  size="small"
+                  @click.stop="editSketch(sketch.id)"
+                >
+                  <template #icon>
+                    <n-icon><edit /></n-icon>
+                  </template>
+                </n-button>
+                <n-button
+                  quaternary
+                  circle
+                  size="small"
+                  @click.stop="deleteSketch(sketch.id)"
+                >
+                  <template #icon>
+                    <n-icon><trash /></n-icon>
+                  </template>
+                </n-button>
+              </n-space>
+            </Transition>
           </template>
 
           <div class="card-content">
@@ -316,6 +321,16 @@ const theme = useThemeVars();
 </template>
 
 <style scoped>
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.2s ease-out;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
 .sketch-centre-view {
   padding: 16px;
   max-width: 1200px;
@@ -369,7 +384,8 @@ const theme = useThemeVars();
 
 .card-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 12px;
   align-items: center;
   padding-right: 24px;
 }

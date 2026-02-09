@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { NForm, NFormItem, NSwitch, NColorPicker, NInputNumber, NEmpty, NTabs, NTabPane, NInput, NDynamicTags } from 'naive-ui';
-import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties } from '@/libs/cartosketch/definitions';
-import type { CartoSketchRouteItem } from '@/libs/cartosketch/route';
+import type { GeographicDraftItemType, GeographicDraftItemProperties, GeographicRouteItemProperties, GeographicRouteItemType } from '@/libs/cartosketch/definitions';
 import { useI18n } from 'nano-vue-i18n';
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 
 const { t } = useI18n();
 
 interface Props {
-  component: GeographicDraftItemType | CartoSketchRouteItem | null;
+  component: GeographicDraftItemType | GeographicRouteItemType | null;
   type: 'draft' | 'route' | null;
 }
 
@@ -73,14 +72,14 @@ const emit = defineEmits<{
           <template v-if="type === 'route'">
             <n-form-item :label="t('sketchEdit.strokeColor')">
               <n-color-picker
-                :value="(component as CartoSketchRouteItem).properties.strokeColor || '#28a745'"
+                :value="(component as GeographicRouteItemType).properties.strokeColor || '#28a745'"
                 :show-alpha="false"
                 @update:value="(val) => emit('updateProperties', { strokeColor: val })"
               />
             </n-form-item>
             <n-form-item :label="t('sketchEdit.strokeThickness')">
               <NInputNumber
-                :value="(component as CartoSketchRouteItem).properties.strokeThickness || 3"
+                :value="(component as GeographicRouteItemType).properties.strokeThickness || 3"
                 :min="1"
                 :max="10"
                 @update:value="(val) => emit('updateProperties', { strokeThickness: val ?? undefined })"

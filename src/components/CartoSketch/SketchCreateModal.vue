@@ -7,6 +7,7 @@ import {
   NFormItem,
   NSpace,
   NButton,
+  NInput
 } from "naive-ui";
 import MarkdownEditor from "@/components/common/MarkdownEditor.vue";
 import { useSketchStore } from "@/store/sketch-store";

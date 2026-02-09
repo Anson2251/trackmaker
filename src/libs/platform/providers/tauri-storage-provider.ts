@@ -149,5 +149,42 @@ export class TauriStorageProvider implements IStorageProvider {
             ));
         }
     }
+
+    async scanKeys(prefix: string): Promise<Result<string[], StorageError>> {
+        if (!this.store) {
+            return err(new StorageError('Tauri store not initialized', StorageErrorCode.NOT_INITIALIZED));
+        }
+
+        try {
+            const keys = await this.store.keys();
+            const filteredKeys = keys.filter(key => key.startsWith(prefix));
+            return ok(filteredKeys);
+        } catch (error) {
+            return err(new StorageError(
+                'Failed to scan keys',
+                StorageErrorCode.GET_FAILED,
+                error as Error
+            ));
+        }
+    }
+
+    async batchSet(entries: { key: string; value: unknown }[]): Promise<Result<void, StorageError>> {
+        if (!this.store) {
+            return err(new StorageError('Tauri store not initialized', StorageErrorCode.NOT_INITIALIZED));
+        }
+
+        try {
+            for (const { key, value } of entries) {
+                await this.store.set(key, value);
+            }
+            return ok(undefined);
+        } catch (error) {
+            return err(new StorageError(
+                'Failed to batch set values',
+                StorageErrorCode.SET_FAILED,
+                error as Error
+            ));
+        }
+    }
 }
 

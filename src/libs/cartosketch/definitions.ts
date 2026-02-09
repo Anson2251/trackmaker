@@ -39,13 +39,6 @@ export function GeographicSketchMetaDefaultValue(): GeographicSketchMetaType {
 
 // ======= GENERAL =======
 
-export type GeographicSketchType = {
-    id: string;
-    meta: GeographicSketchMetaType;
-    routes: GeographicRouteType;
-    drafts: GeographicDraftType;
-}
-
 export type GeoJSONPoint = [number, number];
 
 export const supportedShapeTypes = ["Polygon", "LineString", "Point"];
@@ -72,18 +65,6 @@ export type GeographicDraftItemGeoJSON = {
     geometry: GeographicShape
 }
 
-export type GeographicDraftType = {
-    id: string;
-    meta: GeographicGeneralMetaType,
-    drafts: GeographicDraftItemType[]
-}
-
-export type GeographicDraftGeoJSON = {
-    type: "FeatureCollection",
-    features: GeographicDraftItemGeoJSON[],
-    properties: GeographicGeneralMetaType
-}
-
 export type GeographicDraftItemProperties = {
     fillColor?: string,
     strokeColor?: string,
@@ -105,7 +86,8 @@ export type GeographicRouteItemType = {
     id: string,
     meta: GeographicGeneralMetaType & {
         record_timespan?: number,
-        distance?: number
+        distance?: number,
+        lastSimplifiedIndex?: number,
     },
     properties: GeographicRouteItemProperties,
     points: GeographicPoint[]
@@ -121,16 +103,3 @@ export type GeographicRouteItemGeoJSON = {
         coordinates: [number, number][],
     },
 }
-
-export type GeographicRouteGeoJSON = {
-    type: "FeatureCollection",
-    /** the list of routes in the collection */
-    features: GeographicRouteItemGeoJSON[],
-    properties: GeographicGeneralMetaType
-}
-
-export type GeographicRouteType = {
-    id: string;
-    meta: GeographicGeneralMetaType,
-    routes: GeographicRouteItemType[]
-};

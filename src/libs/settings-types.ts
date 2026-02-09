@@ -40,6 +40,12 @@ export type Settings = {
     // Merge processor parameters
     mergeBatchSize: number;
     maxMergeQueueSize: number;
+    // Route simplification parameters
+    routeSimplificationChunkSize: number;
+    routeSimplificationThreshold: number;
+    routeSimplificationMaxIterations: number;
+    routeSimplificationMaxDistance: number;
+    routeSimplificationMinDistance: number;
 };
 
 export type SettingKey = keyof Settings;

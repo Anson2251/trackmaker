@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import type { GeographicPoint } from '../libs/geolocation/types';
 import type { GeographicRouteItemProperties, GeographicRouteItemType } from '../libs/cartosketch/definitions';
 import { useSketchStore } from './sketch-store';
 import type { GeolocationManager } from '../libs/geolocation';
-import { MergeProcessor } from '@/libs/route-wal';
+import { recordingSession } from '@/libs/recording-session';
 import { throttle } from 'lodash-es';
-
-const RECORDING_TIMESPAN_INTERVAL_MS = 200;
 
 export const useRouteStore = defineStore('routes', () => {
     const sketchStore = useSketchStore();
@@ -17,20 +15,13 @@ export const useRouteStore = defineStore('routes', () => {
         set: ((value) => sketchStore.setCurrentRouteId(value))
     });
 
+    // Use computed property that reads from recordingSession
     const currentRouteRecordTimespan = ref(0);
-    watch(currentRouteId, async (id) => {
-        if (id !== null) {
-            const route = await sketchStore.getRouteById(id);
-            currentRouteRecordTimespan.value = route?.meta?.record_timespan ?? 0;
-        }
-    });
 
     // Recording state
     const isRecording = ref(false);
     const watchingHandler = ref<number>(-1);
     const locator = ref<GeolocationManager | null>(null);
-
-    let recordingTimespanTrackingHandler: number | undefined;
 
     // Computed property for backward compatibility
     const routes = computed(() => sketchStore.routes);
@@ -73,38 +64,37 @@ export const useRouteStore = defineStore('routes', () => {
     }
 
     // New recording functionality
-    function startRecording(initialPoint?: GeographicPoint) {
+    async function startRecording(initialPoint?: GeographicPoint) {
         if (isRecording.value || !locator.value) return;
 
         isRecording.value = true;
 
         if (initialPoint) {
-            void addPointToRoute(currentRouteId.value!, initialPoint);
+            await addPointToRoute(currentRouteId.value!, initialPoint);
         }
 
-        const handleNewPoints = async (newPoint: GeographicPoint) => {
+        let handlingNewPoint = false;
+        const handleNewPoint = async (newPoint: GeographicPoint) => {
+            if (handlingNewPoint) return;
+            handlingNewPoint = true
             if (currentRouteId.value) {
                 await addPointToRoute(currentRouteId.value, newPoint);
+                currentRouteRecordTimespan.value = recordingSession.getCurrentTimespan();
+                handlingNewPoint = false
             }
         }
 
-        watchingHandler.value = locator.value.addLocationListener(throttle(handleNewPoints, 1000, { leading: true, trailing: true }));
+        watchingHandler.value = locator.value.addLocationListener(throttle(handleNewPoint, 100, { leading: true, trailing: true }));
 
         if (currentRouteId.value) {
+            const route = await sketchStore.getRouteById(currentRouteId.value);
+            const existingTimespan = route?.meta?.record_timespan ?? 0;
+            await recordingSession.start(currentRouteId.value, existingTimespan);
             void sketchStore.updateRoute(currentRouteId.value, { meta: { modification_timestamp: Date.now() } });
         }
-
-        recordingTimespanTrackingHandler = setInterval(async () => {
-            if (!currentRouteId.value) return;
-            const currentRoute = await sketchStore.getRouteById(currentRouteId.value);
-            if (currentRoute && currentRoute.meta.record_timespan !== undefined && currentRoute.meta.modification_timestamp) {
-                currentRouteRecordTimespan.value = currentRoute.meta.record_timespan + (Date.now() - currentRoute.meta.modification_timestamp);
-                await sketchStore.updateRoute(currentRouteId.value, { meta: { record_timespan: currentRouteRecordTimespan.value } });
-            }
-        }, RECORDING_TIMESPAN_INTERVAL_MS) as unknown as number;
     }
 
-    function stopRecording() {
+    async function stopRecording() {
         if (!isRecording.value || !locator.value) return;
 
         if (watchingHandler.value !== -1) {
@@ -112,18 +102,12 @@ export const useRouteStore = defineStore('routes', () => {
             watchingHandler.value = -1;
         }
 
-        if (recordingTimespanTrackingHandler) {
-            clearInterval(recordingTimespanTrackingHandler);
-            recordingTimespanTrackingHandler = undefined;
-        }
-
         isRecording.value = false;
 
+        const finalTimespan = await recordingSession.stop();
+
         if (currentRouteId.value) {
-            void (MergeProcessor.getInstance().forceMerge(currentRouteId.value)
-                .catch((err: unknown) => {
-                    console.warn('[RouteStore] Failed to force merge on stopRecording:', err);
-                }))
+            await sketchStore.updateRoute(currentRouteId.value, { meta: { record_timespan: finalTimespan } });
         }
     }
 
@@ -138,12 +122,12 @@ export const useRouteStore = defineStore('routes', () => {
                     const newRoute = await addRoute(String(t("trackerView.nameNewRoute")));
                     setCurrentRouteId(newRoute.id);
                     const lastLocation = locator.value.getLastKnownLocation();
-                    startRecording(lastLocation ?? undefined);
+                    await startRecording(lastLocation ?? undefined);
                 } else {
-                    startRecording();
+                    await startRecording();
                 }
             } else {
-                stopRecording();
+                await stopRecording();
             }
         } catch (err) {
             console.error(err);

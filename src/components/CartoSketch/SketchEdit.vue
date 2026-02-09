@@ -57,8 +57,8 @@ import type {
   GeographicDraftItemProperties,
   GeographicRouteItemProperties,
   GeographicDraftItemType,
+  GeographicRouteItemType,
 } from "@/libs/cartosketch/definitions";
-import type { CartoSketchRouteItem } from "@/libs/cartosketch/route";
 import { debounce } from "lodash-es";
 import type { GeolocationManager } from "@/libs/geolocation";
 
@@ -111,7 +111,7 @@ const metaForm = ref({
 // Computed properties with better memoization
 const currentSketch = computed(() => sketchStore.currentSketch);
 const currentDrafts = computed(() => sketchStore.currentDrafts);
-const currentRoutes = computed(() => currentSketch.value?.routes.routes || []);
+  const currentRoutes = computed(() => currentSketch.value?.routes || []);
 const hasSelection = computed(() => !!currentSketch.value);
 
 // Optimized component selection with shallow comparison
@@ -374,7 +374,7 @@ function handleMapInit(event: { map: MglMapType }) {
 }
 
 // Watch for component selection changes to fit bounds with debounce
-const fitBoundsDebounced = debounce((component: GeographicDraftItemType | CartoSketchRouteItem) => {
+const fitBoundsDebounced = debounce((component: GeographicDraftItemType | GeographicRouteItemType) => {
   const bounds = getComponentBounds(component as any);
   if (bounds) {
     fitBounds(bounds, { padding: 50, duration: 500 });
@@ -526,7 +526,6 @@ watch(showCreateModal, (newValue) => {
             :draft-count="currentDrafts.length"
             :route-count="currentRoutes.length"
             @open="activeSelector = true"
-            @create="showCreateModal = true"
             @edit-meta="openMetaModal"
           />
         </n-card>
@@ -765,7 +764,6 @@ watch(showCreateModal, (newValue) => {
               >
                 <mgl-navigation-control position="top-left" />
                 <mgl-scale-control position="bottom-left" />
-                <mgl-fullscreen-control position="top-left" />
 
                 <mgl-geo-json-source
                   source-id="selected-route"

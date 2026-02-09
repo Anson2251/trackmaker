@@ -108,6 +108,8 @@ export interface IStorageProvider {
     exportToJson(): Promise<Result<string, AppError>>;
     clear(): Promise<Result<void, AppError>>;
     remove(key: string): Promise<Result<void, AppError>>;
+    scanKeys(prefix: string): Promise<Result<string[], AppError>>;
+    batchSet(entries: { key: string; value: unknown }[]): Promise<Result<void, AppError>>;
 }
 
 /**

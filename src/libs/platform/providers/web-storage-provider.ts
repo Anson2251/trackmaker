@@ -246,6 +246,65 @@ export class WebStorageProvider implements IStorageProvider {
         }
     }
 
+    async scanKeys(prefix: string): Promise<Result<string[], StorageError>> {
+        if (!this.db) {
+            return err(new StorageError('Database not initialized', StorageErrorCode.NOT_INITIALIZED));
+        }
+
+        try {
+            const result = await this.executeTransaction('readonly', (store) => {
+                return new Promise<string[]>((resolve, reject) => {
+                    const range = IDBKeyRange.bound(prefix, prefix + '\uffff');
+                    const request = store.openCursor(range);
+                    const keys: string[] = [];
+
+                    request.onsuccess = (event) => {
+                        const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
+                        if (cursor) {
+                            const key = cursor.key as string | number | Date | Array<string | number | Date>;
+                            keys.push(String(key));
+                            cursor.continue();
+                        } else {
+                            resolve(keys);
+                        }
+                    };
+                    request.onerror = () => reject(new Error('Failed to scan keys'));
+                });
+            });
+            return ok(result);
+        } catch (error) {
+            return err(new StorageError('Scan failed', StorageErrorCode.GET_FAILED, error as Error));
+        }
+    }
+
+    async batchSet(entries: { key: string; value: unknown }[]): Promise<Result<void, StorageError>> {
+        if (!this.db) {
+            return err(new StorageError('Database not initialized', StorageErrorCode.NOT_INITIALIZED));
+        }
+
+        try {
+            await this.executeTransaction('readwrite', (store) => {
+                return new Promise<void>((resolve, reject) => {
+                    let completed = 0;
+
+                    for (const { key, value } of entries) {
+                        const request = store.put(cloneDeep(value), key);
+                        request.onsuccess = () => {
+                            completed++;
+                            if (completed === entries.length) resolve();
+                        };
+                        request.onerror = () => reject(new Error('Batch set failed'));
+                    }
+
+                    if (entries.length === 0) resolve();
+                });
+            });
+            return ok(undefined);
+        } catch (error) {
+            return err(new StorageError('Batch set failed', StorageErrorCode.SET_FAILED, error as Error));
+        }
+    }
+
     private executeTransaction<T>(
         mode: IDBTransactionMode,
         operation: (store: IDBObjectStore) => Promise<T>

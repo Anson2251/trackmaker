@@ -25,7 +25,7 @@ export const defaultSettings: Settings = {
     keepScreenOn: true,
     enableKalmanFilter: true,
     mapZoomLevel: 15,
-    imuUpdateFrequency: 10,
+    imuUpdateFrequency: 20,
     kalmanGpsUpdateInterval: 1000,
     // Kalman filter parameters
     kalmanInitialAccelerationUncertainty: 0.1,
@@ -37,11 +37,17 @@ export const defaultSettings: Settings = {
     // ZUPT (Zero-Velocity Update) parameters
     zuptEnabled: true,
     zuptThreshold: 0.3,
-    zuptConsecutiveSamples: 3,
+    zuptConsecutiveSamples: 5,
     zuptVelocityNoise: 0.1,
     // Merge processor parameters
     mergeBatchSize: 1000,
     maxMergeQueueSize: 10000,
+    // Route simplification parameters
+    routeSimplificationChunkSize: 100,
+    routeSimplificationThreshold: 0.01, // 1% of line segment length
+    routeSimplificationMaxIterations: 3,
+    routeSimplificationMaxDistance: 5, // Maximum 10 meters
+    routeSimplificationMinDistance: 0.5, // Minimum 0.5 meter
 };
 
 // Advanced settings configuration (for UI display)
@@ -251,6 +257,37 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Max Merge Queue Size',
         type: 'number',
         description: 'Maximum number of merge jobs in queue to prevent memory exhaustion',
+    },
+    // Route simplification parameters
+    {
+        key: 'routeSimplificationChunkSize',
+        name: 'Route Simplification Chunk Size',
+        type: 'number',
+        description: 'Number of points to accumulate before running route simplification algorithm',
+    },
+    {
+        key: 'routeSimplificationThreshold',
+        name: 'Route Simplification Threshold',
+        type: 'number',
+        description: 'Distance threshold as percentage of line segment length (0.0-1.0) for removing points during simplification',
+    },
+    {
+        key: 'routeSimplificationMaxIterations',
+        name: 'Route Simplification Max Iterations',
+        type: 'number',
+        description: 'Maximum number of iterations for route simplification to prevent excessive simplification',
+    },
+    {
+        key: 'routeSimplificationMaxDistance',
+        name: 'Route Simplification Max Distance',
+        type: 'number',
+        description: 'Maximum absolute distance (in meters) for removing points, regardless of percentage threshold. Prevents excessive simplification on long line segments.',
+    },
+    {
+        key: 'routeSimplificationMinDistance',
+        name: 'Route Simplification Min Distance',
+        type: 'number',
+        description: 'Minimum absolute distance (in meters) required to remove a point. Points closer than this distance will not be removed, preventing over-simplification of short segments.',
     },
 ];
 
@@ -494,4 +531,39 @@ export function getMergeBatchSize(): number {
  */
 export function getMaxMergeQueueSize(): number {
     return getEarlySetting('maxMergeQueueSize');
+}
+
+/**
+ * Get route simplification chunk size
+ */
+export function getRouteSimplificationChunkSize(): number {
+    return getEarlySetting('routeSimplificationChunkSize');
+}
+
+/**
+ * Get route simplification threshold
+ */
+export function getRouteSimplificationThreshold(): number {
+    return getEarlySetting('routeSimplificationThreshold');
+}
+
+/**
+ * Get route simplification max iterations
+ */
+export function getRouteSimplificationMaxIterations(): number {
+    return getEarlySetting('routeSimplificationMaxIterations');
+}
+
+/**
+ * Get route simplification max distance (in meters)
+ */
+export function getRouteSimplificationMaxDistance(): number {
+    return getEarlySetting('routeSimplificationMaxDistance');
+}
+
+/**
+ * Get route simplification min distance (in meters)
+ */
+export function getRouteSimplificationMinDistance(): number {
+    return getEarlySetting('routeSimplificationMinDistance');
 }
