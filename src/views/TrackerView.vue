@@ -68,6 +68,7 @@ import {
   getAutoRecenterTimeout,
   getDefaultMapZoomLevel,
 } from "@/libs/default-settings";
+import { useSettingsStore } from "@/store/settings-store";
 import { onBeforeRouteLeave } from "vue-router";
 import type { KalmanState } from "@/libs/geolocation";
 import type { GeographicPoint } from "@/libs/geolocation/types";
@@ -78,6 +79,7 @@ const isMobile = platform.isMobile;
 const theme = useThemeVars();
 const mapStore = useMapStore();
 const sketchStore = useSketchStore();
+const settingsStore = useSettingsStore();
 const message = useMessage();
 const locator = inject("geolocation") as GeolocationManager;
 const { t } = useI18n();
@@ -113,8 +115,16 @@ const mapTileServers: Record<string, TileServerConfig> = {
   },
 };
 
+// Check if night mode is enabled - use settings store for reactivity
+const isNightMode = computed(() => settingsStore.settings.nightMode);
+
 // Computed style URL based on mapTileServer setting
 const styleUrl = computed(() => {
+  // Use toner style for night mode
+  if (isNightMode.value) {
+    return `https://api.maptiler.com/maps/toner-v2/style.json?key=${effectiveMapTilerKey.value}`;
+  }
+
   const server = getMapTileServer();
   const serverConfig = mapTileServers[server];
   if (serverConfig) {
@@ -605,8 +615,13 @@ watch(
   <div class="map-layout-container">
     <div class="map-layout">
       <transition name="map-load">
-        <div v-if="mapReady" style="width: 100%; height: 100%">
+        <div
+          v-if="mapReady"
+          style="width: 100%; height: 100%"
+          :class="{ 'night-mode-map': isNightMode }"
+        >
           <MapContainer
+            :key="styleUrl"
             ref="mapContainerRef"
             :style-url="styleUrl"
             :geojson-source="geojsonSource"
@@ -872,5 +887,14 @@ watch(
   stroke: #075985;
   fill: #0369a1;
   color: #075985;
+}
+
+/* Night mode: invert map colors for dark background with light text */
+.night-mode-map :deep(.maplibregl-canvas) {
+  filter: invert(0.9);
+}
+
+.night-mode-map :deep(.maplibregl-ctrl) {
+  filter: invert(0.8) contrast(1.2) brightness(1.2);
 }
 </style>

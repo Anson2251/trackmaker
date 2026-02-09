@@ -14,6 +14,7 @@ import {
 } from "naive-ui";
 import PlatformInfo from "./utils/platform";
 import { useSettingsStore } from "./store/settings-store";
+import { useNightMode } from "./composables/useNightMode";
 import NoSleep from 'nosleep.js'
 import type { GeolocationManager } from "./libs/geolocation";
 
@@ -21,7 +22,13 @@ const settings = useSettingsStore();
 const locator = (window as { GeolocationManager?: GeolocationManager }).GeolocationManager as GeolocationManager;
 
 const osThemeValueRef = useOsTheme();
-const darkThemeEnabled = computed(() => (settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme))
+// Force dark theme when night mode is enabled
+const darkThemeEnabled = computed(() => {
+  if (settings.settings.nightMode) {
+    return "dark";
+  }
+  return settings.settings.theme === "system" ? osThemeValueRef.value : settings.settings.theme;
+});
 const theme = computed(() =>
   darkThemeEnabled.value ===
     "dark"
@@ -42,6 +49,9 @@ provide("platformInfo", new PlatformInfo());
 provide("settings", settings);
 provide('noSleep', new NoSleep())
 provide("geolocation", locator);
+
+// Initialize night mode composable
+useNightMode();
 
 onMounted(() => settings.init());
 

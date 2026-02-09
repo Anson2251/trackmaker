@@ -87,6 +87,10 @@ const configs = computed<Config>(() => [
           },
         ],
       },
+      {
+        title: "nightMode",
+        type: "checkbox",
+      },
     ],
   },
   {
@@ -225,6 +229,7 @@ onMounted(() => {
                       >
                         <n-radio-button
                           v-for="option of item.items"
+                          :disabled="section.title === 'appearance' && item.title === 'theme' && settingsStore.settings.nightMode"
                           :key="option.value"
                           :value="option.value"
                           :label="option.label"
@@ -235,6 +240,7 @@ onMounted(() => {
                       </n-radio-group>
                       <n-select
                         v-else
+                        :disabled="section.title === 'appearance' && item.title === 'theme' && settingsStore.settings.nightMode"
                         v-model:value="
                           settingsStore.settings[item.title] as any
                         "

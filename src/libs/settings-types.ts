@@ -6,6 +6,7 @@
 export type Settings = {
     // User-facing settings
     theme: 'light' | 'dark' | 'system';
+    nightMode: boolean;
     interfaceLanguage: string;
     mapLanguage: string;
     watchCompatibilityMode: boolean;

@@ -15,7 +15,8 @@
                     "dark": "Dark",
                     "system": "System Default"
                 }
-            }
+            },
+            "nightMode": "Night Mode"
         },
         "geolocation": {
             "title": "Geolocation",

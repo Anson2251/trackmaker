@@ -8,6 +8,7 @@ import type { Settings } from '@/libs/settings-types';
 export const defaultSettings: Settings = {
     // User-facing settings
     theme: 'system',
+    nightMode: false,
     interfaceLanguage: 'system',
     mapLanguage: 'interface',
     watchCompatibilityMode: true,
@@ -66,6 +67,13 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'Theme',
         type: 'string',
         description: 'Application theme (light, dark, or system default)',
+        userFacing: true,
+    },
+    {
+        key: 'nightMode',
+        name: 'Night Mode',
+        type: 'boolean',
+        description: 'Enable night mode with red tint for low-light conditions',
         userFacing: true,
     },
     {
@@ -373,6 +381,13 @@ export function getAllEarlySettings(): Settings {
  */
 export function isDebugModeEnabled(): boolean {
     return getEarlySetting('debugMode');
+}
+
+/**
+ * Check if night mode is enabled
+ */
+export function isNightModeEnabled(): boolean {
+    return getEarlySetting('nightMode');
 }
 
 /**

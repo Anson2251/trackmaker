@@ -15,7 +15,8 @@
                     "dark": "深色",
                     "system": "跟随系统"
                 }
-            }
+            },
+            "nightMode": "夜间模式"
         },
         "geolocation": {
             "title": "位置",
