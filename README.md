@@ -30,10 +30,6 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 
 ## Todo
 
-### Urgent
-
-- [x] **Write-Ahead Log (WAL) Architecture**: Refactor tracking feature to use WAL + Merge architecture for improved performance during GPS recording. See [`docs/write-ahead-log-architecture.md`](./docs/write-ahead-log-architecture.md) for full design specification.
-
 ### High Priority
 
 - [ ] **Accuracy-Weighted Route Optimization**: Store GPS accuracy (W3C spec) in route points and implement post-recording path optimization using accuracy as weights. Higher accuracy = higher weight = more influence on final path. Algorithm should minimize weighted distance to original points while penalizing excessive path length. (Next version)
@@ -51,6 +47,7 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 - [x] Kalman filter with GPS velocity integration for improved tracking
 - [x] Advanced settings system with early access support
 - [ ] Share routes capability
+    - [ ] Server backend [Cairn](docs/account-features-plan.md)
 
 
 ### Medium Priority
@@ -61,6 +58,7 @@ READ THE DOCUMENTS AT: [https://zread.ai/Anson2251/trackmaker/](https://zread.ai
 - [x] IMU sensor support for device orientation tracking
 - [x] Mobile responsive design improvements
 - [x] Drawing tools with delete mode
+- [ ] Auxiliary GPS tracking gadget [ChipLog](docs/chiplog-gadget-plan.md) that allows for long-term offline tracking
 
 ## Technology Stack
 
