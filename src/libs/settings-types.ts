@@ -39,9 +39,6 @@ export type Settings = {
     zuptThreshold: number;
     zuptConsecutiveSamples: number;
     zuptVelocityNoise: number;
-    // Merge processor parameters
-    mergeBatchSize: number;
-    maxMergeQueueSize: number;
     // Route simplification parameters
     routeSimplificationChunkSize: number;
     routeSimplificationThreshold: number;

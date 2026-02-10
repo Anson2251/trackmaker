@@ -41,9 +41,6 @@ export const defaultSettings: Settings = {
     zuptThreshold: 0.3,
     zuptConsecutiveSamples: 5,
     zuptVelocityNoise: 0.1,
-    // Merge processor parameters
-    mergeBatchSize: 1000,
-    maxMergeQueueSize: 10000,
     // Route simplification parameters
     routeSimplificationChunkSize: 100,
     routeSimplificationThreshold: 0.01, // 1% of line segment length
@@ -259,19 +256,6 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'ZUPT Velocity Noise',
         type: 'number',
         description: 'Measurement noise for zero-velocity assumption (m/s)',
-    },
-    // Merge processor parameters
-    {
-        key: 'mergeBatchSize',
-        name: 'Merge Batch Size',
-        type: 'number',
-        description: 'Number of route entries to process per merge batch (higher = faster but uses more memory)',
-    },
-    {
-        key: 'maxMergeQueueSize',
-        name: 'Max Merge Queue Size',
-        type: 'number',
-        description: 'Maximum number of merge jobs in queue to prevent memory exhaustion',
     },
     // Route simplification parameters
     {
@@ -540,20 +524,6 @@ export function getZUPTConsecutiveSamples(): number {
  */
 export function getZUPTVelocityNoise(): number {
     return getEarlySetting('zuptVelocityNoise');
-}
-
-/**
- * Get merge batch size
- */
-export function getMergeBatchSize(): number {
-    return getEarlySetting('mergeBatchSize');
-}
-
-/**
- * Get maximum merge queue size
- */
-export function getMaxMergeQueueSize(): number {
-    return getEarlySetting('maxMergeQueueSize');
 }
 
 /**

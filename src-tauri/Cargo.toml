@@ -29,3 +29,8 @@ isahc = "1.7.2"
 tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.0"
+objc2-core-location = { version = "0.3.0", features = ["CLLocation"] }
+objc2-foundation = "0.3.0"

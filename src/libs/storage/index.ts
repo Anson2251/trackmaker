@@ -181,15 +181,15 @@ class PlatformStorage implements Storage {
 const storageInstance = new PlatformStorage();
 
 // Export convenience functions
-export const storageSet = storageInstance.set.bind(storageInstance);
-export const storageGet = storageInstance.get.bind(storageInstance);
-export const storageSave = storageInstance.save.bind(storageInstance);
-export const storageInit = storageInstance.init.bind(storageInstance);
-export const storageExportToJson = storageInstance.exportToJson.bind(storageInstance);
-export const storageClear = storageInstance.clear.bind(storageInstance);
-export const storageRemove = storageInstance.remove.bind(storageInstance);
-export const storageScanKeys = storageInstance.scanKeys.bind(storageInstance);
-export const storageBatchSet = storageInstance.batchSet.bind(storageInstance);
+export const storageSet = storageInstance.set.bind(storageInstance) as typeof storageInstance.set;
+export const storageGet = storageInstance.get.bind(storageInstance) as typeof storageInstance.get;
+export const storageSave = storageInstance.save.bind(storageInstance) as typeof storageInstance.save;
+export const storageInit = storageInstance.init.bind(storageInstance) as typeof storageInstance.init;
+export const storageExportToJson = storageInstance.exportToJson.bind(storageInstance) as typeof storageInstance.exportToJson;
+export const storageClear = storageInstance.clear.bind(storageInstance) as typeof storageInstance.clear;
+export const storageRemove = storageInstance.remove.bind(storageInstance) as typeof storageInstance.remove;
+export const storageScanKeys = storageInstance.scanKeys.bind(storageInstance) as typeof storageInstance.scanKeys;
+export const storageBatchSet = storageInstance.batchSet.bind(storageInstance) as typeof storageInstance.batchSet;
 
 // Export the storage instance and interface
 export { storageInstance as storage };

@@ -27,24 +27,57 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
             return err(permissionResult.error);
         }
 
-        if (permissionResult.value === 'prompt' && permissionCallback) {
-            const granted = await permissionCallback(permissionResult.value, 'permission.location.prompt');
-            if (!granted) {
+        if (permissionResult.value === 'prompt') {
+            // Try to request permission via Rust backend (works on macOS)
+            let rustPermissionGranted = false;
+            try {
+                await invoke('request_geolocation_permission');
+                rustPermissionGranted = true;
+                // Re-check permission after request
+                const recheckResult = await this.getPermissionStatus();
+                if (recheckResult.isErr()) {
+                    return err(recheckResult.error);
+                }
+                if (recheckResult.value === 'denied') {
+                    return err(new GeolocationProviderError(
+                        'Geolocation permission denied by system',
+                        GeolocationProviderErrorCode.PERMISSION_DENIED
+                    ));
+                }
+            } catch {
+                // Rust command not available or permission denied - will fall through to callback
+            }
+
+            // If Rust command didn't work, try browser callback
+            if (!rustPermissionGranted && permissionCallback) {
+                const granted = await permissionCallback(permissionResult.value, 'permission.location.prompt');
+                if (!granted) {
+                    return err(new GeolocationProviderError(
+                        'Geolocation permission denied',
+                        GeolocationProviderErrorCode.PERMISSION_DENIED
+                    ));
+                }
+                const recheckResult = await this.getPermissionStatus();
+                if (recheckResult.isErr()) {
+                    return err(recheckResult.error);
+                }
+                if (recheckResult.value === 'denied') {
+                    return err(new GeolocationProviderError(
+                        'Geolocation permission denied',
+                        GeolocationProviderErrorCode.PERMISSION_DENIED
+                    ));
+                }
+            } else if (!rustPermissionGranted) {
                 return err(new GeolocationProviderError(
-                    'Geolocation permission denied',
+                    'Geolocation permission not granted',
                     GeolocationProviderErrorCode.PERMISSION_DENIED
                 ));
             }
-            const recheckResult = await this.getPermissionStatus();
-            if (recheckResult.isErr()) {
-                return err(recheckResult.error);
-            }
-            if (recheckResult.value === 'denied') {
-                return err(new GeolocationProviderError(
-                    'Geolocation permission denied',
-                    GeolocationProviderErrorCode.PERMISSION_DENIED
-                ));
-            }
+        } else if (permissionResult.value === 'denied') {
+            return err(new GeolocationProviderError(
+                'Geolocation permission denied',
+                GeolocationProviderErrorCode.PERMISSION_DENIED
+            ));
         }
 
         try {
@@ -81,19 +114,24 @@ export class TauriGeolocationProvider implements IGeolocationProvider {
 
     async getPermissionStatus(): Promise<Result<PermissionState, GeolocationProviderError>> {
         try {
+            // Try Rust backend first (for macOS native permissions)
+            const status = await invoke<string>('get_geolocation_permission_status');
+            return ok(status as PermissionState);
+        } catch {
+            // Fall back to browser permissions API
             if (!navigator.permissions) {
-                // Fallback for browsers without permissions API
                 return await this.fallbackPermissionCheck();
             }
-
-            const result = await navigator.permissions.query({ name: 'geolocation' });
-            return ok(result.state);
-        } catch (error) {
-            return err(new GeolocationProviderError(
-                'Failed to get permission status',
-                GeolocationProviderErrorCode.PERMISSION_DENIED,
-                error as Error
-            ));
+            try {
+                const result = await navigator.permissions.query({ name: 'geolocation' });
+                return ok(result.state);
+            } catch (error) {
+                return err(new GeolocationProviderError(
+                    'Failed to get permission status',
+                    GeolocationProviderErrorCode.PERMISSION_DENIED,
+                    error as Error
+                ));
+            }
         }
     }
 

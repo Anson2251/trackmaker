@@ -59,6 +59,8 @@ pub enum GeolocationProviderError {
     InetError(reqwest::Error),
     LookupError(isahc::Error),
     ParseError(std::num::ParseFloatError),
+    #[cfg(target_os = "macos")]
+    MacOSError(String),
 }
 
 impl std::fmt::Display for GeolocationProviderError {
@@ -67,6 +69,8 @@ impl std::fmt::Display for GeolocationProviderError {
             GeolocationProviderError::InetError(e) => write!(f, "InetError: {}", e),
             GeolocationProviderError::LookupError(e) => write!(f, "LookupError: {}", e),
             GeolocationProviderError::ParseError(e) => write!(f, "ParseError: {}", e),
+            #[cfg(target_os = "macos")]
+            GeolocationProviderError::MacOSError(e) => write!(f, "MacOSError: {}", e),
         }
     }
 }
