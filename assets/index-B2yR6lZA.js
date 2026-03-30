@@ -1,4 +1,4 @@
-import { b8 as e, b9 as i, ba as c } from "./index-ByDhVpem.js";
+import { b8 as e, b9 as i, ba as c } from "./index-CbiGHjeQ.js";
 async function r(n, a) {
   const o = new c();
   return o.onmessage = (t) => {
