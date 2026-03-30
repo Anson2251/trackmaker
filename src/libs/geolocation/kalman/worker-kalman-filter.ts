@@ -17,6 +17,8 @@ import type { KalmanConfig } from './kalman-types';
 import type { CartesianGPSReading, KalmanState, KalmanStateInternal } from './worker-types';
 
 export class WorkerKalmanFilter {
+    private static readonly LOW_SPEED_RESET_THRESHOLD = 0.5;
+    private static readonly MIN_GPS_SPEED_BLEND = 0.65;
     private state: KalmanStateInternal;
     private config: KalmanConfig;
     private lastKalmanGain: Matrix | null = null;
@@ -242,6 +244,10 @@ export class WorkerKalmanFilter {
         this.state.velocity = { x: xUpdated.get(2, 0), y: xUpdated.get(3, 0) };
         this.state.covariance = pUpdated;
 
+        if (reading.velocity || reading.speed !== undefined) {
+            this.applyGPSSpeedCorrection(reading);
+        }
+
         if (this.debugEnabled) {
             console.log('[WorkerKalmanFilter] GPS update:', {
                 position: { x: reading.x, y: reading.y },
@@ -249,6 +255,47 @@ export class WorkerKalmanFilter {
                 velocity: this.state.velocity
             });
         }
+    }
+
+    private applyGPSSpeedCorrection(reading: CartesianGPSReading): void {
+        const gpsSpeedVariance = Math.pow((this.config.gpsSpeedUncertainty ?? this.config.initialVelocityUncertainty) * 0.5, 2);
+        const currentVelocity = { ...this.state.velocity };
+
+        let measuredVelocity: { x: number; y: number } | null = null;
+        if (reading.velocity) {
+            measuredVelocity = reading.velocity;
+        } else if (reading.speed !== undefined) {
+            const currentSpeed = Math.hypot(currentVelocity.x, currentVelocity.y);
+            if (reading.speed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD || currentSpeed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD) {
+                measuredVelocity = { x: 0, y: 0 };
+            } else {
+                const scale = reading.speed / currentSpeed;
+                measuredVelocity = {
+                    x: currentVelocity.x * scale,
+                    y: currentVelocity.y * scale
+                };
+            }
+        }
+
+        if (!measuredVelocity) {
+            return;
+        }
+
+        const kx = Math.max(
+            WorkerKalmanFilter.MIN_GPS_SPEED_BLEND,
+            this.state.covariance.get(2, 2) / (this.state.covariance.get(2, 2) + gpsSpeedVariance)
+        );
+        const ky = Math.max(
+            WorkerKalmanFilter.MIN_GPS_SPEED_BLEND,
+            this.state.covariance.get(3, 3) / (this.state.covariance.get(3, 3) + gpsSpeedVariance)
+        );
+
+        this.state.velocity = {
+            x: currentVelocity.x + kx * (measuredVelocity.x - currentVelocity.x),
+            y: currentVelocity.y + ky * (measuredVelocity.y - currentVelocity.y)
+        };
+        this.state.covariance.set(2, 2, (1 - kx) * this.state.covariance.get(2, 2));
+        this.state.covariance.set(3, 3, (1 - ky) * this.state.covariance.get(3, 3));
     }
 
     private getStateVector(): Matrix {

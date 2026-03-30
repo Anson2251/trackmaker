@@ -81,6 +81,7 @@ export class LocationProcessor {
                 y: cartesian.y,
                 accuracy: initialGPSReading.accuracy,
                 timestamp: initialGPSReading.timestamp,
+                speed: this.getTrustedGPSSpeed(initialGPSReading),
                 velocity
             };
             this.lastOutputAccuracy = initialGPSReading.accuracy;
@@ -196,6 +197,7 @@ export class LocationProcessor {
                 y: cartesian.y,
                 accuracy: gpsReading.accuracy,
                 timestamp: gpsReading.timestamp,
+                speed: this.getTrustedGPSSpeed(gpsReading),
                 velocity
             };
 
@@ -355,6 +357,15 @@ export class LocationProcessor {
         }
 
         return this.gpsVelocityToLocal(speed, heading);
+    }
+
+    private getTrustedGPSSpeed(reading: GPSReading): number | undefined {
+        const { speed } = reading;
+        if (speed === undefined || !Number.isFinite(speed) || speed < 0) {
+            return undefined;
+        }
+
+        return speed;
     }
 
     private gpsVelocityToLocal(speed: number, heading: number): { x: number; y: number } {

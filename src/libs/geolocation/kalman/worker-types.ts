@@ -27,6 +27,7 @@ export interface CartesianGPSReading {
     y: number;
     accuracy: number;
     timestamp: number;
+    speed?: number;
     velocity?: { x: number; y: number };
 }
 
