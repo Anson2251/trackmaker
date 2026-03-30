@@ -34,13 +34,6 @@ export const defaultSettings: Settings = {
     kalmanInitialPositionUncertainty: 1,
     kalmanInitialVelocityUncertainty: 0.1,
     kalmanGpsSpeedUncertainty: 1,
-    kalmanImuAccelerationUncertainty: 0.1,
-    kalmanVelocityProcessNoise: 0.01,
-    // ZUPT (Zero-Velocity Update) parameters
-    zuptEnabled: true,
-    zuptThreshold: 0.3,
-    zuptConsecutiveSamples: 5,
-    zuptVelocityNoise: 0.1,
     // Route simplification parameters
     routeSimplificationChunkSize: 100,
     routeSimplificationThreshold: 0.01, // 1% of line segment length
@@ -219,43 +212,6 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         name: 'GPS Speed Uncertainty',
         type: 'number',
         description: 'GPS speed uncertainty (m/s)',
-    },
-    {
-        key: 'kalmanImuAccelerationUncertainty',
-        name: 'IMU Acceleration Uncertainty',
-        type: 'number',
-        description: 'IMU acceleration uncertainty (m/s²)',
-    },
-    {
-        key: 'kalmanVelocityProcessNoise',
-        name: 'Velocity Process Noise',
-        type: 'number',
-        description: 'Process noise coefficient for velocity in Kalman filter',
-    },
-    // ZUPT (Zero-Velocity Update) parameters
-    {
-        key: 'zuptEnabled',
-        name: 'ZUPT Enabled',
-        type: 'boolean',
-        description: 'Enable Zero-Velocity Update to improve position accuracy when stationary',
-    },
-    {
-        key: 'zuptThreshold',
-        name: 'ZUPT Threshold',
-        type: 'number',
-        description: 'Acceleration magnitude threshold for stationary detection (m/s²)',
-    },
-    {
-        key: 'zuptConsecutiveSamples',
-        name: 'ZUPT Consecutive Samples',
-        type: 'number',
-        description: 'Number of consecutive samples below threshold to trigger ZUPT',
-    },
-    {
-        key: 'zuptVelocityNoise',
-        name: 'ZUPT Velocity Noise',
-        type: 'number',
-        description: 'Measurement noise for zero-velocity assumption (m/s)',
     },
     // Route simplification parameters
     {
@@ -482,48 +438,6 @@ export function getKalmanInitialVelocityUncertainty(): number {
  */
 export function getKalmanGpsSpeedUncertainty(): number {
     return getEarlySetting('kalmanGpsSpeedUncertainty');
-}
-
-/**
- * Get Kalman filter IMU acceleration uncertainty
- */
-export function getKalmanImuAccelerationUncertainty(): number {
-    return getEarlySetting('kalmanImuAccelerationUncertainty');
-}
-
-/**
- * Get Kalman filter velocity process noise
- */
-export function getKalmanVelocityProcessNoise(): number {
-    return getEarlySetting('kalmanVelocityProcessNoise');
-}
-
-/**
- * Get ZUPT enabled status
- */
-export function isZUPTEnabled(): boolean {
-    return getEarlySetting('zuptEnabled');
-}
-
-/**
- * Get ZUPT acceleration threshold
- */
-export function getZUPTThreshold(): number {
-    return getEarlySetting('zuptThreshold');
-}
-
-/**
- * Get ZUPT consecutive samples requirement
- */
-export function getZUPTConsecutiveSamples(): number {
-    return getEarlySetting('zuptConsecutiveSamples');
-}
-
-/**
- * Get ZUPT velocity measurement noise
- */
-export function getZUPTVelocityNoise(): number {
-    return getEarlySetting('zuptVelocityNoise');
 }
 
 /**

@@ -10,7 +10,7 @@ export interface KalmanState {
     position: { x: number; y: number };
     velocity: { x: number; y: number };
     acceleration: { x: number; y: number };
-    covariance: number[][]; // 6x6 matrix as 2D array
+    covariance: number[][];
     timestamp: number;
 }
 

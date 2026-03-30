@@ -91,21 +91,11 @@ export class IMUFusionManager {
         }
 
         try {
-            // Stop polling
+            // Only stop this manager's polling/callback lifecycle.
+            // Platform services own the shared IMU sensor lifetime.
             if (this.imuUpdateInterval) {
                 clearInterval(this.imuUpdateInterval);
                 this.imuUpdateInterval = null;
-            }
-
-            // Stop sensors
-            const accelResult = this.imuProvider.stopAcceleration();
-            if (accelResult.isErr()) {
-                console.warn('[IMUFusionManager] Failed to stop acceleration sensor:', accelResult.error);
-            }
-
-            const gyroResult = this.imuProvider.stopGyroscope();
-            if (gyroResult.isErr()) {
-                console.warn('[IMUFusionManager] Failed to stop gyroscope sensor:', gyroResult.error);
             }
 
             this.imuCallbacks = [];
@@ -125,6 +115,9 @@ export class IMUFusionManager {
     private startIMUPolling(): void {
         if (!this.imuProvider) return;
 
+        // Intentionally poll the latest IMU snapshot instead of forwarding every raw
+        // devicemotion event. On lower-end phones, pushing the full sensor event rate
+        // through JS can cost too much CPU and trigger unnecessary JIT pressure.
         this.imuUpdateInterval = setInterval(async () => {
             try {
                 const reading = await this.getCombinedIMUReading();

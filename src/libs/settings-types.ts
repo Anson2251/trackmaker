@@ -32,13 +32,6 @@ export type Settings = {
     kalmanInitialPositionUncertainty: number;
     kalmanInitialVelocityUncertainty: number;
     kalmanGpsSpeedUncertainty: number;
-    kalmanImuAccelerationUncertainty: number;
-    kalmanVelocityProcessNoise: number;
-    // ZUPT (Zero-Velocity Update) parameters
-    zuptEnabled: boolean;
-    zuptThreshold: number;
-    zuptConsecutiveSamples: number;
-    zuptVelocityNoise: number;
     // Route simplification parameters
     routeSimplificationChunkSize: number;
     routeSimplificationThreshold: number;

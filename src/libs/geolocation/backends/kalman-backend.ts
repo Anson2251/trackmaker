@@ -7,16 +7,19 @@ import { getPlatformServices } from '@/libs/platform';
 import type { IGeolocationProvider } from '@/libs/platform/types';
 
 export class KalmanBackend implements BackendStrategy {
-    readonly name = 'kalman';
+    readonly name: 'kalman' | 'kalman-no-imu';
     private provider: IGeolocationProvider | null = null;
     private processor: LocationProcessor | null = null;
     private watchId: number | null = null;
     private isInitialized = false;
     private userCallback: LocationCallback | null = null;
     private imuUpdateInterval: number;
+    private useIMU: boolean;
 
-    constructor(imuUpdateInterval: number = 100) {
+    constructor(name: 'kalman' | 'kalman-no-imu' = 'kalman', imuUpdateInterval: number = 100) {
+        this.name = name;
         this.imuUpdateInterval = imuUpdateInterval;
+        this.useIMU = name !== 'kalman-no-imu';
     }
 
     async initialize(): Promise<Result<void, GeolocationError>> {
@@ -53,7 +56,11 @@ export class KalmanBackend implements BackendStrategy {
 
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
-                this.imuUpdateInterval
+                this.imuUpdateInterval,
+                {
+                    useIMU: this.useIMU,
+                    source: this.name,
+                }
                 // Config is read from settings in LocationProcessor
             );
 
@@ -155,6 +162,9 @@ export class KalmanBackend implements BackendStrategy {
         }
 
         try {
+            // The app currently treats geolocation services as long-lived singletons started
+            // during config boot, so stop/restart is not the primary runtime path. If that
+            // changes, this backend should rebuild the processor/worker before restarting.
             const stopResult = await this.processor.stopGPS();
             if (stopResult.isErr()) {
                 console.warn('[KalmanBackend] Failed to stop processor cleanly:', stopResult.error);
@@ -185,27 +195,6 @@ export class KalmanBackend implements BackendStrategy {
         }
 
         try {
-            const positionResult = await this.provider.getCurrentPosition();
-            if (positionResult.isErr()) {
-                return err(new GeolocationError(
-                    'Failed to get current position',
-                    'UPDATE_SERVICE_ERROR' as any,
-                    positionResult.error
-                ));
-            }
-
-            const position = positionResult.value;
-            const gpsReading: GPSReading = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                timestamp: performance.now(), // Always use performance.now() for consistent delta time calculations
-                speed: position.coords.speed ?? undefined,
-                heading: position.coords.heading ?? undefined
-            };
-
-            await this.processor.processGPSLocation(gpsReading);
-
             return await this.processor.getCurrentFilteredPosition();
         } catch (error) {
             return err(new GeolocationError(
@@ -227,7 +216,7 @@ export class KalmanBackend implements BackendStrategy {
     private handleLocationUpdate(location: GeographicPoint): void {
         if (this.userCallback) {
             try {
-                this.userCallback(location, 'kalman');
+                this.userCallback(location, this.name);
             } catch (error) {
                 console.error('[KalmanBackend] User callback error:', error);
             }

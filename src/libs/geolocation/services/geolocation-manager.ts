@@ -62,7 +62,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
         if (includeKalman) {
             const frequency = getIMUUpdateFrequency();
             const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
-            strategies.push(new KalmanBackend(imuUpdateInterval));
+            const kalmanMode = backendPreference === 'kalman-no-imu' ? 'kalman-no-imu' : 'kalman';
+            strategies.push(new KalmanBackend(kalmanMode, imuUpdateInterval));
         }
 
         // Include GPS backend based on preference
@@ -234,7 +235,6 @@ export class GeolocationManager implements GeolocationManagerInterface {
             const startResult = await this.backendManager.startWatching(
                 (location, source) => {
                     this.stateManager.updateLocation(location, source);
-                    this.notifyCallbacks(location);
                 },
             );
 

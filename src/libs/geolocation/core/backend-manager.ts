@@ -58,11 +58,6 @@ export class BackendManager {
                 console.warn(`[BackendManager] Failed to start ${this.activeStrategy.name} backend:`, startResult.error);
                 return err(startResult.error);
             }
-        } else {
-            const startResult = await this.activeStrategy.startWatching(callback);
-            if (startResult.isErr()) {
-                return err(startResult.error);
-            }
         }
 
         this.watcherCount++;

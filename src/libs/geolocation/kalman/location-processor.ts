@@ -13,15 +13,15 @@ import {
     getKalmanInitialPositionUncertainty,
     getKalmanInitialVelocityUncertainty,
     getKalmanGpsSpeedUncertainty,
-    getKalmanImuAccelerationUncertainty,
-    getKalmanVelocityProcessNoise,
-    isZUPTEnabled,
-    getZUPTThreshold,
-    getZUPTConsecutiveSamples,
-    getZUPTVelocityNoise,
-    isDebugModeEnabled,
-    getEarlySetting
+    isDebugModeEnabled
 } from '../../default-settings';
+
+type LocationProcessorOptions = Partial<KalmanConfig> & {
+    useIMU?: boolean;
+    source?: 'kalman' | 'kalman-no-imu';
+};
+
+const MIN_SPEED_FOR_GPS_HEADING = 2;
 
 export class LocationProcessor {
     private workerClient: KalmanWorkerClient;
@@ -33,33 +33,29 @@ export class LocationProcessor {
     private lastOutputAccuracy = 0;
     private debugEnabled = false;
     private withoutIMU: boolean = false;
+    private source: 'kalman' | 'kalman-no-imu' = 'kalman';
     private config: KalmanConfig;
     private cachedState: KalmanState | null = null;
     private cachedGain: Matrix | null = null;
+    private processingQueue: Promise<void> = Promise.resolve();
 
     constructor(
         callback: LocationCallback,
         imuUpdateInterval: number = 100,
-        config?: Partial<KalmanConfig>
+        options?: LocationProcessorOptions
     ) {
         this.workerClient = new KalmanWorkerClient();
         this.coordinateTransformer = new CoordinateTransformer();
         this.imuManager = new IMUFusionManager(imuUpdateInterval);
         this.callback = callback;
-        this.debugEnabled = config?.debugEnabled ?? isDebugModeEnabled();
-        const backend = getEarlySetting('geolocationBackend');
-        this.withoutIMU = backend === 'kalman-no-imu';
+        this.debugEnabled = options?.debugEnabled ?? isDebugModeEnabled();
+        this.withoutIMU = options?.useIMU === false;
+        this.source = options?.source ?? 'kalman';
         this.config = {
-            initialAccelerationUncertainty: config?.initialAccelerationUncertainty ?? getKalmanInitialAccelerationUncertainty(),
-            initialPositionUncertainty: config?.initialPositionUncertainty ?? getKalmanInitialPositionUncertainty(),
-            initialVelocityUncertainty: config?.initialVelocityUncertainty ?? getKalmanInitialVelocityUncertainty(),
-            gpsSpeedUncertainty: config?.gpsSpeedUncertainty ?? getKalmanGpsSpeedUncertainty(),
-            imuAccelerationUncertainty: config?.imuAccelerationUncertainty ?? getKalmanImuAccelerationUncertainty(),
-            velocityProcessNoise: config?.velocityProcessNoise ?? getKalmanVelocityProcessNoise(),
-            zuptEnabled: config?.zuptEnabled ?? isZUPTEnabled(),
-            zuptThreshold: config?.zuptThreshold ?? getZUPTThreshold(),
-            zuptConsecutiveSamples: config?.zuptConsecutiveSamples ?? getZUPTConsecutiveSamples(),
-            zuptVelocityNoise: config?.zuptVelocityNoise ?? getZUPTVelocityNoise(),
+            initialAccelerationUncertainty: options?.initialAccelerationUncertainty ?? getKalmanInitialAccelerationUncertainty(),
+            initialPositionUncertainty: options?.initialPositionUncertainty ?? getKalmanInitialPositionUncertainty(),
+            initialVelocityUncertainty: options?.initialVelocityUncertainty ?? getKalmanInitialVelocityUncertainty(),
+            gpsSpeedUncertainty: options?.gpsSpeedUncertainty ?? getKalmanGpsSpeedUncertainty(),
             debugEnabled: this.debugEnabled,
         };
     }
@@ -78,11 +74,7 @@ export class LocationProcessor {
                 latitude: initialGPSReading.latitude
             });
 
-            // Convert velocity if available
-            let velocity;
-            if (initialGPSReading.speed !== undefined && initialGPSReading.heading !== undefined) {
-                velocity = this.gpsVelocityToLocal(initialGPSReading.speed, initialGPSReading.heading);
-            }
+            const velocity = this.getTrustedGPSVelocity(initialGPSReading);
 
             const cartesianReading: CartesianGPSReading = {
                 x: cartesian.x,
@@ -91,12 +83,15 @@ export class LocationProcessor {
                 timestamp: initialGPSReading.timestamp,
                 velocity
             };
+            this.lastOutputAccuracy = initialGPSReading.accuracy;
 
             // Initialize IMU manager (only if not in no-IMU mode)
             if (!this.withoutIMU) {
                 const imuInitResult = await this.imuManager.initialize();
                 if (imuInitResult.isErr()) {
                     console.warn('[LocationProcessor] IMU not available, using GPS-only mode');
+                    this.withoutIMU = true;
+                    this.source = 'kalman-no-imu';
                 }
             } else {
                 console.info('[LocationProcessor] Running in no-IMU mode, skipping IMU initialization');
@@ -139,7 +134,12 @@ export class LocationProcessor {
                 );
                 if (startResult.isErr()) {
                     console.warn('[LocationProcessor] Failed to start IMU, using GPS-only');
+                    this.withoutIMU = true;
+                    this.source = 'kalman-no-imu';
                 }
+            } else {
+                this.withoutIMU = true;
+                this.source = 'kalman-no-imu';
             }
 
             this.isInitialized = true;
@@ -182,18 +182,14 @@ export class LocationProcessor {
             return;
         }
 
-        try {
+        await this.enqueueProcessing(async () => {
             // Transform GPS reading to Cartesian coordinates
             const cartesian = await this.coordinateTransformer.geographicToLocal({
                 longitude: gpsReading.longitude,
                 latitude: gpsReading.latitude
             });
 
-            // Convert velocity if available
-            let velocity;
-            if (gpsReading.speed !== undefined && gpsReading.heading !== undefined) {
-                velocity = this.gpsVelocityToLocal(gpsReading.speed, gpsReading.heading);
-            }
+            const velocity = this.getTrustedGPSVelocity(gpsReading);
 
             const cartesianReading: CartesianGPSReading = {
                 x: cartesian.x,
@@ -209,9 +205,7 @@ export class LocationProcessor {
 
             // Get filtered position and notify callback
             await this.outputFilteredPosition();
-        } catch (error) {
-            console.error('[LocationProcessor] Error processing GPS location:', error);
-        }
+        }, '[LocationProcessor] Error processing GPS location:');
     }
 
     async processIMUReading(imuReading: IMUReading): Promise<void> {
@@ -222,7 +216,7 @@ export class LocationProcessor {
             return;
         }
 
-        try {
+        await this.enqueueProcessing(async () => {
             if (this.debugEnabled) {
                 console.log('[LocationProcessor] Processing IMU reading:', {
                     timestamp: imuReading.timestamp,
@@ -232,9 +226,7 @@ export class LocationProcessor {
 
             await this.workerClient.processIMU(imuReading);
             await this.outputPredictedPosition();
-        } catch (error) {
-            console.error('[LocationProcessor] Error processing IMU reading:', error);
-        }
+        }, '[LocationProcessor] Error processing IMU reading:');
     }
 
     private async outputFilteredPosition(): Promise<void> {
@@ -290,6 +282,7 @@ export class LocationProcessor {
         }
 
         try {
+            await this.processingQueue;
             const filteredPos = await this.workerClient.getFilteredPosition();
             const geographic = await this.coordinateTransformer.localToGeographic(filteredPos);
             const point = new GeographicPoint(
@@ -319,6 +312,17 @@ export class LocationProcessor {
         return this.isInitialized;
     }
 
+    private async enqueueProcessing(work: () => Promise<void>, errorPrefix: string): Promise<void> {
+        const run = this.processingQueue.then(work);
+        this.processingQueue = run.catch(() => undefined);
+
+        try {
+            await run;
+        } catch (error) {
+            console.error(errorPrefix, error);
+        }
+    }
+
     private async updateCachedState(): Promise<void> {
         try {
             const workerState = await this.workerClient.getState();
@@ -339,6 +343,20 @@ export class LocationProcessor {
         }
     }
 
+    private getTrustedGPSVelocity(reading: GPSReading): { x: number; y: number } | undefined {
+        const { speed, heading } = reading;
+        if (speed === undefined || heading === undefined) {
+            return undefined;
+        }
+
+        // GPS heading is usually too noisy at very low speed to be useful.
+        if (!Number.isFinite(speed) || !Number.isFinite(heading) || speed < MIN_SPEED_FOR_GPS_HEADING) {
+            return undefined;
+        }
+
+        return this.gpsVelocityToLocal(speed, heading);
+    }
+
     private gpsVelocityToLocal(speed: number, heading: number): { x: number; y: number } {
         // Convert heading (degrees clockwise from true north) to radians
         const headingRad = heading * Math.PI / 180;
@@ -350,7 +368,7 @@ export class LocationProcessor {
     private notifyCallback(location: GeographicPoint): void {
         if (this.callback) {
             try {
-                this.callback(location, 'kalman');
+                this.callback(location, this.source);
             } catch (error) {
                 console.error('[LocationProcessor] Callback error:', error);
             }

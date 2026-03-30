@@ -9,12 +9,15 @@ import { getGpsUpdateInterval, getKalmanGpsUpdateInterval, getEarlySetting } fro
 
 export class WebGeolocationProvider implements IGeolocationProvider {
     private initialized = false;
-    private compatibilityModeWatches = new Map<number, number>();
+    private compatibilityModeWatches = new Map<number, { highFrequency: boolean }>();
     private compatibilityModeCallbacks = new Map<number, PositionCallback>();
+    private highFrequencyCallbacks = new Map<number, PositionCallback>();
     private lastCompatibilityPosition: { lat: number; lng: number, acc: number } | null = null;
-    private lastCompatibilityUpdateTime: number = 0;
+    private lastCompatibilityUpdateTime = 0;
     private compatibilityIntervalId: number | null = null;
+    private highFrequencyIntervalId: number | null = null;
     private initPromise: Promise<Result<void, GeolocationProviderError>> | null = null;
+    private nextCompatibilityWatchId = -1;
 
     async init(permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>): Promise<Result<void, GeolocationProviderError>> {
         if (this.initialized) {
@@ -198,47 +201,23 @@ export class WebGeolocationProvider implements IGeolocationProvider {
             else console.info('[Geolocation] Using compatibility mode for position watch');
 
             try {
-                const watchId = Date.now();
-                this.compatibilityModeCallbacks.set(watchId, callback);
+                const watchId = this.nextCompatibilityWatchId--;
+                const callbackMap = highFrequency ? this.highFrequencyCallbacks : this.compatibilityModeCallbacks;
+                callbackMap.set(watchId, callback);
 
-                // Start shared interval if not already running
-                if (this.compatibilityIntervalId === null) {
-                    this.compatibilityIntervalId = setInterval(async () => {
-                        const result = await this.getCurrentPosition();
-                        if (result.isOk()) {
-                            const pos = result.value;
-                            const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
-                            const now = Date.now();
-                            const forceUpdate = !highFrequency && (now - this.lastCompatibilityUpdateTime > gpsInterval);
-
-                            // Skip if position hasn't changed (deduplication)
-                            // Always update in high frequency mode for Kalman filter
-                            if (!forceUpdate && !highFrequency && this.lastCompatibilityPosition &&
-                                this.lastCompatibilityPosition.lat === newPos.lat &&
-                                this.lastCompatibilityPosition.lng === newPos.lng &&
-                                this.lastCompatibilityPosition.acc === newPos.acc
-                            ) {
-                                return;
-                            }
-
-                            // console.log('[Geolocation] Position updated:', newPos);
-
-                            this.lastCompatibilityPosition = newPos;
-
-                            // Notify all callbacks
-                            for (const cb of this.compatibilityModeCallbacks.values()) {
-                                try {
-                                    cb(pos);
-                                } catch (error) {
-                                    console.error('[Geolocation] Callback error:', error);
-                                }
-                            }
-                            this.lastCompatibilityUpdateTime = now;
-                        }
-                    }, highFrequency ? kalmanGpsInterval : gpsInterval);
+                if (highFrequency) {
+                    if (this.highFrequencyIntervalId === null) {
+                        this.highFrequencyIntervalId = window.setInterval(() => {
+                            void this.pollCompatibilityWatch(true, kalmanGpsInterval);
+                        }, kalmanGpsInterval);
+                    }
+                } else if (this.compatibilityIntervalId === null) {
+                    this.compatibilityIntervalId = window.setInterval(() => {
+                        void this.pollCompatibilityWatch(false, gpsInterval);
+                    }, gpsInterval);
                 }
 
-                this.compatibilityModeWatches.set(watchId, this.compatibilityIntervalId);
+                this.compatibilityModeWatches.set(watchId, { highFrequency });
                 return ok(watchId);
             } catch (error) {
                 return err(new GeolocationProviderError(
@@ -277,14 +256,24 @@ export class WebGeolocationProvider implements IGeolocationProvider {
         try {
             // Check if this is a compatibility mode watch
             if (this.compatibilityModeWatches.has(watchId)) {
-                this.compatibilityModeCallbacks.delete(watchId);
+                const watch = this.compatibilityModeWatches.get(watchId)!;
+                if (watch.highFrequency) {
+                    this.highFrequencyCallbacks.delete(watchId);
+                } else {
+                    this.compatibilityModeCallbacks.delete(watchId);
+                }
                 this.compatibilityModeWatches.delete(watchId);
 
-                // Only clear interval when no more callbacks
                 if (this.compatibilityModeCallbacks.size === 0 && this.compatibilityIntervalId !== null) {
                     window.clearInterval(this.compatibilityIntervalId);
                     this.compatibilityIntervalId = null;
                     this.lastCompatibilityPosition = null;
+                    this.lastCompatibilityUpdateTime = 0;
+                }
+
+                if (this.highFrequencyCallbacks.size === 0 && this.highFrequencyIntervalId !== null) {
+                    window.clearInterval(this.highFrequencyIntervalId);
+                    this.highFrequencyIntervalId = null;
                 }
             } else {
                 // Standard mode: use native clearWatch
@@ -302,6 +291,44 @@ export class WebGeolocationProvider implements IGeolocationProvider {
 
     private isSupported(): boolean {
         return 'geolocation' in navigator;
+    }
+
+    private async pollCompatibilityWatch(highFrequency: boolean, gpsInterval: number): Promise<void> {
+        const callbackMap = highFrequency ? this.highFrequencyCallbacks : this.compatibilityModeCallbacks;
+        if (callbackMap.size === 0) {
+            return;
+        }
+
+        const result = await this.getCurrentPosition();
+        if (result.isErr()) {
+            return;
+        }
+
+        const pos = result.value;
+        if (!highFrequency) {
+            const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+            const now = Date.now();
+            const forceUpdate = now - this.lastCompatibilityUpdateTime > gpsInterval;
+
+            if (!forceUpdate && this.lastCompatibilityPosition &&
+                this.lastCompatibilityPosition.lat === newPos.lat &&
+                this.lastCompatibilityPosition.lng === newPos.lng &&
+                this.lastCompatibilityPosition.acc === newPos.acc
+            ) {
+                return;
+            }
+
+            this.lastCompatibilityPosition = newPos;
+            this.lastCompatibilityUpdateTime = now;
+        }
+
+        for (const cb of callbackMap.values()) {
+            try {
+                cb(pos);
+            } catch (error) {
+                console.error('[Geolocation] Callback error:', error);
+            }
+        }
     }
 
     private isPositionError(error: unknown): error is GeolocationPositionError {
