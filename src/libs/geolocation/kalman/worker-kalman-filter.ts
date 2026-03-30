@@ -18,7 +18,6 @@ import type { CartesianGPSReading, KalmanState, KalmanStateInternal } from './wo
 
 export class WorkerKalmanFilter {
     private static readonly LOW_SPEED_RESET_THRESHOLD = 0.5;
-    private static readonly MIN_GPS_SPEED_BLEND = 0.65;
     private state: KalmanStateInternal;
     private config: KalmanConfig;
     private lastKalmanGain: Matrix | null = null;
@@ -98,8 +97,8 @@ export class WorkerKalmanFilter {
     updateGPS(reading: CartesianGPSReading): void {
         if (!this.isInitialized) return;
 
-        if (reading.x === 0 && reading.y === 0) {
-            console.warn('[WorkerKalmanFilter] Ignoring invalid coordinates (0, 0)');
+        if (!Number.isFinite(reading.x) || !Number.isFinite(reading.y)) {
+            console.warn('[WorkerKalmanFilter] Ignoring invalid coordinates', { x: reading.x, y: reading.y });
             return;
         }
 
@@ -238,26 +237,22 @@ export class WorkerKalmanFilter {
 
         const x = this.getStateVector();
         const expectedMeasurement = H.mmul(x);
-        const S = H.mmul(this.state.covariance).mmul(H.transpose()).add(R);
-        const K = this.state.covariance.mmul(H.transpose()).mmul(inverse(S));
         const innovation = z.sub(expectedMeasurement);
-        const xUpdated = x.add(K.mmul(innovation));
-        const I = Matrix.eye(4);
-        const pUpdated = I.sub(K.mmul(H)).mmul(this.state.covariance);
+        const { updatedState, kalmanGain } = this.applyMeasurementUpdate(H, z, R, x);
 
-        this.lastKalmanGain = K;
+        this.lastKalmanGain = kalmanGain;
         this.state.position = {
-            x: this.sanitizeFinite(xUpdated.get(0, 0)),
-            y: this.sanitizeFinite(xUpdated.get(1, 0))
+            x: this.sanitizeFinite(updatedState.get(0, 0)),
+            y: this.sanitizeFinite(updatedState.get(1, 0))
         };
         this.state.velocity = {
-            x: this.sanitizeFinite(xUpdated.get(2, 0)),
-            y: this.sanitizeFinite(xUpdated.get(3, 0))
+            x: this.sanitizeFinite(updatedState.get(2, 0)),
+            y: this.sanitizeFinite(updatedState.get(3, 0))
         };
-        this.state.covariance = pUpdated;
+        this.state.covariance = this.sanitizeCovariance(this.state.covariance);
 
         if (reading.velocity || reading.speed !== undefined) {
-            this.applyGPSSpeedCorrection(reading);
+            this.applyGPSVelocityCorrection(reading);
         }
 
         if (this.debugEnabled) {
@@ -269,57 +264,86 @@ export class WorkerKalmanFilter {
         }
     }
 
-    private applyGPSSpeedCorrection(reading: CartesianGPSReading): void {
-        const gpsSpeedVariance = Math.pow((this.config.gpsSpeedUncertainty ?? this.config.initialVelocityUncertainty) * 0.5, 2);
-        const currentVelocity = {
-            x: this.sanitizeFinite(this.state.velocity.x),
-            y: this.sanitizeFinite(this.state.velocity.y)
-        };
-
+    private applyGPSVelocityCorrection(reading: CartesianGPSReading): void {
         let measuredVelocity: { x: number; y: number } | null = null;
         if (reading.velocity) {
             if (Number.isFinite(reading.velocity.x) && Number.isFinite(reading.velocity.y)) {
                 measuredVelocity = reading.velocity;
             }
-        } else if (reading.speed !== undefined) {
-            const currentSpeed = Math.hypot(currentVelocity.x, currentVelocity.y);
-            if (reading.speed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD || currentSpeed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD) {
-                measuredVelocity = { x: 0, y: 0 };
-            } else {
-                const scale = reading.speed / currentSpeed;
-                if (!Number.isFinite(scale)) {
-                    return;
-                }
-                measuredVelocity = {
-                    x: currentVelocity.x * scale,
-                    y: currentVelocity.y * scale
-                };
-            }
+        } else if (
+            reading.speed !== undefined
+            && Number.isFinite(reading.speed)
+            && reading.speed >= 0
+            && reading.speed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD
+        ) {
+            measuredVelocity = { x: 0, y: 0 };
         }
 
         if (!measuredVelocity) {
             return;
         }
 
-        if (!Number.isFinite(measuredVelocity.x) || !Number.isFinite(measuredVelocity.y)) {
-            return;
-        }
+        const sigmaSpeed = this.config.gpsSpeedUncertainty ?? this.config.initialVelocityUncertainty;
+        const velocityVariance = sigmaSpeed * sigmaSpeed;
+        const H = new Matrix([
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ]);
+        const z = new Matrix([
+            [measuredVelocity.x],
+            [measuredVelocity.y]
+        ]);
+        const R = new Matrix([
+            [velocityVariance, 0],
+            [0, velocityVariance]
+        ]);
+        const x = this.getStateVector();
+        const { updatedState } = this.applyMeasurementUpdate(H, z, R, x);
 
-        const kx = Math.max(
-            WorkerKalmanFilter.MIN_GPS_SPEED_BLEND,
-            this.state.covariance.get(2, 2) / (this.state.covariance.get(2, 2) + gpsSpeedVariance)
-        );
-        const ky = Math.max(
-            WorkerKalmanFilter.MIN_GPS_SPEED_BLEND,
-            this.state.covariance.get(3, 3) / (this.state.covariance.get(3, 3) + gpsSpeedVariance)
-        );
-
-        this.state.velocity = {
-            x: this.sanitizeFinite(currentVelocity.x + kx * (measuredVelocity.x - currentVelocity.x)),
-            y: this.sanitizeFinite(currentVelocity.y + ky * (measuredVelocity.y - currentVelocity.y))
+        this.state.position = {
+            x: this.sanitizeFinite(updatedState.get(0, 0)),
+            y: this.sanitizeFinite(updatedState.get(1, 0))
         };
-        this.state.covariance.set(2, 2, (1 - kx) * this.state.covariance.get(2, 2));
-        this.state.covariance.set(3, 3, (1 - ky) * this.state.covariance.get(3, 3));
+        this.state.velocity = {
+            x: this.sanitizeFinite(updatedState.get(2, 0)),
+            y: this.sanitizeFinite(updatedState.get(3, 0))
+        };
+        this.state.covariance = this.sanitizeCovariance(this.state.covariance);
+    }
+
+    private applyMeasurementUpdate(
+        observationModel: Matrix,
+        measurement: Matrix,
+        measurementNoise: Matrix,
+        stateVector: Matrix
+    ): { updatedState: Matrix; kalmanGain: Matrix } {
+        const innovation = measurement.sub(observationModel.mmul(stateVector));
+        const innovationCovariance = observationModel.mmul(this.state.covariance)
+            .mmul(observationModel.transpose())
+            .add(measurementNoise);
+        const kalmanGain = this.state.covariance
+            .mmul(observationModel.transpose())
+            .mmul(inverse(innovationCovariance));
+        const updatedState = stateVector.add(kalmanGain.mmul(innovation));
+        const identity = Matrix.eye(4);
+        const gainResidual = identity.sub(kalmanGain.mmul(observationModel));
+
+        this.state.covariance = gainResidual
+            .mmul(this.state.covariance)
+            .mmul(gainResidual.transpose())
+            .add(kalmanGain.mmul(measurementNoise).mmul(kalmanGain.transpose()));
+
+        return { updatedState, kalmanGain };
+    }
+
+    private sanitizeCovariance(covariance: Matrix): Matrix {
+        const sanitized = covariance.clone();
+        for (let row = 0; row < sanitized.rows; row++) {
+            for (let column = 0; column < sanitized.columns; column++) {
+                sanitized.set(row, column, this.sanitizeFinite(sanitized.get(row, column)));
+            }
+        }
+        return sanitized;
     }
 
     private sanitizeFinite(value: number, fallback: number = 0): number {
