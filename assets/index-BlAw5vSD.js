@@ -1,4 +1,4 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-gxjcllkI.js","./SelectorDrawer.vue_vue_type_script_setup_true_lang-C4JjErTE.js","./index-CMc5YzZA.js","./SelectorDrawer-Dg3sM_aP.css","./index-CmzhANMy.js","./App-Bp_jwbR1.css","./index-C2MtSpP6.js","./index-pPOOvXlB.css"])))=>i.map(i=>d[i]);
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./App-D4_X2U8a.js","./SelectorDrawer.vue_vue_type_script_setup_true_lang-oFmvsGBg.js","./index-vYZx-KAq.js","./SelectorDrawer-Dg3sM_aP.css","./index-YT4yNrpj.js","./App-Bp_jwbR1.css","./index-Bv3kp-XM.js","./index-pPOOvXlB.css"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -9112,7 +9112,7 @@ ${xt(e[1])}`
     }
     async initMobile(t) {
       try {
-        const i = await qn(() => import("./index-DrW_jyfB.js"), [], import.meta.url);
+        const i = await qn(() => import("./index-CXVhfDHa.js"), [], import.meta.url);
         this.tauriGeolocation = {
           checkPermissions: i.checkPermissions,
           requestPermissions: i.requestPermissions,
@@ -12665,7 +12665,7 @@ ${r}`);
       if (!this.worker) {
         console.log("[KalmanWorkerClient] Creating worker...");
         try {
-          this.workerModulePromise || (this.workerModulePromise = qn(() => import("./worker-CY9e0CVQ.js"), [], import.meta.url));
+          this.workerModulePromise || (this.workerModulePromise = qn(() => import("./worker-C5M9pUt0.js"), [], import.meta.url));
           const c = await this.workerModulePromise;
           console.log("[KalmanWorkerClient] Worker module loaded"), this.worker = new c.default(), console.log("[KalmanWorkerClient] Worker instance created"), this.worker.onmessage = this.handleWorkerMessage.bind(this), this.worker.onerror = this.handleWorkerError.bind(this);
         } catch (c) {
@@ -13637,6 +13637,7 @@ ${r}`);
           y: i.y,
           accuracy: t.accuracy,
           timestamp: t.timestamp,
+          speed: this.getTrustedGPSSpeed(t),
           velocity: r
         };
         this.lastOutputAccuracy = t.accuracy, this.withoutIMU ? console.info("[LocationProcessor] Running in no-IMU mode, skipping IMU initialization") : (await this.imuManager.initialize()).isErr() && (console.warn("[LocationProcessor] IMU not available, using GPS-only mode"), this.withoutIMU = true, this.source = "kalman-no-imu");
@@ -13680,6 +13681,7 @@ ${r}`);
           y: i.y,
           accuracy: t.accuracy,
           timestamp: t.timestamp,
+          speed: this.getTrustedGPSSpeed(t),
           velocity: r
         };
         await this.workerClient.processGPS(a), this.lastOutputAccuracy = t.accuracy, await this.outputFilteredPosition();
@@ -13765,6 +13767,10 @@ ${r}`);
     getTrustedGPSVelocity(t) {
       const { speed: i, heading: r } = t;
       if (!(i === void 0 || r === void 0) && !(!Number.isFinite(i) || !Number.isFinite(r) || i < zb)) return this.gpsVelocityToLocal(i, r);
+    }
+    getTrustedGPSSpeed(t) {
+      const { speed: i } = t;
+      if (!(i === void 0 || !Number.isFinite(i) || i < 0)) return i;
     }
     gpsVelocityToLocal(t, i) {
       const r = i * Math.PI / 180, a = t * Math.sin(r), c = t * Math.cos(r);
@@ -14234,18 +14240,18 @@ ${r}`);
       moduleInit: async () => {
         var _a3;
         const e = $f((await qn(async () => {
-          const { default: i } = await import("./App-gxjcllkI.js");
+          const { default: i } = await import("./App-D4_X2U8a.js");
           return {
             default: i
           };
         }, __vite__mapDeps([0,1,2,3,4,5]), import.meta.url)).default);
         e.use(Oh()), e.use((await qn(async () => {
-          const { default: i } = await import("./index-C2MtSpP6.js");
+          const { default: i } = await import("./index-Bv3kp-XM.js");
           return {
             default: i
           };
         }, __vite__mapDeps([6,2,1,3,7]), import.meta.url)).default), e.use((await qn(async () => {
-          const { i18n: i } = await import("./index-CmzhANMy.js");
+          const { i18n: i } = await import("./index-YT4yNrpj.js");
           return {
             i18n: i
           };
