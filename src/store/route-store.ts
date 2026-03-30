@@ -22,6 +22,7 @@ export const useRouteStore = defineStore('routes', () => {
     const isRecording = ref(false);
     const watchingHandler = ref<number>(-1);
     const locator = ref<GeolocationManager | null>(null);
+    let throttledHandleNewPoint: ReturnType<typeof throttle> | null = null;
 
     // Computed property for backward compatibility
     const routes = computed(() => sketchStore.routes);
@@ -76,15 +77,21 @@ export const useRouteStore = defineStore('routes', () => {
         let handlingNewPoint = false;
         const handleNewPoint = async (newPoint: GeographicPoint) => {
             if (handlingNewPoint) return;
-            handlingNewPoint = true
-            if (currentRouteId.value) {
+            handlingNewPoint = true;
+            try {
+                if (!currentRouteId.value) {
+                    return;
+                }
+
                 await addPointToRoute(currentRouteId.value, newPoint);
                 currentRouteRecordTimespan.value = recordingSession.getCurrentTimespan();
-                handlingNewPoint = false
+            } finally {
+                handlingNewPoint = false;
             }
-        }
+        };
 
-        watchingHandler.value = locator.value.addLocationListener(throttle(handleNewPoint, 100, { leading: true, trailing: true }));
+        throttledHandleNewPoint = throttle(handleNewPoint, 100, { leading: true, trailing: true });
+        watchingHandler.value = locator.value.addLocationListener(throttledHandleNewPoint);
 
         if (currentRouteId.value) {
             const route = await sketchStore.getRouteById(currentRouteId.value);
@@ -101,6 +108,9 @@ export const useRouteStore = defineStore('routes', () => {
             locator.value.removeLocationListener(watchingHandler.value);
             watchingHandler.value = -1;
         }
+
+        throttledHandleNewPoint?.cancel();
+        throttledHandleNewPoint = null;
 
         isRecording.value = false;
 
@@ -140,6 +150,8 @@ export const useRouteStore = defineStore('routes', () => {
             locator.value.removeLocationListener(watchingHandler.value);
             watchingHandler.value = -1;
         }
+        throttledHandleNewPoint?.cancel();
+        throttledHandleNewPoint = null;
         isRecording.value = false;
     }
 

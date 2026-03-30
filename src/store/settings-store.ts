@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { storageGet, storageSet, storageSave } from '../libs/storage';
 import { ref, watch } from 'vue';
-import { defaultSettings } from '@/libs/default-settings';
+import { defaultSettings, getUserFacingSettings } from '@/libs/default-settings';
 import type { Settings } from '@/libs/settings-types';
 
 export type { Settings };
@@ -37,14 +37,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
     // Reset all advanced settings to defaults (keep user-facing settings)
     function resetAdvancedSettings() {
-        const userSettings = {
-            theme: settings.value.theme,
-            interfaceLanguage: settings.value.interfaceLanguage,
-            mapLanguage: settings.value.mapLanguage,
-            watchCompatibilityMode: settings.value.watchCompatibilityMode,
-            geolocationCorrection: settings.value.geolocationCorrection,
-            geolocationBackend: settings.value.geolocationBackend,
-        };
+        const userSettings = Object.fromEntries(
+            getUserFacingSettings().map((setting) => [setting.key, settings.value[setting.key]])
+        ) as Partial<Settings>;
         settings.value = {
             ...defaultSettings,
             ...userSettings,

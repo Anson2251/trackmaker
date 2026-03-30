@@ -89,6 +89,9 @@ const saveEdit = (item: AdvancedSettingConfig) => {
     let value: string | number | boolean = editingValue.value;
     if (item.type === "number") {
       value = Number(editingValue.value);
+      if (!Number.isFinite(value)) {
+        return;
+      }
     } else if (item.type === "boolean") {
       value = Boolean(editingValue.value);
     } else {

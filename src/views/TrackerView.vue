@@ -289,7 +289,11 @@ function getFeatureCenter(feature: GeoJSONStoreFeatures): {
         for (const coord of row) {
           sumX += coord[0];
           sumY += coord[1];
+          count++;
         }
+      }
+      if (count === 0) {
+        return { lng: 0, lat: 0 };
       }
       return { lng: sumX / count, lat: sumY / count };
     } else {
