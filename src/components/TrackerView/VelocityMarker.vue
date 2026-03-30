@@ -50,13 +50,21 @@ const pointLngLatLike = computed<[number, number]>(() => currentLocation.value ?
 const velocityDirection = computed(() => {
   if (!kalmanState.value) return 0;
   const { x, y } = kalmanState.value.velocity;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
   return (-Math.atan2(y, x) * (180 / Math.PI) - props.mapBearing) % 360; // Convert to degrees
 });
 
 const velocityMagnitude = computed(() => {
   if (!kalmanState.value) return 0;
   const { x, y } = kalmanState.value.velocity;
-  return Math.sqrt(x * x + y * y);
+  const magnitude = Math.sqrt(x * x + y * y);
+  return Number.isFinite(magnitude) ? magnitude : 0;
+});
+
+const velocityScale = computed(() => {
+  const normalizedMagnitude = Math.min(Math.max(velocityMagnitude.value / 10, 0), 0.999);
+  const scale = 8 * Math.atanh(normalizedMagnitude);
+  return Number.isFinite(scale) ? scale : 0;
 });
 </script>
 
@@ -78,7 +86,7 @@ const velocityMagnitude = computed(() => {
             transform-origin: 0.5em 3em;
             transition: transform 0.1s ease-in-out;
           "
-          :style="{ transform: `rotate(${90 + velocityDirection}deg) scaleY(${8 * Math.atanh(velocityMagnitude/10)})` }"
+          :style="{ transform: `rotate(${90 + velocityDirection}deg) scaleY(${velocityScale})` }"
         ></div>
       </div>
     </template>

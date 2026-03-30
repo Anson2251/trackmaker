@@ -86,12 +86,14 @@ const formattedCoordinates = computed(() => {
 const formattedVelocity = computed(() => {
   if (!props.kalmanState) return null;
   const speed = Math.sqrt(props.kalmanState.velocity.x ** 2 + props.kalmanState.velocity.y ** 2);
+  if (!Number.isFinite(speed)) return null;
   return `${speed.toFixed(1)} m/s`;
 });
 
 const formattedAcceleration = computed(() => {
   if (!props.kalmanState) return null;
   const accel = Math.sqrt(props.kalmanState.acceleration.x ** 2 + props.kalmanState.acceleration.y ** 2);
+  if (!Number.isFinite(accel)) return null;
   return `${accel.toFixed(6)} m/s²`;
 });
 
@@ -107,7 +109,8 @@ function computeAccuracy95(covariance: Matrix | null, rowStart: number): number 
   const det = a * d - b * c;
   const discriminant = Math.max(trace * trace - 4 * det, 0);
   const lambdaMax = (trace + Math.sqrt(discriminant)) / 2;
-  return Math.sqrt(lambdaMax * 5.991);
+  const radius = Math.sqrt(lambdaMax * 5.991);
+  return Number.isFinite(radius) ? radius : null;
 }
 
 const positionAccuracy = computed(() => {
