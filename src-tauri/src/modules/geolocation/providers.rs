@@ -1,7 +1,10 @@
 use super::super::inet;
-use super::types::{Coordinate, FreeIPApiGeolocation, GeolocationProviderError};
+use super::types::{
+    Coordinate, Coordinates, FreeIPApiGeolocation, GeolocationProviderError, Position,
+};
 use anyhow::Result;
 use geolocation;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const FREE_IP_API_BASE_URL: &str = "https://freeipapi.com/api/json";
 
@@ -77,10 +80,13 @@ impl GeolocationResult {
             _ => false,
         }
     }
-    
+
     /// Returns true if the location was obtained via IP-based geolocation
     pub fn is_ip_based(&self) -> bool {
-        matches!(self.method, GeolocationMethod::IP | GeolocationMethod::FreeIPApi)
+        matches!(
+            self.method,
+            GeolocationMethod::IP | GeolocationMethod::FreeIPApi
+        )
     }
 }
 
@@ -119,6 +125,44 @@ pub async fn get_location() -> Result<GeolocationResult, GeolocationProviderErro
         }),
         Err(e) => Err(e),
     }
+}
+
+/// Convert a GeolocationResult to a full Position object
+/// This provides navigator.geolocation-compatible data structure
+pub fn convert_to_position(result: &GeolocationResult) -> Position {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64;
+
+    // Estimate accuracy based on method
+    let accuracy = if result.is_native() {
+        10.0 // Native GPS typically has ~10m accuracy
+    } else if result.is_ip_based() {
+        1000.0 // IP-based is much less accurate, ~1km
+    } else {
+        100.0 // Default estimate
+    };
+
+    Position::with_coords(
+        Coordinates::with_full_data(
+            result.coordinate.latitude,
+            result.coordinate.longitude,
+            None, // altitude - not available from most desktop providers
+            accuracy,
+            None, // altitude_accuracy
+            None, // heading
+            None, // speed
+        ),
+        timestamp,
+    )
+}
+
+/// Get the current position as a full Position object
+/// This is the preferred API for getting navigator.geolocation-compatible data
+pub async fn get_current_position() -> Result<Position, GeolocationProviderError> {
+    let result = get_location().await?;
+    Ok(convert_to_position(&result))
 }
 
 /// Get the current location using macOS CoreLocation framework.

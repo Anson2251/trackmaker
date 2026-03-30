@@ -197,7 +197,7 @@ pub fn request_location_permission() -> Result<(), MacOSGeolocationError> {
 
     // Pump the run loop so the system can present the dialog,
     // then poll for the user's response.
-    let timeout = Duration::from_secs(60);
+    let timeout = Duration::from_secs(20);
     let start = std::time::Instant::now();
     let mut last_status = auth_status.0;
 
