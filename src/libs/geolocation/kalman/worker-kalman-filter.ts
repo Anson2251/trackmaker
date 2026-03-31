@@ -219,21 +219,47 @@ export class WorkerKalmanFilter {
     }
 
     private updateGPSInternal(reading: CartesianGPSReading): void {
-        const H = new Matrix([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0]
-        ]);
-
-        const z = new Matrix([
-            [reading.x],
-            [reading.y]
-        ]);
-
+        const measuredVelocity = this.getGPSVelocityMeasurement(reading);
         const sigmaGPS = this.gpsAccuracyToSigma(reading.accuracy);
-        const R = new Matrix([
-            [sigmaGPS * sigmaGPS, 0],
-            [0, sigmaGPS * sigmaGPS]
-        ]);
+        const positionVariance = sigmaGPS * sigmaGPS;
+        const sigmaSpeed = this.gpsSpeedToSigma(reading, measuredVelocity);
+        const velocityVariance = sigmaSpeed * sigmaSpeed;
+
+        const H = measuredVelocity
+            ? new Matrix([
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]
+            ])
+            : new Matrix([
+                [1, 0, 0, 0],
+                [0, 1, 0, 0]
+            ]);
+
+        const z = measuredVelocity
+            ? new Matrix([
+                [reading.x],
+                [reading.y],
+                [measuredVelocity.x],
+                [measuredVelocity.y]
+            ])
+            : new Matrix([
+                [reading.x],
+                [reading.y]
+            ]);
+
+        const R = measuredVelocity
+            ? new Matrix([
+                [positionVariance, 0, 0, 0],
+                [0, positionVariance, 0, 0],
+                [0, 0, velocityVariance, 0],
+                [0, 0, 0, velocityVariance]
+            ])
+            : new Matrix([
+                [positionVariance, 0],
+                [0, positionVariance]
+            ]);
 
         const x = this.getStateVector();
         const expectedMeasurement = H.mmul(x);
@@ -251,10 +277,6 @@ export class WorkerKalmanFilter {
         };
         this.state.covariance = this.sanitizeCovariance(this.state.covariance);
 
-        if (reading.velocity || reading.speed !== undefined) {
-            this.applyGPSVelocityCorrection(reading);
-        }
-
         if (this.debugEnabled) {
             console.log('[WorkerKalmanFilter] GPS update:', {
                 position: { x: reading.x, y: reading.y },
@@ -264,51 +286,42 @@ export class WorkerKalmanFilter {
         }
     }
 
-    private applyGPSVelocityCorrection(reading: CartesianGPSReading): void {
-        let measuredVelocity: { x: number; y: number } | null = null;
+    private getGPSVelocityMeasurement(reading: CartesianGPSReading): { x: number; y: number } | null {
         if (reading.velocity) {
             if (Number.isFinite(reading.velocity.x) && Number.isFinite(reading.velocity.y)) {
-                measuredVelocity = reading.velocity;
+                return reading.velocity;
             }
-        } else if (
+        }
+
+        if (
             reading.speed !== undefined
             && Number.isFinite(reading.speed)
             && reading.speed >= 0
             && reading.speed < WorkerKalmanFilter.LOW_SPEED_RESET_THRESHOLD
         ) {
-            measuredVelocity = { x: 0, y: 0 };
+            return { x: 0, y: 0 };
         }
+
+        return null;
+    }
+
+    private gpsSpeedToSigma(
+        reading: CartesianGPSReading,
+        measuredVelocity: { x: number; y: number } | null,
+    ): number {
+        const baseSigma = this.config.gpsSpeedUncertainty ?? this.config.initialVelocityUncertainty;
 
         if (!measuredVelocity) {
-            return;
+            return baseSigma;
         }
 
-        const sigmaSpeed = this.config.gpsSpeedUncertainty ?? this.config.initialVelocityUncertainty;
-        const velocityVariance = sigmaSpeed * sigmaSpeed;
-        const H = new Matrix([
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]
-        ]);
-        const z = new Matrix([
-            [measuredVelocity.x],
-            [measuredVelocity.y]
-        ]);
-        const R = new Matrix([
-            [velocityVariance, 0],
-            [0, velocityVariance]
-        ]);
-        const x = this.getStateVector();
-        const { updatedState } = this.applyMeasurementUpdate(H, z, R, x);
+        const speedMagnitude = reading.speed !== undefined && Number.isFinite(reading.speed)
+            ? reading.speed
+            : Math.hypot(measuredVelocity.x, measuredVelocity.y);
+        const lowSpeedFactor = speedMagnitude < 1 ? 3 : speedMagnitude < 2 ? 1.75 : 1;
+        const accuracyFactor = Math.min(Math.max(this.gpsAccuracyToSigma(reading.accuracy) / 3, 1), 3);
 
-        this.state.position = {
-            x: this.sanitizeFinite(updatedState.get(0, 0)),
-            y: this.sanitizeFinite(updatedState.get(1, 0))
-        };
-        this.state.velocity = {
-            x: this.sanitizeFinite(updatedState.get(2, 0)),
-            y: this.sanitizeFinite(updatedState.get(3, 0))
-        };
-        this.state.covariance = this.sanitizeCovariance(this.state.covariance);
+        return baseSigma * lowSpeedFactor * accuracyFactor;
     }
 
     private applyMeasurementUpdate(

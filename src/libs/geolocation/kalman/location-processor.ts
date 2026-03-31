@@ -8,7 +8,7 @@ import { Matrix } from 'ml-matrix';
 import { KalmanWorkerClient } from './worker-client';
 import { CoordinateTransformer } from '../utils/coordinate-transformer';
 import type { CartesianGPSReading } from './worker-types';
-import { headingToLocalVelocity, normalizeHeading } from '@/libs/heading';
+import { headingToLocalVelocity, localVectorToHeading, normalizeHeading } from '@/libs/heading';
 import {
     getKalmanInitialAccelerationUncertainty,
     getKalmanInitialPositionUncertainty,
@@ -23,6 +23,8 @@ type LocationProcessorOptions = Partial<KalmanConfig> & {
 };
 
 const MIN_SPEED_FOR_GPS_HEADING = 2;
+const MIN_DISTANCE_FOR_GPS_COURSE = 3;
+const MAX_DELTA_TIME_FOR_GPS_COURSE_MS = 5000;
 
 export class LocationProcessor {
     private workerClient: KalmanWorkerClient;
@@ -39,6 +41,7 @@ export class LocationProcessor {
     private cachedState: KalmanState | null = null;
     private cachedGain: Matrix | null = null;
     private processingQueue: Promise<void> = Promise.resolve();
+    private lastCartesianGPSReading: CartesianGPSReading | null = null;
 
     constructor(
         callback: LocationCallback,
@@ -75,17 +78,16 @@ export class LocationProcessor {
                 latitude: initialGPSReading.latitude
             });
 
-            const velocity = this.getTrustedGPSVelocity(initialGPSReading);
-
             const cartesianReading: CartesianGPSReading = {
                 x: cartesian.x,
                 y: cartesian.y,
                 accuracy: initialGPSReading.accuracy,
                 timestamp: initialGPSReading.timestamp,
                 speed: this.getTrustedGPSSpeed(initialGPSReading),
-                velocity
             };
+            cartesianReading.velocity = this.getTrustedGPSVelocity(initialGPSReading, cartesianReading);
             this.lastOutputAccuracy = initialGPSReading.accuracy;
+            this.lastCartesianGPSReading = cartesianReading;
 
             // Initialize IMU manager (only if not in no-IMU mode)
             if (!this.withoutIMU) {
@@ -167,6 +169,7 @@ export class LocationProcessor {
             this.isInitialized = false;
             this.cachedState = null;
             this.cachedGain = null;
+            this.lastCartesianGPSReading = null;
             console.info('[LocationProcessor] Stopped location processing');
             return ok(undefined);
         } catch (error) {
@@ -191,20 +194,19 @@ export class LocationProcessor {
                 latitude: gpsReading.latitude
             });
 
-            const velocity = this.getTrustedGPSVelocity(gpsReading);
-
             const cartesianReading: CartesianGPSReading = {
                 x: cartesian.x,
                 y: cartesian.y,
                 accuracy: gpsReading.accuracy,
                 timestamp: gpsReading.timestamp,
                 speed: this.getTrustedGPSSpeed(gpsReading),
-                velocity
             };
+            cartesianReading.velocity = this.getTrustedGPSVelocity(gpsReading, cartesianReading);
 
             // Send to worker
             await this.workerClient.processGPS(cartesianReading);
             this.lastOutputAccuracy = gpsReading.accuracy;
+            this.lastCartesianGPSReading = cartesianReading;
 
             // Get filtered position and notify callback
             await this.outputFilteredPosition();
@@ -346,18 +348,51 @@ export class LocationProcessor {
         }
     }
 
-    private getTrustedGPSVelocity(reading: GPSReading): { x: number; y: number } | undefined {
+    private getTrustedGPSVelocity(reading: GPSReading, cartesianReading: CartesianGPSReading): { x: number; y: number } | undefined {
         const { speed, heading } = reading;
-        if (speed === undefined || heading === undefined) {
+        if (speed === undefined || !Number.isFinite(speed) || speed < 0) {
             return undefined;
         }
 
         // GPS heading is usually too noisy at very low speed to be useful.
-        if (!Number.isFinite(speed) || !Number.isFinite(heading) || speed < MIN_SPEED_FOR_GPS_HEADING) {
+        if (heading !== undefined && Number.isFinite(heading) && speed >= MIN_SPEED_FOR_GPS_HEADING) {
+            return this.gpsVelocityToLocal(speed, normalizeHeading(heading));
+        }
+
+        const fallbackHeading = this.estimateCourseHeadingFromCartesianDelta(cartesianReading, this.lastCartesianGPSReading);
+        if (fallbackHeading === undefined) {
             return undefined;
         }
 
-        return this.gpsVelocityToLocal(speed, normalizeHeading(heading));
+        return this.gpsVelocityToLocal(speed, fallbackHeading);
+    }
+
+    private estimateCourseHeadingFromCartesianDelta(
+        currentReading: CartesianGPSReading,
+        previousReading: CartesianGPSReading | null,
+    ): number | undefined {
+        if (!previousReading) {
+            return undefined;
+        }
+
+        const deltaTimeMs = currentReading.timestamp - previousReading.timestamp;
+        if (deltaTimeMs <= 0 || deltaTimeMs > MAX_DELTA_TIME_FOR_GPS_COURSE_MS) {
+            return undefined;
+        }
+
+        const deltaX = currentReading.x - previousReading.x;
+        const deltaY = currentReading.y - previousReading.y;
+        const distance = Math.hypot(deltaX, deltaY);
+        const minDistance = Math.max(
+            MIN_DISTANCE_FOR_GPS_COURSE,
+            Math.min((currentReading.accuracy + previousReading.accuracy) / 2, 20),
+        );
+
+        if (distance < minDistance) {
+            return undefined;
+        }
+
+        return localVectorToHeading(deltaX, deltaY);
     }
 
     private getTrustedGPSSpeed(reading: GPSReading): number | undefined {
