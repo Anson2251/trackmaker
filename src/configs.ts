@@ -73,9 +73,6 @@ export const modules: ModuleItem[] = [
                     },
                     imu: {
                         permissionCallback: geoPermissionCallback
-                    },
-                    deviceOrientation: {
-                        permissionCallback: geoPermissionCallback
                     }
                 });
                 if (platformServicesResult.isErr()) {
@@ -94,19 +91,7 @@ export const modules: ModuleItem[] = [
                     throw storageInitResult.error;
                 }
 
-                // Initialize IMU and orientation providers
-                const orientationResult = platformServices.getDeviceOrientation();
-                if (orientationResult.isOk()) {
-                    const orientationProvider = orientationResult.value;
-                    const orientationInitResult = await orientationProvider.init();
-                    if (orientationInitResult.isErr()) {
-                        console.warn("[Platform] DeviceOrientation not supported on this platform");
-                    }
-                    else {
-                        await orientationProvider.start();
-                    }
-                }
-
+                // Initialize the shared IMU/orientation provider
                 const imuResult = platformServices.getIMU();
                 if (imuResult.isOk()) {
                     const imuProvider = imuResult.value;

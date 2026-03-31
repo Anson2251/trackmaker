@@ -2,7 +2,7 @@ import { ref, onUnmounted, type Ref } from "vue";
 import { getPlatformServices } from "@/libs/platform";
 import type {
     DeviceOrientationReading,
-    IDeviceOrientationProvider,
+    IIMUProvider,
 } from "@/libs/platform";
 import { logError, toAppError } from "@/libs/error-handling";
 import { orientationToCompassHeading } from "@/libs/heading";
@@ -32,7 +32,7 @@ export function useImuCompass(
     const isSupported = ref(false);
     const error = ref<string | null>(null);
 
-    let orientationProvider: IDeviceOrientationProvider | null = null;
+    let imuProvider: IIMUProvider | null = null;
     let listenerId: number | null = null;
 
     const platformResult = getPlatformServices();
@@ -41,12 +41,12 @@ export function useImuCompass(
     }
     const platformServices = platformResult.value;
 
-    const orientationResult = platformServices.getDeviceOrientation();
-    if (orientationResult.isErr()) {
+    const imuResult = platformServices.getIMU();
+    if (imuResult.isErr()) {
         isSupported.value = false;
     }
     else {
-        orientationProvider = orientationResult.value;
+        imuProvider = imuResult.value;
         isSupported.value = true
     }
 
@@ -55,14 +55,19 @@ export function useImuCompass(
         try {
             if (isTracking.value) return;
 
-            if (!isSupported.value || !orientationProvider) {
-                console.warn("[useImuCompass] Device orientation not supported, failed to start tracking");
+            if (!isSupported.value || !imuProvider) {
+                console.warn("[useImuCompass] IMU orientation not supported, failed to start tracking");
                 return;
             }
 
             const wrappedCallback = (orientation: DeviceOrientationReading) => {
                 try {
                     const newBearing = orientationToCompassHeading(orientation);
+                    if (newBearing === undefined) {
+                        error.value = "Compass heading unavailable";
+                        return;
+                    }
+
                     bearing.value = newBearing;
                     error.value = null;
                 } catch (err) {
@@ -78,16 +83,16 @@ export function useImuCompass(
                 }
             };
 
-            listenerId =
-                orientationProvider.onOrientationChange(wrappedCallback);
+            listenerId = imuProvider.onOrientationChange(wrappedCallback);
             isTracking.value = true;
             error.value = null;
 
-            const currentResult =
-                await orientationProvider.getCurrentOrientation();
+            const currentResult = await imuProvider.getCurrentOrientation();
             if (currentResult.isOk() && currentResult.value) {
                 const newBearing = orientationToCompassHeading(currentResult.value);
-                bearing.value = newBearing;
+                if (newBearing !== undefined) {
+                    bearing.value = newBearing;
+                }
             }
         } catch (err) {
             const errorMsg =
@@ -105,12 +110,11 @@ export function useImuCompass(
 
     // Stop tracking
     const stopTracking = (): void => {
-        if (!isTracking.value || listenerId === null || !orientationProvider)
+        if (!isTracking.value || listenerId === null || !imuProvider)
             return;
 
         try {
-            orientationProvider.removeEventListener(listenerId);
-            orientationProvider.stop();
+            imuProvider.removeEventListener(listenerId);
             listenerId = null;
             isTracking.value = false;
         } catch (err) {

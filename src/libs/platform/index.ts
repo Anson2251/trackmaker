@@ -8,7 +8,6 @@ export type {
     IGeolocationProvider,
     IFileProvider,
     IIMUProvider,
-    IDeviceOrientationProvider,
     IMUReading,
     DeviceOrientationReading,
     PlatformContext,
@@ -52,5 +51,4 @@ export { TauriStorageProvider } from './providers/tauri-storage-provider';
 export { WebStorageProvider } from './providers/web-storage-provider';
 export { TauriGeolocationProvider } from './providers/tauri-geolocation-provider';
 export { WebGeolocationProvider } from './providers/web-geolocation-provider';
-export { WebDeviceOrientationProvider } from './providers/web-device-orientation-provider';
 export { WebIMUProvider } from './providers/web-imu-provider';

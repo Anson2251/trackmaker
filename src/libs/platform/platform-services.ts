@@ -5,12 +5,11 @@
 import { Result, ok, err } from 'neverthrow';
 import { platformDetector } from './platform-detector';
 import type { PlatformContext } from './types';
-import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider, type IDeviceOrientationProvider } from './types';
+import { RuntimeEnvironment, type IStorageProvider, type IGeolocationProvider, type IFileProvider, type IIMUProvider } from './types';
 import { TauriStorageProvider } from './providers/tauri-storage-provider';
 import { WebStorageProvider } from './providers/web-storage-provider';
 import { TauriGeolocationProvider } from './providers/tauri-geolocation-provider';
 import { WebGeolocationProvider } from './providers/web-geolocation-provider';
-import { WebDeviceOrientationProvider } from './providers/web-device-orientation-provider';
 import { WebIMUProvider } from './providers/web-imu-provider';
 import { PlatformDetectionError, PlatformDetectionErrorCode } from './errors';
 import { GenericError } from '@/libs/error-handling';
@@ -33,9 +32,6 @@ export interface PlatformServicesConfig {
     permissions?: {
         onPermissionChange?: (provider: string, state: PermissionState) => void;
     };
-    deviceOrientation?: {
-        permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
-    };
     imu?: {
         permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>;
     }
@@ -51,7 +47,6 @@ export class PlatformServices {
     private geolocationProvider: IGeolocationProvider | null = null;
     private fileProvider: IFileProvider | null = null;
     private imuProvider: IIMUProvider | null = null;
-    private deviceOrientationProvider: IDeviceOrientationProvider | null = null;
     private initialized = false;
 
     private constructor(context: PlatformContext) {
@@ -92,13 +87,7 @@ export class PlatformServices {
             this.storageProvider = this.createStorageProvider(config?.storage);
 
             // Initialize sensor providers first (needed for Kalman IMU fusion)
-            const providers = await Promise.all([
-                this.createIMUProvider(config?.imu),
-                this.createDeviceOrientationProvider(config?.deviceOrientation),
-            ])
-
-            this.imuProvider = providers[0];
-            this.deviceOrientationProvider = providers[1];
+            this.imuProvider = await this.createIMUProvider(config?.imu);
             this.geolocationProvider = await this.createGeolocationProvider(config?.geolocation);
 
             // Initialize file provider (placeholder for now)
@@ -145,9 +134,7 @@ export class PlatformServices {
 
         switch (this.context.environment) {
             case RuntimeEnvironment.TAURI:
-                baseProvider = new TauriGeolocationProvider(
-                    geoConfig?.tauriHandlerName || 'get_geolocation'
-                );
+                baseProvider = new TauriGeolocationProvider();
                 break;
 
             case RuntimeEnvironment.WEB:
@@ -198,22 +185,6 @@ export class PlatformServices {
             return null;
         }
         return provider;
-    }
-
-    /**
-     * Create appropriate device orientation provider based on platform
-     */
-    private async createDeviceOrientationProvider(config: PlatformServicesConfig['deviceOrientation']): Promise<IDeviceOrientationProvider | null> {
-        // TODO: Implement Tauri device orientation provider when needed
-
-        const provider = new WebDeviceOrientationProvider();
-        const result = await provider.init(config?.permissionCallback);
-        if (result.isErr()) {
-            console.error('Failed to initialize device orientation provider', result.error);
-            return null;
-        }
-        return provider;
-
     }
 
     /**
@@ -317,18 +288,6 @@ export class PlatformServices {
         return ok(this.imuProvider);
     }
 
-    /**
-     * Get device orientation provider
-     */
-    getDeviceOrientation(): Result<IDeviceOrientationProvider, PlatformDetectionError> {
-        if (!this.deviceOrientationProvider) {
-            return err(new PlatformDetectionError(
-                'Device orientation provider not initialized',
-                PlatformDetectionErrorCode.DETECTION_FAILED
-            ));
-        }
-        return ok(this.deviceOrientationProvider);
-    }
 }
 
 /**

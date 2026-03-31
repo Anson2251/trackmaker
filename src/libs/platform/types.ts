@@ -154,6 +154,7 @@ export interface DeviceOrientationReading {
     alpha: number;
     beta: number;
     gamma: number;
+    absolute?: boolean;
     webkitCompassHeading?: number;
     timestamp: number;
 }
@@ -169,19 +170,9 @@ export interface IIMUProvider {
     stopGyroscope(): Result<void, AppError>;
     getAccelerationReading(): Promise<Result<IMUReading | null, AppError>>;
     getGyroscopeReading(): Promise<Result<IMUReading | null, AppError>>;
+    getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;
     onAccelerationReading(callback: (reading: IMUReading) => void): number;
     onGyroscopeReading(callback: (reading: IMUReading) => void): number;
-    removeEventListener(id: number): Result<void, AppError>;
-}
-
-/**
- * Device orientation provider interface for platform-agnostic orientation operations
- */
-export interface IDeviceOrientationProvider {
-    init(permissionCallback?: (state: PermissionState) => Promise<boolean>): Promise<Result<void, AppError>>;
-    start(): Promise<Result<void, AppError>>;
-    stop(): Result<void, AppError>;
-    getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, AppError>>;
     onOrientationChange(callback: (orientation: DeviceOrientationReading) => void): number;
     removeEventListener(id: number): Result<void, AppError>;
 }

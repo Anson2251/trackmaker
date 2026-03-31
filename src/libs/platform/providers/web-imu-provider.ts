@@ -4,11 +4,11 @@
 
 import { Result, ok, err } from 'neverthrow';
 import { Matrix } from 'ml-matrix';
-import type { IIMUProvider, IMUReading } from '../types';
+import type { IIMUProvider, IMUReading, DeviceOrientationReading } from '../types';
 import { GenericError } from '@/libs/error-handling';
 import { compensateOrientationForScreen } from '@/libs/heading';
 
-interface DeviceMotionEventWithPermission {
+interface DeviceEventWithPermission {
     requestPermission(): Promise<'granted' | 'denied' | 'prompt'>;
 }
 
@@ -17,12 +17,14 @@ export class WebIMUProvider implements IIMUProvider {
     private initPromise: Promise<Result<void, GenericError>> | null = null;
     private accelerationListeners: Map<number, (reading: IMUReading) => void> = new Map();
     private gyroscopeListeners: Map<number, (reading: IMUReading) => void> = new Map();
+    private orientationListeners: Map<number, (reading: DeviceOrientationReading) => void> = new Map();
     private nextListenerId = 0;
     private lastAccelerationReading: IMUReading | null = null;
     private lastGyroscopeReading: IMUReading | null = null;
+    private lastRawOrientationReading: DeviceOrientationReading | null = null;
     private normalizeAccelerationToENU = false;
     private normalizeGyroscopeToENU = false;
-    private deviceOrientation: { alpha: number; beta: number; gamma: number } | null = null;
+    private compensatedOrientation: { alpha: number; beta: number; gamma: number } | null = null;
     private isAccelerationActive = false;
     private isGyroscopeActive = false;
     private motionEventListenerCount = 0;
@@ -108,9 +110,7 @@ export class WebIMUProvider implements IIMUProvider {
             return err(new GenericError('Device motion is not supported by this browser'));
         }
 
-        if ('DeviceOrientationEvent' in window) {
-            window.addEventListener('deviceorientation', this.boundHandleOrientationEvent);
-        }
+        this.startOrientationEvents();
 
         this.initialized = true;
         return ok(undefined);
@@ -120,39 +120,78 @@ export class WebIMUProvider implements IIMUProvider {
         permissionCallback?: (state: PermissionState, messageId: string) => Promise<boolean>
     ): Promise<Result<void, GenericError>> {
         try {
-            if (typeof DeviceMotionEvent !== 'undefined' &&
-                typeof (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission === 'function') {
+            const deviceMotionEvent = typeof DeviceMotionEvent !== 'undefined'
+                ? (DeviceMotionEvent as unknown as DeviceEventWithPermission)
+                : undefined;
+            const motionPermissionResult = await this.requestSensorPermission(
+                deviceMotionEvent,
+                permissionCallback,
+                'permission.imu.required',
+                'IMU',
+            );
+            if (motionPermissionResult.isErr()) {
+                return motionPermissionResult;
+            }
 
-
-                let permission = "prompt"
-                try {
-                    permission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
-                }
-                catch { }
-
-                if (permissionCallback && permission === 'prompt') {
-                    const userWantsToGrant = await permissionCallback('prompt', 'permission.imu.required');
-                    if (!userWantsToGrant) {
-                        return err(new GenericError('User declined to grant IMU permission'));
-                    }
-
-                    const newPermission = await (DeviceMotionEvent as unknown as DeviceMotionEventWithPermission).requestPermission();
-                    if (newPermission !== 'granted') {
-                        return err(new GenericError('IMU permission denied'));
-                    }
-                }
-                else if (permission === 'denied') {
-                    return err(new GenericError('IMU permission denied'));
-                }
-                else {
-                    return ok(undefined);
-                }
+            const deviceOrientationEvent = typeof DeviceOrientationEvent !== 'undefined'
+                ? (DeviceOrientationEvent as unknown as DeviceEventWithPermission)
+                : undefined;
+            const orientationPermissionResult = await this.requestSensorPermission(
+                deviceOrientationEvent,
+                permissionCallback,
+                'permission.device-orientation.required',
+                'device orientation',
+            );
+            if (orientationPermissionResult.isErr()) {
+                return orientationPermissionResult;
             }
 
             return ok(undefined);
         } catch (error) {
             return err(new GenericError('Failed to request IMU permission', undefined, error as Error));
         }
+    }
+
+    private async requestSensorPermission(
+        sensorEvent: DeviceEventWithPermission | undefined,
+        permissionCallback: ((state: PermissionState, messageId: string) => Promise<boolean>) | undefined,
+        messageId: string,
+        sensorName: string,
+    ): Promise<Result<void, GenericError>> {
+        if (!sensorEvent || typeof sensorEvent.requestPermission !== 'function') {
+            return ok(undefined);
+        }
+
+        let permission: 'granted' | 'denied' | 'prompt' = 'prompt';
+        try {
+            permission = await sensorEvent.requestPermission();
+        } catch {
+            return ok(undefined);
+        }
+
+        if (permission === 'denied') {
+            return err(new GenericError(`${sensorName} permission denied`));
+        }
+
+        if (permission !== 'prompt') {
+            return ok(undefined);
+        }
+
+        if (!permissionCallback) {
+            return ok(undefined);
+        }
+
+        const userWantsToGrant = await permissionCallback('prompt', messageId);
+        if (!userWantsToGrant) {
+            return err(new GenericError(`User declined to grant ${sensorName} permission`));
+        }
+
+        const newPermission = await sensorEvent.requestPermission();
+        if (newPermission !== 'granted') {
+            return err(new GenericError(`${sensorName} permission denied`));
+        }
+
+        return ok(undefined);
     }
 
     private async checkHardwareSupport(): Promise<boolean> {
@@ -203,27 +242,46 @@ export class WebIMUProvider implements IIMUProvider {
         });
     }
 
-    async startAcceleration(options: { frequency?: number; normalizeToENU?: boolean } = {}): Promise<Result<void, GenericError>> {
+    private async ensureReady(): Promise<Result<void, GenericError>> {
         if (this.disposed) {
             return err(new GenericError('IMU provider has been disposed'));
         }
 
-        if (!this.initialized) {
-            const initResult = await this.init();
-            if (initResult.isErr()) {
-                return err(initResult.error);
-            }
-        }
-
-        if (this.isAccelerationActive) {
+        if (this.initialized) {
             return ok(undefined);
         }
 
-        this.normalizeAccelerationToENU = options.normalizeToENU ?? false;
-        // frequency < 0 means emit directly without averaging
-        // frequency === 0 means emit every reading (no interval-based averaging)
-        // frequency > 0 means average over the specified interval
-        this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+        return this.init();
+    }
+
+    private startOrientationEvents(): void {
+        if ('DeviceOrientationEvent' in window) {
+            window.addEventListener('deviceorientation', this.boundHandleOrientationEvent);
+        }
+    }
+
+    private stopOrientationEvents(): void {
+        if ('DeviceOrientationEvent' in window) {
+            window.removeEventListener('deviceorientation', this.boundHandleOrientationEvent);
+        }
+    }
+
+    private startMotionEvents(): void {
+        if (this.motionEventListenerCount === 0) {
+            window.addEventListener('devicemotion', this.boundHandleMotionEvent, true);
+        }
+        this.motionEventListenerCount++;
+    }
+
+    private stopMotionEvents(): void {
+        this.motionEventListenerCount--;
+        if (this.motionEventListenerCount === 0) {
+            window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
+        }
+    }
+
+    private resetAccelerationSamplingState(): void {
+        this.accelerationIntervalMs = 0;
         this.accelerationPrevReading = null;
         this.accelerationAccumulatedX = 0;
         this.accelerationAccumulatedY = 0;
@@ -234,40 +292,10 @@ export class WebIMUProvider implements IIMUProvider {
             clearTimeout(this.accelerationTimer);
             this.accelerationTimer = null;
         }
-
-        try {
-            if (this.motionEventListenerCount === 0) {
-                window.addEventListener('devicemotion', this.boundHandleMotionEvent, true);
-            }
-            this.motionEventListenerCount++;
-            this.isAccelerationActive = true;
-            return ok(undefined);
-        } catch (error) {
-            return err(new GenericError('Failed to start acceleration monitoring', undefined, error as Error));
-        }
     }
 
-    async startGyroscope(options: { frequency?: number; normalizeToENU?: boolean } = {}): Promise<Result<void, GenericError>> {
-        if (this.disposed) {
-            return err(new GenericError('IMU provider has been disposed'));
-        }
-
-        if (!this.initialized) {
-            const initResult = await this.init();
-            if (initResult.isErr()) {
-                return err(initResult.error);
-            }
-        }
-
-        if (this.isGyroscopeActive) {
-            return ok(undefined);
-        }
-
-        this.normalizeGyroscopeToENU = options.normalizeToENU ?? false;
-        // frequency < 0 means emit directly without averaging
-        // frequency === 0 means emit every reading (no interval-based averaging)
-        // frequency > 0 means average over the specified interval
-        this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+    private resetGyroscopeSamplingState(): void {
+        this.gyroscopeIntervalMs = 0;
         this.gyroscopePrevReading = null;
         this.gyroscopeAccumulatedX = 0;
         this.gyroscopeAccumulatedY = 0;
@@ -278,12 +306,55 @@ export class WebIMUProvider implements IIMUProvider {
             clearTimeout(this.gyroscopeTimer);
             this.gyroscopeTimer = null;
         }
+    }
+
+    async startAcceleration(options: { frequency?: number; normalizeToENU?: boolean } = {}): Promise<Result<void, GenericError>> {
+        const readyResult = await this.ensureReady();
+        if (readyResult.isErr()) {
+            return err(readyResult.error);
+        }
+
+        if (this.isAccelerationActive) {
+            return ok(undefined);
+        }
 
         try {
-            if (this.motionEventListenerCount === 0) {
-                window.addEventListener('devicemotion', this.boundHandleMotionEvent, true);
-            }
-            this.motionEventListenerCount++;
+            this.normalizeAccelerationToENU = options.normalizeToENU ?? false;
+            // frequency < 0 means emit directly without averaging
+            // frequency === 0 means emit every reading (no interval-based averaging)
+            // frequency > 0 means average over the specified interval
+            this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            this.resetAccelerationSamplingState();
+            this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+
+            this.startMotionEvents();
+            this.isAccelerationActive = true;
+            return ok(undefined);
+        } catch (error) {
+            return err(new GenericError('Failed to start acceleration monitoring', undefined, error as Error));
+        }
+    }
+
+    async startGyroscope(options: { frequency?: number; normalizeToENU?: boolean } = {}): Promise<Result<void, GenericError>> {
+        const readyResult = await this.ensureReady();
+        if (readyResult.isErr()) {
+            return err(readyResult.error);
+        }
+
+        if (this.isGyroscopeActive) {
+            return ok(undefined);
+        }
+
+        try {
+            this.normalizeGyroscopeToENU = options.normalizeToENU ?? false;
+            // frequency < 0 means emit directly without averaging
+            // frequency === 0 means emit every reading (no interval-based averaging)
+            // frequency > 0 means average over the specified interval
+            this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            this.resetGyroscopeSamplingState();
+            this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+
+            this.startMotionEvents();
             this.isGyroscopeActive = true;
             return ok(undefined);
         } catch (error) {
@@ -297,25 +368,11 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         try {
-            this.motionEventListenerCount--;
             this.isAccelerationActive = false;
             this.lastAccelerationReading = null;
             this.normalizeAccelerationToENU = false;
-            this.accelerationIntervalMs = 0;
-            this.accelerationPrevReading = null;
-            this.accelerationAccumulatedX = 0;
-            this.accelerationAccumulatedY = 0;
-            this.accelerationAccumulatedZ = 0;
-            this.accelerationAccumulatedTime = 0;
-            this.accelerationLastEmitTime = 0;
-            if (this.accelerationTimer !== null) {
-                clearTimeout(this.accelerationTimer);
-                this.accelerationTimer = null;
-            }
-
-            if (this.motionEventListenerCount === 0) {
-                window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
-            }
+            this.resetAccelerationSamplingState();
+            this.stopMotionEvents();
             return ok(undefined);
         } catch (error) {
             return err(new GenericError('Failed to stop acceleration monitoring', undefined, error as Error));
@@ -328,25 +385,11 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         try {
-            this.motionEventListenerCount--;
             this.isGyroscopeActive = false;
             this.lastGyroscopeReading = null;
             this.normalizeGyroscopeToENU = false;
-            this.gyroscopeIntervalMs = 0;
-            this.gyroscopePrevReading = null;
-            this.gyroscopeAccumulatedX = 0;
-            this.gyroscopeAccumulatedY = 0;
-            this.gyroscopeAccumulatedZ = 0;
-            this.gyroscopeAccumulatedTime = 0;
-            this.gyroscopeLastEmitTime = 0;
-            if (this.gyroscopeTimer !== null) {
-                clearTimeout(this.gyroscopeTimer);
-                this.gyroscopeTimer = null;
-            }
-
-            if (this.motionEventListenerCount === 0) {
-                window.removeEventListener('devicemotion', this.boundHandleMotionEvent, true);
-            }
+            this.resetGyroscopeSamplingState();
+            this.stopMotionEvents();
             return ok(undefined);
         } catch (error) {
             return err(new GenericError('Failed to stop gyroscope monitoring', undefined, error as Error));
@@ -354,33 +397,30 @@ export class WebIMUProvider implements IIMUProvider {
     }
 
     async getAccelerationReading(): Promise<Result<IMUReading | null, GenericError>> {
-        if (this.disposed) {
-            return err(new GenericError('IMU provider has been disposed'));
-        }
-
-        if (!this.initialized) {
-            const initResult = await this.init();
-            if (initResult.isErr()) {
-                return err(initResult.error);
-            }
+        const readyResult = await this.ensureReady();
+        if (readyResult.isErr()) {
+            return err(readyResult.error);
         }
 
         return ok(this.lastAccelerationReading);
     }
 
     async getGyroscopeReading(): Promise<Result<IMUReading | null, GenericError>> {
-        if (this.disposed) {
-            return err(new GenericError('IMU provider has been disposed'));
-        }
-
-        if (!this.initialized) {
-            const initResult = await this.init();
-            if (initResult.isErr()) {
-                return err(initResult.error);
-            }
+        const readyResult = await this.ensureReady();
+        if (readyResult.isErr()) {
+            return err(readyResult.error);
         }
 
         return ok(this.lastGyroscopeReading);
+    }
+
+    async getCurrentOrientation(): Promise<Result<DeviceOrientationReading | null, GenericError>> {
+        const readyResult = await this.ensureReady();
+        if (readyResult.isErr()) {
+            return err(readyResult.error);
+        }
+
+        return ok(this.lastRawOrientationReading);
     }
 
     onAccelerationReading(callback: (reading: IMUReading) => void): number {
@@ -405,9 +445,21 @@ export class WebIMUProvider implements IIMUProvider {
         return id;
     }
 
+    onOrientationChange(callback: (reading: DeviceOrientationReading) => void): number {
+        const id = this.nextListenerId++;
+        this.orientationListeners.set(id, callback);
+
+        if (this.lastRawOrientationReading) {
+            callback(this.lastRawOrientationReading);
+        }
+
+        return id;
+    }
+
     removeEventListener(id: number): Result<void, GenericError> {
         this.accelerationListeners.delete(id);
         this.gyroscopeListeners.delete(id);
+        this.orientationListeners.delete(id);
         return ok(undefined);
     }
 
@@ -421,37 +473,53 @@ export class WebIMUProvider implements IIMUProvider {
         this.stopAcceleration();
         this.stopGyroscope();
 
-        if ('DeviceOrientationEvent' in window) {
-            window.removeEventListener('deviceorientation', this.boundHandleOrientationEvent);
-        }
+        this.stopOrientationEvents();
 
         this.accelerationListeners.clear();
         this.gyroscopeListeners.clear();
+        this.orientationListeners.clear();
 
         this.initialized = false;
         this.initPromise = null;
-        this.deviceOrientation = null;
+        this.compensatedOrientation = null;
         this.lastAccelerationReading = null;
         this.lastGyroscopeReading = null;
+        this.lastRawOrientationReading = null;
     }
 
     private handleOrientationEvent(event: DeviceOrientationEvent): void {
         if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
-            // The ENU rotation matrix is correct only if alpha/beta/gamma are in a
-            // stable device/world reference frame. Some Android browsers report
-            // alpha in screen coordinates, so normalize that before caching it.
-            const orientation = compensateOrientationForScreen({
+            const rawOrientationReading: DeviceOrientationReading = {
                 alpha: event.alpha,
                 beta: event.beta,
                 gamma: event.gamma,
+                absolute: event.absolute,
+                webkitCompassHeading: (event as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading,
                 timestamp: event.timeStamp || performance.now()
-            });
-            this.deviceOrientation = {
-                alpha: orientation.alpha,
-                beta: orientation.beta,
-                gamma: orientation.gamma
             };
+
+            this.lastRawOrientationReading = rawOrientationReading;
+            this.compensatedOrientation = this.getCompensatedOrientation(rawOrientationReading);
+
+            for (const callback of this.orientationListeners.values()) {
+                try {
+                    callback(rawOrientationReading);
+                } catch (error) {
+                    console.error('Error in orientation callback:', error);
+                }
+            }
         }
+    }
+
+    private getCompensatedOrientation(orientation: DeviceOrientationReading): { alpha: number; beta: number; gamma: number } {
+        // Use the raw browser reading for public consumers, but keep a screen-
+        // compensated copy for gravity removal and Device->ENU transforms.
+        const compensated = compensateOrientationForScreen(orientation);
+        return {
+            alpha: compensated.alpha,
+            beta: compensated.beta,
+            gamma: compensated.gamma
+        };
     }
 
     private handleMotionEvent(event: DeviceMotionEvent): void {
@@ -661,16 +729,16 @@ export class WebIMUProvider implements IIMUProvider {
         let y = acc.y;
         let z = acc.z;
 
-        if (needsGravityRemoval && this.deviceOrientation) {
-            const gravity = this.computeGravityInDeviceFrame(this.deviceOrientation);
+        if (needsGravityRemoval && this.compensatedOrientation) {
+            const gravity = this.computeGravityInDeviceFrame(this.compensatedOrientation);
             x -= gravity.x;
             y -= gravity.y;
             z -= gravity.z;
         }
 
         let reading: IMUReading;
-        if (this.normalizeAccelerationToENU && this.deviceOrientation) {
-            reading = this.transformToENU(x, y, z, timestamp, this.deviceOrientation);
+        if (this.normalizeAccelerationToENU && this.compensatedOrientation) {
+            reading = this.transformToENU(x, y, z, timestamp, this.compensatedOrientation);
         } else {
             reading = { x, y, z, timestamp };
         }
@@ -695,8 +763,8 @@ export class WebIMUProvider implements IIMUProvider {
         const z = rot.alpha;  // yaw rate
 
         let reading: IMUReading;
-        if (this.normalizeGyroscopeToENU && this.deviceOrientation) {
-            reading = this.transformToENU(x, y, z, timestamp, this.deviceOrientation);
+        if (this.normalizeGyroscopeToENU && this.compensatedOrientation) {
+            reading = this.transformToENU(x, y, z, timestamp, this.compensatedOrientation);
         } else {
             reading = { x, y, z, timestamp };
         }

@@ -6,7 +6,7 @@ import { NCard, NStatistic, NAlert, NButton, useThemeVars } from 'naive-ui';
 import { GeolocationManager } from '@/libs/geolocation';
 import { getPlatformServices } from '@/libs/platform/platform-services';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
-import type { IIMUProvider, IDeviceOrientationProvider } from '@/libs/platform/types';
+import type { IIMUProvider } from '@/libs/platform/types';
 import { orientationToCompassHeading } from '@/libs/heading';
 import type { GeographicPoint } from '@/libs/geolocation/types';
 
@@ -16,7 +16,6 @@ const theme = useThemeVars();
 
 // Platform services
 let imuProvider: IIMUProvider | null = null;
-let deviceOrientationProvider: IDeviceOrientationProvider | null = null;
 
 // State management
 // Device orientation data
@@ -46,6 +45,11 @@ const motionSupported = ref<boolean | null>(null);
 const compassHeading = computed(() => {
   if (!orientationData.value) return 0;
   return orientationToCompassHeading(orientationData.value);
+});
+
+const compassHeadingText = computed(() => {
+  if (compassHeading.value === undefined) return '--';
+  return compassHeading.value.toFixed(1);
 });
 
 const tiltAngle = computed(() => {
@@ -93,19 +97,14 @@ async function initializePlatformServices() {
     const platform = platformResult.value;
 
     const imuResult = platform.getIMU();
-    const orientationResult = platform.getDeviceOrientation();
 
     if (imuResult.isErr()) {
       motionSupported.value = false;
-    } else {
-      imuProvider = imuResult.value;
-      subscribeToMotionUpdates();
-    }
-
-    if (orientationResult.isErr()) {
       orientationSupported.value = false;
     } else {
-      deviceOrientationProvider = orientationResult.value;
+      imuProvider = imuResult.value;
+      orientationSupported.value = true;
+      subscribeToMotionUpdates();
       subscribeToOrientationUpdates();
     }
   } catch (error) {
@@ -116,19 +115,25 @@ async function initializePlatformServices() {
 }
 
 function subscribeToOrientationUpdates() {
-  if (!deviceOrientationProvider) {
-    orientationError.value = 'Device orientation provider not available';
+  if (!imuProvider) {
+    orientationError.value = 'IMU orientation provider not available';
     return;
   }
 
   try {
-    const listenerId = deviceOrientationProvider.onOrientationChange((orientation: DeviceOrientationReading) => {
+    const listenerId = imuProvider.onOrientationChange((orientation: DeviceOrientationReading) => {
       orientationData.value = orientation;
       orientationError.value = null;
     });
 
     orientationListenerId.value = listenerId;
     orientationError.value = null;
+
+    void imuProvider.getCurrentOrientation().then((result) => {
+      if (result.isOk()) {
+        orientationData.value = result.value;
+      }
+    });
   } catch (error) {
     orientationError.value = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
@@ -209,11 +214,10 @@ async function startGPSMonitoring() {
 }
 
 function cleanup() {
-  if (deviceOrientationProvider && orientationListenerId.value !== null) {
-    deviceOrientationProvider.removeEventListener(orientationListenerId.value);
-  }
-
   if (imuProvider) {
+    if (orientationListenerId.value !== null) {
+      imuProvider.removeEventListener(orientationListenerId.value);
+    }
     if (accelerationListenerId.value !== null) {
       imuProvider.removeEventListener(accelerationListenerId.value);
     }
@@ -285,7 +289,7 @@ const formatNumberString = (value: string) => {
             <div class="orientation-row">
               <NStatistic
                 :label="t('sensorTest.deviceOrientation.compassHeading')"
-                :value="compassHeading.toFixed(1)"
+                :value="compassHeadingText"
                 suffix="°"
               />
               <NStatistic
