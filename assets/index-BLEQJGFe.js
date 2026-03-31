@@ -1,8 +1,8 @@
-import { b8 as e, b9 as i, ba as c } from "./index-CbiGHjeQ.js";
-async function r(n, a) {
+import { bc as a, bd as i, be as c } from "./index-Dk6lT9zH.js";
+async function r(n, e) {
   const o = new c();
   return o.onmessage = (t) => {
-    typeof t == "string" ? a(null, t) : a(t);
+    typeof t == "string" ? e(null, t) : e(t);
   }, await i("plugin:geolocation|watch_position", { options: n, channel: o }), o.id;
 }
 async function u(n) {
@@ -12,7 +12,7 @@ async function l(n) {
   await i("plugin:geolocation|clear_watch", { channelId: n });
 }
 async function g() {
-  return await e("geolocation");
+  return await a("geolocation");
 }
 async function p(n) {
   return await i("plugin:geolocation|request_permissions", { permissions: n });
