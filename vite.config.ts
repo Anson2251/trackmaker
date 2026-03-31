@@ -2,7 +2,8 @@ import { fileURLToPath, URL } from 'node:url';
 import dotenv from 'dotenv';
 import { exec } from 'child_process'
 
-import { defineConfig, UserConfig } from 'vite';
+import type { UserConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import viteCompression from 'vite-plugin-compression';
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
@@ -70,6 +71,13 @@ async function generateConfig(): Promise<UserConfig> {
         build: {
             chunkSizeWarningLimit: 2000,
             outDir: "dist/trackmaker",
+        },
+        test: {
+            environment: 'node',
+            setupFiles: ['./src/test/setup.ts'],
+            restoreMocks: true,
+            clearMocks: true,
+            unstubGlobals: true,
         },
 
         // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

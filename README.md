@@ -218,6 +218,7 @@ The application requires API keys for mapping services. These are configured in 
 Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 
 - [Modules Documentation](./docs/modules.md)
+- [Testing Notes](./src/test/README.md)
 - [CartoSketch Library](./docs/libs/cartosketch/)
 - [Map Backends](./docs/libs/map-backends/)
 - [Utilities](./docs/utils/)

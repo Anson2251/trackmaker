@@ -2,8 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     compensateOrientationForScreen,
+    headingToLocalVelocity,
+    localVectorToHeading,
     normalizeHeadingIfFinite,
     orientationToCompassHeading,
+    relativeHeading,
 } from './heading';
 import type { DeviceOrientationReading } from './platform/types';
 
@@ -49,6 +52,30 @@ describe('normalizeHeadingIfFinite', () => {
     it('normalizes finite heading values', () => {
         expect(normalizeHeadingIfFinite(-10)).toBe(350);
         expect(normalizeHeadingIfFinite(725)).toBe(5);
+    });
+});
+
+describe('heading/vector conversions', () => {
+    it('computes relative heading in [0, 360)', () => {
+        expect(relativeHeading(10, 350)).toBe(20);
+        expect(relativeHeading(350, 10)).toBe(340);
+    });
+
+    it('converts heading 0 to north-aligned local velocity', () => {
+        expect(headingToLocalVelocity(5, 0)).toEqual({ x: 0, y: 5 });
+    });
+
+    it('converts heading 90 to east-aligned local velocity', () => {
+        const velocity = headingToLocalVelocity(5, 90);
+
+        expect(velocity.x).toBeCloseTo(5);
+        expect(velocity.y).toBeCloseTo(0);
+    });
+
+    it('converts local vectors back into north-clockwise heading', () => {
+        expect(localVectorToHeading(0, 5)).toBeCloseTo(0);
+        expect(localVectorToHeading(5, 0)).toBeCloseTo(90);
+        expect(localVectorToHeading(-5, 0)).toBeCloseTo(270);
     });
 });
 
