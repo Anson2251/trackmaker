@@ -73,6 +73,7 @@ import { useSettingsStore } from "@/store/settings-store";
 import { onBeforeRouteLeave } from "vue-router";
 import type { KalmanState } from "@/libs/geolocation";
 import type { GeographicPoint } from "@/libs/geolocation/types";
+import { relativeHeading } from "@/libs/heading";
 
 const platform = new PlatformInfo();
 const isMobile = platform.isMobile;
@@ -718,7 +719,7 @@ watch(
               :device-bearing="
                 mapStore.isTrackingOrientation
                   ? 0
-                  : (deviceBearing - mapStore.bearing) % 360
+                  : relativeHeading(deviceBearing, mapStore.bearing)
               "
             />
 

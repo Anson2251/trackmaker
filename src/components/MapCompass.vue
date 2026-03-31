@@ -2,6 +2,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useThemeVars } from "naive-ui";
 import { useImuCompass } from "@/composables/useImuCompass";
+import { normalizeHeading } from "@/libs/heading";
 
 const theme = useThemeVars();
 
@@ -48,7 +49,7 @@ const handleToggleTracking = () => {
   emit('toggleTracking');
 };
 
-const rotationStyle = computed(() => `transform: rotate(${(-bearing.value) % 360}deg)`);
+const rotationStyle = computed(() => `transform: rotate(${-normalizeHeading(bearing.value)}deg)`);
 
 const pitchRotationStyle = computed(
   () =>
@@ -114,7 +115,7 @@ const orientationTextList = ["N", "E", "S", "W"];
 const wheelOrientationAcceleration = 0.3;
 
 const orientationText = computed(() => {
-  const deg = bearing.value > 0 ? bearing.value : 360 + bearing.value;
+  const deg = normalizeHeading(bearing.value);
   return orientationTextList[Math.round((deg % 360) / 90) % 4];
 });
 
@@ -138,7 +139,7 @@ onMounted(() => {
       const newDeg =
         (bearing.value + event.deltaY * wheelOrientationAcceleration) %
         360;
-      bearing.value = Math.round(newDeg >= 0 ? newDeg : 360 + newDeg);
+      bearing.value = Math.round(normalizeHeading(newDeg));
     });
   }
 });

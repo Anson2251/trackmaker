@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { storageGet, storageSet, storageSave } from '../libs/storage';
 import { GeographicPoint } from '../libs/geolocation/types';
 import { defaultSettings } from '@/libs/default-settings';
+import { normalizeHeading } from '@/libs/heading';
 
 export type MapState = {
   zoom: number;
@@ -52,7 +53,7 @@ export const useMapStore = defineStore('map', () => {
   }
 
   function setBearing(newBearing: number) {
-    bearing.value = newBearing;
+    bearing.value = normalizeHeading(newBearing);
   }
 
   function setTrackingOrientation(tracking: boolean) {

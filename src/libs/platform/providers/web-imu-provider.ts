@@ -6,6 +6,7 @@ import { Result, ok, err } from 'neverthrow';
 import { Matrix } from 'ml-matrix';
 import type { IIMUProvider, IMUReading } from '../types';
 import { GenericError } from '@/libs/error-handling';
+import { compensateOrientationForScreen } from '@/libs/heading';
 
 interface DeviceMotionEventWithPermission {
     requestPermission(): Promise<'granted' | 'denied' | 'prompt'>;
@@ -436,10 +437,19 @@ export class WebIMUProvider implements IIMUProvider {
 
     private handleOrientationEvent(event: DeviceOrientationEvent): void {
         if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
-            this.deviceOrientation = {
+            // The ENU rotation matrix is correct only if alpha/beta/gamma are in a
+            // stable device/world reference frame. Some Android browsers report
+            // alpha in screen coordinates, so normalize that before caching it.
+            const orientation = compensateOrientationForScreen({
                 alpha: event.alpha,
                 beta: event.beta,
-                gamma: event.gamma
+                gamma: event.gamma,
+                timestamp: event.timeStamp || performance.now()
+            });
+            this.deviceOrientation = {
+                alpha: orientation.alpha,
+                beta: orientation.beta,
+                gamma: orientation.gamma
             };
         }
     }

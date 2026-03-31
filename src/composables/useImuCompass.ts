@@ -5,6 +5,7 @@ import type {
     IDeviceOrientationProvider,
 } from "@/libs/platform";
 import { logError, toAppError } from "@/libs/error-handling";
+import { orientationToCompassHeading } from "@/libs/heading";
 
 export interface UseImuCompassOptions {
     autoStart?: boolean;
@@ -49,24 +50,6 @@ export function useImuCompass(
         isSupported.value = true
     }
 
-    const orientationToBearing = (
-        orientation: DeviceOrientationReading,
-    ): number => {
-        // Use webkitCompassHeading if available (iOS)
-        if (orientation.webkitCompassHeading !== undefined) {
-            return orientation.webkitCompassHeading;
-        }
-
-        // Use alpha value for other platforms
-        // Alpha is the compass direction the device is facing (0-360)
-        // Convert to bearing (0-360, where 0 = North)
-        if (orientation.alpha !== null) {
-            return (360 - orientation.alpha) % 360;
-        }
-
-        return 0;
-    };
-
     // Start tracking
     const startTracking = async (): Promise<void> => {
         try {
@@ -79,7 +62,7 @@ export function useImuCompass(
 
             const wrappedCallback = (orientation: DeviceOrientationReading) => {
                 try {
-                    const newBearing = orientationToBearing(orientation);
+                    const newBearing = orientationToCompassHeading(orientation);
                     bearing.value = newBearing;
                     error.value = null;
                 } catch (err) {
@@ -103,7 +86,7 @@ export function useImuCompass(
             const currentResult =
                 await orientationProvider.getCurrentOrientation();
             if (currentResult.isOk() && currentResult.value) {
-                const newBearing = orientationToBearing(currentResult.value);
+                const newBearing = orientationToCompassHeading(currentResult.value);
                 bearing.value = newBearing;
             }
         } catch (err) {

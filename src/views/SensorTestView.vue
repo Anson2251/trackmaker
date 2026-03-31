@@ -7,6 +7,7 @@ import { GeolocationManager } from '@/libs/geolocation';
 import { getPlatformServices } from '@/libs/platform/platform-services';
 import type { IMUReading, DeviceOrientationReading } from '@/libs/platform';
 import type { IIMUProvider, IDeviceOrientationProvider } from '@/libs/platform/types';
+import { orientationToCompassHeading } from '@/libs/heading';
 import type { GeographicPoint } from '@/libs/geolocation/types';
 
 const { t } = useI18n();
@@ -44,7 +45,7 @@ const motionSupported = ref<boolean | null>(null);
 // Computed properties for display
 const compassHeading = computed(() => {
   if (!orientationData.value) return 0;
-  return orientationData.value.webkitCompassHeading || (360 - orientationData.value.alpha);
+  return orientationToCompassHeading(orientationData.value);
 });
 
 const tiltAngle = computed(() => {

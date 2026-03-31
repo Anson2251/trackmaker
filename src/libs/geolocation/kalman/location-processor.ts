@@ -8,6 +8,7 @@ import { Matrix } from 'ml-matrix';
 import { KalmanWorkerClient } from './worker-client';
 import { CoordinateTransformer } from '../utils/coordinate-transformer';
 import type { CartesianGPSReading } from './worker-types';
+import { headingToLocalVelocity, normalizeHeading } from '@/libs/heading';
 import {
     getKalmanInitialAccelerationUncertainty,
     getKalmanInitialPositionUncertainty,
@@ -356,7 +357,7 @@ export class LocationProcessor {
             return undefined;
         }
 
-        return this.gpsVelocityToLocal(speed, heading);
+        return this.gpsVelocityToLocal(speed, normalizeHeading(heading));
     }
 
     private getTrustedGPSSpeed(reading: GPSReading): number | undefined {
@@ -369,11 +370,7 @@ export class LocationProcessor {
     }
 
     private gpsVelocityToLocal(speed: number, heading: number): { x: number; y: number } {
-        // Convert heading (degrees clockwise from true north) to radians
-        const headingRad = heading * Math.PI / 180;
-        const vEast = speed * Math.sin(headingRad);
-        const vNorth = speed * Math.cos(headingRad);
-        return { x: vEast, y: vNorth };
+        return headingToLocalVelocity(speed, heading);
     }
 
     private notifyCallback(location: GeographicPoint): void {

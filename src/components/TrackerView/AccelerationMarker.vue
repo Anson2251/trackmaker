@@ -3,6 +3,7 @@ import { MglMarker } from "@indoorequal/vue-maplibre-gl";
 import { inject, ref, onMounted, onUnmounted, computed } from "vue";
 import type { GeolocationManager } from "@/libs/geolocation";
 import type { GeographicPoint } from "@/libs/geolocation/types";
+import { localVectorToHeading, relativeHeading } from "@/libs/heading";
 
 interface Props {
   isWatchingCurrentLocation: boolean;
@@ -50,7 +51,7 @@ const pointLngLatLike = computed<[number, number]>(() => currentLocation.value ?
 const accelerationDirection = computed(() => {
   if (!kalmanState.value) return 0;
   const { x, y } = kalmanState.value.acceleration;
-  return (-Math.atan2(y, x) * (180 / Math.PI) - props.mapBearing) % 360; // Convert to degrees
+  return relativeHeading(localVectorToHeading(x, y), props.mapBearing);
 });
 
 const accelerationMagnitude = computed(() => {
