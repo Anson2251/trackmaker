@@ -182,7 +182,6 @@ export class PlatformDetector {
                 enableKalmanFilter: true,
                 kalmanConfig: {
                     enableIMUFusion: true,
-                    imuUpdateInterval: 100,
                     maxAge: 5000,
                     sigmaAcceleration: 1.0,
                     initialPositionUncertainty: 20,

@@ -226,6 +226,30 @@ describe('WebIMUProvider', () => {
         expect(result.isOk() && result.value).toEqual({ x: 1, y: 2, z: 3, timestamp: 123 });
     });
 
+    it('timestamps aggregated acceleration readings at the midpoint of the aggregation window', async () => {
+        const { dispatchOrientation, dispatchMotion } = createWindowListenerHarness();
+        const provider = new WebIMUProvider();
+        await initProvider(provider, dispatchOrientation);
+
+        const callback = vi.fn();
+        provider.onAccelerationReading(callback);
+        await provider.startAcceleration({ frequency: 20, normalizeToENU: false });
+
+        dispatchMotion({
+            acceleration: { x: 1, y: 0, z: 0 },
+            timeStamp: 100,
+        });
+        dispatchMotion({
+            acceleration: { x: 3, y: 0, z: 0 },
+            timeStamp: 150,
+        });
+
+        const result = await provider.getAccelerationReading();
+
+        expect(callback).toHaveBeenLastCalledWith({ x: 2, y: 0, z: 0, timestamp: 125 });
+        expect(result.isOk() && result.value).toEqual({ x: 2, y: 0, z: 0, timestamp: 125 });
+    });
+
     it('normalizes gyroscope readings into ENU using the cached orientation', async () => {
         const { dispatchOrientation, dispatchMotion } = createWindowListenerHarness();
         const provider = new WebIMUProvider();

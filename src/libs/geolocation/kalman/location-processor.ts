@@ -45,12 +45,11 @@ export class LocationProcessor {
 
     constructor(
         callback: LocationCallback,
-        imuUpdateInterval: number = 100,
         options?: LocationProcessorOptions
     ) {
         this.workerClient = new KalmanWorkerClient();
         this.coordinateTransformer = new CoordinateTransformer();
-        this.imuManager = new IMUFusionManager(imuUpdateInterval);
+        this.imuManager = new IMUFusionManager();
         this.callback = callback;
         this.debugEnabled = options?.debugEnabled ?? isDebugModeEnabled();
         this.withoutIMU = options?.useIMU === false;

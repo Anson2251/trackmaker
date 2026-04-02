@@ -9,9 +9,10 @@ export class IMUFusionManager {
     private imuProvider: IIMUProvider | null = null;
     private isListening = false;
     private imuCallbacks: ((reading: IMUReading) => void)[] = [];
-    private imuUpdateInterval: number | null = null;
-
-    constructor(private imuUpdateIntervalMs: number = 100) {}
+    private accelerationListenerId: number | null = null;
+    private gyroscopeListenerId: number | null = null;
+    private lastAccelerationReading: { x: number; y: number; z: number; timestamp: number } | null = null;
+    private lastGyroscopeReading: { x: number; y: number; z: number; timestamp: number } | null = null;
 
     async initialize(): Promise<Result<void, GeolocationError>> {
         try {
@@ -66,13 +67,19 @@ export class IMUFusionManager {
         }
 
         try {
-            // IMPORTANT: We assume that the IMU update has been started and is available.
-            // Register callback
             this.imuCallbacks.push(callback);
-            this.isListening = true;
+            this.lastAccelerationReading = null;
+            this.lastGyroscopeReading = null;
 
-            // Start polling for IMU data
-            this.startIMUPolling();
+            this.accelerationListenerId = this.imuProvider.onAccelerationReading((reading) => {
+                this.lastAccelerationReading = reading;
+                this.emitCombinedReading('acceleration', reading.timestamp);
+            });
+            this.gyroscopeListenerId = this.imuProvider.onGyroscopeReading((reading) => {
+                this.lastGyroscopeReading = reading;
+                this.emitCombinedReading('gyroscope', reading.timestamp);
+            });
+            this.isListening = true;
 
             console.info('[IMUFusionManager] Started IMU sensor fusion');
             return ok(undefined);
@@ -91,14 +98,24 @@ export class IMUFusionManager {
         }
 
         try {
-            // Only stop this manager's polling/callback lifecycle.
-            // Platform services own the shared IMU sensor lifetime.
-            if (this.imuUpdateInterval) {
-                clearInterval(this.imuUpdateInterval);
-                this.imuUpdateInterval = null;
+            if (this.accelerationListenerId !== null) {
+                const removeResult = this.imuProvider.removeEventListener(this.accelerationListenerId);
+                if (removeResult.isErr()) {
+                    console.warn('[IMUFusionManager] Failed to remove acceleration listener:', removeResult.error);
+                }
+                this.accelerationListenerId = null;
+            }
+            if (this.gyroscopeListenerId !== null) {
+                const removeResult = this.imuProvider.removeEventListener(this.gyroscopeListenerId);
+                if (removeResult.isErr()) {
+                    console.warn('[IMUFusionManager] Failed to remove gyroscope listener:', removeResult.error);
+                }
+                this.gyroscopeListenerId = null;
             }
 
             this.imuCallbacks = [];
+            this.lastAccelerationReading = null;
+            this.lastGyroscopeReading = null;
             this.isListening = false;
 
             console.info('[IMUFusionManager] Stopped IMU sensor fusion');
@@ -112,63 +129,35 @@ export class IMUFusionManager {
         }
     }
 
-    private startIMUPolling(): void {
-        if (!this.imuProvider) return;
+    private emitCombinedReading(source: 'acceleration' | 'gyroscope', timestamp: number): void {
+        const reading: IMUReading = { timestamp };
 
-        // Intentionally poll the latest IMU snapshot instead of forwarding every raw
-        // devicemotion event. On lower-end phones, pushing the full sensor event rate
-        // through JS can cost too much CPU and trigger unnecessary JIT pressure.
-        this.imuUpdateInterval = setInterval(async () => {
-            try {
-                const reading = await this.getCombinedIMUReading();
-                if (reading) {
-                    for (const callback of this.imuCallbacks) {
-                        try {
-                            callback(reading);
-                        } catch (error) {
-                            console.error('[IMUFusionManager] IMU callback error:', error);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('[IMUFusionManager] Error polling IMU:', error);
-            }
-        }, this.imuUpdateIntervalMs) as unknown as number;
-    }
-
-    private async getCombinedIMUReading(): Promise<IMUReading | null> {
-        if (!this.imuProvider) return null;
-
-        try {
-            const [accelResult, gyroResult] = await Promise.all([
-                this.imuProvider.getAccelerationReading(),
-                this.imuProvider.getGyroscopeReading()
-            ]);
-
-            const reading: IMUReading = {
-                timestamp: performance.now()
+        if (this.lastAccelerationReading) {
+            reading.acceleration = {
+                x: this.lastAccelerationReading.x,
+                y: this.lastAccelerationReading.y,
+                z: this.lastAccelerationReading.z,
             };
+        }
 
-            if (accelResult.isOk() && accelResult.value) {
-                reading.acceleration = {
-                    x: accelResult.value.x,
-                    y: accelResult.value.y,
-                    z: accelResult.value.z
-                };
+        if (this.lastGyroscopeReading) {
+            reading.gyroscope = {
+                x: this.lastGyroscopeReading.x,
+                y: this.lastGyroscopeReading.y,
+                z: this.lastGyroscopeReading.z,
+            };
+        }
+
+        if (!reading.acceleration && !reading.gyroscope) {
+            return;
+        }
+
+        for (const callback of this.imuCallbacks) {
+            try {
+                callback(reading);
+            } catch (error) {
+                console.error(`[IMUFusionManager] ${source} callback error:`, error);
             }
-
-            if (gyroResult.isOk() && gyroResult.value) {
-                reading.gyroscope = {
-                    x: gyroResult.value.x,
-                    y: gyroResult.value.y,
-                    z: gyroResult.value.z
-                };
-            }
-
-            return reading;
-        } catch (error) {
-            console.error('[IMUFusionManager] Error getting combined IMU reading:', error);
-            return null;
         }
     }
 }

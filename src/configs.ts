@@ -91,7 +91,9 @@ export const modules: ModuleItem[] = [
                     throw storageInitResult.error;
                 }
 
-                // Initialize the shared IMU/orientation provider
+                // Initialize the shared IMU/orientation provider once during platform boot.
+                // The geolocation stack subscribes to these shared streams later; it does not
+                // configure a second sampling interval of its own.
                 const imuResult = platformServices.getIMU();
                 if (imuResult.isOk()) {
                     const imuProvider = imuResult.value;
@@ -100,6 +102,9 @@ export const modules: ModuleItem[] = [
                         console.warn("[Platform] IMU not supported on this platform");
                     }
                     else {
+                        // `imuUpdateFrequency` is the only runtime knob that controls provider-side
+                        // aggregation. Negative values mean raw event forwarding, positive values
+                        // enable interval aggregation inside WebIMUProvider.
                         await imuProvider.startAcceleration({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
                         await imuProvider.startGyroscope({ frequency: getIMUUpdateFrequency(), normalizeToENU: true });
                     }

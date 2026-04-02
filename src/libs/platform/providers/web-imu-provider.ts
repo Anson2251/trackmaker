@@ -320,12 +320,11 @@ export class WebIMUProvider implements IIMUProvider {
 
         try {
             this.normalizeAccelerationToENU = options.normalizeToENU ?? false;
-            // frequency < 0 means emit directly without averaging
-            // frequency === 0 means emit every reading (no interval-based averaging)
-            // frequency > 0 means average over the specified interval
-            this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            // Sampling/aggregation is owned by the provider. Downstream Kalman code consumes
+            // whatever stream is produced here and does not apply its own IMU polling interval.
+            this.accelerationIntervalMs = this.getSamplingIntervalMs(options.frequency);
             this.resetAccelerationSamplingState();
-            this.accelerationIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            this.accelerationIntervalMs = this.getSamplingIntervalMs(options.frequency);
 
             this.startMotionEvents();
             this.isAccelerationActive = true;
@@ -347,12 +346,9 @@ export class WebIMUProvider implements IIMUProvider {
 
         try {
             this.normalizeGyroscopeToENU = options.normalizeToENU ?? false;
-            // frequency < 0 means emit directly without averaging
-            // frequency === 0 means emit every reading (no interval-based averaging)
-            // frequency > 0 means average over the specified interval
-            this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            this.gyroscopeIntervalMs = this.getSamplingIntervalMs(options.frequency);
             this.resetGyroscopeSamplingState();
-            this.gyroscopeIntervalMs = options.frequency !== undefined ? Math.floor(1000 / options.frequency) : 0;
+            this.gyroscopeIntervalMs = this.getSamplingIntervalMs(options.frequency);
 
             this.startMotionEvents();
             this.isGyroscopeActive = true;
@@ -545,9 +541,9 @@ export class WebIMUProvider implements IIMUProvider {
 
         if (this.accelerationPrevReading === null) {
             this.accelerationPrevReading = reading;
-            this.accelerationAccumulatedX = reading.x;
-            this.accelerationAccumulatedY = reading.y;
-            this.accelerationAccumulatedZ = reading.z;
+            this.accelerationAccumulatedX = 0;
+            this.accelerationAccumulatedY = 0;
+            this.accelerationAccumulatedZ = 0;
             this.accelerationAccumulatedTime = 0;
             this.accelerationLastEmitTime = reading.timestamp;
             if (this.accelerationTimer === null) {
@@ -601,11 +597,12 @@ export class WebIMUProvider implements IIMUProvider {
             const avgX = this.accelerationAccumulatedX / this.accelerationAccumulatedTime;
             const avgY = this.accelerationAccumulatedY / this.accelerationAccumulatedTime;
             const avgZ = this.accelerationAccumulatedZ / this.accelerationAccumulatedTime;
+            const midpointTimestamp = this.accelerationLastEmitTime + this.accelerationAccumulatedTime / 2;
             reading = {
                 x: avgX,
                 y: avgY,
                 z: avgZ,
-                timestamp: this.accelerationPrevReading.timestamp
+                timestamp: midpointTimestamp
             };
         }
 
@@ -634,9 +631,9 @@ export class WebIMUProvider implements IIMUProvider {
 
         if (this.gyroscopePrevReading === null) {
             this.gyroscopePrevReading = reading;
-            this.gyroscopeAccumulatedX = reading.x;
-            this.gyroscopeAccumulatedY = reading.y;
-            this.gyroscopeAccumulatedZ = reading.z;
+            this.gyroscopeAccumulatedX = 0;
+            this.gyroscopeAccumulatedY = 0;
+            this.gyroscopeAccumulatedZ = 0;
             this.gyroscopeAccumulatedTime = 0;
             this.gyroscopeLastEmitTime = reading.timestamp;
             if (this.gyroscopeTimer === null) {
@@ -690,11 +687,12 @@ export class WebIMUProvider implements IIMUProvider {
             const avgX = this.gyroscopeAccumulatedX / this.gyroscopeAccumulatedTime;
             const avgY = this.gyroscopeAccumulatedY / this.gyroscopeAccumulatedTime;
             const avgZ = this.gyroscopeAccumulatedZ / this.gyroscopeAccumulatedTime;
+            const midpointTimestamp = this.gyroscopeLastEmitTime + this.gyroscopeAccumulatedTime / 2;
             reading = {
                 x: avgX,
                 y: avgY,
                 z: avgZ,
-                timestamp: this.gyroscopePrevReading.timestamp
+                timestamp: midpointTimestamp
             };
         }
 
@@ -784,6 +782,20 @@ export class WebIMUProvider implements IIMUProvider {
                 console.error(`Error in ${type} callback:`, error);
             }
         }
+    }
+
+    private getSamplingIntervalMs(frequency?: number): number {
+        if (frequency === undefined) {
+            return 0;
+        }
+
+        if (frequency <= 0) {
+            // Use a negative sentinel so the emit path can treat all non-positive values as
+            // "forward raw events immediately" without relying on Infinity/NaN edge cases.
+            return -1;
+        }
+
+        return Math.floor(1000 / frequency);
     }
 
     /**

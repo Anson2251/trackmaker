@@ -186,7 +186,7 @@ export const advancedSettingsConfig: AdvancedSettingConfig[] = [
         key: 'imuUpdateFrequency',
         name: 'IMU Update Frequency (Hz)',
         type: 'number',
-        description: 'Update frequency for IMU sensors (0 = immediate, 10-20Hz recommended)',
+        description: 'Update frequency for IMU sensors (-1 = raw/no aggregation, 10-20Hz recommended)',
     },
     // Kalman filter parameters
     {

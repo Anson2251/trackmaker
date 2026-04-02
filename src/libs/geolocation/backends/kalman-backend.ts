@@ -13,12 +13,10 @@ export class KalmanBackend implements BackendStrategy {
     private watchId: number | null = null;
     private isInitialized = false;
     private userCallback: LocationCallback | null = null;
-    private imuUpdateInterval: number;
     private useIMU: boolean;
 
-    constructor(name: 'kalman' | 'kalman-no-imu' = 'kalman', imuUpdateInterval: number = 100) {
+    constructor(name: 'kalman' | 'kalman-no-imu' = 'kalman') {
         this.name = name;
-        this.imuUpdateInterval = imuUpdateInterval;
         this.useIMU = name !== 'kalman-no-imu';
     }
 
@@ -56,7 +54,6 @@ export class KalmanBackend implements BackendStrategy {
 
             this.processor = new LocationProcessor(
                 (location, _source) => this.handleLocationUpdate(location),
-                this.imuUpdateInterval,
                 {
                     useIMU: this.useIMU,
                     source: this.name,

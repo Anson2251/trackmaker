@@ -12,7 +12,7 @@ import { GPSBackend } from "../backends/gps-backend";
 import { IPFallbackBackend } from "../backends/ip-fallback-backend";
 import { KalmanBackend } from "../backends/kalman-backend";
 import { cloneDeep } from "lodash-es";
-import { isKalmanFilterEnabled, getIMUUpdateFrequency, getEarlySetting } from "@/libs/default-settings";
+import { isKalmanFilterEnabled, getEarlySetting } from "@/libs/default-settings";
 import { wgs2gcj } from "../utils/coordinate-transformer";
 import type { KalmanState } from "../kalman/kalman-types";
 
@@ -60,10 +60,8 @@ export class GeolocationManager implements GeolocationManagerInterface {
 
         // Include Kalman backend only if enabled in settings
         if (includeKalman) {
-            const frequency = getIMUUpdateFrequency();
-            const imuUpdateInterval = frequency > 0 ? Math.floor(1000 / frequency) : 50; // Default to 20Hz if immediate
             const kalmanMode = backendPreference === 'kalman-no-imu' ? 'kalman-no-imu' : 'kalman';
-            strategies.push(new KalmanBackend(kalmanMode, imuUpdateInterval));
+            strategies.push(new KalmanBackend(kalmanMode));
         }
 
         // Include GPS backend based on preference

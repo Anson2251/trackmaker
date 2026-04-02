@@ -81,7 +81,7 @@ describe('LocationProcessor', () => {
 
     it('does not synthesize GPS velocity on the very first reading without a trusted heading', async () => {
         const { LocationProcessor } = await import('./location-processor');
-        const processor = new LocationProcessor(() => undefined, 100, { useIMU: false });
+        const processor = new LocationProcessor(() => undefined, { useIMU: false });
 
         const result = await processor.initialize({
             latitude: 30,
@@ -102,7 +102,7 @@ describe('LocationProcessor', () => {
 
     it('falls back to course derived from consecutive GPS points when heading is missing', async () => {
         const { LocationProcessor } = await import('./location-processor');
-        const processor = new LocationProcessor(() => undefined, 100, { useIMU: false });
+        const processor = new LocationProcessor(() => undefined, { useIMU: false });
 
         await processor.initialize({
             latitude: 30,
@@ -133,7 +133,7 @@ describe('LocationProcessor', () => {
 
     it('ignores course fallback when the displacement is too small for the reported accuracy', async () => {
         const { LocationProcessor } = await import('./location-processor');
-        const processor = new LocationProcessor(() => undefined, 100, { useIMU: false });
+        const processor = new LocationProcessor(() => undefined, { useIMU: false });
 
         await processor.initialize({
             latitude: 30,
