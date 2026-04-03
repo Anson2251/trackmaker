@@ -1,4 +1,4 @@
-import { bc as a, bd as i, be as c } from "./index-Bz2manPu.js";
+import { bc as a, bd as i, be as c } from "./index-Bal4M724.js";
 async function r(n, e) {
   const o = new c();
   return o.onmessage = (t) => {
