@@ -567,9 +567,9 @@ export class WebIMUProvider implements IIMUProvider {
         if (reading.timestamp - this.accelerationLastEmitTime >= this.accelerationIntervalMs) {
             this.flushAccelerationReadings();
             this.accelerationPrevReading = reading;
-            this.accelerationAccumulatedX = reading.x;
-            this.accelerationAccumulatedY = reading.y;
-            this.accelerationAccumulatedZ = reading.z;
+            this.accelerationAccumulatedX = 0;
+            this.accelerationAccumulatedY = 0;
+            this.accelerationAccumulatedZ = 0;
             this.accelerationAccumulatedTime = 0;
             this.accelerationLastEmitTime = reading.timestamp;
             if (this.accelerationTimer !== null) {
@@ -657,9 +657,9 @@ export class WebIMUProvider implements IIMUProvider {
         if (reading.timestamp - this.gyroscopeLastEmitTime >= this.gyroscopeIntervalMs) {
             this.flushGyroscopeReadings();
             this.gyroscopePrevReading = reading;
-            this.gyroscopeAccumulatedX = reading.x;
-            this.gyroscopeAccumulatedY = reading.y;
-            this.gyroscopeAccumulatedZ = reading.z;
+            this.gyroscopeAccumulatedX = 0;
+            this.gyroscopeAccumulatedY = 0;
+            this.gyroscopeAccumulatedZ = 0;
             this.gyroscopeAccumulatedTime = 0;
             this.gyroscopeLastEmitTime = reading.timestamp;
             if (this.gyroscopeTimer !== null) {
@@ -720,6 +720,13 @@ export class WebIMUProvider implements IIMUProvider {
         }
 
         if (!acc || acc.x === null || acc.y === null || acc.z === null) {
+            return;
+        }
+
+        // If we need to remove gravity but orientation is not yet available, we cannot
+        // determine the gravity direction in device frame. Skip this sample to avoid
+        // sending gravity-contaminated acceleration to the Kalman filter.
+        if (needsGravityRemoval && !this.compensatedOrientation) {
             return;
         }
 
