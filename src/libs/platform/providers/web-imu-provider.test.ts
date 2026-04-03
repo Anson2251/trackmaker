@@ -250,7 +250,7 @@ describe('WebIMUProvider', () => {
         expect(result.isOk() && result.value).toEqual({ x: 2, y: 0, z: 0, timestamp: 125 });
     });
 
-    it('normalizes gyroscope readings into ENU using the cached orientation', async () => {
+    it('normalizes gyroscope readings into ENU using compass-heading yaw semantics', async () => {
         const { dispatchOrientation, dispatchMotion } = createWindowListenerHarness();
         const provider = new WebIMUProvider();
         await initProvider(provider, dispatchOrientation);
@@ -270,7 +270,7 @@ describe('WebIMUProvider', () => {
         const reading = result.isOk() ? result.value : null;
 
         expect(callback).toHaveBeenCalled();
-        expectVectorCloseTo(reading, { x: 0, y: -1, z: 0, timestamp: 200 });
+        expectVectorCloseTo(reading, { x: 0, y: 1, z: 0, timestamp: 200 });
     });
 
     it('removes gravity from accelerationIncludingGravity using the compensated orientation', async () => {

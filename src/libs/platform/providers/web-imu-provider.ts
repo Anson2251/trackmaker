@@ -6,7 +6,7 @@ import { Result, ok, err } from 'neverthrow';
 import { Matrix } from 'ml-matrix';
 import type { IIMUProvider, IMUReading, DeviceOrientationReading } from '../types';
 import { GenericError } from '@/libs/error-handling';
-import { compensateOrientationForScreen } from '@/libs/heading';
+import { compensateOrientationForScreen, normalizeHeading } from '@/libs/heading';
 
 interface DeviceEventWithPermission {
     requestPermission(): Promise<'granted' | 'denied' | 'prompt'>;
@@ -801,11 +801,15 @@ export class WebIMUProvider implements IIMUProvider {
     /**
      * Update preallocated rotation matrix
      * DeviceOrientationEvent: alpha=Z(yaw), beta=X(pitch), gamma=Y(roll)
-     * R = Rx(beta) * Ry(gamma) * Rz(alpha) for Device->ENU transform
+     * `alpha` is reported in the browser/device convention, while the rest of the
+     * geolocation stack uses compass heading (clockwise from north). Convert alpha
+     * into that heading convention first so IMU ENU vectors line up with GPS/local
+     * coordinates where x=East and y=North.
      */
     private updateRotationMatrices(orientation: { alpha: number; beta: number; gamma: number }): void {
         // Negate angles to get Device->ENU transformation (inverse of DeviceOrientationEvent angles)
-        const alpha = -orientation.alpha * WebIMUProvider.DEG_TO_RAD;
+        const alphaHeading = normalizeHeading(360 - orientation.alpha);
+        const alpha = -alphaHeading * WebIMUProvider.DEG_TO_RAD;
         const beta = -orientation.beta * WebIMUProvider.DEG_TO_RAD;
         const gamma = -orientation.gamma * WebIMUProvider.DEG_TO_RAD;
 
